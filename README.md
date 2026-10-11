@@ -17,7 +17,7 @@ We are two Data Scientists exploring how organized volunteer teams could plan wh
 
 ## Local setup
 
-The public [ReachPoint repository](https://github.com/Supphaset/ReachPoint) has a minimal README on `main`. The project documentation and static review artifacts are prepared on `codex/project-foundation` for a pull request; a human reviews and merges them. See [decision 0008](docs/decisions/0008-reachpoint-name-and-public-repository.md) for the approved name and publication boundary.
+The public [ReachPoint repository](https://github.com/Supphaset/ReachPoint) has a minimal README on `main`. The project documentation and static review artifacts are published on `codex/project-foundation` in [draft PR #1](https://github.com/Supphaset/ReachPoint/pull/1); a human reviews and merges them. See [decision 0008](docs/decisions/0008-reachpoint-name-and-public-repository.md) for the approved name and publication boundary.
 
 No application dependencies, environment variables or build commands are required. Review documentation links and run `git diff --check` before committing. See [contributing](CONTRIBUTING.md) for task ownership and review.
 

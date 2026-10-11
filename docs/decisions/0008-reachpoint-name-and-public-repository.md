@@ -12,7 +12,7 @@ The human requested “lets use ReachPoint and create me a new repo for this”,
 
 Use ReachPoint as the current project name. Create a public repository with a minimal README on main. Submit the current planning documents, collaboration contract, architecture diagrams and synthetic static wireframes on `codex/project-foundation` for human review. This gives both collaborators a shared review location while preserving the approved documentation-only boundary.
 
-The public repository was created on this date. The review package is prepared for submission; merging requires human review.
+The public repository was created on this date. The review package is published in [draft PR #1](https://github.com/Supphaset/ReachPoint/pull/1); merging requires human review.
 
 ## Alternatives and consequences
 
