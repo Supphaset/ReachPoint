@@ -34,6 +34,7 @@ DEFAULTS = {
     "max_slope_deg": 5,     # flood water does not sit on steep slopes
     "perm_water_pct": 80,   # JRC occurrence above this is permanent water, not flood
     "min_pixels": 8,        # connected pixels at 10 m; removes isolated noise
+    "close_m": 30,          # morphological closing: fills dry gaps and smooths edges under ~this size
     "scale_m": 20,          # vectorisation scale
 }
 
@@ -103,6 +104,9 @@ def flood_for_date(aoi, pkg, date, orbit, p):
     before = smooth_vv(baseline, p["smooth_m"])
 
     flood = after.subtract(before).lt(p["diff_db"]).And(after.lt(p["water_db"]))
+    if p["close_m"]:
+        r = p["close_m"]
+        flood = flood.unmask(0).focalMax(r, "circle", "meters").focalMin(r, "circle", "meters")
 
     permanent = ee.Image("JRC/GSW1_4/GlobalSurfaceWater").select("occurrence").unmask(0)
     slope = ee.Terrain.slope(ee.Image("USGS/SRTMGL1_003"))
@@ -126,7 +130,7 @@ def to_polygons(mask, aoi, props, scale):
     )
 
     def tidy(f):
-        f = ee.Feature(f).simplify(SIMPLIFY_M)
+        f = ee.Feature(f).simplify(SIMPLIFY_M).intersection(aoi, 1)
         return f.set({"area_m2": f.geometry().area(1), **props})
 
     return vectors.map(tidy).filter(ee.Filter.gte("area_m2", MIN_POLYGON_M2))
@@ -136,11 +140,56 @@ def event_scenes(aoi, pkg):
     """(date, orbit) pairs that have both an event scene and a baseline on the same orbit."""
     rows = scene_rows(s1_collection(aoi, *pkg["event"]))
     base_orbits = {r["orbit"] for r in scene_rows(s1_collection(aoi, *pkg["baseline"]))}
-    pairs = sorted({(r["time"][:10], r["orbit"]) for r in rows if r["orbit"] in base_orbits})
-    return pairs
+    first_time = {}
+    for r in rows:
+        if r["orbit"] in base_orbits:
+            first_time.setdefault((r["time"][:10], r["orbit"]), r["time"])
+    return [(d, o, first_time[(d, o)]) for d, o in sorted(first_time)]
+
+
+KEEP_PROPS = ("package", "acquired", "orbit", "kind", "area_m2")
+BANGKOK = timezone(timedelta(hours=7))
+
+
+def local_time(utc_text):
+    """'2025-11-23T23:03' (UTC) -> '2025-11-24 06:03 Bangkok'."""
+    t = datetime.strptime(utc_text, "%Y-%m-%dT%H:%M").replace(tzinfo=timezone.utc).astimezone(BANGKOK)
+    return t.strftime("%Y-%m-%d %H:%M") + " Bangkok"
+
+
+def round_coords(c):
+    return [round_coords(x) for x in c] if isinstance(c[0], list) else [round(c[0], 5), round(c[1], 5)]
+
+
+def drop_small_parts(geom):
+    """reduceToVectors joins pixels that touch at a corner into one multipart polygon;
+    drop parts under the minimum area so lone pixels don't survive the area filter."""
+    sys.path.insert(0, str(DATA_DIR / "scripts"))
+    from check_extent_budget import polygon_area_m2
+
+    parts = [geom["coordinates"]] if geom["type"] == "Polygon" else geom["coordinates"]
+    keep = [p for p in parts if polygon_area_m2(p) >= MIN_POLYGON_M2]
+    if not keep:
+        return None
+    return {"type": "Polygon", "coordinates": keep[0]} if len(keep) == 1 else {"type": "MultiPolygon", "coordinates": keep}
 
 
 def write_geojson(fc_info, path, meta):
+    kept = []
+    for f in fc_info["features"]:
+        geom = drop_small_parts(f["geometry"]) if f["geometry"]["type"] in ("Polygon", "MultiPolygon") else None
+        if geom is None:
+            continue
+        f["geometry"] = geom
+        kept.append(f)
+    fc_info["features"] = kept
+    for f in fc_info["features"]:
+        f.pop("id", None)
+        f["geometry"]["coordinates"] = round_coords(f["geometry"]["coordinates"])  # 5 dp is about 1 m
+        props = {k: v for k, v in f["properties"].items() if k in KEEP_PROPS}
+        props["area_m2"] = round(props.get("area_m2", 0))
+        f["properties"] = props
+    fc_info.pop("columns", None)
     fc_info["reachpoint"] = meta  # GeoJSON foreign member; ignored by map libraries
     path.write_text(json.dumps(fc_info, separators=(",", ":")))
     return path.stat().st_size
@@ -151,6 +200,8 @@ def cmd_detect(args, pkg, aoi):
     pairs = event_scenes(aoi, pkg)
     if args.date:
         pairs = [x for x in pairs if x[0] in args.date]
+    global SIMPLIFY_M
+    SIMPLIFY_M = args.simplify_m
     if not pairs:
         sys.exit("No event scene with a matching baseline orbit. Run `list` and check the windows.")
 
@@ -159,28 +210,33 @@ def cmd_detect(args, pkg, aoi):
     year = pkg["event"][0][:4]
     masks, per_date = [], []
 
-    for date, orbit in pairs:
+    for date, orbit, utc in pairs:
         mask = flood_for_date(aoi, pkg, date, orbit, p)
         masks.append(mask)
         km2 = flooded_km2(mask, aoi, p["scale_m"]).getInfo()
-        per_date.append({"date": date, "orbit": orbit, "flooded_km2": round(km2, 2)})
-        print(f"  {date} orbit {orbit}: {km2:.2f} km² flooded (detected)")
+        local = local_time(utc)
+        per_date.append({"date_utc": date, "acquired_utc": utc, "acquired_local": local, "orbit": orbit, "flooded_km2": round(km2, 2)})
+        print(f"  {local} (UTC {utc}) orbit {orbit}: {km2:.2f} km² flooded (detected)")
         if args.per_date:
-            props = {"package": args.package, "acquired": date, "orbit": orbit, "kind": "observed_extent"}
+            props = {"package": args.package, "acquired": local, "orbit": orbit, "kind": "observed_extent"}
             info = to_polygons(mask, aoi, props, p["scale_m"]).getInfo()
             path = out_dir / f"extent-{date}-o{orbit}.geojson"
-            size = write_geojson(info, path, {"label": LABEL.format(dates=date), "attribution": ATTRIBUTION.format(year=year)})
+            size = write_geojson(info, path, {"label": LABEL.format(dates=local), "attribution": ATTRIBUTION.format(year=year)})
             print(f"    -> {path.relative_to(DATA_DIR.parent)} ({size / 1024:.0f} KB)")
 
-    dates = sorted({d for d, _ in pairs})
-    max_extent = ee.ImageCollection(masks).max().rename("flood")
-    props = {"package": args.package, "acquired": ",".join(dates), "kind": "max_observed_extent"}
+    dates = [s["acquired_local"] for s in per_date]
+    # Union of all passes. ImageCollection.max() gave a smaller, wrong area here, so OR them explicitly.
+    union = masks[0].unmask(0)
+    for m in masks[1:]:
+        union = union.Or(m.unmask(0))
+    max_extent = union.selfMask().clip(aoi).rename("flood")
+    props = {"package": args.package, "acquired": "; ".join(dates), "kind": "max_observed_extent"}
     info = to_polygons(max_extent, aoi, props, p["scale_m"]).getInfo()
     meta = {
         "label": LABEL.format(dates=", ".join(dates)),
         "attribution": ATTRIBUTION.format(year=year),
         "method": "Sentinel-1 VV change detection vs same-orbit baseline median",
-        "parameters": p,
+        "parameters": {**p, "simplify_m": SIMPLIFY_M, "min_polygon_m2": MIN_POLYGON_M2},
         "baseline_window": pkg["baseline"],
         "scenes": per_date,
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -191,7 +247,7 @@ def cmd_detect(args, pkg, aoi):
     summary = {**meta, "flooded_km2_max": round(total, 2), "polygons": len(info["features"]), "bytes": size}
     (out_dir / "run-summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False))
 
-    print(f"Max extent over {len(dates)} dates: {total:.2f} km², {len(info['features'])} polygons")
+    print(f"Max extent over {len(dates)} passes: {total:.2f} km², {len(info['features'])} polygons")
     print(f"-> {path.relative_to(DATA_DIR.parent)} ({size / 1024:.0f} KB). Next: python data/scripts/check_extent_budget.py {path.relative_to(DATA_DIR.parent)}")
 
 
@@ -229,6 +285,7 @@ def main():
     parser.add_argument("--date", action="append", help="detect: only this event date (YYYY-MM-DD); repeatable")
     parser.add_argument("--per-date", action="store_true", help="detect: also write one GeoJSON per date")
     parser.add_argument("--reference", help="compare: published flood map as GeoJSON")
+    parser.add_argument("--simplify-m", type=float, default=SIMPLIFY_M, help=f"detect: polygon simplification in metres (default {SIMPLIFY_M})")
     for key, value in DEFAULTS.items():
         parser.add_argument(f"--{key.replace('_', '-')}", dest=key, type=type(value), help=f"default {value}")
     args = parser.parse_args()
