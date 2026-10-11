@@ -83,6 +83,23 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 **Both**
 - [ ] Run the pack §7 walk-through on the deployed app
 
+## Thu 15 — zone missions (also CP3)
+
+**You**
+- [ ] Zone order rule in `tiers.py` (called → register → estimate with no recent check → time since check) + suggested checks with reasons; property test
+- [ ] Synthetic vulnerable-residents register fixture (`register.hy-2025-11.json`, landmark-level)
+- [ ] Team screen: take a segment, pickup list, mark Checked / Partly checked / Couldn't reach, field report button
+- [ ] Copilot instructions for `propose_zone_priority_change`
+
+**Friend**
+- [ ] Zone missions + segments in the rules engine (`publishZoneMission`, cut segments, `takeSegment`, `markSegment`)
+- [ ] Register stored with coordinator-only access (Firestore rules test)
+- [ ] Desk: suggested checks (publish / dismiss), segment cutting, copilot proposals (accept / reject)
+- [ ] Resident line "Team T-x is working in your area today"
+
+**Both**
+- [ ] B-4 scene on the deployed URL: suggested check → T-R takes B-4 · L5 → field report → C-07 (RED) → T-S takes it → "Partly checked · 1 household found"
+
 ## Fri 16 — feature freeze at 18:00
 
 **You**
@@ -108,7 +125,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 **Sun 18:** buffer only.
 
 ## Cut order if behind
-1. Bangkok package
+1. Bangkok package (already a stretch goal)
 2. Reconciliation UI polish
 3. Copilot replan drafting
 4. Whole copilot

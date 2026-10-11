@@ -52,7 +52,8 @@ flowchart LR
   FS -- "C2 area briefing view" --> MAP
   TIERS -- "C3 sort_key()" --> RULES
   RULES -- "C4 AllocationInput → Suggestion" --> SOLVER
-  FS -- "C5 open-list view" --> TEAM
+  FS -- "C5 open lists + zone missions" --> TEAM
+  PKG -- "C12 register + zone inputs" --> RULES
   TEAM -- "C6 claim · hand back · close · update" --> RULES
   SPLIT -- "C7 askTeams" --> RULES
   RULES -- "C8 BriefingFacts → text" --> BRIEF
@@ -72,12 +73,13 @@ flowchart LR
 | **C2** | Friend views → User map | Badges, Facts, Unknown row, cases in zone, exposure range, briefing text | `AreaBriefingView`, `ZoneBriefingView` | `areaBriefing.P-B.json` (+ empty, stale, failed-layer variants) | Mon 12 noon (fixture), Tue 13 (live) |
 | **C3** | User `tiers.py` → Friend rules/views | `colour(listing)`, `sort_key(listing, team_location)` | Python function signature + `PriorityColour` enum | `listings.sort-cases.json` | Tue 13 |
 | **C4** | Friend snapshot → User solver → Friend persists | Reviewed needs, teams, resources, accepted allocations → assignments + unmet reasons | `AllocationInput`, `AllocationSuggestion` | `allocationInput.cp3.json`, `allocationSuggestion.cp3.json` | Tue 13 (stub), Thu 15 (real) |
-| **C5** | Friend views → User team list | Open listings per help type, with groups, `needRevision`, `lastConfirmedAt`, distance | `OpenListView`, `TeamView` | `openList.evacuation.json` | Wed 14 |
-| **C6** | User team UI → Friend API | `claimListing`, `handBack`, `closeAllocation`, `submitTeamUpdate` (window, progress, status + reason/ETA, problem report, re-confirm request) | Request/response models + error codes `ALREADY_TAKEN`, `NOT_ENOUGH_CAPACITY`, `NEED_CHANGED`, `ALLOCATION_CLOSED`, `VERSION_CONFLICT` | `claim.*.json` (one per result) | Wed 14 |
+| **C5** | Friend views → User team list | Open emergency listings per help type (groups, `needRevision`, `lastConfirmedAt`, distance), plus **zone missions and their segments** (reasons, register count, pickup list) | `OpenListView`, `ZoneMissionView`, `TeamView` | `openList.evacuation.json`, `zoneMissions.B.json` | Wed 14 (emergencies), Thu 15 (zones) |
+| **C6** | User team UI → Friend API | `claimListing`, `takeSegment`, `markSegment` (checked / partly checked / couldn't reach, households found), `handBack`, `closeAllocation`, `submitTeamUpdate` (window, progress, status + reason/ETA, problem report, re-confirm request) | Request/response models + error codes `ALREADY_TAKEN`, `NOT_ENOUGH_CAPACITY`, `NEED_CHANGED`, `ALLOCATION_CLOSED`, `VERSION_CONFLICT` | `claim.*.json` (one per result) | Wed 14 |
 | **C7** | User split panel → Friend API | `askTeams(suggestionId, inputVersions, teamIds)` → one-time "Can you take this?" on each team view | `AskTeamsRequest/Result` | `askTeams.ok.json`, `askTeams.stale.json` | Thu 15 |
 | **C8** | Friend view regeneration → User briefing module | Computed zone facts → two Gemini sentences, or a fallback if blocked | `BriefingFacts` → `BriefingText` | `briefingFacts.B-3.json` | Thu 15 |
 | **C9** | User copilot config → Friend ADK runtime | Instructions, allowed tool names, examples | `CopilotConfig` | `copilot.questions.json` | Fri 16 |
 | **C10** | User frontend foundation → Friend screens | Shell, routes, tokens, `StatusChip`, `PriorityBadge`, `ProposalCard`, `OfflineBanner`, `useView(path)`, `api.*` | Component props + generated TS types | Storybook-style example page `/dev/ui` | Mon 12 (shell), Tue 13 (components) |
+| **C12** | User package → Friend coordinator-only store | Synthetic vulnerable-residents register (landmark-level, counts by need) and the zone-order inputs; plus copilot `propose_zone_priority_change` proposals reaching the desk | `RegisterEntry`, `ZoneRankInputs`, `ZoneOrderProposal` | `register.hy-2025-11.json` | Thu 15 |
 | **C11** | Shared contract → both | Pydantic models → `contract/schema/*.json` + `web/src/types/*.ts` | The models themselves | All fixtures | Mon 12 freeze |
 
 What does **not** cross is internal to its owner. Examples: voice → extraction → desk (friend), and Earth Engine → package (user).
@@ -158,10 +160,11 @@ The idea is that **each connection is tested from both sides against the same fi
 | C3 | **User:** Hypothesis property test: red always first; same tiers as the solver; nearest first within a colour | **Friend:** the open-list view order equals `sort_key` order on `listings.sort-cases.json` |
 | C4 | **User:** `solve_split` on `allocationInput.cp3.json` returns a valid suggestion in < 5 s; never exceeds capacity; tier 1a before tier 2 | **Friend:** storing a suggestion; a stale `inputVersions` → `VERSION_CONFLICT`, writes nothing |
 | C5 | **Friend:** a team turning Available sees all open listings for its capability | **User:** the team list renders groups, colour, distance, "last confirmed 2h 40m ago" |
-| C6 | **Friend:** two claims on the same group → one wins; disjoint groups → both win; old revision → `NEED_CHANGED`; closed → `ALLOCATION_CLOSED`; retry → no duplicate | **User:** the team UI shows the right message for every `claim.*.json` result and keeps the draft on network failure |
+| C6 | **Friend:** two teams taking the same segment → one wins; `unreachable` keeps the zone gap open; two claims on the same group → one wins; disjoint groups → both win; old revision → `NEED_CHANGED`; closed → `ALLOCATION_CLOSED`; retry → no duplicate | **User:** the team UI shows the right message for every `claim.*.json` result and keeps the draft on network failure |
 | C7 | **Friend:** `askTeams` creates exactly one prompt per team; a stale suggestion → `VERSION_CONFLICT` | **User:** the split panel shows "Taken 1 of N · still waiting 2" and the conflict diff |
 | C8 | **User:** the validator blocks route, depth or priority claims; numbers in the text equal the input facts | **Friend:** if Gemini or the validator fails, the view still publishes facts with "Briefing unavailable" |
 | C9 | **User:** copilot eval: answers cite record IDs; only allowed tools used | **Friend:** the runtime rejects any tool not in the allowlist (injection eval, T5) |
+| C12 | **User:** the zone-order property test: RED never ranked as a zone; the estimate changes only order, never counts; every suggested check carries its reasons | **Friend:** register details readable by the coordinator role only (Firestore rules test); teams see counts only; a copilot proposal changes nothing until accepted |
 | C10 | **User:** `/dev/ui` page renders every shared component in every state; contrast check | **Friend:** call, desk and resident screens use only shared tokens (lint rule: no raw colours) |
 
 ### Who runs what, and when

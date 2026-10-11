@@ -39,7 +39,7 @@ Agreed after three rounds; the user corrected rounds 1 and 2.
    - Coordinator: change summaries.
 4. **Google products only where they do real work.** That now includes Google OR-Tools for the split.
 5. **No real phone line in the prototype** (0009 amendments); the browser call screen represents a call and is disclosed.
-6. **Cut order if behind:** Bangkok package → reconciliation UI polish → **coordinator copilot's replan drafting** (keep its read-only Q&A) → whole coordinator copilot (the demo falls back to Approach B: solver + Gemini explanation, no agent) → P-C field-report scene → Open Buildings counts → real phone line. The split suggestion and replanning are never cut.
+6. **Cut order if behind:** reconciliation UI polish → **coordinator copilot's replan drafting** (keep its read-only Q&A) → whole coordinator copilot (the demo falls back to Approach B: solver + Gemini explanation, no agent) → Open Buildings counts → real phone line. (The Bangkok package is a stretch goal; the "found a family who never called" zone-mission scene is core, D20.) The split suggestion and replanning are never cut.
 
 ## Cross-Model Perspective
 
@@ -102,6 +102,8 @@ Claude's synthesis: adopt the "one more boat" comparison and the optional-assign
    - **Adjustable weights** (shown in the UI) are only `w_evac` and `w_supply` in level (2), plus the ranked list display. Waiting time is not weighted. No setting can move a need into or out of tier 1, or let tier 2 displace a coverable tier-1 need.
    - **Unassigned needs are a valid output**, each with a reason (`no_capable_team`, `capacity_exhausted`, `access_unknown`).
    - **Output:** suggestion ID, input versions, assignments, unassigned needs with reasons, and per-need explanation fields for Gemini. It writes nothing authoritative.
+> **Updated by D17–D20 (zone missions):** steps 1–6 below are now the **emergency** path (RED cases). Non-emergency work runs through **zone missions with segments**; see "Zone missions and emergencies" under the design review decisions.
+
 3a. **Pull model: from reviewed case to authoritative records (rules engine, owned by the friend; 21A + eng re-check D6–D13):**
    1. **Publish.** A reviewed case becomes a **listing** per case × assistance type, with `needRevision`, `lastConfirmedAt` and its **household groups**. Each household from one call is one "together" group by default; only the coordinator can split a group (D6). The listing appears in the server-written open list for its assistance type (evacuation / medical / supplies). Every team reads the lists it is qualified for, so a team that turns Available later still sees every waiting case (D10). Resident views say "seeking a suitable team; arrival time is not confirmed".
    2. **Order.** Lists are sorted by visible priority colour (RED life-threatening / YELLOW urgent / GREEN can wait, mapped from the shared tiers in `api/rules/tiers.py`), then distance from the team, then waiting time. RED always comes first (D9). Each row shows the distance and "last confirmed HH:MM". A team can ask the desk to re-confirm before leaving (D8).
@@ -511,6 +513,61 @@ Backed by real-practice research: `docs/research/real-rescue-practice.md`.
 - **D10 Shared open lists** per assistance type, so teams that become free later see every waiting case.
 - **D12 Solver.** Coordinator only (split panel + What-if); no per-team Best fit chips.
 - **D14 TODO.** Import and de-duplicate requests from jitasa.care / Traffy Fondue / LINE channels after the hackathon.
+
+### Zone missions and emergencies (user decisions D17–D20, 2026-10-11, later)
+Not everyone in danger calls. Hat Yai's own officials kept a list of 230 bedridden patients, and the [research](../research/unreported-needs.md) shows that a quiet area may mean phones are down, not that nobody needs help. So work is **prioritised by zone**, and individual cases are mostly used to keep each family informed.
+
+**Two kinds of job on the priority list**
+
+| Job | What it is | How it's taken |
+|---|---|---|
+| **Emergency** (RED case) | A reviewed case with a life threat, e.g. "grandma can't breathe, water rising". Coordinator-flagged with a reason | One by one, straight away: pinned, a one-time prompt to all free capable teams, plus a direct ask. The first team to take it goes (the D1–D8 claim rules apply) |
+| **Zone mission** | One flooded zone, e.g. B-3. It covers the families who called there (non-emergency) **and** the people who didn't | Split into **segments**, each taken by **one** team (see below) |
+
+**Segments: real-practice model (D17b)**
+- This follows the ICS divisions, INSARAG worksites and FEMA block search.
+- The coordinator acts as the zone supervisor and splits each zone into segments around its landmarks, e.g. "B-3 · L3 Community building", "B-3 · L5 School", "B-3 · north block".
+- Each segment is taken by one team, so several teams can work one zone without overlap.
+- A team that takes a segment sees its **pickup list**: the reviewed families located in that segment, with their groups and needs. It also sees the zone's vulnerable-register count.
+- When a segment is finished, the team marks it, like FEMA's building marks: **"Checked 13:40 · T-S · 4 households found · 1 pickup needed"**, **"Partly checked"**, or **"Couldn't reach · access blocked"**.
+- "Couldn't reach" never clears the zone.
+- People found who hadn't called are reported as a field report (voice or photo). Gemini proposes facts, the coordinator approves them, and they become new cases. A new RED case becomes an emergency; anything else joins the segment's pickup list.
+
+**Zone order: fixed rule plus agent suggestions (D17c)**
+1. RED emergencies are always first. They're not zones.
+2. Zones are then ordered by a fixed rule in `api/rules/tiers.py`, with the reasons shown on each row:
+   1. reviewed people who called and still need help;
+   2. vulnerable residents on the register;
+   3. estimated people living in the flooded part with no recent check;
+   4. time since the last check.
+
+   The estimate only orders zones. It never adds to counts and never creates a case.
+3. **Agent suggestions.** The coordinator copilot (Gemini, ADK) gets one propose-only tool, `propose_zone_priority_change`. For example: "Move B-5 up: 3 calls dropped mid-sentence, none since 11:00, phones may be down", or "T-S's field report mentions more families on the next street (B-4): suggest a segment". The coordinator accepts or rejects; every change keeps its reason and author.
+4. The OR-Tools solver still suggests which team goes to which zone or segment, in the split panel.
+
+**Suggested checks (D18)**
+- The same rule flags zones that are flooded, have buildings in the water, have had no check in the last 6 hours, and have few or no calls. The flag carries its reason, e.g. "~800 live in the flooded part · 0 calls · not checked since 09:00".
+- The desk shows these as **suggested zone missions**. The coordinator publishes or dismisses them; nothing is published automatically.
+
+**Vulnerable-residents register (D19, synthetic)**
+- It's like the Hat Yai bedridden list or the village health volunteer (อสม.) lists. Entries look like "2 bedridden, 1 on dialysis", with a landmark-level location and "not confirmed in need".
+- Only the coordinator sees the details. Teams see counts only, with no names.
+- The register informs zone order and the coordinator's urgent flag. It never creates a case by itself.
+
+**What residents see**
+- A family who called from a zone with a taken segment sees **"Team T-S is working in your area (B-3 · L3) today, about 13:00–16:00 (team estimate). Call again if it becomes an emergency."**
+- If no team has started there yet: "Your zone B-3 is on the list; no team has started there yet."
+- Once picked up, the family's own status takes over (per family, D6).
+
+**Demo (D20):** the "found a family who never called" scene is core, in CP3:
+1. A suggested check for B-4 appears; the coordinator publishes it.
+2. T-R takes segment B-4 · L5.
+3. T-R sends a field report: "elderly couple on the 2nd floor, one bedridden".
+4. The coordinator approves case C-07 (RED); T-S takes it.
+5. The segment is marked "Partly checked · 1 household found".
+
+The Bangkok package moves fully to stretch.
+
 
 **Other decisions:**
 - **Weights (17A).** Only the coordinator changes weights, and they apply on an explicit "Recalculate". Leaders see the current weights read-only, with who set them and when.
