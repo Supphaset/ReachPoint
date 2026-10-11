@@ -2,6 +2,8 @@
 
 The repo has about 40 files, but each of us needs only about 4 of them, and only parts of the two long ones. Most of the rest is history or background. Reading the list below takes about 40 minutes.
 
+**First, read the [overview](OVERVIEW.md)** (10 minutes): the whole flow, a job's lifecycle, components and owners, and where the AI is. Then check your tasks in the [build-week task list](planning/build-week-tasks.md).
+
 ## Both of us
 
 | # | File | Read | Skip |
