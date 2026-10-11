@@ -4,7 +4,7 @@ Online research only; no interview, field observation, adoption or operational e
 
 | Hypothesis | Current evidence | How to challenge it |
 |---|---|---|
-| Coordinators struggle to reconcile reports and fulfillment | IFRC guidance supports general feedback/coordination difficulties; household-level correction frequency and local consequences remain unverified | Find incident reports/current SOPs documenting the specific failure and existing fixes; see the [deeper review](relief-ledger-deep-dive.md) |
+| Coordinators struggle to reconcile reports and fulfillment | IFRC guidance supports general feedback/coordination difficulties; household-level correction frequency and local consequences remain unverified | Find incident reports/current SOPs documenting the specific failure and existing fixes; see the deeper review (removed 2026-10-11; in git history) |
 | A reviewed ledger improves on chat/spreadsheets | Synthetic semantic examples only | Compare error rate and effort on identical scenarios |
 | Existing response tools leave this gap | PhonPhai, Sahana, SCOPE and Kobo document significant overlap; exact conversation-reconciliation gap remains unknown | Inspect demos/docs for corrections, partial delivery and confirmed outcomes; compare against structured linked records |
 | Two DS teammates can deliver the requested breadth | No approved MVP or feasibility estimate | Bound one workflow; test telephone region/cost constraints before promising it |

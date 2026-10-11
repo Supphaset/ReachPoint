@@ -524,7 +524,7 @@ Backed by real-practice research: `docs/research/real-rescue-practice.md`.
 - Real phone-call UI: out of scope per eng R21; the browser call screen stands in for it.
 
 ## What already exists (design review)
-- Wireframe pack v2.1 (7 pages): content order and honest-state copy reused, e.g. "Previous window withdrawn", "An update time is not an arrival time".
+- Wireframe pack v2.1 (7 pages; removed from the repo on 2026-10-11, in git history): content order and honest-state copy reused, e.g. "Previous window withdrawn", "An update time is not an arrival time".
 - Six approved mockups (see Approved Mockups), with the per-screen overrides from 12A.
 - No DESIGN.md and no UI code yet.
 

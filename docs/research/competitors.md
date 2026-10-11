@@ -19,7 +19,7 @@ Our interpretations: useful niches can emerge from constraints or consequential 
 
 ## Operational comparators added 2026-10-11
 
-The [deeper review](relief-ledger-deep-dive.md) examines stronger baselines than award entries: Thai Red Cross PhonPhai (request/resource/delivery coordination), Sahana Eden (requests and fulfillment stages), WFP SCOPE (beneficiary and transfer reconciliation), and KoboToolbox (linked follow-up data and audio processing). Evidence and limitations are registered as R1–R10.
+The deeper review (removed 2026-10-11; in git history) examines stronger baselines than award entries: Thai Red Cross PhonPhai (request/resource/delivery coordination), Sahana Eden (requests and fulfillment stages), WFP SCOPE (beneficiary and transfer reconciliation), and KoboToolbox (linked follow-up data and audio processing). Evidence and limitations are registered as R1–R10.
 
 These establish material feature overlap. They do not establish whether conversation-level corrections, ambiguous identities or partial household receipt are handled adequately. Relief Ledger must test its proposed reconciliation advantage; a map, dashboard or speech transcript alone is insufficient differentiation.
 
@@ -27,4 +27,4 @@ These establish material feature overlap. They do not establish whether conversa
 
 [winn/thaifloodhelp](https://github.com/winn/thaifloodhelp) describes Thai social-post extraction using Gemini, human review, duplicate detection and natural-language search (O4). These capabilities overlap our proposed AI intake; runtime is untested. Its [issue #37](https://github.com/winn/thaifloodhelp/issues/37) raises stale-case concerns (O3), but is not proof of an unmet market or of deficiencies in another platform.
 
-The [operational rethink](relief-ledger-operational-rethink.md) replaces the rejected quantity-gap demo recommendation with a proposed test of current-case verification and response reassessment when information changes. Distinctiveness remains unproven.
+The operational rethink (removed 2026-10-11; in git history) replaces the rejected quantity-gap demo recommendation with a proposed test of current-case verification and response reassessment when information changes. Distinctiveness remains unproven.

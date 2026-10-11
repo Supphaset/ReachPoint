@@ -12,7 +12,7 @@ Start product design from the daily volunteer-team planning workflow and emergen
 
 ## Proposed approach and alternatives
 
-[Workflow proposal](../product/volunteer-workflow-proposal.md) recommends organized team leaders proposing routine relief trips and coordinators allocating emergencies. The human accepted this hybrid direction. Exact routine commitment/approval mechanics, response-mode evidence and efficiency policy remain proposed; fully centralized planning was considered as an alternative. No specific ranking, clinical protocol, staffing quantity, operational partner or product layout is accepted.
+Workflow proposal (removed 2026-10-11; in git history) recommends organized team leaders proposing routine relief trips and coordinators allocating emergencies. The human accepted this hybrid direction. Exact routine commitment/approval mechanics, response-mode evidence and efficiency policy remain proposed; fully centralized planning was considered as an alternative. No specific ranking, clinical protocol, staffing quantity, operational partner or product layout is accepted.
 
 ## Consequences and unknowns
 

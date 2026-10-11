@@ -46,7 +46,7 @@ Source: [google-gemini/gemini-skills](https://github.com/google-gemini/gemini-sk
 | gemini-live-api-dev | Later streaming/session planning if selected | Host-specific install; network, audio/session tooling and credentials only after approval | Upstream inspected; same local absence check; deferred. Live API is not an inbound phone network. Fallback: official docs and separate telecom feasibility |
 | Google Cloud Gemini API skill | Cloud-specific planning; Gemini README says Vertex skill moved here | [Current source directory](https://github.com/google/skills/tree/main/skills/cloud/gemini-api), pin/audit full references before any install; future cloud auth/SDK/billing requires authorization | Directory confirmed; detailed skill/dependency audit pending; not installed here. Fallback: current Google Cloud docs |
 
-For AI evaluation, start with the proposed synthetic cases/baselines in [workflows](../product/workflows.md), deterministic semantic checks and human labels. Consult the [current evaluation docs](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/evaluation-overview) later; a paid evaluation service or extra framework is not necessary for discovery. No testing/evaluation package is selected yet.
+For AI evaluation, start with the synthetic C-01 walk-through in the [joint decision pack](../planning/joint-decision-pack.md) §7, deterministic semantic checks and human labels. Consult the [current evaluation docs](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/evaluation-overview) later; a paid evaluation service or extra framework is not necessary for discovery. No testing/evaluation package is selected yet.
 
 ## Installation assessment and recommendation
 

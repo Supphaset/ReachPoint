@@ -5,7 +5,7 @@ Status: **Proposed architecture; no implementation or technology selection appro
 
 ## Request and context
 
-The human requested an architecture diagram showing how the two workstreams and shared system connect. Accepted product scope is [0005](0005-prototype-scope-proposal.md); assigned human work split is [0006](0006-two-person-work-split.md). The [interface contract](../collaboration/volunteer-backend-contract-v1.md) remains proposed.
+The human requested an architecture diagram showing how the two workstreams and shared system connect. Accepted product scope is [0005](0005-prototype-scope-proposal.md); assigned human work split is [0006](0006-two-person-work-split.md). The interface contract (removed 2026-10-11; in git history) remains proposed.
 
 ## Recommendation and rationale
 

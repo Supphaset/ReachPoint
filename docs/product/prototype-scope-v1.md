@@ -26,7 +26,7 @@ The scope prioritizes complete planning → allocation → resident progress →
 | 4. Team mission | Team lead: prepare, acknowledge and report against the current brief. | Scope, preparation/load list, necessary location/staging/destination details, version, window, constraints, progress/resource/field updates and blocked/delayed reasons. |
 | 5. Resident request / help status | Resident/proxy: request/update help and follow their own assistance. | Requested help, review/assignment state, accepted team, per-assistance estimated window or unknown, update time, delay/change, location/situation correction and non-arrival report. |
 
-A small team/resource roster is a panel under planning/dispatch. Case/source detail is a drawer. Request and status can be states of the same resident surface. Role-specific visibility is required; screen count does not define a framework or route schema. Previous wireframes are reference drafts. The [replacement wireframe guide](../design/workflow-wireframe-guide.md) interprets these five accepted experiences; visual layouts remain open for review.
+A small team/resource roster is a panel under planning/dispatch. Case/source detail is a drawer. Request and status can be states of the same resident surface. Role-specific visibility is required; screen count does not define a framework or route schema. Previous wireframes are reference drafts. The [approved mockups](../designs/resource-split-and-live-loop.md#approved-mockups) interpret these five accepted experiences; visual layouts remain open for review.
 
 ## Core features and limits
 
@@ -101,4 +101,4 @@ When drawing replacement pages, review empty/unknown, conflicting, delayed, unas
 
 Remaining feasibility details do not require reopening the product's purpose: local data/depth availability, telecom account/number/region, selected Google components, qualified operating responsibilities, secure status access and actual effort. They can change delivery scope if blocked. Earlier workload estimates are stale; no new schedule or cost guarantee is made. No implementation, dependency installation, infrastructure or publishing has happened.
 
-Documentation validation: 10 changed/new Markdown files and 77 local links checked; whitespace and sensitive-pattern checks passed. Replacement PDF validation is recorded in the [wireframe guide](../design/workflow-wireframe-guide.md). These checks validate documents, not runtime integrations or operational capability.
+Documentation validation: 10 changed/new Markdown files and 77 local links checked; whitespace and sensitive-pattern checks passed. Replacement PDF validation is recorded in the wireframe guide (removed 2026-10-11; in git history). These checks validate documents, not runtime integrations or operational capability.

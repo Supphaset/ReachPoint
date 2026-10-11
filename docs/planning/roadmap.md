@@ -14,8 +14,8 @@ Status 2026-10-11: discovery, scope and architecture stages are complete; [decis
 
 The concrete [prototype v1 scope](../product/prototype-scope-v1.md) is human-approved: five experiences and one complete planning/intake/allocation/resident-status story. Next, review the replacement static wireframes and resolve technical gates before separately authorized implementation.
 
-The workflow starting point is [volunteer planning and emergency workflow](../product/volunteer-workflow-proposal.md), following the human correction to the prior page-first design. Earlier estimates do not reliably cover this revision; re-estimate after the operating model and smallest scenario are reviewed.
+The current plan is the [design doc](../designs/resource-split-and-live-loop.md) and the [joint decision pack](../planning/joint-decision-pack.md), with tasks and checkpoints in pack §6.
 
-The prior review package also includes [product detail](../product/product-detail.md), [wireframes](../design/wireframe-guide.md) and the [integrated demo](../product/demo-scenario.md). Expanded effort is estimated in the consolidated PRD; the old 12 person-day allocation did not include later extensions.
+Older product-detail, wireframe and demo drafts were removed on 2026-10-11 (in git history).
 
-Supporting planning output: the [current prototype PRD](../product/prototype-prd.md), [evaluation plan](../product/prototype-evaluation.md) and [feasibility research](../research/prototype-feasibility.md). The user rejected a quantity-gap demo as the central wow factor. Scope and deferrals are now accepted; resolve source/telephone gates and effort next. Framework selection and implementation remain gated. Do not schedule a broad eight-feature build simply because the deadline is near.
+Supporting planning output: the [current prototype PRD](../product/prototype-prd.md), [feasibility research](../research/prototype-feasibility.md) and [real rescue practice research](../research/real-rescue-practice.md). The user rejected a quantity-gap demo as the central wow factor. Implementation starts 12 Oct under [decision 0009](../decisions/0009-implementation-start-and-technical-direction.md); a real phone line is deferred (0009 amendments).

@@ -10,7 +10,7 @@ Retain and emphasize the household needs map request R4. The product proposal mu
 
 ## Proposed approach and alternatives
 
-A central Situation map plus linked Contact Center location review and Response map/list views are proposed in [map experience](../product/map-experience.md). A separate fourth map page and a list-only coordinator surface remain alternatives; neither is selected. No provider, basemap, framework, live location service or source integration is accepted.
+A central Situation map plus linked Contact Center location review and Response map/list views are proposed in map experience (removed 2026-10-11; in git history). A separate fourth map page and a list-only coordinator surface remain alternatives; neither is selected. No provider, basemap, framework, live location service or source integration is accepted.
 
 ## Consequences and unknowns
 

@@ -6,7 +6,7 @@ Use the procedure in [CONTRIBUTING.md](../../CONTRIBUTING.md). Keep it light: on
 
 Current human assignment: the user owns volunteer workspace/flood map; the friend owns resident/coordinator, chat/voice, reconciliation and database updates. See [decision 0006](../decisions/0006-two-person-work-split.md) and the [two-person delivery agreement](two-person-delivery-agreement.md) for mutual expectations. Detailed handoff/ownership additions remain recommendations until both humans confirm them. Implementation is authorized from 12 Oct within [decision 0009](../decisions/0009-implementation-start-and-technical-direction.md).
 
-The [draft volunteer/backend contract](volunteer-backend-contract-v1.md) details proposed screen reads, table ownership, submissions/results, example payloads and failure behavior. Both humans review and freeze shared interfaces before depending on them; neither side silently changes field meanings or writes arbitrary authoritative states.
+The data contract in the [joint decision pack](../planning/joint-decision-pack.md) §3–§4 details proposed screen reads, table ownership, submissions/results, example payloads and failure behavior. Both humans review and freeze shared interfaces before depending on them; neither side silently changes field meanings or writes arbitrary authoritative states.
 
 The other human reviews a PR. AI comments support review but cannot approve scope, clinical policy, publication or merging on humans' behalf. Do not auto-merge, force-push, discard changes, or push to the default branch. A human merges after acceptance checks.
 

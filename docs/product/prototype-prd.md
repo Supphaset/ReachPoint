@@ -1,10 +1,10 @@
 # ReachPoint prototype PRD
 
-**Accepted prototype scope:** [Prototype scope v1](prototype-scope-v1.md) specifies the approved inclusion/deferrals, five screens, resident arrival-window behavior, demo fixture and acceptance checks. Human approval is recorded in [decision 0005](../decisions/0005-prototype-scope-proposal.md); no implementation authorization is inferred. [v0.5](prototype-prd-v0.5.md) is preserved.
+**Accepted prototype scope:** [Prototype scope v1](prototype-scope-v1.md) specifies the approved inclusion/deferrals, five screens, resident arrival-window behavior, demo fixture and acceptance checks. Human approval is recorded in [decision 0005](../decisions/0005-prototype-scope-proposal.md); no implementation authorization is inferred. Earlier PRD drafts were removed on 2026-10-11 (in git history).
 
-Version: 1.0. Date: 2026-10-11. **Prototype v1 scope accepted; implementation unapproved.** The human corrected the prior page-first design and confirmed a hybrid operating model: volunteer team leaders plan ordinary relief trips, while the coordinator assigns emergency missions. Teams need enough information to distinguish support-in-place from evacuation and other response needs. [Detailed workflow](volunteer-workflow-proposal.md), [requirements](requirements.md), [decisions](../decisions/README.md) and [sources](../research/sources.md) are the current review starting point.
+Version: 1.0. Date: 2026-10-11. **Prototype v1 scope accepted; implementation unapproved.** The human corrected the prior page-first design and confirmed a hybrid operating model: volunteer team leaders plan ordinary relief trips, while the coordinator assigns emergency missions. Teams need enough information to distinguish support-in-place from evacuation and other response needs. [Design doc](../designs/resource-split-and-live-loop.md), [requirements](requirements.md), [decisions](../decisions/README.md) and [sources](../research/sources.md) are the current review starting point.
 
-The [v0.4.1 PRD](prototype-prd-v0.4.1.md), [prior feature matrix](product-detail.md), [wireframes](../design/wireframe-guide.md) and [prior demo](demo-scenario.md) are preserved drafts. They are not current approved screens. No implementation, architecture, provider, clinical protocol or paid service is selected.
+Earlier drafts (the v0.3–v0.5 PRDs, feature matrix, wireframes and prior demo) were removed on 2026-10-11 and remain in git history. The current design and approved mockups are in the [design doc](../designs/resource-split-and-live-loop.md).
 
 ## Product thesis and jobs
 
@@ -42,7 +42,7 @@ Unknown access/capacity is not dispatch readiness. Incomplete validation does no
 | Team mission | Accepted brief, preparation list, staging/pickup/destination references, progress/window, changes and field reporting. | Execute the current authorized task and improve area knowledge. |
 | Resident request/status | Low-friction request/update; own request progress, accepted assignment, responsible window or unknown, delay/change notice. | Reduce uncertainty without inventing a promise of rescue. |
 
-A roster supports planning and dispatch. Exact navigation/layout is interpreted in the [replacement static wireframes](../design/workflow-wireframe-guide.md); do not preserve the previous three pages merely because they were drawn.
+A roster supports planning and dispatch. Exact navigation/layout is interpreted in the [approved mockups](../designs/resource-split-and-live-loop.md#approved-mockups); do not preserve the previous three pages merely because they were drawn.
 
 ## Area response mode
 

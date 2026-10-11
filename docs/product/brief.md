@@ -14,7 +14,7 @@ Potential planning user: organized response-team leader. Coordinator: coverage, 
 
 ## Proposed value to investigate
 
-[Daily planning and emergency workflow](volunteer-workflow-proposal.md): turn dated flood/population/field information into explainable area needs, an editable mission/load/capacity plan, coordinated coverage and truthful resident progress. Flood exposure does not establish evacuation demand; medical urgency is not determined by an unqualified coordinator or model. This is a proposed approach, not evidence of uniqueness or effectiveness.
+[Daily planning and emergency workflow](../designs/resource-split-and-live-loop.md): turn dated flood/population/field information into explainable area needs, an editable mission/load/capacity plan, coordinated coverage and truthful resident progress. Flood exposure does not establish evacuation demand; medical urgency is not determined by an unqualified coordinator or model. This is a proposed approach, not evidence of uniqueness or effectiveness.
 
 Earlier report reconciliation, commitment history and separate confirmed outcomes remain supporting invariants; they are not the lead product thesis. The operator/beneficiary split now includes team planning and resident status. Paying customer, deployment owner, partner and sustainability model remain unknown.
 
@@ -22,4 +22,4 @@ Earlier report reconciliation, commitment history and separate confirmed outcome
 
 The [concrete prototype v1 scope](prototype-scope-v1.md) is human-approved in [decision 0005](../decisions/0005-prototype-scope-proposal.md). It includes resident help timing as a core behavior. Replacement static wireframes and technical planning are next; implementation requires separate authorization.
 
-The [requested capabilities and invariants](requirements.md) remain broader requests; the bounded prototype v1 inclusion/deferrals are now approved. The [prototype](../context.md) is discussion material only. Start with one failure and one review workflow in [workflows](workflows.md); decide inclusion, deferral and evaluation in [open questions](open-questions.md). No architecture is selected.
+The [requested capabilities and invariants](requirements.md) remain broader requests; the bounded prototype v1 inclusion/deferrals are now approved. The [prototype](../context.md) is discussion material only. The current design is in the [design doc](../designs/resource-split-and-live-loop.md); open items are listed in [decision 0009](../decisions/0009-implementation-start-and-technical-direction.md), which also selects the architecture.

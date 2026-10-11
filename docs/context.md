@@ -24,19 +24,19 @@ The user requested coverage for people who do not contact the desk. The prototyp
 
 The resident sees independently accepted assistance, a responsible estimated window or unknown, the last update and known changes. An unaccepted offer does not confirm arrival; a resource failure withdraws the stale current window. A next status-update commitment is distinct from arrival.
 
-Real inbound telephone access remains requested and has its own feasibility gate. Browser voice cannot silently substitute for it. Qualified review in the prototype is explicitly synthetic; no autonomous clinical diagnosis, prescribing or triage is approved. No source-backed flood analysis or actual integration is established by static wireframes.
+Real inbound telephone access is deferred beyond the prototype (0009 amendments); a browser call screen represents a phone call and is disclosed as such. Qualified review in the prototype is explicitly synthetic; no autonomous clinical diagnosis, prescribing or triage is approved.
 
 ## Collaboration split
 
-[Decision 0006](decisions/0006-two-person-work-split.md) assigns the user volunteer workspace/flood-map work and the friend resident/coordinator, chat/voice, reconciliation and database updates. Detailed additions, ownership boundaries and interfaces remain recommendations in the [delivery agreement](collaboration/two-person-delivery-agreement.md) and [integration contract](collaboration/volunteer-backend-contract-v1.md).
+[Decision 0006](decisions/0006-two-person-work-split.md) assigns the user volunteer workspace/flood-map work and the friend resident/coordinator, chat/voice, reconciliation and database updates. Detailed additions, ownership boundaries and interfaces remain recommendations in the [delivery agreement](collaboration/two-person-delivery-agreement.md) and [joint decision pack](planning/joint-decision-pack.md) §3–§4.
 
 [Decision 0007](decisions/0007-logical-architecture-proposal.md) proposes a shared read/action boundary, attributed evidence/reviewed state, deterministic rules and permitted views. Technologies and physical deployment remain open. AI suggestions are not authoritative database updates.
 
 ## Review package and evidence
 
 - [Current PRD](product/prototype-prd.md) and [approved scope](product/prototype-scope-v1.md).
-- [Current wireframes](design/workflow-wireframe-guide.md) and [architecture diagrams](planning/architecture-overview.md).
+- [Design doc and approved mockups](designs/resource-split-and-live-loop.md) and [architecture diagrams](planning/architecture-overview.md).
 - [Research sources and limitations](research/sources.md); published material is not fabricated interview/adoption evidence.
 - [Hackathon verification](hackathon.md); participation and submission confirmations remain human responsibilities.
 
-Earlier product drafts, research and wireframes are preserved as history under their prior names. Do not combine their scenario IDs/counts with the current shared fixture. No application capability, field outcome, winning probability or operational readiness is claimed by this summary.
+Earlier product drafts, superseded research and wireframes were removed on 2026-10-11 and remain in git history. Do not combine their scenario IDs/counts with the current shared fixture. No application capability, field outcome, winning probability or operational readiness is claimed by this summary.

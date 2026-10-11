@@ -26,6 +26,6 @@ Publish only curated project context and synthetic examples. Retain raw supplied
 - [Current brief](../product/brief.md)
 - [Context summary](../context.md)
 - [Working agreement](../collaboration/working-agreement.md)
-- [Current wireframes](../design/workflow-wireframe-guide.md)
+- [Current design and approved mockups](../designs/resource-split-and-live-loop.md)
 
 Prior scope and work assignment decisions remain unchanged.

@@ -50,4 +50,4 @@ Selected technologies ([0009](../decisions/0009-implementation-start-and-technic
 
 ## Open acceptance design
 
-Implementation treatment of the approved v1 inclusion/deferrals for R1–R12; identity merge/unmerge policy; who reviews/approves corrections and receipts; exceptions; clinical handover; flood sources; permissions/retention; recovery; operational owner; telecom feasibility; evidence/evaluation targets. See [open questions](open-questions.md). Product implementation remains unauthorized.
+Implementation treatment of the approved v1 inclusion/deferrals for R1–R12; identity merge/unmerge policy; who reviews/approves corrections and receipts; exceptions; clinical handover; flood sources; permissions/retention; recovery; operational owner; telecom feasibility; evidence/evaluation targets. See the open items in [decision 0009](../decisions/0009-implementation-start-and-technical-direction.md). Implementation is authorized from 12 Oct (0009).

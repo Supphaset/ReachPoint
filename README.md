@@ -9,7 +9,7 @@ We are two Data Scientists exploring how organized volunteer teams could plan wh
 ## Start here
 
 1. Read [shared AI instructions](AGENTS.md) and [working agreement](docs/collaboration/working-agreement.md).
-2. Read the [brief](docs/product/brief.md), [requirements](docs/product/requirements.md) and [open questions](docs/product/open-questions.md).
+2. Read the [brief](docs/product/brief.md), [requirements](docs/product/requirements.md) and the [design doc](docs/designs/resource-split-and-live-loop.md).
 3. Check [decisions](docs/decisions/README.md), [hackathon rules](docs/hackathon.md) and [source register](docs/research/sources.md).
 4. Consult [skills and verified status](docs/collaboration/skills.md) and the [discovery roadmap](docs/planning/roadmap.md).
 
@@ -23,12 +23,12 @@ Application code and its setup instructions arrive from 12 Oct under `web/`, `ap
 
 ## Current review package
 
-Start with the [concrete prototype v1 scope](docs/product/prototype-scope-v1.md), human-approved in [decision 0005](docs/decisions/0005-prototype-scope-proposal.md). Review the [volunteer planning and emergency workflow](docs/product/volunteer-workflow-proposal.md) and [current prototype PRD](docs/product/prototype-prd.md) first. The latest human correction makes daily mission planning, uncovered response needs, emergency allocation and resident assistance status the starting point. The [earlier product detail](docs/product/product-detail.md), [wireframes](docs/design/wireframe-guide.md) and [synthetic scenario](docs/product/demo-scenario.md) are preserved prior drafts pending workflow review. [Replacement static wireframes](docs/design/workflow-wireframe-guide.md) translate the accepted scope; their layouts remain for review. Earlier quantity examples remain supporting invariants, not the headline demo.
+Start with the [concrete prototype v1 scope](docs/product/prototype-scope-v1.md), human-approved in [decision 0005](docs/decisions/0005-prototype-scope-proposal.md). The current plan is the [design doc](docs/designs/resource-split-and-live-loop.md) (approved product design, design-review and eng re-check decisions, approved mockups) and the [joint decision pack](docs/planning/joint-decision-pack.md) (stack, data contract, transitions, schedule), backed by the [real rescue practice research](docs/research/real-rescue-practice.md). Older drafts and wireframes were removed on 2026-10-11 and remain in git history.
 
 Prototype v1 scope is approved; [0009](docs/decisions/0009-implementation-start-and-technical-direction.md) replaces its fictional locality with real past-event flood packages and authorizes implementation. The phone provider and spend remain open.
 
 The [two-person delivery agreement](docs/collaboration/two-person-delivery-agreement.md) documents the assigned split: volunteer workspace/flood map for the user; resident/coordinator, chat/voice, reconciliation and database updates for the friend. It includes recommended responsibility boundaries, the shared handoff contract and joint acceptance checks.
 
-The [draft volunteer/backend integration contract](docs/collaboration/volunteer-backend-contract-v1.md) makes that handoff concrete: what each screen reads, who updates shared records, proposed operations/fields, synthetic payloads and error handling. It specifies expectations; no backend or database has been built.
+The data contract and state transitions are in the [joint decision pack](docs/planning/joint-decision-pack.md) §3–§4, updated by the design doc's pull-model rules (who reads what, who updates shared records, synthetic payloads and errors). No backend or database has been built yet.
 
 See the [proposed architecture diagrams](docs/planning/architecture-overview.md) for the whole-system connections, workstream ownership and emergency/status feedback sequence. Components/providers remain unselected.

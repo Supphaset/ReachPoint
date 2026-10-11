@@ -80,7 +80,7 @@ Winner-derived design lessons are AI interpretations, not explanations published
 
 ## Relief Ledger deeper review — 2026-10-11
 
-All sources accessed 2026-10-11. Findings and proposed scope are in the [deep-dive review](relief-ledger-deep-dive.md). Institutional descriptions document capabilities, not measured performance or missing competitor features.
+All sources accessed 2026-10-11. Findings and proposed scope are in the deep-dive review (removed 2026-10-11; in git history). Institutional descriptions document capabilities, not measured performance or missing competitor features.
 
 | ID | Primary source / publisher | Supported finding | Date and access limitations |
 |---|---|---|---|
@@ -99,7 +99,7 @@ Additional leads with limited access: [IFRC Morocco 18-month operation update](h
 
 ## Operational rethink — 2026-10-11
 
-All accessed 2026-10-11. [Analysis and revised hypothesis](relief-ledger-operational-rethink.md). Interpretations do not establish field efficacy or competitor omissions.
+All accessed 2026-10-11. Analysis and revised hypothesis (removed 2026-10-11; in git history). Interpretations do not establish field efficacy or competitor omissions.
 
 | ID | Source / publisher | Supported finding | Date/access and limits |
 |---|---|---|---|
@@ -158,7 +158,7 @@ Accessed/attempted 2026-10-11. [Research note](flood-situation-updates.md) recor
 
 ## Volunteer planning and emergency workflow — 2026-10-11
 
-Accessed 2026-10-11. These references inform the [workflow proposal](../product/volunteer-workflow-proposal.md); they do not validate local adoption, integrations or clinical/rescue governance.
+Accessed 2026-10-11. These references inform the workflow proposal (removed 2026-10-11; in git history); they do not validate local adoption, integrations or clinical/rescue governance.
 
 | ID | Primary source | Supported finding | Access and limits |
 |---|---|---|---|
