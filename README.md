@@ -8,6 +8,8 @@ We are two Data Scientists exploring how organized volunteer teams could plan wh
 
 ## Start here
 
+**New here? Read [docs/START-HERE.md](docs/START-HERE.md) first.** It lists the few files each of us needs and what is safe to skip.
+
 1. Read [shared AI instructions](AGENTS.md) and [working agreement](docs/collaboration/working-agreement.md).
 2. Read the [brief](docs/product/brief.md), [requirements](docs/product/requirements.md) and the [design doc](docs/designs/resource-split-and-live-loop.md).
 3. Check [decisions](docs/decisions/README.md), [hackathon rules](docs/hackathon.md) and [source register](docs/research/sources.md).
