@@ -10,6 +10,8 @@ Every published layer must trace back to an entry here. See pack §5.1b–c for 
 | JRC Global Surface Water 1.4 (`JRC/GSW1_4/GlobalSurfaceWater`) | Mask permanent water | Pekel et al. 2016, EC JRC / Google |
 | SRTM 30 m (`USGS/SRTMGL1_003`) | Mask slopes over 5° | NASA / USGS |
 | Sentinel Asia products (EOS, AIT), 23 Nov 2025 | Comparison only; not redistributed until the licence is checked | As stated on each product |
+| News and official reports (FM91, Bangkok Biz News, Thai PBS), 23–25 Nov 2025 | `reported-flooding.geojson`: the city centre, where Sentinel-1 can't see water | Cited per point; we paraphrase the text, not copy it |
+| OpenStreetMap / Nominatim | Approximate locations for reported streets and landmarks | © OpenStreetMap contributors, ODbL |
 
 ## Runs
 
@@ -48,4 +50,31 @@ Every published layer must trace back to an entry here. See pack §5.1b–c for 
 - **Optical cross-check:** Sentinel-2 over the city centre was 100% cloud on 26 Nov and 28% on 1 Dec (after the peak). No usable optical image near the peak.
 - **Bug fixed during the run:** `ImageCollection.max()` under-reported the union (39.31 vs 42.05 km²). The script now ORs the masks explicitly.
 - **Comparison with EOS/AIT maps:** not done yet. It needs the reference file downloaded and its licence checked.
-- **Decision:** pending. Choose the main layer and how to show the urban gap.
+- **Decision:** superseded by run 2.
+
+### hy-2025-11: run 2 (2026-10-12), current
+
+- **Changes from run 1:**
+  - The AOI is extended north to 7.25° N, so the flooding toward Songkhla lake is no longer cut off.
+  - Defaults are now 30 m vectorising and 40 m simplification.
+  - Coordinates are rounded to 4 dp (about 11 m), before the 0.5 ha filter is applied.
+- **Detected area per pass:**
+
+  | Bangkok time | Detected | File size |
+  |---|---|---|
+  | 24 Nov 06:03 | 35.50 km² | 289 KB |
+  | 29 Nov 18:35 | 25.31 km² | 169 KB |
+  | 30 Nov 06:01 | 21.63 km² | 178 KB |
+  | Union (`extent-max-observed.geojson`, reference only, over budget, not shown in the app) | 46.23 km² | 390 KB |
+
+  All three per-pass files pass the budget check.
+- **App layers (`layers.json`, user decision 2026-10-12):**
+  - Default: the 24 Nov 06:03 pass.
+  - Toggle: the 30 Nov 06:01 pass ("water going down").
+  - Also on by default: **reported flooding**.
+- **Reported flooding (`reported-flooding.geojson`):** 17 public streets and landmarks with cited reports from 23–25 Nov.
+  - Examples: Niphat Uthit 2/3 Rd "chest deep to over head height", Rat Uthit Rd "water to the ceiling", Kim Yong Market "waist to chest".
+  - Locations are approximate, from OpenStreetMap. There are no household or personal details.
+  - Places I couldn't geocode reliably were left out: Pom Hok community, Soi Sam Sakun 4, the PWA plant, and Wat Bang Sala (the OSM match was in another district).
+- **Visual check:** the reported points fill the city-centre gap, where the satellite layer is blank.
+- **Still to do:** compare with the EOS/AIT maps (needs the reference file and a licence check).

@@ -7,7 +7,7 @@ Three steps, run from the repo root with your sandbox Google Cloud project:
     python data/ee/flood_check.py compare --project YOUR_EE_PROJECT --package hy-2025-11 \
         --reference path/to/eos-hatyai.geojson
 
-`list` writes the available scenes, `detect` writes the flood extent GeoJSON,
+`list` writes the available scenes, `detect` writes one flood extent GeoJSON per pass (plus a max-observed union for reference),
 `compare` measures agreement with a published map. Nothing here runs in the app;
 the outputs are committed under data/<package>/ and served from Cloud Storage.
 """
@@ -35,7 +35,7 @@ DEFAULTS = {
     "perm_water_pct": 80,   # JRC occurrence above this is permanent water, not flood
     "min_pixels": 8,        # connected pixels at 10 m; removes isolated noise
     "close_m": 30,          # morphological closing: fills dry gaps and smooths edges under ~this size
-    "scale_m": 20,          # vectorisation scale
+    "scale_m": 30,          # vectorisation scale (run 1: 20 m was over budget)
 }
 
 
@@ -158,7 +158,8 @@ def local_time(utc_text):
 
 
 def round_coords(c):
-    return [round_coords(x) for x in c] if isinstance(c[0], list) else [round(c[0], 5), round(c[1], 5)]
+    # 4 dp is about 11 m: below the 40 m simplification, so no visible change, and ~15% smaller files.
+    return [round_coords(x) for x in c] if isinstance(c[0], list) else [round(c[0], 4), round(c[1], 4)]
 
 
 def drop_small_parts(geom):
@@ -177,7 +178,10 @@ def drop_small_parts(geom):
 def write_geojson(fc_info, path, meta):
     kept = []
     for f in fc_info["features"]:
-        geom = drop_small_parts(f["geometry"]) if f["geometry"]["type"] in ("Polygon", "MultiPolygon") else None
+        if f["geometry"]["type"] not in ("Polygon", "MultiPolygon"):
+            continue
+        f["geometry"]["coordinates"] = round_coords(f["geometry"]["coordinates"])  # round first, then measure
+        geom = drop_small_parts(f["geometry"])
         if geom is None:
             continue
         f["geometry"] = geom
@@ -185,7 +189,6 @@ def write_geojson(fc_info, path, meta):
     fc_info["features"] = kept
     for f in fc_info["features"]:
         f.pop("id", None)
-        f["geometry"]["coordinates"] = round_coords(f["geometry"]["coordinates"])  # 5 dp is about 1 m
         props = {k: v for k, v in f["properties"].items() if k in KEEP_PROPS}
         props["area_m2"] = round(props.get("area_m2", 0))
         f["properties"] = props
@@ -241,7 +244,7 @@ def cmd_detect(args, pkg, aoi):
         "scenes": per_date,
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
-    path = out_dir / "extent.geojson"
+    path = out_dir / "extent-max-observed.geojson"  # reference only; the app shows one dated pass (layers.json)
     size = write_geojson(info, path, meta)
     total = flooded_km2(max_extent, aoi, p["scale_m"]).getInfo()
     summary = {**meta, "flooded_km2_max": round(total, 2), "polygons": len(info["features"]), "bytes": size}
@@ -252,7 +255,7 @@ def cmd_detect(args, pkg, aoi):
 
 
 def cmd_compare(args, pkg, aoi):
-    ours_path = DATA_DIR / args.package / "extent.geojson"
+    ours_path = DATA_DIR / args.package / (args.ours or "extent-max-observed.geojson")
     def load(path):
         return ee.FeatureCollection([ee.Feature(f) for f in json.loads(Path(path).read_text())["features"]])
 
@@ -285,6 +288,7 @@ def main():
     parser.add_argument("--date", action="append", help="detect: only this event date (YYYY-MM-DD); repeatable")
     parser.add_argument("--per-date", action="store_true", help="detect: also write one GeoJSON per date")
     parser.add_argument("--reference", help="compare: published flood map as GeoJSON")
+    parser.add_argument("--ours", help="compare: our file in the package folder (default extent-max-observed.geojson)")
     parser.add_argument("--simplify-m", type=float, default=SIMPLIFY_M, help=f"detect: polygon simplification in metres (default {SIMPLIFY_M})")
     for key, value in DEFAULTS.items():
         parser.add_argument(f"--{key.replace('_', '-')}", dest=key, type=type(value), help=f"default {value}")

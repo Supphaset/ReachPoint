@@ -7,7 +7,7 @@ boundaries are drawn (pack §5.1b). Coordinates are [west, south, east, north] i
 PACKAGES = {
     "hy-2025-11": {
         "name": "Hat Yai / Songkhla flood, Nov 2025",
-        "bbox": [100.30, 6.85, 100.65, 7.15],
+        "bbox": [100.30, 6.85, 100.65, 7.25],
         # Baseline: before the event, same season. Event: the flood window (pack §5.1c).
         "baseline": ("2025-10-01", "2025-11-15"),
         "event": ("2025-11-19", "2025-12-05"),
@@ -23,10 +23,10 @@ PACKAGES = {
     },
 }
 
-# Export rules from eng review R11: drop polygons under 0.5 ha, simplify at ~15 m,
+# Export rules from eng review R11 (simplification raised to 40 m in run 1): drop polygons under 0.5 ha,
 # one GeoJSON per package within 300 KB.
 MIN_POLYGON_M2 = 5_000
-SIMPLIFY_M = 15
+SIMPLIFY_M = 40  # run 1: 15 m left the 24 Nov file over 300 KB
 MAX_BYTES = 300 * 1024
 
 ATTRIBUTION = "Contains modified Copernicus Sentinel data {year}, processed by ReachPoint"

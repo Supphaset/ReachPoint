@@ -1,0 +1,27 @@
+{
+  "package": "hy-2025-11",
+  "layers": [
+    {
+      "id": "s1-2025-11-24",
+      "file": "extent-2025-11-23-o164.geojson",
+      "kind": "observed_extent",
+      "default": true,
+      "label": "Flood extent on 24 Nov 2025 06:03 Bangkok (Sentinel-1) · urban areas may be under-detected"
+    },
+    {
+      "id": "s1-2025-11-30",
+      "file": "extent-2025-11-29-o164.geojson",
+      "kind": "observed_extent",
+      "default": false,
+      "label": "Flood extent on 30 Nov 2025 06:01 Bangkok (Sentinel-1) · water going down"
+    },
+    {
+      "id": "reported",
+      "file": "reported-flooding.geojson",
+      "kind": "qualitative_report",
+      "default": true,
+      "label": "Reported flooding (official and news reports, not seen by satellite) · approximate locations"
+    }
+  ],
+  "attribution": "Contains modified Copernicus Sentinel data 2025, processed by ReachPoint"
+}

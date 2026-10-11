@@ -10,7 +10,10 @@ Each package folder holds what the app shows for one past flood event:
 | `ee/flood_check.py` | Earth Engine Sentinel-1 flood check: `list`, `detect`, `compare` |
 | `scripts/check_extent_budget.py` | Size and rule check for an extent file (no Earth Engine needed) |
 | `<package>/scenes.csv` | Sentinel-1 scenes found for the baseline and event windows |
-| `<package>/extent.geojson` | Max observed flood extent, ≤ 300 KB, with label and attribution |
+| `<package>/extent-<date>-o<orbit>.geojson` | One dated Sentinel-1 pass, ≤ 300 KB, with label and attribution |
+| `<package>/extent-max-observed.geojson` | Union of all passes, for reference and comparison only (not shown in the app) |
+| `<package>/layers.json` | Which layers the app shows, their labels and the default |
+| `<package>/reported-flooding.geojson` | Cited reports of flooding the satellite can't see (city centre) |
 | `<package>/run-summary.json` | Parameters, scenes used and flooded area for the run |
 | `SOURCES.md` | Record of every run and its comparison with published maps |
 
@@ -44,7 +47,7 @@ python data/ee/flood_check.py detect --project YOUR_SANDBOX_PROJECT --package hy
 3. Check it against the package rules:
 
 ```bash
-python data/scripts/check_extent_budget.py data/hy-2025-11/extent.geojson
+python data/scripts/check_extent_budget.py data/hy-2025-11/extent-2025-11-23-o164.geojson
 ```
 
 4. Compare it with a published map. Download the EOS or AIT Hat Yai shapefile from [Sentinel Asia](https://sentinel-asia.org/EO/2025/article20251119TH.html) and convert it to GeoJSON (for example in QGIS). Then run:
