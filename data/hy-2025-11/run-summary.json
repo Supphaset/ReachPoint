@@ -1,0 +1,48 @@
+{
+  "label": "Satellite extent computed by ReachPoint from Copernicus Sentinel-1 on 2025-11-24 06:03 Bangkok, 2025-11-29 18:35 Bangkok, 2025-11-30 06:01 Bangkok; urban areas may be under-detected; households, teams, calls and quantities are synthetic.",
+  "attribution": "Contains modified Copernicus Sentinel data 2025, processed by ReachPoint",
+  "method": "Sentinel-1 VV change detection vs same-orbit baseline median",
+  "parameters": {
+    "diff_db": -3.0,
+    "water_db": -15.0,
+    "smooth_m": 30,
+    "max_slope_deg": 5,
+    "perm_water_pct": 80,
+    "min_pixels": 8,
+    "close_m": 30,
+    "scale_m": 30,
+    "simplify_m": 40.0,
+    "min_polygon_m2": 5000
+  },
+  "baseline_window": [
+    "2025-10-01",
+    "2025-11-15"
+  ],
+  "scenes": [
+    {
+      "date_utc": "2025-11-23",
+      "acquired_utc": "2025-11-23T23:03",
+      "acquired_local": "2025-11-24 06:03 Bangkok",
+      "orbit": 164,
+      "flooded_km2": 35.5
+    },
+    {
+      "date_utc": "2025-11-29",
+      "acquired_utc": "2025-11-29T11:35",
+      "acquired_local": "2025-11-29 18:35 Bangkok",
+      "orbit": 70,
+      "flooded_km2": 25.31
+    },
+    {
+      "date_utc": "2025-11-29",
+      "acquired_utc": "2025-11-29T23:01",
+      "acquired_local": "2025-11-30 06:01 Bangkok",
+      "orbit": 164,
+      "flooded_km2": 21.63
+    }
+  ],
+  "generated": "2026-10-11T17:00:22+00:00",
+  "flooded_km2_max": 46.23,
+  "polygons": 676,
+  "bytes": 399749
+}
