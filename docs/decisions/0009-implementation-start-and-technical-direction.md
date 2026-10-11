@@ -25,14 +25,20 @@ The prototype deadline is 18 October 2026, with no published cut-off time or tim
 - [0007](0007-logical-architecture-proposal.md): the logical architecture now has a proposed physical mapping (D2–D4). The logical rules, including no AI write path to authoritative records, are unchanged.
 - AGENTS.md / README / CLAUDE.md: implementation is no longer forbidden from 12 Oct, within D1–D6. Paid services still need the spend decision below. Deployment is limited to the hackathon demo on `reachpoint-main`.
 
+## Amendments (user decisions later on 2026-10-11)
+
+- **D5 superseded: no real phone line in the prototype.** The user decided that a real call isn't needed for this prototype. A browser **call screen** represents a phone call for elderly users who aren't comfortable with technology, and it is disclosed as such in the video and deck. R2 is deferred beyond the prototype ([requirements](../product/requirements.md)). A real Thai phone line is a TODO after the hackathon. The Twilio upgrade, the AIS forwarding question and the CP3 phone gate are no longer needed.
+- **D1 checkpoint wording.** CP2 becomes "publish → a team takes a family group → resident window per group". CP3 drops the phone gate.
+- **Pull model (design decision 21A).** Reviewed cases are published to shared priority lists; the first capable team to accept wins; there are no offers, timers or reservations before acceptance. The lifecycle (family groups, job endings, outdated-case checks, distance ordering, server-checked resident messages, coordinator-only solver) was settled in the eng re-check: see the [design doc](../designs/resource-split-and-live-loop.md) ("Eng re-check decisions") and the research in [real rescue practice](../research/real-rescue-practice.md).
+- These amendments are the user's decisions; like the rest of 0009, they bind both humans once the friend confirms.
+
 ## Still open (not decided here)
 
-- Total spend cap and its split across projects; who pays for the Twilio upgrade (blocks D5 testing and CP0 billing).
-- The AIS answer on international forwarding (call 1175).
+- Total spend cap and its split across projects (blocks CP0 billing). The Twilio and AIS questions are moot after the D5 amendment.
 - Contract v1.0 freeze: the pack's §3–§4 record shapes, one assistance document per type per case, and resident visibility of reported-but-unreviewed problems.
 - Thai intake with English for the other screens (still proposed).
 - Exact Hat Yai P-A/P-B/P-C boundaries; whether Bangkok has a usable Sentinel-1 pass in the event window (checked first on 12 Oct).
 
 ## Consequences
 
-Code work starts on task branches from `main` once this PR merges. Every claim in the video and deck must match a verified capability: real satellite extent (dated), synthetic operations, browser voice unless the phone gate passes. No real resident data, clinical protocol or operational use is introduced.
+Code work starts on task branches from `main` once this PR merges. Every claim in the video and deck must match a verified capability: real satellite extent (dated), synthetic operations, and a browser call screen that represents a phone call (no real phone line). No real resident data, clinical protocol or operational use is introduced.

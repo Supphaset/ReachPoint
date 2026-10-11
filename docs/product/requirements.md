@@ -7,7 +7,7 @@ Status labels: **Accepted** = explicit human request or boundary; **Proposed** =
 | ID | Capability | Definition still needed |
 |---|---|---|
 | R1 | Chat intake | Channels, language, identity, clarification and fallback |
-| R2 | Inbound telephone calls | Real telephone access; telecom provider, number/region, costs, consent and failures. Browser voice chat is not equivalent. |
+| R2 | Inbound telephone calls | **Deferred beyond the prototype (user decision 2026-10-11, [0009 amendments](../decisions/0009-implementation-start-and-technical-direction.md#amendments-user-decisions-later-on-2026-10-11)).** The prototype uses a browser call screen that represents a phone call; it is disclosed as such. A real line needs a telecom provider, number/region, costs, consent and failure handling (TODO). |
 | R3 | Operations dashboard | Decisions, review roles, shift handover and stale information |
 | R4 | Household needs map | Identity, location uncertainty and visibility controls |
 | R5 | Volunteer locations and updates | Source, freshness, permission and recovery |
@@ -46,7 +46,7 @@ For this example, outstanding = requested − approved receipt; unassigned = out
 
 AI conversational clarification, case-history retrieval, contradiction interpretation, suggested report relationships, evidence-linked proposed events, unresolved-issue explanations, handovers and suggested next actions. A reviewed event history is promising but not a final storage architecture.
 
-Selected technologies ([0009](../decisions/0009-implementation-start-and-technical-direction.md), friend confirmation pending): Gemini (Live API and structured output) via Vertex AI, Cloud Run, Firestore, Firebase Authentication/Hosting, Cloud Storage, Google Maps and Earth Engine (offline precompute). Phone access still needs telecom infrastructure. Until the R2 gate passes, intake is browser voice, labeled as such; that does not satisfy R2.
+Selected technologies ([0009](../decisions/0009-implementation-start-and-technical-direction.md), friend confirmation pending): Gemini (Live API and structured output) via Vertex AI, Cloud Run, Firestore, Firebase Authentication/Hosting, Cloud Storage, Google Maps and Earth Engine (offline precompute). Phone access is deferred beyond the prototype: intake uses a browser call screen, labeled as representing a phone call (R2 deferred).
 
 ## Open acceptance design
 

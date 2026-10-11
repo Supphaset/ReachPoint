@@ -10,7 +10,7 @@ Solid arrows show intended data/actions/responses. The dashed qualified-review i
 flowchart TB
     Sources["Dated flood, building and population sources<br/>or disclosed synthetic package"]
     Resident["Resident or proxy"]
-    Phone["Telephone gateway<br/>Provider and real inbound access unresolved"]
+    Phone["Browser call screen<br/>Represents a phone call; real line deferred (0009 amendments)"]
     Qualified["Synthetic qualified-review fixture<br/>Real operational governance unresolved"]
 
     subgraph YourWork["YOUR WORK"]
