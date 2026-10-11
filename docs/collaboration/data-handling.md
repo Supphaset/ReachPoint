@@ -7,3 +7,10 @@ Store credentials/account configuration outside Git. `.env.example` intentionall
 For later design, resolve who can see and approve each record, minimum necessary data, purpose/consent for audio and location, retention/deletion, export, audit access, prompt injection and malicious reports. Separate reported facts from model proposals and approved events. These are design questions, not implemented controls or a compliance claim.
 
 No clinical protocol, production security assessment or privacy/legal clearance has been completed. Future security reviews must use authorized assets and synthetic data; no active tests against third-party systems.
+
+Build-week rules (from 12 Oct):
+- Seed and fixture data use invented names, no real phone numbers, and generic landmarks (L1–L3, D1).
+- No service-account key files anywhere. Cloud Run uses its own service identity; Gemini is called only server-side.
+- The Google Maps key is restricted by HTTP referrer and API.
+- Resident status links use random tokens (128-bit), carry no personal data, expire, and can only read their own status.
+- Only the coordinator role can read call transcripts; team leaders see counts and pickup points only.

@@ -38,7 +38,7 @@ Agreed after three rounds; the user corrected rounds 1 and 2.
    - Volunteers: a mission briefing (why here, what to bring, what's unknown) and voice/photo field reports turned into proposed events.
    - Coordinator: change summaries.
 4. **Google products only where they do real work.** That now includes Google OR-Tools for the split.
-5. **Real phone gets one serious try;** browser voice is the disclosed fallback.
+5. **No real phone line in the prototype** (0009 amendments); the browser call screen represents a call and is disclosed.
 6. **Cut order if behind:** Bangkok package → reconciliation UI polish → **coordinator copilot's replan drafting** (keep its read-only Q&A) → whole coordinator copilot (the demo falls back to Approach B: solver + Gemini explanation, no agent) → P-C field-report scene → Open Buildings counts → real phone line. The split suggestion and replanning are never cut.
 
 ## Cross-Model Perspective
@@ -72,7 +72,7 @@ Claude's synthesis: adopt the "one more boat" comparison and the optional-assign
    - **Switch criterion, checked Wed 14 Oct 12:00 Bangkok:** three scripted synthetic Thai test sessions must each produce the correct landmark, people count and assistance types as proposals, with no session drop over 10 s. If not, ship rung 2 and record why in the deck.
    - **Ownership:**
      - Friend: the intake agent, the ADK runtime inside FastAPI, the shared tool layer and the rules engine.
-     - User: the solver (`allocation.py`, a pure function `solve_split(snapshot) -> suggestion` with no I/O, which the friend's API calls and persists), the Gemini briefing/split-explanation prompts, and the coordinator copilot agent definition (instructions and tool choice) built on the friend's tool layer.
+     - User: the solver (`allocation.py`, a pure function `solve_split(snapshot) -> suggestion` with no I/O, which the friend's API calls and persists), the shared priority tiers and sort (`tiers.py`), the coordinator split panel with "Ask these teams" and What-if, the Gemini briefing/split-explanation prompts, and the coordinator copilot agent definition (instructions and tool choice) built on the friend's tool layer. Full table: [delivery agreement](../collaboration/two-person-delivery-agreement.md#who-owns-what).
      - Interface boundary: the `AllocationInput` and `AllocationSuggestion` JSON Schemas in `contract/`.
 2. **Tools are the only way agents touch data, and every tool is read-only or proposal-only.** For example:
    - `get_area_briefing`, `get_case`

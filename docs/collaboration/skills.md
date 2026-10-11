@@ -1,5 +1,7 @@
 # Skills and verified status
 
+> **Status update 2026-10-11 (later):** `/office-hours`, `/plan-eng-review` (twice, with the Codex CLI outside voice on the ChatGPT subscription) and `/plan-design-review` have run on the plan. Next: `/design-consultation` and an accessibility review before styling; `/review`, `/qa-only` and `/audit` once screens exist. The version details below are the original inventory and may be out of date.
+
 Inventory date: **2026-10-11**. Recommendations are optional capabilities, not automatic workflow or implementation approval. No skill/package was installed, upgraded or executed as a product workflow during setup. `find-skills` was used for discovery; existing files, headers and dependencies were inspected.
 
 ## Small recommended set
