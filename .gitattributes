@@ -1,0 +1,3 @@
+# Static review artifacts are binary; do not apply text diff or newline conversion.
+*.pdf binary
+*.png binary

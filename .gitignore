@@ -1,0 +1,35 @@
+# Credentials and private configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
+application_default_credentials.json
+.aws/
+.gcloud/
+
+# Private material: never put real operational data in tracked examples
+private/
+local/
+recordings/
+transcripts/
+
+# Local tools, dependencies and generated state
+.DS_Store
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+.cache/
+.gstack/
+.playwright/
+coverage/
+dist/
+build/
+*.log
+
+# Superseded, unlinked raster previews remain local; historical PDFs are tracked.
+output/wireframes/review-*.png
+output/wireframes/workflow-v2/
