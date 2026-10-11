@@ -46,7 +46,7 @@ For this example, outstanding = requested − approved receipt; unassigned = out
 
 AI conversational clarification, case-history retrieval, contradiction interpretation, suggested report relationships, evidence-linked proposed events, unresolved-issue explanations, handovers and suggested next actions. A reviewed event history is promising but not a final storage architecture.
 
-Possible future technologies (unselected): Gemini/Live API, Cloud Run, Firestore, Firebase Authentication/Hosting, Cloud Storage and Google Maps. Verify current docs, regions, models and costs later. Phone access still needs telecom infrastructure.
+Selected technologies ([0009](../decisions/0009-implementation-start-and-technical-direction.md), friend confirmation pending): Gemini (Live API and structured output) via Vertex AI, Cloud Run, Firestore, Firebase Authentication/Hosting, Cloud Storage, Google Maps and Earth Engine (offline precompute). Phone access still needs telecom infrastructure. Until the R2 gate passes, intake is browser voice, labeled as such; that does not satisfy R2.
 
 ## Open acceptance design
 

@@ -13,7 +13,7 @@ Source: [garrytan/gstack](https://github.com/garrytan/gstack). On this machine:
 | Host | Verified file state | Checkout version / commit | Runtime status |
 |---|---|---|---|
 | Codex | Selected skill files exist and are exposed in this session's catalog | 1.57.10.0 / `a5833c413f98b13f105beac96262e8098b628461` | Availability verified; workflows not run; old skill preambles contain Claude-specific paths/tool names |
-| Claude Code | Selected skill files exist in its user skill checkout | 1.60.1.0 / `a3259400a366593e0c909dd9ac3e59752efd2488` | File presence verified; discovery/auth/runtime in Claude not tested |
+| Claude Code | Selected skill files exist in its user skill checkout | **1.91.83.0** / `5cb5e1cf` (upgraded 2026-10-11 at the user's request via `/gstack-upgrade`; previously 1.60.1.0 / `a3259400`) | Upgrade, setup and migrations completed; setup registered a gstack timeline Stop hook in the user's Claude settings |
 
 Current [upstream version](https://raw.githubusercontent.com/garrytan/gstack/main/VERSION) was 1.91.70.0. Neither local checkout was updated. The [README](https://github.com/garrytan/gstack) lists Claude as full support and Codex as experimental, with different installation targets and advisory safety on Codex. These upstream statements do not certify our older local installs. Do not assume identical names, hooks or formats across tools.
 

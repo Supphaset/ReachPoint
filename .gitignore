@@ -33,3 +33,11 @@ build/
 # Superseded, unlinked raster previews remain local; historical PDFs are tracked.
 output/wireframes/review-*.png
 output/wireframes/workflow-v2/
+
+# Google Cloud / Firebase (implementation phase, decision 0009)
+*-firebase-adminsdk-*.json
+serviceAccount*.json
+.firebase/
+firebase-debug*.log
+.terraform/
+*.tfstate*

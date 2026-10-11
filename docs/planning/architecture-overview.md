@@ -1,6 +1,6 @@
 # ReachPoint — proposed architecture and connections
 
-Date: 2026-10-11. **Logical architecture for review; no technology or deployment selected.** Accepted product scope and human work split remain in [scope v1](../product/prototype-scope-v1.md) and [decision 0006](../decisions/0006-two-person-work-split.md). The architecture recommendation is recorded as **proposed** in [decision 0007](../decisions/0007-logical-architecture-proposal.md). Boxes describe responsibilities, not separate deployed services. Nothing in this diagram is implemented.
+Date: 2026-10-11. **Logical architecture.** The physical mapping (Cloud Run API, Firestore, Firebase Hosting/Auth, Vertex AI, Maps, offline Earth Engine) is set in [decision 0009](../decisions/0009-implementation-start-and-technical-direction.md); the logical rules here are unchanged. Accepted product scope and human work split remain in [scope v1](../product/prototype-scope-v1.md) and [decision 0006](../decisions/0006-two-person-work-split.md). The architecture recommendation is recorded as **proposed** in [decision 0007](../decisions/0007-logical-architecture-proposal.md). Boxes describe responsibilities, not separate deployed services. Nothing in this diagram is implemented.
 
 ## Whole-system diagram
 

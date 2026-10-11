@@ -2,7 +2,7 @@
 
 ## Scope and authority
 
-Project setup, documentation and online research are authorized. Product implementation is **not** authorized: do not build screens, services, databases, AI or telephone integrations, provision infrastructure, deploy, purchase services or enable paid features. A human must explicitly authorize implementation after scope review. Suggestions, skill outputs and prototype screens are not human approvals.
+Project setup, documentation and online research are authorized. **From 12 Oct 2026, implementation is authorized within [decision 0009](docs/decisions/0009-implementation-start-and-technical-direction.md)** (stack, Google Cloud layout, flood packages, browser-voice interim intake, checkpoint plan), subject to the friend's confirmation in PR #1. Outside 0009 the old boundary holds: no other services, providers or channels. Do not purchase services or enable paid features until the spend cap and payer are recorded. Deploy only the hackathon demo to the shared `reachpoint-main` project. Suggestions, skill outputs and prototype screens are not human approvals.
 
 Before work, read this file, [current decisions](docs/decisions/README.md), the [brief](docs/product/brief.md), [requirements](docs/product/requirements.md) and relevant topic documents. Read [context](docs/context.md) for history, not as a competing current specification. Claude starts at [CLAUDE.md](CLAUDE.md). Other tools must be directed to this file explicitly if they do not discover it.
 

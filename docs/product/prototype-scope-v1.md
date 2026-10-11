@@ -2,6 +2,8 @@
 
 Date: 2026-10-11 (Asia/Bangkok). Status: **Accepted prototype product scope.** Human approval: “approve” to the concrete v1 final review; see [decision 0005](../decisions/0005-prototype-scope-proposal.md). [Requirements](requirements.md) and [accepted decisions](../decisions/README.md) retain authority. Implementation, paid services, publishing and deployment remain unapproved.
 
+> **Revised by [decision 0009](../decisions/0009-implementation-start-and-technical-direction.md) (2026-10-11):** the bounded locality is now real past-event flood geography. Hat Yai / Songkhla, Nov 2025 hosts P-A/P-B/P-C and the emergency sequence; Bangkok, Sep 2026 is a second map/briefing package with no operational records. Extents are computed from Sentinel-1 with dated acquisitions. Everything operational below stays synthetic, and the fixture IDs, quantities and rules are unchanged.
+
 ## Product definition
 
 Help organized volunteer teams decide **where to help, what response is needed and what resources to bring**; help coordinators validate and allocate emergency assistance; help residents know **what help is confirmed and when it is expected**.
