@@ -68,6 +68,8 @@ Rules:
 
 ## What crosses the boundary
 
+The [integration map](integration-map.md) has the full diagram, numbered connections C1–C11 with their contract and fixture, the two cross-boundary sequence diagrams, and how our tests cover each connection.
+
 | Producer → consumer | Action | Required result |
 |---|---|---|
 | You → Friend | Area, zone and landmark catalogue; flood and exposure files | Stable IDs and versions; source dates and uncertainty kept |

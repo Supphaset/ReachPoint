@@ -8,6 +8,7 @@ The repo has about 40 files, but each of us needs only about 4 of them, and only
 
 | # | File | Read | Skip |
 |---|---|---|---|
+| 1a | [Integration map](collaboration/integration-map.md) | All: how our parts connect (C1–C11), the two key flows, and how our tests fit together | — |
 | 1 | [Delivery agreement](collaboration/two-person-delivery-agreement.md) | All (about 110 lines): the week table, who owns what, the frontend foundation, what crosses the boundary, the review rule | — |
 | 2 | [Decision 0009](decisions/0009-implementation-start-and-technical-direction.md) | The decisions table and **Amendments** | — |
 | 3 | [Design doc](designs/resource-split-and-live-loop.md) | "What Makes This Cool"; step **3a** (pull model) and **3b** (failed resource); **Eng re-check decisions**; the Approved Mockups table; the state table in Pass 2 | Reviewer Concerns, Cross-Model Perspective, "What I noticed", the review reports at the end |
