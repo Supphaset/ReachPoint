@@ -4,7 +4,7 @@ Date: 2026-10-11. Owners: **You** and **Friend**; replace these labels with agre
 
 **Accepted assignment:** you own the volunteer workspace and flood map; your friend owns resident/coordinator experiences, chat/voice intake, reconciliation and database updates. Human instruction is recorded in [decision 0006](../decisions/0006-two-person-work-split.md).
 
-**Recommended handoff design:** the detailed responsibility boundaries, logical data contract and milestones below are proposals for both of you to review. They do not select a framework, database, provider or deployment. This document describes future delivery expectations; it does not authorize implementation. Product boundaries remain in [approved scope v1](../product/prototype-scope-v1.md), [requirements](../product/requirements.md) and the [replacement wireframes](../design/workflow-wireframe-guide.md).
+**Recommended handoff design:** the detailed responsibility boundaries, logical data contract and milestones below are proposals for both of you to review. They do not select a framework, database, provider or deployment. This document describes delivery expectations; implementation is authorized separately by [decision 0009](../decisions/0009-implementation-start-and-technical-direction.md) from 12 Oct. Product boundaries remain in [approved scope v1](../product/prototype-scope-v1.md), [requirements](../product/requirements.md) and the [replacement wireframes](../design/workflow-wireframe-guide.md).
 
 For concrete screen reads, write operations, logical table ownership, proposed fields, synthetic request/response examples and errors, use the [volunteer/backend integration contract](volunteer-backend-contract-v1.md). It is the detailed companion to this responsibility agreement; its names are proposed interfaces, not implemented endpoints.
 
@@ -110,7 +110,7 @@ Do not maintain independent mission/status databases on the two sides. The propo
 
 ## First integration sequence and handoff expectations
 
-These are ordered milestones, not dates or an effort guarantee. Build steps apply only after separate implementation authorization. Before that, complete specifications, source/phone feasibility and sample-state reviews.
+These are ordered milestones. Their dates (CP0–CP3, 12–15 Oct) are in the [joint decision pack §6](../planning/joint-decision-pack.md#6-first-tasks-and-integration-checkpoints-proposed); [0009](../decisions/0009-implementation-start-and-technical-direction.md) authorizes the build steps. Before that, complete specifications, source/phone feasibility and sample-state reviews.
 
 1. **Joint contract review.** Freeze the core concepts, IDs, access, units, timestamps, transitions and failure responses. Use the [shared wireframe scenario](../design/workflow-wireframe-guide.md#shared-scenario-and-provenance-fixtures): P-A/P-B/P-C, T-R/T-S/T-M, C-01 and M-01. Older packs use different scenarios; do not combine their numbers.
 2. **Parallel specification handoff.** You supply the source/area catalogue and planning rules; Friend supplies report/review/mission/status rules. Together define synthetic examples for pending review, unknown location, accepted assistance, delay and version conflict. Resolve phone and source gates early; report blockers before promising delivery.

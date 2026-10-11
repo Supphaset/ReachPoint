@@ -1,6 +1,6 @@
 # Discovery roadmap
 
-This is a proposed sequence, not implementation authorization. Calendar constraints live in [hackathon](../hackathon.md).
+Status 2026-10-11: discovery, scope and architecture stages are complete; [decision 0009](../decisions/0009-implementation-start-and-technical-direction.md) authorizes implementation from 12 Oct. The day-by-day build plan is §6 of the [joint decision pack](joint-decision-pack.md). Calendar constraints live in [hackathon](../hackathon.md).
 
 | Stage | Reviewable output | Gate |
 |---|---|---|
@@ -9,8 +9,8 @@ This is a proposed sequence, not implementation authorization. Calendar constrai
 | Problem discovery | One coordinator/situation, published pain/workaround evidence, falsification criteria | Humans accept problem hypothesis or pivot |
 | Workflow and differentiation | One synthetic report-to-outcome flow and comparison evidence | Human agreement on identity, approval, receipt and exceptions |
 | Scope and feasibility | Include/defer list, telephone feasibility, medical/flood boundaries, evaluation baseline | Humans approve smallest convincing scope |
-| Architecture planning | Alternatives, costs/regions, data/permission model, validation strategy | Explicit human authorization before implementation |
-| Implementation and submission — future only | Approved prototype, evaluation, deployment, public repo, deck/video | Separate implementation, publishing and deployment authorization |
+| Architecture planning — completed | Stack, Google Cloud layout, flood packages, phone path ([0009](../decisions/0009-implementation-start-and-technical-direction.md)) | Friend confirms in PR #1; spend cap still open |
+| Implementation and submission — 12–18 Oct | Deployed prototype on `reachpoint-main`, public repo, video under 3 min, PDF deck | Checkpoints CP0–CP3, feature freeze 16 Oct, submit by 17 Oct evening Bangkok time |
 
 The concrete [prototype v1 scope](../product/prototype-scope-v1.md) is human-approved: five experiences and one complete planning/intake/allocation/resident-status story. Next, review the replacement static wireframes and resolve technical gates before separately authorized implementation.
 

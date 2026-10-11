@@ -12,7 +12,7 @@ Describe the problem and link sources or the approved decision.
 
 ## Scope and exclusions
 
-State what this task may change. Implementation is excluded until explicitly authorized.
+State what this task may change. Implementation must stay within decision 0009 (stack, services, data packages); anything outside it needs a new decision.
 
 ## Ownership and coordination
 

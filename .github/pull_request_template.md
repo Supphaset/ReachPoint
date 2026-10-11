@@ -15,4 +15,4 @@ Identify proposals, unresolved questions and scope exclusions.
 - [ ] No credentials, private context or real household data included
 - [ ] Relevant canonical documentation updated
 - [ ] Other human review requested; AI recommendations are advisory
-- [ ] No implementation, publication or deployment beyond explicit authorization
+- [ ] Stays within decision 0009; no new services, paid features or deployments beyond it

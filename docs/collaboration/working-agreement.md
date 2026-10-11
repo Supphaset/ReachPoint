@@ -4,7 +4,7 @@ Exactly two human Data Scientists collaborate, with Codex, Claude and possibly o
 
 Use the procedure in [CONTRIBUTING.md](../../CONTRIBUTING.md). Keep it light: one task owner, one reviewer, one bounded issue, one branch/worktree, one active editing tool per checkout. Assign ownership of shared docs and interfaces in the task discussion. Do not have multiple AI tools edit the same directory concurrently.
 
-Current human assignment: the user owns volunteer workspace/flood map; the friend owns resident/coordinator, chat/voice, reconciliation and database updates. See [decision 0006](../decisions/0006-two-person-work-split.md) and the [two-person delivery agreement](two-person-delivery-agreement.md) for mutual expectations. Detailed handoff/ownership additions remain recommendations; implementation still requires separate authorization.
+Current human assignment: the user owns volunteer workspace/flood map; the friend owns resident/coordinator, chat/voice, reconciliation and database updates. See [decision 0006](../decisions/0006-two-person-work-split.md) and the [two-person delivery agreement](two-person-delivery-agreement.md) for mutual expectations. Detailed handoff/ownership additions remain recommendations until both humans confirm them. Implementation is authorized from 12 Oct within [decision 0009](../decisions/0009-implementation-start-and-technical-direction.md).
 
 The [draft volunteer/backend contract](volunteer-backend-contract-v1.md) details proposed screen reads, table ownership, submissions/results, example payloads and failure behavior. Both humans review and freeze shared interfaces before depending on them; neither side silently changes field meanings or writes arbitrary authoritative states.
 
