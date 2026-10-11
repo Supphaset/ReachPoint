@@ -10,11 +10,11 @@ The base assignment is accepted in [decision 0006](../decisions/0006-two-person-
 
 | When (Bangkok) | You | Friend | Joint checkpoint |
 |---|---|---|---|
-| Mon 12 | Earth Engine flood check + Hat Yai extent (pack §5.1c); zone boundaries; area-briefing fixtures **by noon**; React shell with map + list | `reachpoint-main` + budget alert; FastAPI skeleton on Cloud Run; Firestore + seed; 4 test roles; ADK hello-world | **CP0:** both deployed URLs load; contract v1.0 frozen together |
-| Tue 13 | Exposure estimate per zone (Open Buildings + WorldPop + DOPA); area briefing on live views; `tiers.py` + colour/distance sort | Text intake → Gemini proposed facts → desk approve → case/listing; view regeneration | **CP1:** text report → approved → on your P-B list/map, count unchanged |
+| Mon 12 | Earth Engine flood check + Hat Yai extent (pack §5.1c); zone boundaries; area-briefing fixtures **by noon**; **frontend foundation:** app shell, role routes, placeholder tokens, data hooks | `reachpoint-main` + budget alert; FastAPI skeleton on Cloud Run; Firestore + seed; 4 test roles; ADK hello-world | **CP0:** both deployed URLs load; contract v1.0 frozen together |
+| Tue 13 | `/design-consultation` → final tokens; shared components ready for both; exposure estimate per zone (Open Buildings + WorldPop + DOPA); area briefing on live views; `tiers.py` + colour/distance sort | Text intake → Gemini proposed facts → desk approve → case/listing; view regeneration | **CP1:** text report → approved → on your P-B list/map, count unchanged |
 | Wed 14 | Team list: take family groups, set window, progress, hand back, end outcomes, Busy reason | `claimListing` / hand-back / close rules with `NEED_CHANGED` + `ALLOCATION_CLOSED`; open lists per assistance type; resident status per family; browser call screen (ADK Live, fallback decided at 12:00) | **CP2:** publish → you take Families 1+2 → resident sees the per-family window |
 | Thu 15 | Split panel with OR-Tools solver + "Ask these teams" + What-if; Gemini zone briefing text | Resource-failure review → hold + relist unfinished groups; message templates with "No longer current"; history view | **CP3:** full walk-through (pack §7), including the S1 failure |
-| Fri 16 | Map/UX polish; stretch: routine planner | Copilot read-only Q&A; retry/conflict handling; Firestore rules | Feature freeze 18:00; run the joint checklist below |
+| Fri 16 | Consistency pass across all six screens + accessibility review; map/UX polish; stretch: routine planner | Copilot read-only Q&A; retry/conflict handling; Firestore rules | Feature freeze 18:00; run the joint checklist below |
 | Sat 17 | Video shots + deck: impact, map, data honesty | Video shots + deck: architecture, AI | **Submit by 21:00** |
 
 Daily 15-minute check-in: what changed in `contract/`, which checkpoint passed, the blocker and its owner, and the next integration step.
@@ -37,8 +37,27 @@ Daily 15-minute check-in: what changed in `contract/`, which checkpoint passed, 
 | Firestore model, open lists, resident status per family, history | Review | Build |
 | Auth, Firestore rules, `reachpoint-main`, deploy (`scripts/deploy.sh`) | Backup Editor | Build + own |
 | Contract (`api/contract/`, generated JSON Schema + TS types) | Co-own | Co-own |
+| **Frontend foundation** (`web/src/shell`, `web/src/ui`, `web/src/data`): app shell, role routes, design tokens, shared components, data hooks, copy rules | **Build + own** | Use it; propose new shared parts |
 
 The split panel and the shared tiers moved to you on 2026-10-11 (user proposal) because both sit on your solver and your friend's side carries the integration load.
+
+### Frontend: one foundation, screens by workflow
+
+There is one React app, but two people build screens on it. Each screen stays with the person who owns its backend logic: the call screen with the voice agent, and the desk with the proposals. You own the shared foundation, so all six screens look like one product (UX is a judging criterion).
+
+| Foundation part | Contents |
+|---|---|
+| App shell | One React app, role-based routes, ReachPoint wordmark, bottom tab bar under 768 px |
+| Design tokens | State colours (red/yellow/green and job states), Thai + Latin fonts, type scale, spacing; set by `/design-consultation` on Tue 13 |
+| Shared components | Status chip, priority badge, dashed "AI proposal" card, error/offline banner, "last updated" line, large buttons |
+| Data hooks | Sign-in, live Firestore view subscriptions, an API client typed from the generated contract |
+| Copy rules | Thai first; the honest-wait wording from the design doc |
+
+Rules:
+- New shared components go through you.
+- Parts used by only one screen stay with that screen's owner.
+- No screen defines its own colours or fonts.
+- On Fri 16 you do one consistency pass across all six screens before the accessibility review.
 
 ## Scope for the build week
 
