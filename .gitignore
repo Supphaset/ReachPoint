@@ -1,0 +1,40 @@
+# Credentials and private configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
+application_default_credentials.json
+.aws/
+.gcloud/
+
+# Private material: never put real operational data in tracked examples
+private/
+local/
+recordings/
+transcripts/
+
+# Local tools, dependencies and generated state
+.DS_Store
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+.cache/
+.gstack/
+.playwright/
+coverage/
+dist/
+build/
+*.log
+
+
+# Google Cloud / Firebase (implementation phase, decision 0009)
+*-firebase-adminsdk-*.json
+serviceAccount*.json
+.firebase/
+firebase-debug*.log
+.terraform/
+*.tfstate*
