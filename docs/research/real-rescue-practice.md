@@ -86,3 +86,7 @@ Research date: 11 Oct 2026. Sources are listed at the end. Where a source didn't
 - Family unity in evacuation: https://bettercarenetwork.org/sites/default/files/2022-06/326.011_en_critical_considerations.pdf
 - UNICEF on separated children: https://www.unicef.org/press-releases/statement-unicef-executive-director-henrietta-fore-unaccompanied-and-separated
 - Triage examples: https://countypress.co.uk/news/23892830.fire-service-attended-three-isle-wight-flood-callouts , https://www.nbcwashington.com/news/local/what-went-wrong-as-10-dogs-drowned-in-dc-flooding-errors-delayed-dispatch/3408947/?amp=1
+- Sentinel Asia, Southern Thailand floods (Hat Yai products, 23 Nov 2025): https://sentinel-asia.org/EO/2025/article20251119TH.html
+- Hat Yai flood extent technical report (GISTDA-derived polygons): https://nakmuay.charity/projects/Post_Flood_Hat_Yai_Thailand_2025-12-01/reports/flood-extent-technical
+- Google Open Buildings (Thailand covered, v3): https://sites.research.google/gr/open-buildings/
+- DOPA registered population (data.go.th): https://data.go.th/en/dataset/dopa-star

@@ -345,6 +345,41 @@ Conventions (from draft v1, kept): ISO-8601 UTC strings; displayed in Asia/Bangk
 - This is an active disaster with deaths. Keep the video and deck respectful, and don't imply anyone used ReachPoint in the response.
 - Cite DDPM/GISTDA figures with access dates in `docs/research/sources.md`, per AGENTS.md.
 
+### 5.1c Hat Yai flood layer check and exposure estimate (user decision 2026-10-11)
+
+**Feasibility evidence (research 2026-10-11).**
+- A Sentinel-1 image of Hat Yai from **23 Nov 2025** exists and was already used by others. GISTDA requested Sentinel Asia emergency observation, which produced an EOS flood proxy map of Hat Yai (v0.9), AIT maps for Hat Yai District and Songkhla/Phatthalung, and an AIT ground-check product for Songkhla ([Sentinel Asia](https://sentinel-asia.org/EO/2025/article20251119TH.html)).
+- GISTDA also used Sentinel-1A and RADARSAT-2 passes from 26 Oct to 29 Nov, including 24, 25 and 29 Nov ([report](https://nakmuay.charity/projects/Post_Flood_Hat_Yai_Thailand_2025-12-01/reports/flood-extent-technical)). RADARSAT-2 is not in Earth Engine.
+- Sentinel-1A and 1C were both operating in Nov 2025.
+- **Our own Earth Engine run is still unverified.**
+
+**Known limits and how the map shows them.**
+
+| Limit | Display rule |
+|---|---|
+| Urban double-bounce: flooded streets in the city core can look dry | Legend: "urban areas may be under-detected"; nothing is ever shaded as dry; reported flood points are drawn on top |
+| 23 Nov may be before the peak | The layer is labelled "Extent on {date}", not "the flood"; use a 24–25 Nov Sentinel-1 pass if one exists |
+| Our result is unchecked | Before the demo, compare it against the EOS/AIT Hat Yai maps for the same day |
+
+**Monday flood check (about 2 h, in the user's sandbox).**
+1. List `COPERNICUS/S1_GRD` scenes over Hat Yai for 1 Oct – 5 Dec 2025 (orbit, date).
+2. Run change detection: October baseline vs. event.
+3. Compare visually with the EOS/AIT maps and record the result in `data/SOURCES.md`.
+
+**Fallback** if our extent is clearly wrong: use the published GISTDA/EOS/AIT polygons with attribution, after checking their licence.
+
+**Exposure estimate per zone (Tue 13).** The estimate combines three sources:
+- **Google Open Buildings v3** (covers Thailand, CC BY 4.0): buildings inside the flooded part of each zone.
+- **WorldPop** 100 m population: people inside the flooded part.
+- **DOPA registered population** per tambon/village ([data.go.th](https://data.go.th/en/dataset/dopa-star), yearly to 2567): a cross-check, scaled by the flooded share of buildings. Whether DOPA's statistics site also publishes registered house counts is still to be confirmed.
+
+**Exposure display rules.**
+- The output is a **range**, e.g. "About 1,400–1,900 people live in the flooded part of B-3 (estimate)". It sits next to the reviewed count, e.g. "9 reported needing evacuation".
+- The label is "people living in flooded area (estimate)". It never says victims or people needing rescue.
+- It never adds to reviewed counts and never creates a listing.
+- It shows its source dates and its uncertainty. Buildings are not the same as households: one shophouse can hold several households, and some buildings are shops or warehouses.
+- The gap between estimated and reported shows places that may have unreported needs ([unreported needs](../research/unreported-needs.md)).
+
 Earth Engine noncommercial projects get 150 EECU-hours/month (Community tier). One small region is well within that. Register the project as noncommercial; one project only (quota farming is prohibited).
 
 ### 5.2 Real inbound phone (R2)
@@ -392,8 +427,8 @@ Cost order of magnitude (verify before buying): a US number is a few USD/month; 
 | When (Bangkok) | You (volunteer + map) | Friend (intake + coordination + backend) | Joint checkpoint |
 |---|---|---|---|
 | **Sun 11 Oct (today)** | Review §3–§4 | Review §3–§4 | Approve B1–B6. Confirm registration. Create GCP project + budget alert |
-| **Mon 12** | **Real extent, Hat Yai first:** register the Earth Engine noncommercial project; check which S1 scenes exist for both events (§5.1b); run Hat Yai change detection (Oct 2025 baseline vs. 22–25 Nov); export extent GeoJSON (EXT-A/B/C with acquisition dates). Draw the Hat Yai P-A/P-B/P-C boundaries over it. Bangkok package follows on Tue/Wed. Ship `contract/fixtures/areaBriefing.*.json` (synthetic operational numbers) **by noon** so your friend isn't blocked. React shell with map + list + same-ID selection | FastAPI skeleton deployed on Cloud Run; Firestore + seed script loading **your** fixtures; auth with 4 test roles; ADK Live browser-voice spike | **CP0 (evening): both deployed URLs load; the seed is shared** |
-| **Tue 13** | Open Buildings counts + WorldPop exposure per area (POP-x, with reference year and uncertainty). Area briefing screen against the live `views/areaBriefing`; planning calculation `planning.py` + tests on the P-A numbers (80/20/30 → 60/30) | Chat/text intake → Gemini extraction → `proposedEvents`; desk approve/reject → case/assistance; view regeneration | **CP1: text report → coordinator approves → need on your P-B list/map (no double-count: still 24)** |
+| **Mon 12** | **Real extent, Hat Yai first:** register the Earth Engine noncommercial project; check which S1 scenes exist for both events (§5.1b); run the §5.1c flood check (scene list, change detection, compare with EOS/AIT maps), then Hat Yai change detection (Oct 2025 baseline vs. 22–25 Nov); export extent GeoJSON (EXT-A/B/C with acquisition dates). Draw the Hat Yai P-A/P-B/P-C boundaries over it. Bangkok package follows on Tue/Wed. Ship `contract/fixtures/areaBriefing.*.json` (synthetic operational numbers) **by noon** so your friend isn't blocked. React shell with map + list + same-ID selection | FastAPI skeleton deployed on Cloud Run; Firestore + seed script loading **your** fixtures; auth with 4 test roles; ADK Live browser-voice spike | **CP0 (evening): both deployed URLs load; the seed is shared** |
+| **Tue 13** | Open Buildings counts + WorldPop exposure per area, cross-checked with DOPA registered population (§5.1c ranges) (POP-x, with reference year and uncertainty). Area briefing screen against the live `views/areaBriefing`; planning calculation `planning.py` + tests on the P-A numbers (80/20/30 → 60/30) | Chat/text intake → Gemini extraction → `proposedEvents`; desk approve/reject → case/assistance; view regeneration | **CP1: text report → coordinator approves → need on your P-B list/map (no double-count: still 24)** |
 | **Wed 14** | Team list + mission screen: priority list → take family group → ack brief → set window; P-A planner submit (draft stays draft) | Publish/claim flow with capability checks; resident status page from the token; browser call screen (ADK Live) | **CP2: publish → your take + window → resident sees 13:00–14:00 for transport while medical shows "seeking team"**. Decide F2 go/no-go |
 | **Thu 15** | Report resource unavailable; area briefing reacts (P-B capacity); Gemini area-explainer | Review team report → hold, withdraw window, next-update; history view | **CP3: the full emergency walk-through (§7) on the deployed app** |
 | **Fri 16** | P-C field report (scoped, pending); polish map/UX; F2 if go | Reconciliation suggestion UI, retry/conflict handling, Firestore rules | **Feature freeze 18:00.** Run the joint acceptance checklist |

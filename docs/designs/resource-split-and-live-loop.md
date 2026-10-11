@@ -17,7 +17,8 @@ Today that split is made by phone calls and chat groups. Teams overlap, urgent r
 - **The split.** Three teams, one boat (S1, 12 passenger movements a day), 80 food packs and three areas competing for them. ReachPoint suggests who goes where to help the most people, explains why in plain Thai or English, and lets a human approve it.
 - **The failure.** S1 breaks down at 10:30. The plan re-solves and the coordinator approves the new split. The resident's stale 13:00–14:00 window disappears, replaced by "on hold, next update 11:00". The unrelated relief mission stays untouched. Map, desk, team screen and resident page all change within seconds.
 - **"What would one more boat change?"** The same solver, run with a hypothetical extra resource, shows how many more people a second boat would reach versus more food packs. The coordinator can use it to ask for the right help. It is labelled as a simulation and never reaches the resident.
-- **Real satellite water under it.** The map shows the Nov 2025 Hat Yai flood extent, computed from Sentinel-1.
+- **Real satellite water under it.** The map shows the Nov 2025 Hat Yai flood extent, computed from Sentinel-1 (23 Nov 2025 pass, checked against the EOS/AIT maps; urban areas may be under-detected). See pack §5.1c.
+- **Who may be missing.** Each zone briefing shows an estimated range of people living in the flooded part (Open Buildings + WorldPop, cross-checked with DOPA registered population) next to the reviewed count, e.g. "About 1,400–1,900 live here (estimate) · 9 reported needing evacuation". The estimate never creates a case and never adds to counts.
 
 ## Constraints
 
