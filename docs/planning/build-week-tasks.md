@@ -79,7 +79,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 ## Thu 15 — CP3: full walk-through, including the S1 failure
 
 **You**
-- [ ] OR-Tools split solver: staged, reasons, cache key, 5 s limit (T4)
+- [x] OR-Tools split solver: staged, reasons, cache key, 5 s limit (T4) (`api/rules/allocation.py`: `solve_split`, `compare_scenarios`; `suggestionId` from the input is the cache key; seat units and safe splits D33–D35; solver half of T15 in `api/tests/test_allocation.py`; fixture `allocationSuggestion.cp3.json`)
 - [ ] Split panel: team rows, "Still unmet", "Ask these N teams", What-if tab
 - [ ] Gemini zone briefing text, from computed fields only; prose validator (T7, shared)
 
