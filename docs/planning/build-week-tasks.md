@@ -85,7 +85,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [x] Gemini zone briefing text, from computed fields only; prose validator (T7, shared) (`api/ai/briefing_text.py`: numbers and places must be in the facts; no route, safety, dryness or priority claims; written in the background once per set of facts)
 
 **Friend**
-- [ ] S1 failure review: hold, relist unfinished groups, withdraw the old window
+- [x] S1 failure review: hold, relist unfinished groups, withdraw the old window (PR #15, deterministic starter server and tests; deployed walk-through still pending)
 - [ ] Message templates: server fills team and time; "No longer current" + desk "Update needed" (T16)
 - [ ] Direct-ask operation for the split panel; history view
 
@@ -118,7 +118,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 **You**
 - [x] Triage agent definition: instructions, tools, safety-floor call to `tiers.py`, reasons with quotes (`api/ai/triage.py`, Google ADK; rules live in the tools)
 - [x] Triage eval set: emergencies, duplicates, unclear requests, injection attempts ("rank me first"), plus place cases (Condo X: three callers, overlapping counts; a linked request with a new hazard) (`api/scripts/triage_eval.py`, 8/8 live on 12 Oct; condo case still to add)
-- [ ] Surge simulator: 300 fictional Thai text requests from templates + live counters page
+- [ ] Connected surge replay: 1,000+ synthetic Thai/English text requests and simulated phone-call transcripts, automatic AI-read filing, useful map layers, exception queue and live counters; see [surge demonstration plan](surge-demo.md). Production throughput validation is deferred.
 
 **Friend**
 - [ ] Triage agent on the ADK runtime; ranks and merges written to the live list; human overrides final; logs
@@ -126,7 +126,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] Desk: group review, verify/correct, pin/re-rank/unflag
 
 **Both**
-- [ ] Surge demo on the deployed URL: 300 requests in 2 minutes; first emergency at the top in seconds; one live voice call alongside
+- [ ] Surge demo on the deployed URL: replay 1,000+ synthetic requests at a controlled pace; show urgent attention, automatic organization, exceptions, flood observations, team actions and resident status. Include one browser voice call; disclose simulated call transcripts.
 
 ## Fri 16 — feature freeze at 18:00
 
