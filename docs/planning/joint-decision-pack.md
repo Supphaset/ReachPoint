@@ -6,6 +6,7 @@ Date: 2026-10-11 (Asia/Bangkok). Status: **Working document behind [decision 000
 > 1. **No real phone line** in the prototype (eng R21). A browser call screen represents a phone call. B4, the "Thai number" row, §5.2/§5.2a, the Twilio items and the phone gate are kept only as history. See the [0009 amendments](../decisions/0009-implementation-start-and-technical-direction.md#amendments-user-decisions-later-on-2026-10-11).
 > 2. **Pull model (21A):** no offers. Reviewed cases go to shared priority lists, and the first capable team to take a family group wins. "offered", offer expiry and `respondToMissionOffer` in §3, §4.2, §6 and §7 are replaced by `publishListing` / `claimListing`, with allocations starting at `accepted`.
 > 5. **Surge and the triage agent (D21–D24).** AI files clear non-emergency requests automatically as "AI-read". A triage agent ranks the live list directly (labelled, with a safety floor; human overrides win). Any team can take an AI-flagged RED request at once. A surge simulator is core in CP3. See the design doc ("Surge and the triage agent").
+> 6. **Requests meet the flood map and estimate (D25–D29).** Exact locations via Pinpoint, Google Places or a caller pin, visible only to the coordinator and the taking team. Three report kinds grouped into places; neighbour counts never summed. "No satellite data", never dry. Per-segment estimate that switches on caller water reports, drops out when checked, plus a call rate. See the design doc ("Requests, the flood map and the estimate").
 > 4. **Zone missions (D17–D20).** Non-emergency work is prioritised by zone and split into segments, one team each. RED emergencies are still handled one by one, straight away. A synthetic vulnerable-residents register and a copilot that can propose zone-order changes support this. See the [design doc](../designs/resource-split-and-live-loop.md) ("Zone missions and emergencies").
 > 3. **Eng re-check decisions D1–D14** (family groups, job endings, outdated-case checks, colour-then-distance ordering, shared open lists, server-checked resident messages, coordinator-only solver): see the [design doc](../designs/resource-split-and-live-loop.md) and the [real rescue practice research](../research/real-rescue-practice.md).
 
@@ -391,6 +392,13 @@ Conventions (from draft v1, kept): ISO-8601 UTC strings; displayed in Asia/Bangk
 - It never adds to reviewed counts and never creates a listing.
 - It shows its source dates and its uncertainty. Buildings are not the same as households: one shophouse can hold several households, and some buildings are shops or warehouses.
 - The gap between estimated and reported shows places that may have unreported needs ([unreported needs](../research/unreported-needs.md)).
+
+**Per segment, and joined to requests (D26–D28, 2026-10-12).**
+- Precompute two ranges per **segment**: everyone living there, and people inside the satellite extent.
+- The live basis is satellite → callers (a reviewed water report from a "no data" or dry segment switches to the full count) → checked (drops out). The zone shows "people in segments not yet checked".
+- Call rate = reviewed callers per 1,000 estimated residents. A high estimate with a low call rate flags "quiet: phones may be down".
+- The radar-blind urban core is shipped as a "no satellite data" area.
+- Sanity check against GISTDA's 25 Nov figure for Hat Yai district: 52,731 rai flooded, about 150,230 people affected ([Thairath](https://en.thairath.co.th/scoop/infographic/2897818)).
 
 Earth Engine noncommercial projects get 150 EECU-hours/month (Community tier). One small region is well within that. Register the project as noncommercial; one project only (quota farming is prohibited).
 

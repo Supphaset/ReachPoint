@@ -40,6 +40,12 @@ The prototype deadline is 18 October 2026, with no published cut-off time or tim
   - Any team may take an AI-flagged RED request at once and verify it on arrival.
   - A surge simulator is core in CP3.
   - This amends the requirement that AI proposals need coordinator approval; see requirements.
+- **Requests meet the flood map and estimate (D25–D29, 2026-10-12).**
+  - Each household gets an exact location: Pinpoint (Thai addresses), Google Places (buildings) or a caller pin, with its source and precision. Only the coordinator and the team that took the job see the exact point; shared views show the segment and landmark.
+  - Requests are one of three kinds (my household, check-on, neighbour report) and are grouped into places. Neighbour counts are never summed.
+  - Radar blind spots are "no satellite data", never dry; the satellite can only raise concern.
+  - The estimate is per segment, switches to the full count when callers report water, drops out when checked, and adds a call rate.
+  - Pinpoint is the one non-Google service; its terms and cost are checked before use.
 - These amendments are the user's decisions; like the rest of 0009, they bind both humans once the friend confirms.
 
 ## Still open (not decided here)

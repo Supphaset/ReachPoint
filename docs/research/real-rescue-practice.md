@@ -70,6 +70,59 @@ Research date: 11 Oct 2026. Sources are listed at the end. Where a source didn't
 6. **Use red/yellow/green as the visible priority colours**, since Thai teams already know them. The internal tiers stay as they are.
 7. **Supplies:** track what was delivered and where, so the same street isn't served twice while another gets nothing.
 
+## 5. Locations, headcounts and satellite vs ground (research 2026-10-12, D25–D29)
+
+**Locating people**
+- The Hat Yai help sites asked for a map pin, a shared GPS location or a Google Maps link, plus the number of people:
+  - jitasa.care, Traffy Fondue, กู้ไทย and thaihelp worked this way;
+  - thaihelp used RED/YELLOW/GREEN/DONE;
+  - rescue.sync had a "reporting on behalf of someone else" checkbox.
+
+  ([Rocket Media Lab](https://rocketmedialab.co/flood-relief-system/), [The Matter](https://thematter.co/brief/252791/252791))
+- Several sites showed every pin publicly. One promised to delete its data within 2 weeks after the water went down.
+- A volunteer's Google Form of rescued names let teams **remove pins** once people were safe ([Nation Thailand](https://www.nationthailand.com/news/general/40058824)).
+- Thai addresses geocode poorly at house level: Google matched over 90% of addresses, but often not to the right house ([EASR 2019](https://ph01.tci-thaijo.org/index.php/easr/article/view/140887)). **Pinpoint** ([pin-point.co](https://pin-point.co/en/)) is a Thai geocoding API.
+- **For us:** store an exact point with its source and precision. Show it only to the coordinator and the team that took the job.
+
+**Many callers, the same people**
+- **Kerala 2018:** about **25% of portal entries were duplicates**.
+  - Volunteers checked the database before filing a new case, then followed up by phone until the rescue was done.
+  - A later cleanup treated the same phone number within one hour, plus the same location or requester, as one request. It also caught some genuine follow-ups, so the rule is imperfect.
+
+  ([Social sensing study](https://www.sciencedirect.com/science/article/pii/S2212420922001273), [volunteer account](https://medium.com/@jaydeepborkar/volunteering-for-kerala-flood-search-and-rescue-team-kerala-floods-2018-5129d339b33b))
+- **Emergency dispatch practice:**
+  - Possible duplicates are flagged and **linked, not deleted**.
+  - Matching uses phone number, address within about 500 ft and time.
+  - Each caller is treated as a witness, because a "duplicate" may report a new incident.
+
+  ([Prepared](https://www.prepared911.com/blog/related-incidents-launch-calltaker-dispatcher-911), [Sacramento directive](https://cityofsacramento.gov/content/dam/portal/police/Transparency/policy/commcenterdirectives/CD%20410.02%20-%20Telephone%20Answering_Redacted.pdf), [Garda](https://www.garda.ie/en/about-us/our-departments/office-of-corporate-communications/news-media/cad-incident-lifecycle-29-july-21.pdf))
+- **Hurricane Helene 2024:**
+  - Requests to check on someone went on a **welfare-check list**. People were not counted as missing until someone had tried to contact them.
+  - Separate agency lists were merged into one "so there are no duplicated cases".
+  - About 600 were reported missing at first; the count fell below 10, mostly as people were reached.
+
+  ([Mountaineer](https://www.themountaineer.com/news/four-fatalities-confirmed-in-haywood-from-helene-flooding/article_3763ea24-8035-11ef-8853-13c292bd35a1.html), [WLOS](https://www.wlos.com/news/local/asheville-police-buncombe-county-sheriff-resume-normal-operations-missing-persons-welfare-checks-helene-search-rescue-recovery-register-of-deeds))
+- **Harvey 2017:** requests listed a location, the number of people and special needs. Volunteers vetted each one by phone before dispatching a boat ([Harvard Data-Smart](https://datasmart.hks.harvard.edu/solutions/houstonmiami-harvey-rescue-site)).
+- **No source adds up neighbours' headcounts. Teams count on arrival.**
+- **For us:** three report kinds (my household, someone else's, what I can see), one place per building, "at least N" from the largest single report, link but never delete, and the team confirms the count.
+
+**Satellite vs ground**
+- Copernicus Global Flood Monitoring uses an **exclusion mask**: urban and other hard-to-see areas are "no data", not dry ([NHESS 2024](https://nhess.copernicus.org/articles/24/2817/2024/nhess-24-2817-2024.html)).
+- GISTDA labels its maps "not yet validated through field inspection" ([Thairath](https://en.thairath.co.th/scoop/infographic/2897818)).
+- In Jakarta in 2020, NASA's flood map was checked against **verified** crowd reports from PetaBencana ([PetaBencana](https://info.petabencana.id/?p=1044)).
+- **For us:** show "no satellite data", never dry. The satellite can raise concern but never lower it, and reviewed caller reports fill the gaps.
+
+**The real Hat Yai flood, for our numbers**
+- Rain fell 19–21 Nov, with 335 mm on 21 Nov.
+- The city centre flooded on 22–23 Nov, when the U-Tapao canal and Khlong R.1 overflowed.
+- The peak was 24–25 Nov, at **2–3 m deep, over 4 m in places** (GISTDA, from Sentinel-1 and HAND).
+- GISTDA's 25 Nov figures for Hat Yai district: **52,731 rai flooded, about 150,230 people affected**.
+- The water went down over weeks.
+
+([Khaosod](https://www.khaosodenglish.com/featured/2025/11/22/flash-floods-swamp-hat-yais-city-center-stranding-tourists/), [Thai Examiner](https://www.thaiexaminer.com/thai-news-foreigners/2025/11/25/rising-water-of-death-sees-songkhla-and-hat-yai-facing-worst-flooding-in-300-years-say-some-observers/), [Bangkok Post](https://www.bangkokpost.com/thailand/general/3144390/hat-yai-zone-submerged-for-weeks), [Thairath](https://en.thairath.co.th/scoop/infographic/2897818))
+
+**For us:** GISTDA's figures are the sanity check for our estimate. Because the water went down slowly, a zone's needs shift from rescue to supplies over days.
+
 ## Sources
 - Rocket Media Lab, Hat Yai help-request systems: https://rocketmedialab.co/flood-relief-system/
 - ThaiPublica, Hat Yai flood white paper: https://thaipublica.org/2026/05/hatyai-flood-systemic-failure-analysis/

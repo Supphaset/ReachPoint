@@ -11,8 +11,8 @@ The base assignment is accepted in [decision 0006](../decisions/0006-two-person-
 | When (Bangkok) | You | Friend | Joint checkpoint |
 |---|---|---|---|
 | Mon 12 | Earth Engine flood check + Hat Yai extent (pack §5.1c); zone boundaries; area-briefing fixtures **by noon**; **frontend foundation:** app shell, role routes, placeholder tokens, data hooks | `reachpoint-main` + budget alert; FastAPI skeleton on Cloud Run; Firestore + seed; 4 test roles; ADK hello-world | **CP0:** both deployed URLs load; contract v1.0 frozen together |
-| Tue 13 | `/design-consultation` → final tokens; shared components ready for both; exposure estimate per zone (Open Buildings + WorldPop + DOPA); area briefing on live views; `tiers.py` + colour/distance sort | Text intake → Gemini proposed facts → desk approve → case/listing; view regeneration | **CP1:** text report → approved → on your P-B list/map, count unchanged |
-| Wed 14 | Team list: take family groups, set window, progress, hand back, end outcomes, Busy reason | `claimListing` / hand-back / close rules with `NEED_CHANGED` + `ALLOCATION_CLOSED`; open lists per assistance type; resident status per family; browser call screen (ADK Live, fallback decided at 12:00) | **CP2:** publish → you take Families 1+2 → resident sees the per-family window |
+| Tue 13 | `/design-consultation` → final tokens; shared components ready for both; exposure estimate per segment (Open Buildings + WorldPop + DOPA, GISTDA sanity check); area briefing on live views; `tiers.py` + colour/distance sort | Text intake → Gemini proposed facts → desk approve → case/listing; view regeneration | **CP1:** text report → approved → on your P-B list/map, count unchanged |
+| Wed 14 | Team list: take family groups, set window, progress, hand back, end outcomes, Busy reason | `claimListing` / hand-back / close rules with `NEED_CHANGED` + `ALLOCATION_CLOSED`; open lists per assistance type; resident status per family; location resolver + places (D25, D29); browser call screen (ADK Live, fallback decided at 12:00) | **CP2:** publish → you take Families 1+2 → resident sees the per-family window |
 | Thu 15 | Split panel with OR-Tools solver + "Ask these teams" + What-if; Gemini zone briefing text; zone-order rule + suggested checks; take/mark segments on the team screen; synthetic register fixture | Resource-failure review → hold + relist unfinished groups; message templates with "No longer current"; history view; zone missions + segments (`takeSegment`, `markSegment`), coordinator-only register, desk suggested checks, copilot `propose_zone_priority_change` tool | **CP3:** full walk-through (pack §7), including the S1 failure and the B-4 "found a family who never called" scene |
 | Fri 16 | Consistency pass across all six screens + accessibility review; map/UX polish; stretch: routine planner | Copilot read-only Q&A; retry/conflict handling; Firestore rules | Feature freeze 18:00; run the joint checklist below |
 | Sat 17 | Video shots + deck: impact, map, data honesty | Video shots + deck: architecture, AI | **Submit by 21:00** |
@@ -23,7 +23,9 @@ Daily 15-minute check-in: what changed in `contract/`, which checkpoint passed, 
 
 | Area | You | Friend |
 |---|---|---|
-| Flood map, zones, landmarks, exposure estimate | Build | Store/publish the files and views |
+| Flood map, zones, segments, landmarks, per-segment exposure estimate, "no satellite data" area | Build | Store/publish the files and views |
+| `api/rules/exposure.py`: segment basis, "not yet checked", call rate (D27–D28, C15) | **Build** | Call it when views regenerate |
+| Location resolver (Pinpoint, Google Places, caller pin), places, report kinds, exact-point access (D25, D29, C16) | Team job view + map side | **Build** |
 | Zone briefing (Gemini text from computed fields) | Build (prompt + UI) | Serve the view |
 | Priority tiers, colour and distance sort (`api/rules/tiers.py`) | **Build** (shared with the solver) | Call it when listings change |
 | Split solver (`api/rules/allocation.py`, OR-Tools) | Build | Call it, persist suggestions |
@@ -73,7 +75,7 @@ Rules:
 
 ## What crosses the boundary
 
-The [integration map](integration-map.md) has the full diagram, numbered connections C1–C11 with their contract and fixture, the two cross-boundary sequence diagrams, and how our tests cover each connection.
+The [integration map](integration-map.md) has the full diagram, numbered connections C1–C16 with their contract and fixture, the two cross-boundary sequence diagrams, and how our tests cover each connection.
 
 | Producer → consumer | Action | Required result |
 |---|---|---|

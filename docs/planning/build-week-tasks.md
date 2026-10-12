@@ -16,6 +16,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 | 0.3 | Agree the spend cap and payer | Both |
 | 0.4 | Check you're both registered; read the deadline time on the dashboard | Both |
 | 0.5 | Mark PR #1 ready and merge | Both |
+| 0.6 | Pinpoint API: check its terms and cost for a noncommercial demo, then put the key in Secret Manager (never in Git). Google Places is the fallback | You |
 
 ## Mon 12 — CP0: both apps deployed, contract frozen
 
@@ -23,7 +24,8 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] Register the Earth Engine noncommercial project (your sandbox)
 - [ ] Flood check (pack §5.1c): list the Sentinel-1 scenes for Oct–Dec 2025, run change detection, compare with the EOS/AIT maps, record the result in `data/SOURCES.md`
 - [ ] Export the Hat Yai extent as GeoJSON under 300 KB (T9)
-- [ ] Draw the P-A/P-B/P-C areas and zones B-1…B-5, with landmarks L1–L3 and D1
+- [ ] Draw the P-A/P-B/P-C areas and zones B-1…B-5, with landmarks L1–L3 and D1, and cut each zone into **segments** around its landmarks
+- [ ] Add the "no satellite data" area (dense urban core) to the package, so nothing is ever shown as dry (D26)
 - [ ] Ship the area-briefing fixture files **by noon**
 - [ ] **Frontend foundation (you own it):** one React app shell, role routes, wordmark, phone tab bar; placeholder tokens; data hooks (sign-in, live Firestore views, typed API client)
 - [ ] Map + list on the shell, same IDs
@@ -44,7 +46,8 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 **You**
 - [ ] Run `/design-consultation` → final tokens (state colours, Thai + Latin fonts, spacing)
 - [ ] Shared components ready for your friend: status chip, priority badge, "AI proposal" card, error/offline banner, "last updated" line, big buttons
-- [ ] Exposure estimate per zone: Open Buildings + WorldPop, cross-checked with DOPA, shown as a range
+- [ ] Exposure estimate **per segment** (D27): two ranges each, everyone living there and people inside the satellite extent (Open Buildings + WorldPop, cross-checked with DOPA)
+- [ ] Sanity check: the district total against GISTDA's 25 Nov figure (52,731 rai, ~150,000 people affected); record it in `data/SOURCES.md`
 - [ ] Area and zone briefing screen on live views
 - [ ] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15)
 - [ ] Solver notebook run on the fixture
@@ -61,11 +64,15 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] Team list: colour, distance, last confirmed, "Ask desk to re-confirm"
 - [ ] Take whole family groups; set window; progress; hand back; end outcomes (Done / Already left / Not found / Needs more help); Busy reason + "back about" (T17)
 - [ ] Clear errors: Already taken, This case changed, Needs N seats, This job is closed
+- [ ] Job view: exact point, precision and "Navigate" link shown **only after the team has taken the job** (D25, C16)
+- [ ] Map: "no satellite data" area and live "reported by callers" points (D26)
 
 **Friend**
 - [ ] `claimListing`, hand back, close: one transaction; `NEED_CHANGED`, `ALLOCATION_CLOSED` (T13)
 - [ ] Shared open lists per assistance type; one-time urgent prompt on becoming Available (T14)
 - [ ] Resident status page per family, using the token link
+- [ ] Location resolver (D25, C16): Pinpoint for Thai addresses, Google Places for building names, caller pin or Maps link; snap to zone/segment/landmark with source + precision; failures → unlocated list on the desk
+- [ ] Places and report kinds (D29): my household / check-on / neighbour report; one place per building; "at least N" = largest single neighbour report, never a sum; exact point readable only by the coordinator and the taking team (Firestore rules test)
 - [ ] Browser call screen on ADK Live (T6). **12:00 decision:** if 3 Thai test calls aren't clean, switch to push-to-talk
 
 ## Thu 15 — CP3: full walk-through, including the S1 failure
@@ -86,7 +93,8 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 ## Thu 15 — zone missions (also CP3)
 
 **You**
-- [ ] Zone order rule in `tiers.py` (called → register → estimate with no recent check → time since check) + suggested checks with reasons; property test
+- [ ] Zone order rule in `tiers.py` (called → register → estimate in segments not yet checked → time since check) + suggested checks with reasons; property test
+- [ ] `api/rules/exposure.py` (C15): segment basis (satellite → callers → checked), zone "not yet checked" range, call rate per 1,000 residents + "quiet: phones may be down" flag; property tests
 - [ ] Synthetic vulnerable-residents register fixture (`register.hy-2025-11.json`, landmark-level)
 - [ ] Team screen: take a segment, pickup list, mark Checked / Partly checked / Couldn't reach, field report button
 - [ ] Copilot instructions for `propose_zone_priority_change`
@@ -96,6 +104,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] Register stored with coordinator-only access (Firestore rules test)
 - [ ] Desk: suggested checks (publish / dismiss), segment cutting, copilot proposals (accept / reject)
 - [ ] Resident line "Team T-x is working in your area today"
+- [ ] Zone view regenerated with `exposure.py` after each reviewed water report and `markSegment`; reviewed water reports written as caller flood points
 
 **Both**
 - [ ] B-4 scene on the deployed URL: suggested check → T-R takes B-4 · L5 → field report → C-07 (RED) → T-S takes it → "Partly checked · 1 household found"
@@ -104,7 +113,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 
 **You**
 - [ ] Triage agent definition: instructions, tools, safety-floor call to `tiers.py`, reasons with quotes
-- [ ] Triage eval set: emergencies, duplicates, unclear requests, injection attempts ("rank me first")
+- [ ] Triage eval set: emergencies, duplicates, unclear requests, injection attempts ("rank me first"), plus place cases (Condo X: three callers, overlapping counts; a linked request with a new hazard)
 - [ ] Surge simulator: 300 fictional Thai text requests from templates + live counters page
 
 **Friend**
@@ -145,4 +154,4 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 3. Copilot replan drafting
 4. Whole copilot
 5. P-C field-report scene
-6. Open Buildings counts
+6. Open Buildings counts (the per-segment estimate falls back to WorldPop only)

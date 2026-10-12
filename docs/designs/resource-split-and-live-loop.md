@@ -565,6 +565,60 @@ The fixed rule in `tiers.py` remains the **safety floor and the fallback** if th
 - One live voice call runs alongside it.
 - The surge comes after the Bangkok package in the cut order, and is never cut before the copilot.
 
+### Requests, the flood map and the estimate (user decisions D25–D29, 2026-10-12)
+
+Requests and the flood/estimate layers used to be two separate halves. These rules join them. The real-practice sources are in [real rescue practice](../research/real-rescue-practice.md) ("Locations, headcounts and satellite vs ground").
+
+**Locating a request (D25)**
+- Each household in a request gets a **location** with a point, a **source** and a **precision**:
+  - a Thai address via the **Pinpoint** geocoding API (pin-point.co), e.g. "123/4 Soi 5, Hat Yai";
+  - a building or condo name via **Google Places**, e.g. "Condo X";
+  - a pin or Google Maps link the caller shares.
+- The point is snapped to its **zone, segment and nearest landmark** ("B-3 · L5 School").
+- Precision is always shown ("house", "building", "street", "area"). Thai addresses often geocode to the street, not the house.
+- A request that can't be placed goes to the coordinator's **unlocated** list. It is never dropped.
+- **Who sees the exact point:**
+  - only the coordinator and the team that has **taken** that job, which gets a "Navigate" link;
+  - everyone else (other teams, residents, the public map) sees the segment and landmark only;
+  - once the job is closed, the exact point leaves every shared view.
+
+**Places and headcounts (D29)**
+- Every request is one of three kinds:
+  1. **My household**: counted once reviewed.
+  2. **Someone else's household** ("please check on my mum, room 412"): a **check-on** entry, like the welfare-check lists in Hurricane Helene. It isn't counted until someone confirms it.
+  3. **What I can see** ("about 20 people still on floor 3"): a **neighbour report**.
+- Requests at the same building or address become one **place**. A condo or apartment block becomes one **building job**, worked like a small segment.
+- Neighbour reports are **never added up**. The place shows the largest single report as a floor, next to the confirmed count. Example: "Reported by neighbours: at least 20 (largest single report) · Confirmed: 1 household, 4 people."
+- **Linking duplicates:**
+  - The triage agent suggests links when it sees the same phone number, the same place or a point within about 150 m, plus a short time window.
+  - Linked requests stay attached to the place. Nothing is deleted.
+  - A linked request that reports a **new hazard** (for example, "now someone is unconscious") is never merged away. It is ranked on its own.
+  - In Kerala in 2018, about 25% of requests were duplicates.
+- The team on site records the **real count**, and that replaces the neighbour estimate.
+
+**The satellite map and the requests (D26)**
+- Areas the radar can't see, mainly the dense city centre, are shown as **"no satellite data"**, never as dry. This follows the Copernicus Global Flood Monitoring exclusion mask.
+- The satellite layer can **raise** concern but never lower it. "Outside the satellite extent" is never shown against a caller or used in ranking.
+- Each **reviewed** request that reports water becomes a live **"reported by callers"** point. It sits next to the cited news points (`reported-flooding.geojson`), so the map fills in where the satellite is blind.
+
+**The estimate per segment (D27, D28)**
+- In Earth Engine we precompute two ranges per **segment**:
+  - **everyone living there**;
+  - **people inside the satellite extent**.
+- Each segment uses one of three bases:
+
+  | Basis | When | Label |
+  |---|---|---|
+  | Satellite | default | "people living in the flooded part (estimate)" |
+  | Callers | a reviewed water report comes from a "no data" or dry segment | "flooding reported by callers; estimate covers the whole segment" |
+  | Checked | the segment is marked Checked | drops out of "not yet checked" |
+
+- A zone shows "**about 1,100–1,400 people in segments not yet checked**". Partly checked and Couldn't reach segments stay in.
+- **Call rate:** reviewed callers per 1,000 estimated residents. A zone with many residents but an unusually low call rate is flagged **"quiet: phones may be down"** and gets a suggested check (D18).
+- **Sanity check:** the district total is compared with GISTDA's 25 Nov figure (52,731 rai flooded, about 150,000 people affected in Hat Yai district) and recorded in `data/SOURCES.md`.
+- The estimate still only orders zones. It never adds to counts and never creates a case.
+- All of this is computed live from **precomputed numbers**. The app makes no live Earth Engine calls.
+
 ### Zone missions and emergencies (user decisions D17–D20, 2026-10-11, later)
 Not everyone in danger calls. Hat Yai's own officials kept a list of 230 bedridden patients, and the [research](../research/unreported-needs.md) shows that a quiet area may mean phones are down, not that nobody needs help. So work is **prioritised by zone**, and individual cases are mostly used to keep each family informed.
 
@@ -589,7 +643,7 @@ Not everyone in danger calls. Hat Yai's own officials kept a list of 230 bedridd
 2. Zones are then ordered by a fixed rule in `api/rules/tiers.py`, with the reasons shown on each row:
    1. reviewed people who called and still need help;
    2. vulnerable residents on the register;
-   3. estimated people living in the flooded part with no recent check;
+   3. estimated people in segments not yet checked (per-segment estimate, D27–D28; low call rate flags a quiet zone);
    4. time since the last check.
 
    The estimate only orders zones. It never adds to counts and never creates a case.

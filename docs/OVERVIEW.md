@@ -75,7 +75,7 @@ flowchart TD
 2. Zones are then ordered by:
    1. reviewed people who called and still need help;
    2. vulnerable residents on the (synthetic) register;
-   3. estimated people living in the flooded part with no recent check;
+   3. estimated people in segments not yet checked (per-segment estimate, D27–D28; low call rate flags a quiet zone);
    4. time since the last check.
 
 The estimate only orders zones; it never adds to counts. The copilot can propose a change, e.g. "move B-5 up: calls dropped, phones may be down", but only the coordinator can accept it.
@@ -86,6 +86,32 @@ The estimate only orders zones; it never adds to counts. The copilot can propose
 3. T-R reports "elderly couple on the 2nd floor, one bedridden".
 4. The coordinator approves case C-07 (RED), and T-S takes it.
 5. The segment is marked "Partly checked · 1 household found".
+
+## How requests meet the flood map and the estimate
+
+```mermaid
+flowchart TD
+  REQ["Request (call, text, field report)"] --> LOC["Locate each household<br/>Pinpoint (Thai address) · Google Places (building) · caller pin"]
+  LOC --> SNAP["Snap to zone · segment · landmark<br/>with source + precision"]
+  LOC -.-> UNL["Unlocated list (coordinator)"]
+  SNAP --> PLACE["Place / building<br/>my household · check-on · neighbour report"]
+  PLACE --> TRI["Triage agent links duplicates<br/>same phone / place / ~150 m + time · never deletes"]
+  TRI --> LIST["Live priority list"]
+  PLACE --> PTS["'Reported by callers' points<br/>(reviewed water reports)"]
+  SAT["Satellite extent 24 Nov<br/>+ 'no satellite data' areas"] --> MAPV["Flood map"]
+  PTS --> MAPV
+  NEWS["Cited news reports"] --> MAPV
+  EST["Per-segment estimate (Earth Engine, precomputed)<br/>everyone living there · inside satellite extent"] --> SEG["Segment basis<br/>satellite → callers → checked"]
+  PTS --> SEG
+  CHK["Team marks segment Checked"] --> SEG
+  SEG --> ZONE["Zone: 'about 1,100–1,400 people in segments not yet checked'<br/>+ call rate per 1,000 residents"]
+  ZONE --> ORDER["Zone order + 'quiet: phones may be down' suggested check"]
+```
+
+- **Locating (D25).** Every household gets an exact point, with its source and precision. Only the coordinator and the team that **took** the job see that point, which comes with a "Navigate" link. Everyone else sees the segment and landmark only. Requests that can't be placed go to an unlocated list; nothing is dropped.
+- **Headcounts (D29).** Each request is one of three kinds: **my household** (counted), **someone else's household** (a "check on" entry, counted once confirmed) or **what I can see** (a neighbour report). Requests from one building or address become one **place**, and a condo becomes one building job. Neighbour reports are never added up. The place shows, for example, "at least 20 (largest single report)" next to the confirmed count, and the team on site records the real number.
+- **Satellite vs callers (D26).** Areas the radar can't see are "no satellite data", never dry. The satellite can raise concern but never lower it. Reviewed water reports become live "reported by callers" points on the map.
+- **Estimate (D27–D28).** Each segment has two precomputed ranges: everyone living there, and people inside the satellite extent. A reviewed water report from a "no data" segment switches it to the full count. A checked segment drops out of "not yet checked". A low call rate flags a quiet zone. The district total is checked against GISTDA's figure (about 150,000 people affected).
 
 ## A job's lifecycle
 
@@ -118,7 +144,7 @@ A closed allocation rejects late updates with `ALLOCATION_CLOSED`. Supplies mark
 | AI | Does | Limit |
 |---|---|---|
 | Thai voice agent (Gemini Live + ADK) | Holds the call, clarifies, reads back; many calls in parallel | Extracts facts; doesn't decide |
-| **Triage agent (Gemini + ADK)** | Compares every request against the list, merges duplicates, ranks and updates the live list | Labelled "AI-ranked" with reasons; safety floor; human overrides win; never closes, promises or assigns |
+| **Triage agent (Gemini + ADK)** | Compares every request against the list, links duplicates by place (never deletes), ranks and updates the live list | Labelled "AI-ranked" with reasons; safety floor; human overrides win; never closes, promises or assigns |
 | Fact extraction (Gemini Flash) | Calls and team reports → facts with quotes | A human approves each one |
 | Coordinator copilot (Gemini + ADK) | "What changed since 10:00?", with record IDs | Read-only; drafts need a human click |
 | Split solver (OR-Tools) | Best split of boats, medics and packs; "What if one more boat?" | Coordinator only; suggestions become direct asks |
@@ -127,11 +153,12 @@ A closed allocation rejects late updates with `ALLOCATION_CLOSED`. Supplies mark
 
 ## The map in one paragraph
 
-The map has three levels: areas P-A/P-B/P-C → zones B-1…B-5 → landmarks (L1–L3, D1). Emergency markers sit at landmarks, never at houses. Each zone briefing shows facts, an **Unknown** row (unknown is never zero), the cases in the zone, and an **estimated range** of people living in the flooded part. That range comes from Open Buildings + WorldPop + DOPA, sits next to the reviewed count, and never creates a case. Details: pack §5.1b–c.
+The map has three levels: areas P-A/P-B/P-C → zones B-1…B-5 → segments around landmarks (L1–L3, D1). Shared map markers sit at landmarks, never at houses. Only the coordinator and the team that took a job see its exact point (D25). Radar blind spots are shown as "no satellite data", and reviewed caller reports of water are drawn on top (D26). Each zone briefing shows facts, an **Unknown** row (unknown is never zero), the cases in the zone, and an **estimated range** of people in segments not yet checked. That range comes from Open Buildings + WorldPop + DOPA, sits next to the reviewed count, and never creates a case. Details: pack §5.1b–c.
 
 ## Main records (full shapes in pack §3)
 
-- `reports`, `proposedEvents`: raw calls and AI proposals.
+- `reports`, `proposedEvents`: raw calls and AI proposals. Each report has a kind: my household, check-on, or neighbour report (D29).
+- `places`: a building or address with its linked reports, confirmed count and "at least N" neighbour floor; `location` = point, source, precision, zone/segment/landmark (D25).
 - `cases`, `assistance`: reviewed facts.
 - `listings` (per case × help type, with groups, `needRevision`, `lastConfirmedAt`).
 - `allocations` (per claimed group: team, window, status, outcome).
