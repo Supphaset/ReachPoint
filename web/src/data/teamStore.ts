@@ -135,6 +135,7 @@ export async function claimListing(listingId: string, groupIds: string[], seenRe
     caseId: l.caseId,
     colour: l.colour,
     landmarkLabel: l.landmarkLabel,
+    urgency: clone(l.urgency),
     groups: clone(groups).map((g) => ({ ...g, state: "taken", takenBy: v.teamId })),
     seatUnits: need,
     state: "taken",

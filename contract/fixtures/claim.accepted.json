@@ -33,6 +33,40 @@
     ],
     "precision": "building",
     "source": "caller described the building; desk confirmed"
+   },
+   "urgency": {
+    "title": "Why this is an emergency",
+    "summary": "Coordinator flagged urgent: Transport linked to urgent medical case C-01",
+    "facts": [
+     {
+      "kind": "flag",
+      "text": "Coordinator flagged urgent: Transport linked to urgent medical case C-01",
+      "basis": "coordinator"
+     },
+     {
+      "kind": "medical",
+      "text": "1 person in this household needs urgent medical help; the medical team is asked separately",
+      "basis": "qualified review"
+     },
+     {
+      "kind": "people",
+      "text": "3 people: 2 adults, 1 child",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "water",
+      "text": "Chest deep (about 1.3 m) at the landmark",
+      "basis": "callers",
+      "at": "2026-10-11T03:15:00Z",
+      "callers": 1,
+      "stale": false
+     }
+    ],
+    "kit": [
+     "Boat needed (water 1.2 m or more)",
+     "Life jackets for 1 child"
+    ],
+    "withheld": "Medical details stay with the desk and the medical team"
    }
   }
  }
