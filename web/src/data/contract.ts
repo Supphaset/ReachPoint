@@ -268,3 +268,61 @@ export type ClaimCode =
   | "NOT_AVAILABLE";
 
 export type Result<T = undefined> = { ok: true; value: T } | { ok: false; code: ClaimCode; message: string };
+
+/* ---- Split panel (C4 view) and asks (C7): draft, from contract/fixtures/splitPanel.cp3.json ---- */
+
+export interface SplitRow {
+  listingId: string;
+  caseId: string | null;
+  assistanceType: AssistanceType;
+  areaId: string;
+  tier: "1a" | "1b" | "2";
+  colour: Priority;
+  unit: "people" | "packs";
+  units: number;
+  part: Party | null;
+  split: boolean;
+  needsCoordinatorApproval: boolean;
+}
+
+export interface SplitAssignment extends SplitRow {
+  resourceId: string;
+  teamId: string;
+  seatUnits: number | null;
+  accepted: boolean;
+}
+
+export interface SplitUnassigned extends SplitRow {
+  reason: "capacity_exhausted" | "no_capable_team";
+  capableResources: string[];
+  returnedFrom: string | null;
+}
+
+export interface Suggestion {
+  suggestionId: string;
+  inputVersions: Record<string, number>;
+  snapshotAt: string;
+  simulation: boolean;
+  solver: { name: string; optimal: boolean; levels: Record<string, number> };
+  weights: Record<string, number>;
+  assignments: SplitAssignment[];
+  unassigned: SplitUnassigned[];
+  resources: { resourceId: string; teamId: string; capacity: Record<string, number>; used: Record<string, number>; simulated: boolean }[];
+  explanations: { listingId: string; facts: string[] }[];
+}
+
+export interface SplitPanelView {
+  dataMode: "synthetic";
+  generatedAt: string;
+  label: string;
+  whatIfLabel: string;
+  weights: Record<string, number | string>;
+  needs: Record<string, { caseId: string; areaId: string; assistanceType: AssistanceType; label: string; units: number; unit: string; party: Party | null; note: string }>;
+  resources: Record<string, { teamId: string; kind: string; basis: string }>;
+  suggestion: Suggestion;
+  scenarios: { id: string; label: string; options: Record<string, unknown>; diff: { peopleCoveredDelta: number; moreCovered: string[]; lessCovered: string[] }; suggestion: Suggestion }[];
+}
+
+export type AskResult =
+  | { ok: true; askedAt: string; asks: { askId: string; teamId: string; listingIds: string[] }[]; note: string }
+  | { ok: false; code: "VERSION_CONFLICT"; message: string; detail: { why: string; current: Suggestion } };

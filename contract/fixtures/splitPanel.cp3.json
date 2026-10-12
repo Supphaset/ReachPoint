@@ -1,0 +1,2241 @@
+{
+ "dataMode": "synthetic",
+ "generatedAt": "2026-10-11T03:25:00Z",
+ "label": "Split panel at 10:25 (synthetic). A suggestion for the coordinator only; it writes nothing.",
+ "whatIfLabel": "Simulation · nothing sent",
+ "weights": {
+  "w_evac": 1.0,
+  "w_supply": 1.0,
+  "setBy": "coordinator:demo-1",
+  "setAt": "2026-10-11T03:00:00Z"
+ },
+ "needs": {
+  "L-C01-MED": {
+   "caseId": "C-01",
+   "areaId": "P-B",
+   "assistanceType": "medical",
+   "label": "B-3 · L3 Community building",
+   "units": 1,
+   "unit": "people",
+   "party": null,
+   "note": "Qualified review: urgent medical (tier 1a)"
+  },
+  "L-C01-EVAC": {
+   "caseId": "C-01",
+   "areaId": "P-B",
+   "assistanceType": "evacuation_transport",
+   "label": "B-3 · L3 Community building",
+   "units": 3,
+   "unit": "people",
+   "party": {
+    "adults": 2,
+    "children": 1,
+    "infants": 0,
+    "stretcher": 0
+   },
+   "note": "Already accepted by T-S (M-01)"
+  },
+  "L-C02-EVAC": {
+   "caseId": "C-02",
+   "areaId": "P-B",
+   "assistanceType": "evacuation_transport",
+   "label": "B-3 · L5 School",
+   "units": 4,
+   "unit": "people",
+   "party": {
+    "adults": 2,
+    "children": 2,
+    "infants": 0,
+    "stretcher": 0
+   },
+   "note": ""
+  },
+  "L-C03-EVAC": {
+   "caseId": "C-03",
+   "areaId": "P-B",
+   "assistanceType": "evacuation_transport",
+   "label": "B-3 · L1 Temple",
+   "units": 2,
+   "unit": "people",
+   "party": {
+    "adults": 2,
+    "children": 0,
+    "infants": 0,
+    "stretcher": 0
+   },
+   "note": "Elderly couple"
+  },
+  "L-C04-EVAC": {
+   "caseId": "C-04",
+   "areaId": "P-B",
+   "assistanceType": "evacuation_transport",
+   "label": "B-2 · L3 Community building",
+   "units": 5,
+   "unit": "people",
+   "party": {
+    "adults": 2,
+    "children": 2,
+    "infants": 1,
+    "stretcher": 0
+   },
+   "note": "Parents, 2 children, a baby"
+  },
+  "L-C05-EVAC": {
+   "caseId": "C-05",
+   "areaId": "P-B",
+   "assistanceType": "evacuation_transport",
+   "label": "B-1 · L2 Temple",
+   "units": 3,
+   "unit": "people",
+   "party": {
+    "adults": 2,
+    "children": 0,
+    "infants": 0,
+    "stretcher": 1
+   },
+   "note": "Bedridden grandmother on a stretcher, 2 carers"
+  },
+  "L-C06-EVAC": {
+   "caseId": "C-06",
+   "areaId": "P-B",
+   "assistanceType": "evacuation_transport",
+   "label": "B-5 · L1 Health centre",
+   "units": 4,
+   "unit": "people",
+   "party": {
+    "adults": 4,
+    "children": 0,
+    "infants": 0,
+    "stretcher": 0
+   },
+   "note": ""
+  },
+  "L-C08-EVAC": {
+   "caseId": "C-08",
+   "areaId": "P-B",
+   "assistanceType": "evacuation_transport",
+   "label": "B-6 · L2 School",
+   "units": 3,
+   "unit": "people",
+   "party": {
+    "adults": 1,
+    "children": 2,
+    "infants": 0,
+    "stretcher": 0
+   },
+   "note": "Mother and 2 children"
+  },
+  "L-C05-SUP": {
+   "caseId": "C-05",
+   "areaId": "P-B",
+   "assistanceType": "supplies",
+   "label": "B-1 · L2 Temple",
+   "units": 3,
+   "unit": "packs",
+   "party": null,
+   "note": "No team with supplies can reach deep water"
+  },
+  "L-C12-MED": {
+   "caseId": "C-12",
+   "areaId": "P-A",
+   "assistanceType": "medical",
+   "label": "P-A",
+   "units": 1,
+   "unit": "people",
+   "party": null,
+   "note": "Non-urgent medical check (tier 2)"
+  },
+  "L-PA-SUP": {
+   "caseId": "PA-COHORT",
+   "areaId": "P-A",
+   "assistanceType": "supplies",
+   "label": "P-A",
+   "units": 30,
+   "unit": "packs",
+   "party": null,
+   "note": "P-A packs not yet in a plan"
+  }
+ },
+ "resources": {
+  "S1": {
+   "teamId": "T-S",
+   "kind": "boat",
+   "basis": "12 seat units today (6 seats × 2 trips)"
+  },
+  "R1": {
+   "teamId": "T-R",
+   "kind": "truck",
+   "basis": "40 packs or 8 seat units today; can't enter deep water (P-B)"
+  },
+  "M1": {
+   "teamId": "T-M",
+   "kind": "medical_team",
+   "basis": "one patient visit before 14:00"
+  },
+  "S2": {
+   "teamId": "T-X",
+   "kind": "boat",
+   "basis": "a second boat, 12 seat units (what-if)"
+  }
+ },
+ "suggestion": {
+  "suggestionId": "SUG-67bc730722",
+  "inputVersions": {
+   "listings": 3,
+   "teams": 2,
+   "allocations": 1
+  },
+  "snapshotAt": "2026-10-11T03:25:00Z",
+  "simulation": false,
+  "solver": {
+   "name": "OR-Tools CP-SAT",
+   "optimal": true,
+   "levels": {
+    "tier1aPeopleCovered": 1,
+    "tier1bPeopleCovered": 3,
+    "tier2WeightedUnitsX100": 4300,
+    "splitFamilies": 1,
+    "personMinutesWaiting": 1150
+   }
+  },
+  "weights": {
+   "w_evac": 1.0,
+   "w_supply": 1.0
+  },
+  "assignments": [
+   {
+    "listingId": "L-C01-MED",
+    "caseId": "C-01",
+    "assistanceType": "medical",
+    "areaId": "P-B",
+    "tier": "1a",
+    "colour": "red",
+    "unit": "people",
+    "resourceId": "M1",
+    "teamId": "T-M",
+    "units": 1,
+    "part": null,
+    "seatUnits": null,
+    "accepted": false,
+    "split": false,
+    "needsCoordinatorApproval": false
+   },
+   {
+    "listingId": "L-C01-EVAC",
+    "caseId": "C-01",
+    "assistanceType": "evacuation_transport",
+    "areaId": "P-B",
+    "tier": "1b",
+    "colour": "red",
+    "unit": "people",
+    "resourceId": "S1",
+    "teamId": "T-S",
+    "units": 3,
+    "part": {
+     "adults": 2,
+     "children": 1,
+     "infants": 0,
+     "stretcher": 0
+    },
+    "seatUnits": 2.5,
+    "accepted": true,
+    "split": false,
+    "needsCoordinatorApproval": false
+   },
+   {
+    "listingId": "L-C02-EVAC",
+    "caseId": "C-02",
+    "assistanceType": "evacuation_transport",
+    "areaId": "P-B",
+    "tier": "2",
+    "colour": "yellow",
+    "unit": "people",
+    "resourceId": "S1",
+    "teamId": "T-S",
+    "units": 3,
+    "part": {
+     "adults": 1,
+     "children": 2,
+     "infants": 0,
+     "stretcher": 0
+    },
+    "seatUnits": 2.0,
+    "accepted": false,
+    "split": true,
+    "needsCoordinatorApproval": true
+   },
+   {
+    "listingId": "L-C03-EVAC",
+    "caseId": "C-03",
+    "assistanceType": "evacuation_transport",
+    "areaId": "P-B",
+    "tier": "2",
+    "colour": "yellow",
+    "unit": "people",
+    "resourceId": "S1",
+    "teamId": "T-S",
+    "units": 2,
+    "part": {
+     "adults": 2,
+     "children": 0,
+     "infants": 0,
+     "stretcher": 0
+    },
+    "seatUnits": 2.0,
+    "accepted": false,
+    "split": false,
+    "needsCoordinatorApproval": false
+   },
+   {
+    "listingId": "L-C04-EVAC",
+    "caseId": "C-04",
+    "assistanceType": "evacuation_transport",
+    "areaId": "P-B",
+    "tier": "2",
+    "colour": "yellow",
+    "unit": "people",
+    "resourceId": "S1",
+    "teamId": "T-S",
+    "units": 5,
+    "part": {
+     "adults": 2,
+     "children": 2,
+     "infants": 1,
+     "stretcher": 0
+    },
+    "seatUnits": 3.0,
+    "accepted": false,
+    "split": false,
+    "needsCoordinatorApproval": false
+   },
+   {
+    "listingId": "L-C08-EVAC",
+    "caseId": "C-08",
+    "assistanceType": "evacuation_transport",
+    "areaId": "P-B",
+    "tier": "2",
+    "colour": "yellow",
+    "unit": "people",
+    "resourceId": "S1",
+    "teamId": "T-S",
+    "units": 3,
+    "part": {
+     "adults": 1,
+     "children": 2,
+     "infants": 0,
+     "stretcher": 0
+    },
+    "seatUnits": 2.0,
+    "accepted": false,
+    "split": false,
+    "needsCoordinatorApproval": false
+   },
+   {
+    "listingId": "L-PA-SUP",
+    "caseId": "PA-COHORT",
+    "assistanceType": "supplies",
+    "areaId": "P-A",
+    "tier": "2",
+    "colour": "green",
+    "unit": "packs",
+    "resourceId": "R1",
+    "teamId": "T-R",
+    "units": 30,
+    "part": null,
+    "seatUnits": null,
+    "accepted": false,
+    "split": false,
+    "needsCoordinatorApproval": false
+   }
+  ],
+  "unassigned": [
+   {
+    "listingId": "L-C02-EVAC",
+    "caseId": "C-02",
+    "assistanceType": "evacuation_transport",
+    "areaId": "P-B",
+    "tier": "2",
+    "colour": "yellow",
+    "unit": "people",
+    "units": 1,
+    "part": {
+     "adults": 1,
+     "children": 0,
+     "infants": 0,
+     "stretcher": 0
+    },
+    "reason": "capacity_exhausted",
+    "capableResources": [
+     "S1"
+    ],
+    "returnedFrom": null,
+    "split": true,
+    "needsCoordinatorApproval": true
+   },
+   {
+    "listingId": "L-C05-EVAC",
+    "caseId": "C-05",
+    "assistanceType": "evacuation_transport",
+    "areaId": "P-B",
+    "tier": "2",
+    "colour": "yellow",
+    "unit": "people",
+    "units": 3,
+    "part": {
+     "adults": 2,
+     "children": 0,
+     "infants": 0,
+     "stretcher": 1
+    },
+    "reason": "capacity_exhausted",
+    "capableResources": [
+     "S1"
+    ],
+    "returnedFrom": null,
+    "split": false,
+    "needsCoordinatorApproval": false
+   },
+   {
+    "listingId": "L-C06-EVAC",
+    "caseId": "C-06",
+    "assistanceType": "evacuation_transport",
+    "areaId": "P-B",
+    "tier": "2",
+    "colour": "yellow",
+    "unit": "people",
+    "units": 4,
+    "part": {
+     "adults": 4,
+     "children": 0,
+     "infants": 0,
+     "stretcher": 0
+    },
+    "reason": "capacity_exhausted",
+    "capableResources": [
+     "S1"
+    ],
+    "returnedFrom": null,
+    "split": false,
+    "needsCoordinatorApproval": false
+   },
+   {
+    "listingId": "L-C05-SUP",
+    "caseId": "C-05",
+    "assistanceType": "supplies",
+    "areaId": "P-B",
+    "tier": "2",
+    "colour": "green",
+    "unit": "packs",
+    "units": 3,
+    "part": null,
+    "reason": "no_capable_team",
+    "capableResources": [],
+    "returnedFrom": null,
+    "split": false,
+    "needsCoordinatorApproval": false
+   },
+   {
+    "listingId": "L-C12-MED",
+    "caseId": "C-12",
+    "assistanceType": "medical",
+    "areaId": "P-A",
+    "tier": "2",
+    "colour": "yellow",
+    "unit": "people",
+    "units": 1,
+    "part": null,
+    "reason": "capacity_exhausted",
+    "capableResources": [
+     "M1"
+    ],
+    "returnedFrom": null,
+    "split": false,
+    "needsCoordinatorApproval": false
+   }
+  ],
+  "resources": [
+   {
+    "resourceId": "S1",
+    "teamId": "T-S",
+    "capacity": {
+     "evacuation_transport": 12
+    },
+    "used": {
+     "evacuation_transport": 11.5
+    },
+    "simulated": false
+   },
+   {
+    "resourceId": "R1",
+    "teamId": "T-R",
+    "capacity": {
+     "supplies": 40,
+     "evacuation_transport": 8
+    },
+    "used": {
+     "supplies": 30,
+     "evacuation_transport": 0
+    },
+    "simulated": false
+   },
+   {
+    "resourceId": "M1",
+    "teamId": "T-M",
+    "capacity": {
+     "medical": 1
+    },
+    "used": {
+     "medical": 1
+    },
+    "simulated": false
+   }
+  ],
+  "explanations": [
+   {
+    "listingId": "L-C01-MED",
+    "facts": [
+     "Tier 1a: qualified review requires urgent medical help",
+     "1 people to M1 (T-M, medical_team)",
+     "waiting 10 min"
+    ]
+   },
+   {
+    "listingId": "L-C01-EVAC",
+    "facts": [
+     "Tier 1b: coordinator flagged urgent (Transport linked to urgent medical case C-01)",
+     "3 people to S1 (T-S, boat) · already accepted",
+     "waiting 10 min"
+    ]
+   },
+   {
+    "listingId": "L-C02-EVAC",
+    "facts": [
+     "Tier 2",
+     "3 people to S1 (T-S, boat) · split: coordinator approves",
+     "1 people not covered: capable teams are full today",
+     "waiting 45 min"
+    ]
+   },
+   {
+    "listingId": "L-C03-EVAC",
+    "facts": [
+     "Tier 2",
+     "2 people to S1 (T-S, boat)",
+     "waiting 140 min"
+    ]
+   },
+   {
+    "listingId": "L-C04-EVAC",
+    "facts": [
+     "Tier 2",
+     "5 people to S1 (T-S, boat)",
+     "waiting 75 min"
+    ]
+   },
+   {
+    "listingId": "L-C05-EVAC",
+    "facts": [
+     "Tier 2",
+     "3 people not covered: capable teams are full today",
+     "waiting 155 min"
+    ]
+   },
+   {
+    "listingId": "L-C06-EVAC",
+    "facts": [
+     "Tier 2",
+     "4 people not covered: capable teams are full today",
+     "waiting 30 min"
+    ]
+   },
+   {
+    "listingId": "L-C08-EVAC",
+    "facts": [
+     "Tier 2",
+     "3 people to S1 (T-S, boat)",
+     "waiting 115 min"
+    ]
+   },
+   {
+    "listingId": "L-C05-SUP",
+    "facts": [
+     "Tier 2",
+     "3 packs not covered: no available team can do this here",
+     "waiting 155 min"
+    ]
+   },
+   {
+    "listingId": "L-C12-MED",
+    "facts": [
+     "Tier 2",
+     "1 people not covered: capable teams are full today",
+     "waiting 55 min"
+    ]
+   },
+   {
+    "listingId": "L-PA-SUP",
+    "facts": [
+     "Tier 2",
+     "30 packs to R1 (T-R, truck)",
+     "waiting 145 min"
+    ]
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "id": "whatif-boat",
+   "label": "One more boat (12 seats)",
+   "options": {
+    "extra": [
+     {
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "kind": "boat",
+      "capabilities": [
+       "evacuation_transport"
+      ],
+      "areas": [
+       "P-B"
+      ],
+      "capacity": {
+       "evacuation_transport": 12
+      },
+      "capacityBasis": "a second boat, 12 seat units (what-if)"
+     }
+    ]
+   },
+   "diff": {
+    "peopleCoveredDelta": 8,
+    "moreCovered": [
+     "L-C02-EVAC",
+     "L-C05-EVAC",
+     "L-C06-EVAC"
+    ],
+    "lessCovered": []
+   },
+   "suggestion": {
+    "suggestionId": "SUG-1c05d15e38",
+    "inputVersions": {
+     "listings": 3,
+     "teams": 2,
+     "allocations": 1
+    },
+    "snapshotAt": "2026-10-11T03:25:00Z",
+    "simulation": true,
+    "solver": {
+     "name": "OR-Tools CP-SAT",
+     "optimal": true,
+     "levels": {
+      "tier1aPeopleCovered": 1,
+      "tier1bPeopleCovered": 3,
+      "tier2WeightedUnitsX100": 5100,
+      "splitFamilies": 0,
+      "personMinutesWaiting": 520
+     }
+    },
+    "weights": {
+     "w_evac": 1.0,
+     "w_supply": 1.0
+    },
+    "assignments": [
+     {
+      "listingId": "L-C01-MED",
+      "caseId": "C-01",
+      "assistanceType": "medical",
+      "areaId": "P-B",
+      "tier": "1a",
+      "colour": "red",
+      "unit": "people",
+      "resourceId": "M1",
+      "teamId": "T-M",
+      "units": 1,
+      "part": null,
+      "seatUnits": null,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C01-EVAC",
+      "caseId": "C-01",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "1b",
+      "colour": "red",
+      "unit": "people",
+      "resourceId": "S1",
+      "teamId": "T-S",
+      "units": 3,
+      "part": {
+       "adults": 2,
+       "children": 1,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.5,
+      "accepted": true,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "units": 4,
+      "part": {
+       "adults": 2,
+       "children": 2,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 3.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "units": 2,
+      "part": {
+       "adults": 2,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "units": 5,
+      "part": {
+       "adults": 2,
+       "children": 2,
+       "infants": 1,
+       "stretcher": 0
+      },
+      "seatUnits": 3.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S1",
+      "teamId": "T-S",
+      "units": 3,
+      "part": {
+       "adults": 2,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 1
+      },
+      "seatUnits": 5.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S1",
+      "teamId": "T-S",
+      "units": 4,
+      "part": {
+       "adults": 4,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 4.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "units": 3,
+      "part": {
+       "adults": 1,
+       "children": 2,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-PA-SUP",
+      "caseId": "PA-COHORT",
+      "assistanceType": "supplies",
+      "areaId": "P-A",
+      "tier": "2",
+      "colour": "green",
+      "unit": "packs",
+      "resourceId": "R1",
+      "teamId": "T-R",
+      "units": 30,
+      "part": null,
+      "seatUnits": null,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     }
+    ],
+    "unassigned": [
+     {
+      "listingId": "L-C05-SUP",
+      "caseId": "C-05",
+      "assistanceType": "supplies",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "green",
+      "unit": "packs",
+      "units": 3,
+      "part": null,
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C12-MED",
+      "caseId": "C-12",
+      "assistanceType": "medical",
+      "areaId": "P-A",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 1,
+      "part": null,
+      "reason": "capacity_exhausted",
+      "capableResources": [
+       "M1"
+      ],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     }
+    ],
+    "resources": [
+     {
+      "resourceId": "S1",
+      "teamId": "T-S",
+      "capacity": {
+       "evacuation_transport": 12
+      },
+      "used": {
+       "evacuation_transport": 11.5
+      },
+      "simulated": false
+     },
+     {
+      "resourceId": "R1",
+      "teamId": "T-R",
+      "capacity": {
+       "supplies": 40,
+       "evacuation_transport": 8
+      },
+      "used": {
+       "supplies": 30,
+       "evacuation_transport": 0
+      },
+      "simulated": false
+     },
+     {
+      "resourceId": "M1",
+      "teamId": "T-M",
+      "capacity": {
+       "medical": 1
+      },
+      "used": {
+       "medical": 1
+      },
+      "simulated": false
+     },
+     {
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "capacity": {
+       "evacuation_transport": 12
+      },
+      "used": {
+       "evacuation_transport": 10.0
+      },
+      "simulated": true
+     }
+    ],
+    "explanations": [
+     {
+      "listingId": "L-C01-MED",
+      "facts": [
+       "Tier 1a: qualified review requires urgent medical help",
+       "1 people to M1 (T-M, medical_team)",
+       "waiting 10 min"
+      ]
+     },
+     {
+      "listingId": "L-C01-EVAC",
+      "facts": [
+       "Tier 1b: coordinator flagged urgent (Transport linked to urgent medical case C-01)",
+       "3 people to S1 (T-S, boat) · already accepted",
+       "waiting 10 min"
+      ]
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "facts": [
+       "Tier 2",
+       "4 people to S2 (T-X, boat)",
+       "waiting 45 min"
+      ]
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "facts": [
+       "Tier 2",
+       "2 people to S2 (T-X, boat)",
+       "waiting 140 min"
+      ]
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "facts": [
+       "Tier 2",
+       "5 people to S2 (T-X, boat)",
+       "waiting 75 min"
+      ]
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "facts": [
+       "Tier 2",
+       "3 people to S1 (T-S, boat)",
+       "waiting 155 min"
+      ]
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "facts": [
+       "Tier 2",
+       "4 people to S1 (T-S, boat)",
+       "waiting 30 min"
+      ]
+     },
+     {
+      "listingId": "L-C08-EVAC",
+      "facts": [
+       "Tier 2",
+       "3 people to S2 (T-X, boat)",
+       "waiting 115 min"
+      ]
+     },
+     {
+      "listingId": "L-C05-SUP",
+      "facts": [
+       "Tier 2",
+       "3 packs not covered: no available team can do this here",
+       "waiting 155 min"
+      ]
+     },
+     {
+      "listingId": "L-C12-MED",
+      "facts": [
+       "Tier 2",
+       "1 people not covered: capable teams are full today",
+       "waiting 55 min"
+      ]
+     },
+     {
+      "listingId": "L-PA-SUP",
+      "facts": [
+       "Tier 2",
+       "30 packs to R1 (T-R, truck)",
+       "waiting 145 min"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "whatif-no-s1",
+   "label": "S1 unavailable",
+   "options": {
+    "drop": [
+     "S1"
+    ]
+   },
+   "diff": {
+    "peopleCoveredDelta": -16,
+    "moreCovered": [],
+    "lessCovered": [
+     "L-C01-EVAC",
+     "L-C02-EVAC",
+     "L-C03-EVAC",
+     "L-C04-EVAC",
+     "L-C08-EVAC"
+    ]
+   },
+   "suggestion": {
+    "suggestionId": "SUG-93c8c4c1ef",
+    "inputVersions": {
+     "listings": 3,
+     "teams": 2,
+     "allocations": 1
+    },
+    "snapshotAt": "2026-10-11T03:25:00Z",
+    "simulation": true,
+    "solver": {
+     "name": "OR-Tools CP-SAT",
+     "optimal": true,
+     "levels": {
+      "tier1aPeopleCovered": 1,
+      "tier1bPeopleCovered": 0,
+      "tier2WeightedUnitsX100": 3000,
+      "splitFamilies": 0,
+      "personMinutesWaiting": 2315
+     }
+    },
+    "weights": {
+     "w_evac": 1.0,
+     "w_supply": 1.0
+    },
+    "assignments": [
+     {
+      "listingId": "L-C01-MED",
+      "caseId": "C-01",
+      "assistanceType": "medical",
+      "areaId": "P-B",
+      "tier": "1a",
+      "colour": "red",
+      "unit": "people",
+      "resourceId": "M1",
+      "teamId": "T-M",
+      "units": 1,
+      "part": null,
+      "seatUnits": null,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-PA-SUP",
+      "caseId": "PA-COHORT",
+      "assistanceType": "supplies",
+      "areaId": "P-A",
+      "tier": "2",
+      "colour": "green",
+      "unit": "packs",
+      "resourceId": "R1",
+      "teamId": "T-R",
+      "units": 30,
+      "part": null,
+      "seatUnits": null,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     }
+    ],
+    "unassigned": [
+     {
+      "listingId": "L-C01-EVAC",
+      "caseId": "C-01",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "1b",
+      "colour": "red",
+      "unit": "people",
+      "units": 3,
+      "part": {
+       "adults": 2,
+       "children": 1,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": "S1",
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 4,
+      "part": {
+       "adults": 2,
+       "children": 2,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 2,
+      "part": {
+       "adults": 2,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 5,
+      "part": {
+       "adults": 2,
+       "children": 2,
+       "infants": 1,
+       "stretcher": 0
+      },
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 3,
+      "part": {
+       "adults": 2,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 1
+      },
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 4,
+      "part": {
+       "adults": 4,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 3,
+      "part": {
+       "adults": 1,
+       "children": 2,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C05-SUP",
+      "caseId": "C-05",
+      "assistanceType": "supplies",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "green",
+      "unit": "packs",
+      "units": 3,
+      "part": null,
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C12-MED",
+      "caseId": "C-12",
+      "assistanceType": "medical",
+      "areaId": "P-A",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 1,
+      "part": null,
+      "reason": "capacity_exhausted",
+      "capableResources": [
+       "M1"
+      ],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     }
+    ],
+    "resources": [
+     {
+      "resourceId": "R1",
+      "teamId": "T-R",
+      "capacity": {
+       "supplies": 40,
+       "evacuation_transport": 8
+      },
+      "used": {
+       "supplies": 30,
+       "evacuation_transport": 0
+      },
+      "simulated": false
+     },
+     {
+      "resourceId": "M1",
+      "teamId": "T-M",
+      "capacity": {
+       "medical": 1
+      },
+      "used": {
+       "medical": 1
+      },
+      "simulated": false
+     }
+    ],
+    "explanations": [
+     {
+      "listingId": "L-C01-MED",
+      "facts": [
+       "Tier 1a: qualified review requires urgent medical help",
+       "1 people to M1 (T-M, medical_team)",
+       "waiting 10 min"
+      ]
+     },
+     {
+      "listingId": "L-C01-EVAC",
+      "facts": [
+       "Tier 1b: coordinator flagged urgent (Transport linked to urgent medical case C-01)",
+       "3 people not covered: no available team can do this here (back from S1, unavailable)",
+       "waiting 10 min"
+      ]
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "facts": [
+       "Tier 2",
+       "4 people not covered: no available team can do this here",
+       "waiting 45 min"
+      ]
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "facts": [
+       "Tier 2",
+       "2 people not covered: no available team can do this here",
+       "waiting 140 min"
+      ]
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "facts": [
+       "Tier 2",
+       "5 people not covered: no available team can do this here",
+       "waiting 75 min"
+      ]
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "facts": [
+       "Tier 2",
+       "3 people not covered: no available team can do this here",
+       "waiting 155 min"
+      ]
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "facts": [
+       "Tier 2",
+       "4 people not covered: no available team can do this here",
+       "waiting 30 min"
+      ]
+     },
+     {
+      "listingId": "L-C08-EVAC",
+      "facts": [
+       "Tier 2",
+       "3 people not covered: no available team can do this here",
+       "waiting 115 min"
+      ]
+     },
+     {
+      "listingId": "L-C05-SUP",
+      "facts": [
+       "Tier 2",
+       "3 packs not covered: no available team can do this here",
+       "waiting 155 min"
+      ]
+     },
+     {
+      "listingId": "L-C12-MED",
+      "facts": [
+       "Tier 2",
+       "1 people not covered: capable teams are full today",
+       "waiting 55 min"
+      ]
+     },
+     {
+      "listingId": "L-PA-SUP",
+      "facts": [
+       "Tier 2",
+       "30 packs to R1 (T-R, truck)",
+       "waiting 145 min"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "whatif-boat-no-s1",
+   "label": "S1 unavailable, one more boat",
+   "options": {
+    "extra": [
+     {
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "kind": "boat",
+      "capabilities": [
+       "evacuation_transport"
+      ],
+      "areas": [
+       "P-B"
+      ],
+      "capacity": {
+       "evacuation_transport": 12
+      },
+      "capacityBasis": "a second boat, 12 seat units (what-if)"
+     }
+    ],
+    "drop": [
+     "S1"
+    ]
+   },
+   "diff": {
+    "peopleCoveredDelta": 0,
+    "moreCovered": [],
+    "lessCovered": []
+   },
+   "suggestion": {
+    "suggestionId": "SUG-59c2500735",
+    "inputVersions": {
+     "listings": 3,
+     "teams": 2,
+     "allocations": 1
+    },
+    "snapshotAt": "2026-10-11T03:25:00Z",
+    "simulation": true,
+    "solver": {
+     "name": "OR-Tools CP-SAT",
+     "optimal": true,
+     "levels": {
+      "tier1aPeopleCovered": 1,
+      "tier1bPeopleCovered": 3,
+      "tier2WeightedUnitsX100": 4300,
+      "splitFamilies": 1,
+      "personMinutesWaiting": 1150
+     }
+    },
+    "weights": {
+     "w_evac": 1.0,
+     "w_supply": 1.0
+    },
+    "assignments": [
+     {
+      "listingId": "L-C01-MED",
+      "caseId": "C-01",
+      "assistanceType": "medical",
+      "areaId": "P-B",
+      "tier": "1a",
+      "colour": "red",
+      "unit": "people",
+      "resourceId": "M1",
+      "teamId": "T-M",
+      "units": 1,
+      "part": null,
+      "seatUnits": null,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C01-EVAC",
+      "caseId": "C-01",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "1b",
+      "colour": "red",
+      "unit": "people",
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "units": 3,
+      "part": {
+       "adults": 2,
+       "children": 1,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.5,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "units": 3,
+      "part": {
+       "adults": 1,
+       "children": 2,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.0,
+      "accepted": false,
+      "split": true,
+      "needsCoordinatorApproval": true
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "units": 2,
+      "part": {
+       "adults": 2,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "units": 5,
+      "part": {
+       "adults": 2,
+       "children": 2,
+       "infants": 1,
+       "stretcher": 0
+      },
+      "seatUnits": 3.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "units": 3,
+      "part": {
+       "adults": 1,
+       "children": 2,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-PA-SUP",
+      "caseId": "PA-COHORT",
+      "assistanceType": "supplies",
+      "areaId": "P-A",
+      "tier": "2",
+      "colour": "green",
+      "unit": "packs",
+      "resourceId": "R1",
+      "teamId": "T-R",
+      "units": 30,
+      "part": null,
+      "seatUnits": null,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     }
+    ],
+    "unassigned": [
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 1,
+      "part": {
+       "adults": 1,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "reason": "capacity_exhausted",
+      "capableResources": [
+       "S2"
+      ],
+      "returnedFrom": null,
+      "split": true,
+      "needsCoordinatorApproval": true
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 3,
+      "part": {
+       "adults": 2,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 1
+      },
+      "reason": "capacity_exhausted",
+      "capableResources": [
+       "S2"
+      ],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 4,
+      "part": {
+       "adults": 4,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "reason": "capacity_exhausted",
+      "capableResources": [
+       "S2"
+      ],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C05-SUP",
+      "caseId": "C-05",
+      "assistanceType": "supplies",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "green",
+      "unit": "packs",
+      "units": 3,
+      "part": null,
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C12-MED",
+      "caseId": "C-12",
+      "assistanceType": "medical",
+      "areaId": "P-A",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 1,
+      "part": null,
+      "reason": "capacity_exhausted",
+      "capableResources": [
+       "M1"
+      ],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     }
+    ],
+    "resources": [
+     {
+      "resourceId": "R1",
+      "teamId": "T-R",
+      "capacity": {
+       "supplies": 40,
+       "evacuation_transport": 8
+      },
+      "used": {
+       "supplies": 30,
+       "evacuation_transport": 0
+      },
+      "simulated": false
+     },
+     {
+      "resourceId": "M1",
+      "teamId": "T-M",
+      "capacity": {
+       "medical": 1
+      },
+      "used": {
+       "medical": 1
+      },
+      "simulated": false
+     },
+     {
+      "resourceId": "S2",
+      "teamId": "T-X",
+      "capacity": {
+       "evacuation_transport": 12
+      },
+      "used": {
+       "evacuation_transport": 11.5
+      },
+      "simulated": true
+     }
+    ],
+    "explanations": [
+     {
+      "listingId": "L-C01-MED",
+      "facts": [
+       "Tier 1a: qualified review requires urgent medical help",
+       "1 people to M1 (T-M, medical_team)",
+       "waiting 10 min"
+      ]
+     },
+     {
+      "listingId": "L-C01-EVAC",
+      "facts": [
+       "Tier 1b: coordinator flagged urgent (Transport linked to urgent medical case C-01)",
+       "3 people to S2 (T-X, boat)",
+       "waiting 10 min"
+      ]
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "facts": [
+       "Tier 2",
+       "3 people to S2 (T-X, boat) · split: coordinator approves",
+       "1 people not covered: capable teams are full today",
+       "waiting 45 min"
+      ]
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "facts": [
+       "Tier 2",
+       "2 people to S2 (T-X, boat)",
+       "waiting 140 min"
+      ]
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "facts": [
+       "Tier 2",
+       "5 people to S2 (T-X, boat)",
+       "waiting 75 min"
+      ]
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "facts": [
+       "Tier 2",
+       "3 people not covered: capable teams are full today",
+       "waiting 155 min"
+      ]
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "facts": [
+       "Tier 2",
+       "4 people not covered: capable teams are full today",
+       "waiting 30 min"
+      ]
+     },
+     {
+      "listingId": "L-C08-EVAC",
+      "facts": [
+       "Tier 2",
+       "3 people to S2 (T-X, boat)",
+       "waiting 115 min"
+      ]
+     },
+     {
+      "listingId": "L-C05-SUP",
+      "facts": [
+       "Tier 2",
+       "3 packs not covered: no available team can do this here",
+       "waiting 155 min"
+      ]
+     },
+     {
+      "listingId": "L-C12-MED",
+      "facts": [
+       "Tier 2",
+       "1 people not covered: capable teams are full today",
+       "waiting 55 min"
+      ]
+     },
+     {
+      "listingId": "L-PA-SUP",
+      "facts": [
+       "Tier 2",
+       "30 packs to R1 (T-R, truck)",
+       "waiting 145 min"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "whatif-supplies",
+   "label": "Supplies count double (w_supply 2.0)",
+   "options": {
+    "weights": {
+     "w_supply": 2.0
+    }
+   },
+   "diff": {
+    "peopleCoveredDelta": 0,
+    "moreCovered": [],
+    "lessCovered": []
+   },
+   "suggestion": {
+    "suggestionId": "SUG-7e05fc0ed5",
+    "inputVersions": {
+     "listings": 3,
+     "teams": 2,
+     "allocations": 1
+    },
+    "snapshotAt": "2026-10-11T03:25:00Z",
+    "simulation": true,
+    "solver": {
+     "name": "OR-Tools CP-SAT",
+     "optimal": true,
+     "levels": {
+      "tier1aPeopleCovered": 1,
+      "tier1bPeopleCovered": 3,
+      "tier2WeightedUnitsX100": 7300,
+      "splitFamilies": 1,
+      "personMinutesWaiting": 1150
+     }
+    },
+    "weights": {
+     "w_evac": 1.0,
+     "w_supply": 2.0
+    },
+    "assignments": [
+     {
+      "listingId": "L-C01-MED",
+      "caseId": "C-01",
+      "assistanceType": "medical",
+      "areaId": "P-B",
+      "tier": "1a",
+      "colour": "red",
+      "unit": "people",
+      "resourceId": "M1",
+      "teamId": "T-M",
+      "units": 1,
+      "part": null,
+      "seatUnits": null,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C01-EVAC",
+      "caseId": "C-01",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "1b",
+      "colour": "red",
+      "unit": "people",
+      "resourceId": "S1",
+      "teamId": "T-S",
+      "units": 3,
+      "part": {
+       "adults": 2,
+       "children": 1,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.5,
+      "accepted": true,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S1",
+      "teamId": "T-S",
+      "units": 3,
+      "part": {
+       "adults": 1,
+       "children": 2,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.0,
+      "accepted": false,
+      "split": true,
+      "needsCoordinatorApproval": true
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S1",
+      "teamId": "T-S",
+      "units": 2,
+      "part": {
+       "adults": 2,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S1",
+      "teamId": "T-S",
+      "units": 5,
+      "part": {
+       "adults": 2,
+       "children": 2,
+       "infants": 1,
+       "stretcher": 0
+      },
+      "seatUnits": 3.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "resourceId": "S1",
+      "teamId": "T-S",
+      "units": 3,
+      "part": {
+       "adults": 1,
+       "children": 2,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "seatUnits": 2.0,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-PA-SUP",
+      "caseId": "PA-COHORT",
+      "assistanceType": "supplies",
+      "areaId": "P-A",
+      "tier": "2",
+      "colour": "green",
+      "unit": "packs",
+      "resourceId": "R1",
+      "teamId": "T-R",
+      "units": 30,
+      "part": null,
+      "seatUnits": null,
+      "accepted": false,
+      "split": false,
+      "needsCoordinatorApproval": false
+     }
+    ],
+    "unassigned": [
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 1,
+      "part": {
+       "adults": 1,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "reason": "capacity_exhausted",
+      "capableResources": [
+       "S1"
+      ],
+      "returnedFrom": null,
+      "split": true,
+      "needsCoordinatorApproval": true
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 3,
+      "part": {
+       "adults": 2,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 1
+      },
+      "reason": "capacity_exhausted",
+      "capableResources": [
+       "S1"
+      ],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "assistanceType": "evacuation_transport",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 4,
+      "part": {
+       "adults": 4,
+       "children": 0,
+       "infants": 0,
+       "stretcher": 0
+      },
+      "reason": "capacity_exhausted",
+      "capableResources": [
+       "S1"
+      ],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C05-SUP",
+      "caseId": "C-05",
+      "assistanceType": "supplies",
+      "areaId": "P-B",
+      "tier": "2",
+      "colour": "green",
+      "unit": "packs",
+      "units": 3,
+      "part": null,
+      "reason": "no_capable_team",
+      "capableResources": [],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     },
+     {
+      "listingId": "L-C12-MED",
+      "caseId": "C-12",
+      "assistanceType": "medical",
+      "areaId": "P-A",
+      "tier": "2",
+      "colour": "yellow",
+      "unit": "people",
+      "units": 1,
+      "part": null,
+      "reason": "capacity_exhausted",
+      "capableResources": [
+       "M1"
+      ],
+      "returnedFrom": null,
+      "split": false,
+      "needsCoordinatorApproval": false
+     }
+    ],
+    "resources": [
+     {
+      "resourceId": "S1",
+      "teamId": "T-S",
+      "capacity": {
+       "evacuation_transport": 12
+      },
+      "used": {
+       "evacuation_transport": 11.5
+      },
+      "simulated": false
+     },
+     {
+      "resourceId": "R1",
+      "teamId": "T-R",
+      "capacity": {
+       "supplies": 40,
+       "evacuation_transport": 8
+      },
+      "used": {
+       "supplies": 30,
+       "evacuation_transport": 0
+      },
+      "simulated": false
+     },
+     {
+      "resourceId": "M1",
+      "teamId": "T-M",
+      "capacity": {
+       "medical": 1
+      },
+      "used": {
+       "medical": 1
+      },
+      "simulated": false
+     }
+    ],
+    "explanations": [
+     {
+      "listingId": "L-C01-MED",
+      "facts": [
+       "Tier 1a: qualified review requires urgent medical help",
+       "1 people to M1 (T-M, medical_team)",
+       "waiting 10 min"
+      ]
+     },
+     {
+      "listingId": "L-C01-EVAC",
+      "facts": [
+       "Tier 1b: coordinator flagged urgent (Transport linked to urgent medical case C-01)",
+       "3 people to S1 (T-S, boat) · already accepted",
+       "waiting 10 min"
+      ]
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "facts": [
+       "Tier 2",
+       "3 people to S1 (T-S, boat) · split: coordinator approves",
+       "1 people not covered: capable teams are full today",
+       "waiting 45 min"
+      ]
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "facts": [
+       "Tier 2",
+       "2 people to S1 (T-S, boat)",
+       "waiting 140 min"
+      ]
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "facts": [
+       "Tier 2",
+       "5 people to S1 (T-S, boat)",
+       "waiting 75 min"
+      ]
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "facts": [
+       "Tier 2",
+       "3 people not covered: capable teams are full today",
+       "waiting 155 min"
+      ]
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "facts": [
+       "Tier 2",
+       "4 people not covered: capable teams are full today",
+       "waiting 30 min"
+      ]
+     },
+     {
+      "listingId": "L-C08-EVAC",
+      "facts": [
+       "Tier 2",
+       "3 people to S1 (T-S, boat)",
+       "waiting 115 min"
+      ]
+     },
+     {
+      "listingId": "L-C05-SUP",
+      "facts": [
+       "Tier 2",
+       "3 packs not covered: no available team can do this here",
+       "waiting 155 min"
+      ]
+     },
+     {
+      "listingId": "L-C12-MED",
+      "facts": [
+       "Tier 2",
+       "1 people not covered: capable teams are full today",
+       "waiting 55 min"
+      ]
+     },
+     {
+      "listingId": "L-PA-SUP",
+      "facts": [
+       "Tier 2",
+       "30 packs to R1 (T-R, truck)",
+       "waiting 145 min"
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}
