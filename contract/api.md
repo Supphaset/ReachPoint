@@ -14,7 +14,7 @@ the fixtures works on the server.
 - Every write carries `submissionId` (random, from the client). Sending the same one again returns the first result
   and changes nothing (safe retry).
 - A rule failure is **HTTP 409** with `{ "code", "message", "detail" }`. Codes: `ALREADY_TAKEN`,
-  `NOT_ENOUGH_CAPACITY`, `NEED_CHANGED`, `ALLOCATION_CLOSED`, `VERSION_CONFLICT`, `NOT_AVAILABLE`, `INVALID`.
+  `NOT_ENOUGH_CAPACITY`, `NEED_CHANGED`, `ALLOCATION_CLOSED`, `ALLOCATION_HELD`, `VERSION_CONFLICT`, `NOT_AVAILABLE`, `INVALID`.
   `message` is shown to the user as is, so it is plain English ("Already taken by T-R").
 - Unknown IDs are **404**. Bad input (missing field) is **422**.
 - A successful write returns `{ "ok": true, "value": … }`; the client then fetches the affected view again.
@@ -48,8 +48,20 @@ the fixtures works on the server.
 
 | Route | Body | Rules | `value` |
 |---|---|---|---|
+| `/api/resources/{resourceId}/unavailable` | `submissionId` (required), `reason`, `nextStatusUpdate` (future ISO timestamp with timezone) | coordinator review; all-or-nothing; resource unavailable; unfinished **transport** allocations using it held, owned by coordinator; groups reopen in the existing priority order; windows withdrawn, retained for history; capacity excluded; medical missions, completed jobs, drafts and other resources unchanged | `{ resourceId, heldAllocationIds[], alreadyUnavailable? }` |
 | `/api/listings/{listingId}/urgent-flag` | `reason`, `confirmedNow` | reason required (`INVALID`); tier 1b → RED on every team view; `needRevision` + 1; `confirmedNow` moves "last confirmed" to now (D42) | — |
 | `/api/ask-teams` | `suggestionId`, `teamIds[]` | returns **200** with `AskResult`: `ok: false, code: VERSION_CONFLICT` and the current suggestion when the input changed (C7) | `AskResult` |
+
+S1 review retains allocation IDs and a `history` event containing before/after snapshots. Held jobs carry
+`owner: coordinator`, `holdReason`, `nextStatusUpdate{at,by}`, a new `briefRevision` and pending brief acknowledgment.
+The stored window has `state: withdrawn`, `withdrawnAt`, `withdrawnBy`. The team view returns `window: null` and
+`withdrawnWindow` for display as an earlier, withdrawn estimate. The family's status says "Transport: on hold;
+new time not known" and names the withdrawn estimate and the coordinator's next **status update**, never a new
+arrival estimate. A replacement team's actual claim supersedes that held status; its time remains unknown until
+it sets a window. `window`, `progress`, `close` and `hand-back` on a held allocation return `ALLOCATION_HELD`.
+An unavailable resource cannot claim jobs even if its team sets itself Available. Repeating the same submission
+returns the first result; another review of an already unavailable resource changes nothing.
+This starter retains the existing demo-role model; production coordinator authorization is still a Firestore/Auth handoff.
 
 ## Intake, desk review, family status
 

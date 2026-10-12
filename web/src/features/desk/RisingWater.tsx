@@ -7,6 +7,7 @@ import { Icon } from "../../ui/Icon";
 import { pickSnapshot, useMinute } from "../briefing/Rain";
 import { ReviewQueue } from "./ReviewQueue";
 import { SuggestedChecks } from "./SuggestedChecks";
+import { ResourceFailure } from "./ResourceFailure";
 import "../intake/intake.css";
 import "./desk.css";
 
@@ -132,6 +133,7 @@ export function DeskPage() {
         <p className="muted">Requests to review, water rising (D42), then suggested checks for quiet zones.</p>
       </header>
       <ReviewQueue />
+      <ResourceFailure />
       <RisingWaterPanel />
       <SuggestedChecks />
     </div>

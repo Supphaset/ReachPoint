@@ -131,9 +131,11 @@ def job(store: Store, a: dict, row: dict, need: dict) -> dict:
            "medical": need.get("medicalNotes") if a["state"] in ACTIVE else None,
            "groups": [g for g in row["groups"] if g["groupId"] in a["groupIds"]],
            "seatUnits": a["seatUnits"], "state": "closed" if a["state"] == "closed" else a["state"],
-           "window": a.get("window"), "acceptedAt": a["acceptedAt"],
+           "window": None if (a.get("window") or {}).get("state") == "withdrawn" else a.get("window"), "acceptedAt": a["acceptedAt"],
            "pickup": {"landmarkLabel": row["landmarkLabel"], **exact}}
-    for k in ("outcome", "closedAt", "medicalRemovedAt"):
+    if (a.get("window") or {}).get("state") == "withdrawn":
+        out["withdrawnWindow"] = dict(a["window"])
+    for k in ("outcome", "closedAt", "medicalRemovedAt", "owner", "holdReason", "nextStatusUpdate", "briefRevision"):
         if a.get(k):
             out[k] = a[k]
     return out
@@ -190,7 +192,8 @@ def team_missions(store: Store, team_id: str, at: str, water_at: str | None = No
                  "capabilities": team["capabilities"],
                  "location": {"landmarkId": team["landmarkId"], "label": landmarks[team["landmarkId"]]["label"], "at": team["at"]},
                  "resource": {"resourceId": res["resourceId"], "kind": res["kind"], "seatUnits": res["seatUnits"],
-                              "seatUnitsLeft": res["seatUnits"] - taken, "basis": res["basis"]}},
+                              "seatUnitsLeft": 0 if res.get("status") == "unavailable" else res["seatUnits"] - taken,
+                              **({"status": "unavailable"} if res.get("status") == "unavailable" else {}), "basis": res["basis"]}},
         "seatUnits": {**SEAT, "label": SEAT_LABEL},
         "open": [r for _, r in rows],
         "jobs": jobs,

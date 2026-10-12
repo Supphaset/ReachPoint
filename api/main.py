@@ -237,6 +237,17 @@ def reconfirm(listing_id: str, b: Reconfirm):
 
 # --- desk actions ---
 
+class ResourceFailure(Write):
+    submissionId: str = Field(min_length=1)
+    reason: str = Field(min_length=1, max_length=200)
+    nextStatusUpdate: str
+
+
+@app.post("/api/resources/{resource_id}/unavailable")
+def resource_unavailable(resource_id: str, b: ResourceFailure):
+    return memory.write(b.submissionId, lambda: memory.resource_unavailable(resource_id, b.reason, b.nextStatusUpdate))
+
+
 @app.post("/api/listings/{listing_id}/urgent-flag")
 def urgent_flag(listing_id: str, b: UrgentFlag):
     return memory.write(b.submissionId, lambda: memory.urgent_flag(listing_id, b.reason, b.confirmedNow))

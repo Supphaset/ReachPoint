@@ -221,10 +221,10 @@ export interface TeamState {
   backAbout: string | null;
   capabilities: AssistanceType[];
   location: { landmarkId: string; label: string; at: [number, number] };
-  resource: { resourceId: string; kind: string; seatUnits: number; seatUnitsLeft: number; basis: string };
+  resource: { resourceId: string; kind: string; seatUnits: number; seatUnitsLeft: number; basis: string; status?: "unavailable" };
 }
 
-export type JobState = "taken" | "on_the_way" | "on_scene" | "closed";
+export type JobState = "taken" | "on_the_way" | "on_scene" | "held" | "closed";
 export type Outcome = "done" | "already_left" | "not_found" | "needs_more_help";
 
 /** The team's own job. Only here does the exact pickup point appear, after taking it (D25, C16). */
@@ -244,6 +244,11 @@ export interface Job {
   state: JobState;
   outcome?: Outcome;
   window: { start: string; end: string; setAt: string } | null;
+  withdrawnWindow?: { start: string; end: string; setAt: string; state: "withdrawn"; withdrawnAt: string; withdrawnBy: string };
+  owner?: "coordinator";
+  holdReason?: string;
+  nextStatusUpdate?: { at: string; by: string };
+  briefRevision?: number;
   acceptedAt: string;
   closedAt?: string;
   pickup: { landmarkLabel: string; at: [number, number]; precision: "rooftop" | "building" | "landmark"; source: string };
