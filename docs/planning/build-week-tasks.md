@@ -26,9 +26,9 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] Export the Hat Yai extent as GeoJSON under 300 KB (T9)
 - [x] Draw the P-A/P-B/P-C areas and zones, with landmarks and D1, and cut each zone into **segments** (D30: city zones along OSM streets inside the 4 city districts, `cut_city_zones.py` + `build_geography.py`; 17 zones, 66 segments; C1 fixture `contract/fixtures/areas.hy-2025-11.json`)
 - [x] Add the "no satellite data" area (dense urban core) to the package, so nothing is ever shown as dry (D26) (`flood_check.py nodata`; 16 of 17 reported points inside)
-- [ ] Ship the area-briefing fixture files **by noon**
-- [ ] **Frontend foundation (you own it):** one React app shell, role routes, wordmark, phone tab bar; placeholder tokens; data hooks (sign-in, live Firestore views, typed API client)
-- [ ] Map + list on the shell, same IDs
+- [x] Ship the area-briefing fixture files **by noon** (`contract/fixtures/areaBriefing.*.json`: P-A/P-B/P-C + empty, stale and layer-missing variants; `build_briefing_fixtures.py`)
+- [x] **Frontend foundation (you own it):** one React app shell, role routes, wordmark, phone tab bar; placeholder tokens; data hooks (sign-in, live Firestore views, typed API client) (`web/`; demo role picker and fixture-backed `useView` until Firebase Auth and Firestore are up)
+- [x] Map + list on the shell, same IDs (offline schematic map from the package; Google Maps base later)
 
 **Friend**
 - [ ] Create `reachpoint-main` with a budget alert on every project; add you as Editor
@@ -44,28 +44,30 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 ## Tue 13 — CP1: text report → approved → shows on your map, count unchanged
 
 **You**
-- [ ] Run `/design-consultation` → final tokens (state colours, Thai + Latin fonts, spacing)
-- [ ] Shared components ready for your friend: status chip, priority badge, "AI proposal" card, error/offline banner, "last updated" line, big buttons
+- [ ] Run `/design-consultation` → final tokens (state colours, Thai + Latin fonts, spacing). Proposed tokens are in `web/src/ui/tokens.css`; the consultation adjusts values, not names
+- [x] Shared components ready for your friend: status chip, priority badge, "AI proposal" card, error/offline banner, "last updated" line, big buttons (`web/src/ui/`, all states on `/dev/ui`)
 - [x] Exposure estimate **per segment** (D27): two ranges each, everyone living there and people inside the satellite extent (Open Buildings + WorldPop, cross-checked with DOPA)
 - [x] Sanity check: the district total against GISTDA's 25 Nov figure (52,731 rai, ~150,000 people affected); record it in `data/SOURCES.md`
-- [ ] Area and zone briefing screen on live views
+- [ ] Area and zone briefing screen on live views (built on the C2 fixtures with every state; switch to the live view when the friend's Firestore views exist)
 - [x] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15). Done: `tier()`, `colour()`, `sort_key()` and Hypothesis tests (RED first, nearest first, waiting breaks ties, colour = view of tier); the solver half of T15 is added when `allocation.py` calls `tier()`
-- [ ] Solver notebook run on the fixture
+- [x] Solver notebook run on the fixture (`api/notebooks/split-solver.ipynb` on `contract/fixtures/allocationInput.cp3.json`: checks (a)–(d) pass; seat units and safe splits (D33–D35) take S1 from 12 to 16 people; findings: weights ≥ 0.1, and stretcher cases need an urgent flag)
 
 **Friend**
 - [ ] Text intake → Gemini structured output → proposed facts with transcript quotes
 - [ ] Desk approve/reject → case → listing; views regenerated in the same transaction (T3)
 - [ ] Allowlisted read/propose-only tool registry + prompt-injection eval (T5)
 - [ ] Start screens (call, desk, resident) on your shared shell and components; ask you for any new shared component
+- [ ] Intake asks consent to share health needs with the rescue team; desk writes the team's medical notes (functional first, then condition) and sets each family's destination, D1 or H1 (D38, D39, proposed)
+- [ ] Intake records each household's make-up (`party`: adults, children under 12, babies, stretchers or wheelchairs) for seat units (D33); desk prompts for an urgent flag when a request includes a stretcher or wheelchair (proposed, see D33–D36; the coordinator decides, nothing becomes urgent automatically)
 
 ## Wed 14 — CP2: publish → you take Families 1+2 → resident sees the window per family
 
 **You**
-- [ ] Team list: colour, distance, last confirmed, "Ask desk to re-confirm"
-- [ ] Take whole family groups; set window; progress; hand back; end outcomes (Done / Already left / Not found / Needs more help); Busy reason + "back about" (T17)
-- [ ] Clear errors: Already taken, This case changed, Needs N seats, This job is closed
-- [ ] Job view: exact point, precision and "Navigate" link shown **only after the team has taken the job** (D25, C16)
-- [ ] Map: "no satellite data" area and live "reported by callers" points (D26)
+- [x] Team list: colour, distance, last confirmed, "Ask desk to re-confirm" (`web/src/features/team/`, on the C5 fixture `teamMissions.T-S.json`, order from `tiers.py`)
+- [x] Take whole family groups; set window; progress; hand back; end outcomes (Done / Already left / Not found / Needs more help); Busy reason + "back about" (T17) (fixture-mode store applies the C6 rules; switch to the friend's API when it is up)
+- [x] Clear errors: Already taken, This case changed, Needs N seats, This job is closed (`claim.*.json`; `?claim=` dev switch)
+- [x] Job view: exact point, precision and "Navigate" link shown **only after the team has taken the job** (D25, C16) (points from `pickups.synthetic.json`, coordinator-side)
+- [x] Map: "no satellite data" area and live "reported by callers" points (D26) (reviewed requests only, at landmark level, body-height band, stale after 6 h; still shown when the flood layer is missing; `callerWater` in the C2 view, live once the friend's views regenerate it)
 
 **Friend**
 - [ ] `claimListing`, hand back, close: one transaction; `NEED_CHANGED`, `ALLOCATION_CLOSED` (T13)

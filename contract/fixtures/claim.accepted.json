@@ -1,0 +1,87 @@
+{
+ "dataMode": "synthetic",
+ "request": {
+  "listingId": "L-C01-EVAC",
+  "groupIds": [
+   "L-C01-EVAC-G1"
+  ],
+  "expectedRevision": 2,
+  "submissionId": "SUB-CLAIM-ACCEPTED"
+ },
+ "response": {
+  "ok": true,
+  "allocation": {
+   "allocationId": "AL-M01",
+   "missionId": "M-01",
+   "listingId": "L-C01-EVAC",
+   "caseId": "C-01",
+   "teamId": "T-S",
+   "resourceId": "S1",
+   "groupIds": [
+    "L-C01-EVAC-G1"
+   ],
+   "seatUnits": 2.5,
+   "state": "taken",
+   "window": null,
+   "acceptedAt": "2026-10-11T03:20:00Z",
+   "needRevision": 2,
+   "pickup": {
+    "landmarkLabel": "B-3 · L3 Community building",
+    "at": [
+     100.47471,
+     7.00951
+    ],
+    "precision": "building",
+    "source": "caller described the building; desk confirmed"
+   },
+   "urgency": {
+    "title": "Why this is an emergency",
+    "summary": "Coordinator flagged urgent: Transport linked to urgent medical case C-01",
+    "facts": [
+     {
+      "kind": "flag",
+      "text": "Coordinator flagged urgent: Transport linked to urgent medical case C-01",
+      "basis": "coordinator"
+     },
+     {
+      "kind": "medical",
+      "text": "1 person in this household needs urgent medical help; the medical team is asked separately",
+      "basis": "qualified review"
+     },
+     {
+      "kind": "people",
+      "text": "3 people: 2 adults, 1 child",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "water",
+      "text": "Chest deep (about 1.3 m) at the landmark",
+      "basis": "callers",
+      "at": "2026-10-11T03:15:00Z",
+      "callers": 1,
+      "stale": false
+     }
+    ],
+    "kit": [
+     "Boat needed (water 1.2 m or more)",
+     "Life jackets for 1 child"
+    ],
+    "withheld": "Medical details come with the job, for the team that takes it"
+   },
+   "destination": {
+    "id": "H1",
+    "label": "H1 Hospital (synthetic)",
+    "reason": "One person needs urgent medical care; the medical team meets you at H1"
+   },
+   "medical": {
+    "consent": "given",
+    "basis": "Consent given by the person during the call",
+    "functional": [
+     "Short of breath lying flat: carry her sitting up",
+     "Keep her inhaler with her"
+    ],
+    "condition": "Severe asthma attack, getting worse (synthetic)"
+   }
+  }
+ }
+}

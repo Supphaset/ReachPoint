@@ -41,5 +41,11 @@ firebase-debug*.log
 
 # Published reference flood maps stay local until their licence is checked
 data/**/reference/
+
+# Web app
+web/node_modules/
+web/dist/
+web/*.tsbuildinfo
+web/.vite/
 .hypothesis/
 .pytest_cache/

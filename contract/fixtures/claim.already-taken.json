@@ -1,0 +1,22 @@
+{
+ "dataMode": "synthetic",
+ "request": {
+  "listingId": "L-C01-EVAC",
+  "groupIds": [
+   "L-C01-EVAC-G1"
+  ],
+  "expectedRevision": 2,
+  "submissionId": "SUB-CLAIM-ALREADY-TAKEN"
+ },
+ "response": {
+  "ok": false,
+  "code": "ALREADY_TAKEN",
+  "message": "Already taken by T-R",
+  "detail": {
+   "groupIds": [
+    "L-C06-EVAC-G1"
+   ],
+   "takenBy": "T-R"
+  }
+ }
+}

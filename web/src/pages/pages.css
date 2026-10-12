@@ -1,0 +1,10 @@
+.page.narrow { max-width: 520px; padding-top: var(--space-6); }
+.role-list { display: grid; gap: var(--space-3); }
+
+.dev-ui { max-width: 1000px; }
+.dev-ui section { display: grid; gap: var(--space-3); padding: var(--space-4); background: var(--color-surface); border: 1px solid var(--color-line); border-radius: var(--radius-md); }
+.dev-row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.dev-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.swatch { display: grid; gap: var(--space-1); font-size: var(--text-xs); }
+.swatch i { display: block; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--color-line); }
+.dev-links { display: grid; gap: var(--space-1); }
