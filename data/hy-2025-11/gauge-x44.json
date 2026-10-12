@@ -1,0 +1,174 @@
+{
+ "package": "hy-2025-11",
+ "station": {
+  "id": "X.44",
+  "name": "Khlong U-Taphao at Ban Hat Yai Nai (บ้านหาดใหญ่ใน), Hat Yai, Songkhla",
+  "agency": "Royal Irrigation Department (RID)",
+  "datum": "m above mean sea level (ม.รทก.)",
+  "bankM": 7.4,
+  "bankCapacityM3s": 586,
+  "warningM": 7.15,
+  "record": {
+   "levelM": 9.1,
+   "year": 2010
+  },
+  "areas": [
+   "P-B"
+  ],
+  "areaNote": "On the canal through the city centre (P-B). Not used for P-A or P-C."
+ },
+ "label": "River gauge X.44 (RID). A level at one point on the canal, not water depth in the streets",
+ "readings": [
+  {
+   "at": "2025-11-15T06:00:00+07:00",
+   "levelM": 1.09,
+   "flowM3s": 37.7,
+   "change24hM": 0.15,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-16T06:00:00+07:00",
+   "levelM": 0.8,
+   "flowM3s": 29.0,
+   "change24hM": -0.29,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-17T06:00:00+07:00",
+   "levelM": 0.75,
+   "flowM3s": 27.5,
+   "change24hM": -0.05,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-18T06:00:00+07:00",
+   "levelM": 0.71,
+   "flowM3s": 26.3,
+   "change24hM": -0.04,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-19T06:00:00+07:00",
+   "levelM": 0.69,
+   "flowM3s": 25.7,
+   "change24hM": -0.02,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-20T06:00:00+07:00",
+   "levelM": 2.2,
+   "flowM3s": 79.0,
+   "change24hM": 1.51,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-21T06:00:00+07:00",
+   "levelM": 3.06,
+   "flowM3s": 120.0,
+   "change24hM": 0.86,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-22T06:00:00+07:00",
+   "levelM": 6.46,
+   "flowM3s": 382.8,
+   "change24hM": 3.4,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-23T06:00:00+07:00",
+   "levelM": 7.76,
+   "flowM3s": 593.0,
+   "change24hM": 1.3,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-24T06:00:00+07:00",
+   "levelM": 7.9,
+   "flowM3s": 622.0,
+   "change24hM": 0.14,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-25T06:00:00+07:00",
+   "levelM": 9.39,
+   "flowM3s": 967.5,
+   "change24hM": 1.49,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-25T10:00:00+07:00",
+   "levelM": 9.97,
+   "flowM3s": 950.0,
+   "change24hM": null,
+   "source": "RID SWOC peak, via Thairath 26 Nov 2025 (flow 'over 950')"
+  },
+  {
+   "at": "2025-11-26T06:00:00+07:00",
+   "levelM": 8.92,
+   "flowM3s": 859.0,
+   "change24hM": -0.47,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-27T06:00:00+07:00",
+   "levelM": 7.59,
+   "flowM3s": 559.0,
+   "change24hM": -1.33,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-28T06:00:00+07:00",
+   "levelM": 6.14,
+   "flowM3s": 344.4,
+   "change24hM": -1.45,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-29T06:00:00+07:00",
+   "levelM": 4.38,
+   "flowM3s": 192.8,
+   "change24hM": -1.76,
+   "source": "HII daily report (RID telemetry), 06:00"
+  },
+  {
+   "at": "2025-11-30T06:00:00+07:00",
+   "levelM": 3.21,
+   "flowM3s": 127.5,
+   "change24hM": -1.17,
+   "source": "HII daily report (RID telemetry), 06:00"
+  }
+ ],
+ "forecasts": [
+  {
+   "issuedAt": "2025-11-24T10:13:00+07:00",
+   "issuer": "DDPM (ปภ.) evacuation SMS",
+   "text": "Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now",
+   "riseM": [
+    1.25,
+    1.45
+   ],
+   "validUntil": "2025-11-25T07:00:00+07:00",
+   "source": "LINE Today, 24 Nov 2025 10:13 (SMS text shows 11:38; the earlier, published time is used)"
+  },
+  {
+   "issuedAt": "2025-11-25T00:16:00+07:00",
+   "issuer": "ONWR (สทนช.)",
+   "text": "X.44 to rise 1.25–1.45 m above the current level, 2.00–2.20 m above the bank, around 06:00–07:00",
+   "riseM": [
+    1.25,
+    1.45
+   ],
+   "validUntil": "2025-11-25T07:00:00+07:00",
+   "source": "LINE Today, 25 Nov 2025 00:16 (issue time not stated; publication time used)"
+  }
+ ],
+ "sources": [
+  "https://tiwrm.hii.or.th/DATA/REPORT/php/show_itcwater.php?sdate=2025-11-24 (one page per day, 15–30 Nov)",
+  "https://hydro-8.com/main/Submenu/DailyMaximumWaterLevelGraph/Dailygraph_X44.pdf (warning level 7.15 m)",
+  "https://www.thairath.co.th/news/society/2898034 (peak 9.97 m at 10:00 on 25 Nov)",
+  "https://today.line.me/th/v3/article/l250gJk (DDPM SMS, 24 Nov)",
+  "https://today.line.me/th/v3/article/wJYZkxG (ONWR forecast, 25 Nov 00:16)"
+ ],
+ "conflicts": "Hat Yai municipality posted 7.75 m, 35 cm below the bank, at 04:00 on 24 Nov (Thai PBS on X); likely another gauge or datum. Thairath's RID figures also list 11.82 m and 11.05 m lines. Only the HII 06:00 values and the 9.97 m RID peak are used."
+}

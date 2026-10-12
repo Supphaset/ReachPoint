@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import type { RainStatus } from "../../data/contract";
+import type { RainStatus, RisingWaterView } from "../../data/contract";
 import { now } from "../../data/clock";
 import { useView } from "../../data/useView";
 import { Banner } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 
 /** The newest snapshot at or before the clock; null before the first one. */
-export function pickSnapshot(snaps: RainStatus[], at: number): RainStatus | null {
-  let best: RainStatus | null = null;
+export function pickSnapshot<S extends { asOf: string }>(snaps: S[], at: number): S | null {
+  let best: S | null = null;
   for (const s of snaps) if (Date.parse(s.asOf) <= at && (!best || s.asOf > best.asOf)) best = s;
   return best;
 }
 
-function useMinute() {
+export function useMinute() {
   const [t, setT] = useState(now);
   useEffect(() => {
     const id = window.setInterval(() => setT(now()), 30_000);
@@ -55,6 +55,27 @@ export function RainLine({ areaId, labels = {} }: { areaId: string; labels?: Rec
           <span className="fine-print">Rain alone can't say where or how deep. The desk decides on re-checks.</span>
         </Banner>
       )}
+    </div>
+  );
+}
+
+/** D42: the X.44 gauge reading and any forecast valid now. P-B only (the canal runs through the city centre). */
+export function GaugeLine({ areaId }: { areaId: string }) {
+  const v = useView<RisingWaterView[]>(`views/risingWater/${areaId}`);
+  const t = useMinute();
+  if (v.status !== "ready") return null;
+  const s = pickSnapshot(v.data, t);
+  if (!s?.gaugeLine) return null;
+  return (
+    <div className="rain">
+      <p className="rain-line fine-print">
+        <Icon name="water" size={14} /> {s.gaugeLine}
+      </p>
+      {s.forecastLines.map((f) => (
+        <p key={f} className="rain-line fine-print">
+          <Icon name="clock" size={14} /> {f}
+        </p>
+      ))}
     </div>
   );
 }

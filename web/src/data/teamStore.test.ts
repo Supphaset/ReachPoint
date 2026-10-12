@@ -5,6 +5,7 @@ import {
   _resetTeamStore,
   claimListing,
   closeAllocation,
+  flagUrgent,
   handBack,
   loadTeam,
   setTeamStatus,
@@ -107,5 +108,21 @@ describe("team actions (C6 rules, fixture mode)", () => {
     const job = read().jobs.find((j) => j.allocationId === r.value.allocationId)!;
     expect(job.medical).toBeNull();
     expect(job.medicalRemovedAt).toBeTruthy();
+  });
+});
+
+describe("coordinator urgent flag (D42)", () => {
+  it("needs a reason, then turns the listing RED and puts it with the other RED ones at the top", async () => {
+    expect((await flagUrgent("L-C08-EVAC", "  ")).ok).toBe(false);
+    expect(listing("L-C08-EVAC").colour).toBe("yellow");
+    const r = await flagUrgent("L-C08-EVAC", "Callback: water at the 2nd floor, 2 children");
+    expect(r.ok).toBe(true);
+    const l = listing("L-C08-EVAC");
+    expect(l.colour).toBe("red");
+    expect(l.urgency.summary).toBe("Coordinator flagged urgent: Callback: water at the 2nd floor, 2 children");
+    expect(read().open.slice(0, 2).map((x) => x.listingId)).toEqual(["L-C01-EVAC", "L-C08-EVAC"]);
+    expect(l.lastConfirmedAt).toBe("2026-10-11T01:30:00Z"); // not confirmed by this flag
+    await flagUrgent("L-C04-EVAC", "Callback: chest deep and rising", true);
+    expect(listing("L-C04-EVAC").lastConfirmedAt).not.toBe("2026-10-11T02:10:00Z");
   });
 });

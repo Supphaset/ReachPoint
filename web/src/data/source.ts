@@ -11,6 +11,7 @@ import type { Connection } from "./useView";
 
 const briefings = import.meta.glob("../../../contract/fixtures/areaBriefing.*.json", { import: "default" });
 const rainFile = import.meta.glob("../../../contract/fixtures/rainStatus.hy-2025-11.json", { import: "default" });
+const risingFiles = import.meta.glob("../../../contract/fixtures/risingWater.*.json", { import: "default" });
 const geography = import.meta.glob("../../../data/hy-2025-11/{zones,segments,landmarks,no-satellite-data,extent-2025-11-23-o164,reported-flooding}.geojson", { query: "?raw", import: "default" });
 
 export function devSwitch(name: string): string | null {
@@ -31,6 +32,14 @@ export async function readView<T>(path: string): Promise<{ data: T; connection: 
     const doc = (await rainFile["../../../contract/fixtures/rainStatus.hy-2025-11.json"]()) as { snapshots: Record<string, unknown> };
     const snaps = doc.snapshots[r[1]];
     return snaps ? { data: snaps as T, connection: devSwitch("offline") ? "offline" : "live" } : null;
+  }
+  const w = path.match(/^views\/risingWater\/([\w-]+)$/);
+  if (w) {
+    if (devSwitch("fail") === "rain") throw new Error("Water view failed to load");
+    const load = risingFiles[`../../../contract/fixtures/risingWater.${w[1]}.json`];
+    if (!load) return null;
+    const doc = (await load()) as { snapshots: unknown };
+    return { data: doc.snapshots as T, connection: devSwitch("offline") ? "offline" : "live" };
   }
   const m = path.match(/^views\/areaBriefing\/([\w-]+)$/);
   if (!m) return null;
