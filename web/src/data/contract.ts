@@ -350,3 +350,34 @@ export interface RainStatus {
   line: string;
   prompt: RainPrompt | null;
 }
+
+/** D42: water rising, who to re-confirm first. A prompt for the desk; it never changes a colour by itself. */
+export interface ReconfirmRow {
+  rank: number;
+  listingId: string;
+  caseId: string;
+  label: string;
+  people: string;
+  points: number;
+  reasons: string[];
+  lastConfirmedAt: string;
+  ifItRises: { text: string; rangeM: [number, number] | null; mayBeOverHead: boolean | null } | null;
+  actions: ("call_back" | "flag_urgent" | "dismiss")[];
+}
+
+export interface RisingWaterView {
+  areaId: string;
+  asOf: string;
+  gaugeLine: string | null;
+  forecastLines: string[];
+  prompt: null | {
+    promptId: string;
+    state: "proposed";
+    title: string;
+    signals: { kind: "gauge_forecast" | "gauge_reading" | "heavy_rain"; since: string; text: string }[];
+    rise: { atGaugeM: [number, number]; text: string } | null;
+    reconfirm: ReconfirmRow[];
+    more: number;
+    note: string;
+  };
+}

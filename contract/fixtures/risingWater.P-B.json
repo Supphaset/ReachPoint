@@ -1,0 +1,2481 @@
+{
+ "dataMode": "replay",
+ "areaId": "P-B",
+ "label": "River gauge X.44 and rain replayed from 24 Nov 2025 on the demo clock (D42); families are synthetic",
+ "station": {
+  "id": "X.44",
+  "name": "Khlong U-Taphao at Ban Hat Yai Nai (บ้านหาดใหญ่ใน), Hat Yai, Songkhla",
+  "bankM": 7.4,
+  "warningM": 7.15
+ },
+ "snapshots": [
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T03:00:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [],
+   "prompt": null
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T03:30:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 6,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 2h 00m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 6,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 1h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 4,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 2h 40m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 4,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 2h 25m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 4,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T04:00:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 6,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 2h 30m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 6,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 1h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 5,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 3h 10m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 4,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 2h 55m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 4,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 1h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T04:30:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 7,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 3h 00m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 6,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 2h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 5,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 3h 40m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 5,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 3h 25m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 4,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 1h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T05:00:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 7,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 3h 30m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 6,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 2h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 5,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 4h 10m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 5,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 3h 55m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 4,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 2h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T05:30:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 7,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 4h 00m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 7,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 3h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 5,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 4h 40m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 5,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 4h 25m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 4,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 2h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T06:00:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 7,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 4h 30m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 7,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 3h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 5,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 5h 10m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 5,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 4h 55m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 5,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 3h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T06:30:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 7,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 5h 00m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 7,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 4h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 5,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 5h 40m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 5,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 5h 25m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 5,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 3h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T07:00:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     },
+     {
+      "kind": "heavy_rain",
+      "since": "RAIN-P-B-20261011T0400Z",
+      "text": "Rain (satellite estimate): 36 mm in the last 3 h · 178 mm in 24 h (very heavy)"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 7,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 5h 30m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 7,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 4h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 6,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 6h 10m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 5,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 5h 55m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 5,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 4h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T07:30:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     },
+     {
+      "kind": "heavy_rain",
+      "since": "RAIN-P-B-20261011T0400Z",
+      "text": "Rain (satellite estimate): 42 mm in the last 3 h · 185 mm in 24 h (very heavy)"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 8,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 6h 00m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 7,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 5h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 6,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 6h 40m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 6,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 6h 25m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 5,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 4h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T08:00:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     },
+     {
+      "kind": "heavy_rain",
+      "since": "RAIN-P-B-20261011T0400Z",
+      "text": "Rain (satellite estimate): 44 mm in the last 3 h · 192 mm in 24 h (very heavy)"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 8,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 6h 30m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 7,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 5h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 6,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 7h 10m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 6,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 6h 55m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 5,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 5h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T08:30:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     },
+     {
+      "kind": "heavy_rain",
+      "since": "RAIN-P-B-20261011T0400Z",
+      "text": "Rain (satellite estimate): 42 mm in the last 3 h · 193 mm in 24 h (very heavy)"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 8,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 7h 00m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 8,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 6h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 6,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 7h 40m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 6,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 7h 25m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 5,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 5h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T09:00:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     },
+     {
+      "kind": "heavy_rain",
+      "since": "RAIN-P-B-20261011T0400Z",
+      "text": "Rain (satellite estimate): 39 mm in the last 3 h · 195 mm in 24 h (very heavy)"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 8,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 7h 30m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 8,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 6h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 6,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 8h 10m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 6,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 7h 55m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 6,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 6h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T09:30:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 8,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 8h 00m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 8,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 7h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 6,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 8h 40m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 6,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 8h 25m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 6,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 6h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  },
+  {
+   "areaId": "P-B",
+   "asOf": "2026-10-11T10:00:00Z",
+   "gaugeLine": "River X.44 at 06:00: 7.90 m, 0.50 m over the bank, +0.14 m in 24 h (reading, RID)",
+   "forecastLines": [
+    "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+   ],
+   "prompt": {
+    "promptId": "RISE-P-B-2026-10-11T03:13:00Z",
+    "state": "proposed",
+    "title": "Water rising: re-confirm these families first",
+    "signals": [
+     {
+      "kind": "gauge_forecast",
+      "since": "2026-10-11T03:13:00Z",
+      "text": "Forecast (DDPM (ปภ.) evacuation SMS, 10:13): Khlong U-Taphao to rise about 1.25–1.45 m, peak around 06:00 tomorrow; evacuate Hat Yai municipality now"
+     }
+    ],
+    "rise": {
+     "atGaugeM": [
+      1.25,
+      1.45
+     ],
+     "text": "Forecast rise at the canal: 1.25–1.45 m"
+    },
+    "reconfirm": [
+     {
+      "listingId": "L-C08-EVAC",
+      "caseId": "C-08",
+      "label": "B-6 · L2 School",
+      "people": "3 people: 1 adult, 2 children",
+      "points": 8,
+      "reasons": [
+       "Up to the 2nd floor (about 3 m) at 08:30",
+       "lower ground than 93% of P-B",
+       "2 children",
+       "may reach above the 2nd floor level if the canal rises as forecast",
+       "last confirmed 8h 30m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:30:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 4.2–4.5 m, above the 2nd floor level (estimate)",
+       "rangeM": [
+        4.2,
+        4.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 1
+     },
+     {
+      "listingId": "L-C04-EVAC",
+      "caseId": "C-04",
+      "label": "B-2 · L3 Community building",
+      "people": "5 people: 2 adults, 2 children, 1 baby",
+      "points": 8,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 09:10",
+       "lower ground than 74% of P-B",
+       "3 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 7h 50m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:10:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 2
+     },
+     {
+      "listingId": "L-C05-EVAC",
+      "caseId": "C-05",
+      "label": "B-1 · L2 Temple",
+      "people": "3 people: 2 adults, 1 stretcher case",
+      "points": 6,
+      "reasons": [
+       "Over head height (about 2 m) at 04:00 (report older than 6 h)",
+       "someone can't walk",
+       "may reach up to the 2nd floor if the canal rises as forecast",
+       "last confirmed 9h 10m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T00:50:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 3.2–3.5 m, up to the 2nd floor (estimate, from a report older than 6 h)",
+       "rangeM": [
+        3.2,
+        3.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 3
+     },
+     {
+      "listingId": "L-C03-EVAC",
+      "caseId": "C-03",
+      "label": "B-3 · L1 Temple",
+      "people": "2 people: 2 adults",
+      "points": 6,
+      "reasons": [
+       "Chest deep (about 1.3 m) at 08:05",
+       "lower ground than 57% of P-B",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 8h 55m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T01:05:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
+       "rangeM": [
+        2.5,
+        2.8
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C02-EVAC",
+      "caseId": "C-02",
+      "label": "B-3 · L5 School",
+      "people": "4 people: 2 adults, 2 children",
+      "points": 6,
+      "reasons": [
+       "Waist deep (about 1 m) at 09:40",
+       "lower ground than 37% of P-B",
+       "2 children",
+       "may reach over head height if the canal rises as forecast",
+       "last confirmed 7h 20m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:40:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 2.2–2.5 m, over head height (estimate)",
+       "rangeM": [
+        2.2,
+        2.5
+       ],
+       "mayBeOverHead": true
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
+      "rank": 5
+     }
+    ],
+    "more": 1,
+    "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
+   }
+  }
+ ]
+}

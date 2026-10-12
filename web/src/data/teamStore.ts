@@ -227,6 +227,34 @@ export async function setTeamStatus(status: TeamStatus, reason: string | null, b
   return { ok: true as const, value: undefined };
 }
 
+/**
+ * Coordinator's urgent flag with a stated reason (tier 1b, D42 "Flag urgent"). The listing turns RED and moves to the
+ * top of every team's list; the reason becomes the first "why" line. In fixture mode it changes this tab's T-S view;
+ * the friend's rules engine applies it for every team. A flag without a reason is refused. `confirmedNow`: the reason
+ * came from a callback just now, so "last confirmed" moves to now.
+ */
+export async function flagUrgent(listingId: string, reason: string, confirmedNow = false): Promise<Result> {
+  const r = reason.trim();
+  if (!r) return fail("NEED_CHANGED", "An urgent flag needs a reason");
+  if (state.status !== "ready") return fail("VERSION_CONFLICT", "Your screen was out of date; it has been refreshed");
+  if (!state.view.open.some((x) => x.listingId === listingId)) return fail("ALLOCATION_CLOSED", "This case is no longer open");
+  update((v) => {
+    const l = v.open.find((x) => x.listingId === listingId)!;
+    l.colour = "red";
+    l.needRevision += 1;
+    if (confirmedNow) l.lastConfirmedAt = iso(); // the flag came from a callback: the family was just confirmed
+    l.urgency = {
+      ...l.urgency,
+      title: "Why this is an emergency",
+      summary: `Coordinator flagged urgent: ${r}`,
+      facts: [{ kind: "flag", text: `Coordinator flagged urgent: ${r}`, basis: "coordinator" }, ...l.urgency.facts.filter((f) => f.kind !== "flag")],
+    };
+    const rank = { red: 0, yellow: 1, green: 2 } as const;
+    v.open = v.open.map((x, i) => [x, i] as const).sort((a, b2) => rank[a[0].colour] - rank[b2[0].colour] || a[1] - b2[1]).map(([x]) => x);
+  });
+  return { ok: true, value: undefined };
+}
+
 export async function requestReconfirm(listingId: string) {
   update((v) => {
     const l: OpenListing | undefined = v.open.find((x) => x.listingId === listingId);
