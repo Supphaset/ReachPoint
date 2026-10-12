@@ -1,5 +1,5 @@
 {
- "label": "Synthetic snapshot for the split solver (C4). Demo, 10:25 Bangkok: T-S has accepted C-01's transport (M-01).",
+ "label": "Synthetic snapshot for the split solver (C4). Demo, 10:25 Bangkok: T-S has accepted C-01's transport (M-01). Families carry their make-up (adults, children, babies, stretchers) for seat units (D33).",
  "dataMode": "synthetic",
  "snapshotAt": "2026-10-11T03:25:00Z",
  "inputVersions": {
@@ -57,7 +57,13 @@
     "by": "coordinator:demo-1",
     "reason": "Transport linked to urgent medical case C-01"
    },
-   "note": "Already accepted by T-S (M-01)"
+   "note": "Already accepted by T-S (M-01)",
+   "party": {
+    "adults": 2,
+    "children": 1,
+    "infants": 0,
+    "stretcher": 0
+   }
   },
   {
    "listingId": "L-C02-EVAC",
@@ -79,7 +85,13 @@
     "urgentMedical": false
    },
    "urgentFlag": null,
-   "note": ""
+   "note": "",
+   "party": {
+    "adults": 2,
+    "children": 2,
+    "infants": 0,
+    "stretcher": 0
+   }
   },
   {
    "listingId": "L-C03-EVAC",
@@ -101,7 +113,13 @@
     "urgentMedical": false
    },
    "urgentFlag": null,
-   "note": ""
+   "note": "Elderly couple",
+   "party": {
+    "adults": 2,
+    "children": 0,
+    "infants": 0,
+    "stretcher": 0
+   }
   },
   {
    "listingId": "L-C04-EVAC",
@@ -123,7 +141,13 @@
     "urgentMedical": false
    },
    "urgentFlag": null,
-   "note": ""
+   "note": "Parents, 2 children, a baby",
+   "party": {
+    "adults": 2,
+    "children": 2,
+    "infants": 1,
+    "stretcher": 0
+   }
   },
   {
    "listingId": "L-C05-EVAC",
@@ -145,7 +169,13 @@
     "urgentMedical": false
    },
    "urgentFlag": null,
-   "note": ""
+   "note": "Bedridden grandmother on a stretcher, 2 carers",
+   "party": {
+    "adults": 2,
+    "children": 0,
+    "infants": 0,
+    "stretcher": 1
+   }
   },
   {
    "listingId": "L-C06-EVAC",
@@ -167,7 +197,13 @@
     "urgentMedical": false
    },
    "urgentFlag": null,
-   "note": ""
+   "note": "",
+   "party": {
+    "adults": 4,
+    "children": 0,
+    "infants": 0,
+    "stretcher": 0
+   }
   },
   {
    "listingId": "L-C08-EVAC",
@@ -189,7 +225,13 @@
     "urgentMedical": false
    },
    "urgentFlag": null,
-   "note": ""
+   "note": "Mother and 2 children",
+   "party": {
+    "adults": 1,
+    "children": 2,
+    "infants": 0,
+    "stretcher": 0
+   }
   },
   {
    "listingId": "L-C05-SUP",
@@ -269,7 +311,7 @@
    "capacity": {
     "evacuation_transport": 12
    },
-   "capacityBasis": "6 seats × 2 trips today",
+   "capacityBasis": "12 seat units today (6 seats × 2 trips)",
    "available": true
   },
   {
@@ -287,7 +329,7 @@
     "supplies": 40,
     "evacuation_transport": 8
    },
-   "capacityBasis": "40 packs or 8 seats today; can't enter deep water (P-B)",
+   "capacityBasis": "40 packs or 8 seat units today; can't enter deep water (P-B)",
    "available": true
   },
   {
@@ -316,5 +358,12 @@
    "resourceId": "S1",
    "units": 3
   }
- ]
+ ],
+ "seatUnits": {
+  "adults": 1.0,
+  "children": 0.5,
+  "infants": 0.0,
+  "stretcher": 3.0,
+  "label": "Seats a person takes on a boat or truck (D33, proposed): adult 1, child under 12 half, baby on a lap 0, stretcher or wheelchair 3. A team leader can override for their own vehicle."
+ }
 }
