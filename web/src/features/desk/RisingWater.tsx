@@ -6,6 +6,8 @@ import { Banner, BigButton, Skeleton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 import { pickSnapshot, useMinute } from "../briefing/Rain";
 import { ReviewQueue } from "./ReviewQueue";
+import { SuggestedChecks } from "./SuggestedChecks";
+import "../intake/intake.css";
 import "./desk.css";
 
 type Decision = { kind: "called" } | { kind: "flagged"; reason: string } | { kind: "dismissed" };
@@ -127,10 +129,11 @@ export function DeskPage() {
     <div className="page narrow desk-page">
       <header className="page-head">
         <h1>Coordinator desk</h1>
-        <p className="muted">Requests to review, then water rising (D42). Suggested checks and zone missions come next.</p>
+        <p className="muted">Requests to review, water rising (D42), then suggested checks for quiet zones.</p>
       </header>
       <ReviewQueue />
       <RisingWaterPanel />
+      <SuggestedChecks />
     </div>
   );
 }

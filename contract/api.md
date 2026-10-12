@@ -61,4 +61,17 @@ the fixtures works on the server.
 | `POST /api/reports/{reportId}/reject` | `reason` | reason required; the family's link shows it | — |
 | `GET /api/status/{token}` | — | that request only, honest per-family lines; a random 128-bit token, 404 if unknown | `ResidentStatusView` |
 
-Still to add (friend): the voice call screen, zone missions (`publishZoneMission`, `takeSegment`, `markSegment`).
+## Zone missions and segments (D17b, D18, D20)
+
+| Route | Body | Rules | `value` |
+|---|---|---|---|
+| `POST /api/zone-missions` | `zoneId`, `reasons[]` | coordinator; one mission per zone; the zone gets no new suggested check | `missionId` |
+| `POST /api/suggested-checks/{zoneId}/dismiss` | `reason` | reason required | — |
+| `POST /api/segments/{segmentId}/take` | `teamId` | the zone has a published mission; team Available; one team per segment (`ALREADY_TAKEN`) | `claimId` |
+| `POST /api/segment-claims/{claimId}/mark` | `state`: `checked` \| `partly_checked` \| `could_not_reach`, `householdsFound`, `pickupsNeeded`, `reason` | pickups ≤ households; couldn't reach needs a reason and never clears the zone | — |
+| `POST /api/intake/text` with `segmentId`, `teamId` | field report | reaches the review queue as `channel: field`, with the segment as the place | as above |
+
+The team view carries `zoneMissions` (each segment's state, register count, estimate, reviewed families) and
+`segmentJobs` once a mission exists.
+
+Still to add (friend): the voice call screen.

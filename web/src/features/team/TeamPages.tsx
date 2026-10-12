@@ -4,6 +4,7 @@ import type { Group, Job, OpenListing, Outcome, Party, TeamMissionsView, TeamSta
 import { now } from "../../data/clock";
 import { ASSISTANCE_LABEL, fmtAgo, fmtTime } from "../../data/format";
 import { useSession } from "../../data/session";
+import { SegmentJobs, ZoneMissions } from "./Segments";
 import {
   claimListing,
   closeAllocation,
@@ -65,7 +66,7 @@ function Gate({ render }: { render: (v: TeamMissionsView, offline: boolean) => R
   if (s.status === "missing")
     return (
       <Frame>
-        <Banner kind="info">No demo records for team {s.teamId} yet. Sign in as Team T-S to try the flow.</Banner>
+        <Banner kind="info">No demo records for team {s.teamId} yet. Sign in as Team T-S or T-R.</Banner>
       </Frame>
     );
   if (s.status === "error")
@@ -254,6 +255,7 @@ export function WaitingPage() {
                 ))}
               </ul>
             )}
+            <ZoneMissions v={v} offline={offline} />
             <p className="fine-print">{v.dataLabel}. Places are shown at landmark level; you get the exact point after you take a case.</p>
           </>
         );
@@ -402,6 +404,7 @@ export function JobsPage() {
               <h1>My jobs</h1>
               <LastUpdated at={v.generatedAt} offline={offline} />
             </header>
+            <SegmentJobs v={v} />
             {active.length === 0 && (
               <p className="empty">
                 {closed.length ? "No open jobs." : "No jobs yet."} <Link to={`/team/list${window.location.search}`}>See who is waiting</Link>.

@@ -29,6 +29,8 @@ export const SEGMENT: Record<string, StateStyle> = {
   partly_checked: { th: "ตรวจบางส่วน", en: "Partly checked", icon: "half", tone: "held" },
   checked: { th: "ตรวจแล้ว", en: "Checked", icon: "check", tone: "done" },
   could_not_reach: { th: "เข้าไม่ถึง", en: "Couldn't reach", icon: "blocked", tone: "held" },
+  open: { th: "ยังไม่ได้ตรวจ", en: "Not checked", icon: "question", tone: "unknown" },
+  taken: { th: "มีทีมรับแล้ว", en: "Taken", icon: "hand", tone: "taken" },
 };
 
 export const REVIEW: Record<string, StateStyle> = {

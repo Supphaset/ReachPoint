@@ -35,3 +35,6 @@ export interface Approval {
 export const approveReport = (reportId: string, a: Approval): Promise<Done> => send(`/api/reports/${reportId}/approve`, a);
 export const rejectReport = (reportId: string, reason: string): Promise<Done> => send(`/api/reports/${reportId}/reject`, { reason });
 export { NEEDS_SERVER };
+
+export const publishMission = (zoneId: string, reasons: string[]): Promise<Done> => send("/api/zone-missions", { zoneId, reasons });
+export const dismissCheck = (zoneId: string, reason: string): Promise<Done> => send(`/api/suggested-checks/${zoneId}/dismiss`, { reason });

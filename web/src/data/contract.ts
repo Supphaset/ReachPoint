@@ -247,6 +247,35 @@ export interface Job {
   pickup: { landmarkLabel: string; at: [number, number]; precision: "rooftop" | "building" | "landmark"; source: string };
 }
 
+/** Zone missions and segments (D17b, D20): on the team view once the desk has published a mission. */
+export type SegmentMark =
+  | { state: "checked" | "partly_checked"; at: string; teamId: string; householdsFound: number; pickupsNeeded: number }
+  | { state: "could_not_reach"; at: string; teamId: string; reason: string };
+export interface SegmentRow {
+  segmentId: string;
+  label: string;
+  state: "open" | "taken" | SegmentCheckState;
+  takenBy: string | null;
+  claimId: string | null;
+  mark: SegmentMark | null;
+  registerCount: number;
+  estimate: { everyone: Range; label: string };
+  families: { caseId: string; people: number; listingIds: string[] }[];
+}
+export interface ZoneMissionView {
+  missionId: string;
+  zoneId: string;
+  publishedAt: string;
+  by: string;
+  reasons: string[];
+  segments: SegmentRow[];
+}
+export interface SegmentJob extends Omit<SegmentRow, "state" | "claimId" | "takenBy"> {
+  claimId: string;
+  state: "taken" | "marked";
+  takenAt: string;
+}
+
 export interface TeamMissionsView {
   teamId: string;
   label: string;
@@ -257,6 +286,8 @@ export interface TeamMissionsView {
   seatUnits: Record<keyof Party, number> & { label: string };
   open: OpenListing[];
   jobs: Job[];
+  zoneMissions?: ZoneMissionView[];
+  segmentJobs?: SegmentJob[];
 }
 
 export type ClaimCode =

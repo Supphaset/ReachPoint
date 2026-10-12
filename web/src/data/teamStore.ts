@@ -303,6 +303,32 @@ export async function requestReconfirm(listingId: string): Promise<Result> {
   return { ok: true as const, value: undefined };
 }
 
+/* ---- Zone missions and segments (D17b, D20): server only for now ---- */
+
+const NEEDS_SERVER = "Segments need the server. Open the app with ?data=api.";
+
+export async function takeSegment(segmentId: string): Promise<Result> {
+  if (!apiMode()) return fail("INVALID", NEEDS_SERVER);
+  return remote(`/api/segments/${segmentId}/take`, { teamId: loadedFor });
+}
+
+export async function markSegment(
+  claimId: string,
+  state: "checked" | "partly_checked" | "could_not_reach",
+  householdsFound: number | null,
+  pickupsNeeded: number | null,
+  reason: string | null,
+): Promise<Result> {
+  if (!apiMode()) return fail("INVALID", NEEDS_SERVER);
+  return remote(`/api/segment-claims/${claimId}/mark`, { state, householdsFound, pickupsNeeded, reason });
+}
+
+/** People found who hadn't called: goes to the desk's review queue with this segment as the place (D20). */
+export async function sendFieldReport(segmentId: string, text: string): Promise<Result<{ reportId: string }>> {
+  if (!apiMode()) return fail("INVALID", NEEDS_SERVER);
+  return remote<{ reportId: string }>("/api/intake/text", { text, segmentId, teamId: loadedFor });
+}
+
 /** For tests: the current snapshot, as useTeam() would return it. */
 export function __peek() {
   return state.status === "ready" ? state : null;
