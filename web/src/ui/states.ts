@@ -18,6 +18,7 @@ export const JOB: Record<string, StateStyle> = {
   open: { th: "รอทีม", en: "Waiting for a team", icon: "clock", tone: "waiting" },
   taken: { th: "มีทีมรับแล้ว", en: "Taken", icon: "hand", tone: "taken" },
   on_the_way: { th: "กำลังไป", en: "On the way", icon: "chevron", tone: "moving" },
+  on_scene: { th: "ถึงที่แล้ว", en: "On scene", icon: "mission", tone: "moving" },
   held: { th: "พักไว้", en: "On hold", icon: "pause", tone: "held" },
   done: { th: "เสร็จแล้ว", en: "Done", icon: "check", tone: "done" },
   closed: { th: "ปิดแล้ว", en: "Closed", icon: "lock", tone: "done" },
@@ -34,4 +35,17 @@ export const REVIEW: Record<string, StateStyle> = {
   reported: { th: "ยังไม่ตรวจสอบ", en: "Unreviewed", icon: "question", tone: "unknown" },
   validated: { th: "ตรวจสอบแล้ว", en: "Reviewed", icon: "check", tone: "done" },
   needs_clarification: { th: "ต้องถามเพิ่ม", en: "Needs clarification", icon: "alert", tone: "held" },
+};
+
+export const TEAM_STATUS: Record<string, StateStyle> = {
+  available: { th: "พร้อม", en: "Available", icon: "check", tone: "brand" },
+  busy: { th: "ไม่ว่าง", en: "Busy", icon: "clock", tone: "held" },
+  off_duty: { th: "พักงาน", en: "Off duty", icon: "pause", tone: "done" },
+};
+
+export const OUTCOME: Record<string, StateStyle> = {
+  done: { th: "เสร็จแล้ว", en: "Done", icon: "check", tone: "done" },
+  already_left: { th: "ออกไปแล้ว", en: "Already left", icon: "chevron", tone: "done" },
+  not_found: { th: "ไม่พบ", en: "Not found", icon: "question", tone: "held" },
+  needs_more_help: { th: "ต้องการความช่วยเหลือเพิ่ม", en: "Needs more help", icon: "alert", tone: "held" },
 };

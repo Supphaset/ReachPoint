@@ -22,6 +22,7 @@
 .chip-yellow { color: var(--color-yellow); background: var(--color-yellow-bg); border-color: var(--color-yellow-line); }
 .chip-green { color: var(--color-green); background: var(--color-green-bg); border-color: var(--color-green-line); }
 .chip-waiting { color: var(--color-waiting); background: var(--color-waiting-bg); }
+.chip-brand { color: var(--color-brand); background: var(--color-surface); border-color: var(--color-brand); }
 .chip-taken { color: var(--color-taken); background: var(--color-taken-bg); }
 .chip-moving { color: var(--color-moving); background: var(--color-moving-bg); }
 .chip-held { color: var(--color-held); background: var(--color-held-bg); }
@@ -140,4 +141,15 @@
 }
 @keyframes pulse {
   50% { opacity: 0.5; }
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  cursor: pointer;
 }

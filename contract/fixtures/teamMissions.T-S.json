@@ -1,0 +1,297 @@
+{
+ "teamId": "T-S",
+ "label": "Team T-S (boat)",
+ "dataMode": "synthetic",
+ "generatedAt": "2026-10-11T03:16:00Z",
+ "dataLabel": "Synthetic demo records at 10:16; order from api/rules/tiers.py (colour, distance, waiting)",
+ "inputVersions": {
+  "listings": 3,
+  "team": 4
+ },
+ "team": {
+  "status": "available",
+  "statusSetAt": "2026-10-11T03:00:00Z",
+  "reason": null,
+  "backAbout": null,
+  "capabilities": [
+   "evacuation_transport"
+  ],
+  "location": {
+   "landmarkId": "B-3-L6",
+   "label": "B-3 · L6 Health centre",
+   "at": [
+    100.47337,
+    7.00049
+   ]
+  },
+  "resource": {
+   "resourceId": "S1",
+   "kind": "boat",
+   "seatUnits": 12,
+   "seatUnitsLeft": 12,
+   "basis": "6 seats × 2 trips today"
+  }
+ },
+ "seatUnits": {
+  "adults": 1.0,
+  "children": 0.5,
+  "infants": 0.0,
+  "stretcher": 3.0,
+  "label": "Seats: adult 1, child under 12 half, baby on a lap 0, stretcher or wheelchair 3 (D33)"
+ },
+ "open": [
+  {
+   "listingId": "L-C01-EVAC",
+   "caseId": "C-01",
+   "assistanceType": "evacuation_transport",
+   "colour": "red",
+   "tier": "1b",
+   "needRevision": 2,
+   "zoneId": "B-3",
+   "segmentId": "B-3-L3",
+   "landmarkLabel": "B-3 · L3 Community building",
+   "distanceM": 1000,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T03:15:00Z",
+   "lastConfirmedAt": "2026-10-11T03:15:00Z",
+   "reasons": [
+    "Urgent: Transport linked to urgent medical case C-01"
+   ],
+   "people": 3,
+   "groups": [
+    {
+     "groupId": "L-C01-EVAC-G1",
+     "label": "Family 1",
+     "people": 3,
+     "party": {
+      "adults": 2,
+      "children": 1,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 2.5,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C02-EVAC",
+   "caseId": "C-02",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-3",
+   "segmentId": "B-3-L5",
+   "landmarkLabel": "B-3 · L5 School",
+   "distanceM": 450,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T02:40:00Z",
+   "lastConfirmedAt": "2026-10-11T02:40:00Z",
+   "reasons": [],
+   "people": 4,
+   "groups": [
+    {
+     "groupId": "L-C02-EVAC-G1",
+     "label": "Family 1",
+     "people": 4,
+     "party": {
+      "adults": 2,
+      "children": 2,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 3.0,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C03-EVAC",
+   "caseId": "C-03",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-3",
+   "segmentId": "B-3-L1",
+   "landmarkLabel": "B-3 · L1 Temple",
+   "distanceM": 1750,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T01:05:00Z",
+   "lastConfirmedAt": "2026-10-11T01:05:00Z",
+   "reasons": [],
+   "people": 2,
+   "groups": [
+    {
+     "groupId": "L-C03-EVAC-G1",
+     "label": "Family 1",
+     "people": 2,
+     "party": {
+      "adults": 2,
+      "children": 0,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 2.0,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C04-EVAC",
+   "caseId": "C-04",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-2",
+   "segmentId": "B-2-L3",
+   "landmarkLabel": "B-2 · L3 Community building",
+   "distanceM": 2150,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T02:10:00Z",
+   "lastConfirmedAt": "2026-10-11T02:10:00Z",
+   "reasons": [],
+   "people": 5,
+   "groups": [
+    {
+     "groupId": "L-C04-EVAC-G1",
+     "label": "Family 1",
+     "people": 5,
+     "party": {
+      "adults": 2,
+      "children": 2,
+      "infants": 1,
+      "stretcher": 0
+     },
+     "seatUnits": 3.0,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C08-EVAC",
+   "caseId": "C-08",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-6",
+   "segmentId": "B-6-L2",
+   "landmarkLabel": "B-6 · L2 School",
+   "distanceM": 3150,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T01:30:00Z",
+   "lastConfirmedAt": "2026-10-11T01:30:00Z",
+   "reasons": [],
+   "people": 3,
+   "groups": [
+    {
+     "groupId": "L-C08-EVAC-G1",
+     "label": "Family 1",
+     "people": 3,
+     "party": {
+      "adults": 1,
+      "children": 2,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 2.0,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C06-EVAC",
+   "caseId": "C-06",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-5",
+   "segmentId": "B-5-L1",
+   "landmarkLabel": "B-5 · L1 Health centre",
+   "distanceM": 3250,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T02:55:00Z",
+   "lastConfirmedAt": "2026-10-11T02:55:00Z",
+   "reasons": [],
+   "people": 4,
+   "groups": [
+    {
+     "groupId": "L-C06-EVAC-G1",
+     "label": "Family 1",
+     "people": 2,
+     "party": {
+      "adults": 2,
+      "children": 0,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 2.0,
+     "state": "open"
+    },
+    {
+     "groupId": "L-C06-EVAC-G2",
+     "label": "Family 2",
+     "people": 1,
+     "party": {
+      "adults": 1,
+      "children": 0,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 1.0,
+     "state": "open"
+    },
+    {
+     "groupId": "L-C06-EVAC-G3",
+     "label": "Family 3",
+     "people": 1,
+     "party": {
+      "adults": 1,
+      "children": 0,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 1.0,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C05-EVAC",
+   "caseId": "C-05",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-1",
+   "segmentId": "B-1-L2",
+   "landmarkLabel": "B-1 · L2 Temple",
+   "distanceM": 5100,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T00:50:00Z",
+   "lastConfirmedAt": "2026-10-11T00:50:00Z",
+   "reasons": [],
+   "people": 3,
+   "groups": [
+    {
+     "groupId": "L-C05-EVAC-G1",
+     "label": "Family 1",
+     "people": 3,
+     "party": {
+      "adults": 2,
+      "children": 0,
+      "infants": 0,
+      "stretcher": 1
+     },
+     "seatUnits": 5.0,
+     "state": "open"
+    }
+   ]
+  }
+ ],
+ "jobs": []
+}

@@ -1,0 +1,20 @@
+{
+ "dataMode": "synthetic",
+ "request": {
+  "listingId": "L-C01-EVAC",
+  "groupIds": [
+   "L-C01-EVAC-G1"
+  ],
+  "expectedRevision": 2,
+  "submissionId": "SUB-CLAIM-ALLOCATION-CLOSED"
+ },
+ "response": {
+  "ok": false,
+  "code": "ALLOCATION_CLOSED",
+  "message": "This job is closed",
+  "detail": {
+   "closedAt": "2026-10-11T05:40:00Z",
+   "outcome": "done"
+  }
+ }
+}

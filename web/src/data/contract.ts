@@ -128,3 +128,97 @@ export interface AreaBriefingView {
   layers: { floodExtent: Layer; noSatelliteData: Layer; reportedFlooding: Layer };
   zones: ZoneBriefingView[];
 }
+
+/* ---- Team view (C5) and claim results (C6): draft, from contract/fixtures/teamMissions.T-S.json ---- */
+
+export interface Party {
+  adults: number;
+  children: number;
+  infants: number;
+  stretcher: number;
+}
+
+export interface Group {
+  groupId: string;
+  label: string; // "Family 1"
+  people: number;
+  party: Party;
+  seatUnits: number;
+  state: "open" | "taken";
+  takenBy?: string;
+}
+
+/** One open listing (case × help type) as a team sees it: landmark-level only, no exact point (D25). */
+export interface OpenListing {
+  listingId: string;
+  caseId: string;
+  assistanceType: AssistanceType;
+  colour: Priority;
+  tier: "1a" | "1b" | "2";
+  needRevision: number;
+  zoneId: string;
+  segmentId: string;
+  landmarkLabel: string;
+  distanceM: number | null;
+  distanceBasis: string;
+  waitingSince: string;
+  lastConfirmedAt: string;
+  reconfirmRequestedAt?: string;
+  reasons: string[];
+  people: number;
+  groups: Group[];
+}
+
+export type TeamStatus = "available" | "busy" | "off_duty";
+
+export interface TeamState {
+  status: TeamStatus;
+  statusSetAt: string;
+  reason: string | null;
+  backAbout: string | null;
+  capabilities: AssistanceType[];
+  location: { landmarkId: string; label: string; at: [number, number] };
+  resource: { resourceId: string; kind: string; seatUnits: number; seatUnitsLeft: number; basis: string };
+}
+
+export type JobState = "taken" | "on_the_way" | "on_scene" | "closed";
+export type Outcome = "done" | "already_left" | "not_found" | "needs_more_help";
+
+/** The team's own job. Only here does the exact pickup point appear, after taking it (D25, C16). */
+export interface Job {
+  allocationId: string;
+  listingId: string;
+  caseId: string;
+  colour: Priority;
+  landmarkLabel: string;
+  groups: Group[];
+  seatUnits: number;
+  state: JobState;
+  outcome?: Outcome;
+  window: { start: string; end: string; setAt: string } | null;
+  acceptedAt: string;
+  closedAt?: string;
+  pickup: { landmarkLabel: string; at: [number, number]; precision: "rooftop" | "building" | "landmark"; source: string };
+}
+
+export interface TeamMissionsView {
+  teamId: string;
+  label: string;
+  dataMode: "synthetic";
+  generatedAt: string;
+  dataLabel: string;
+  team: TeamState;
+  seatUnits: Record<keyof Party, number> & { label: string };
+  open: OpenListing[];
+  jobs: Job[];
+}
+
+export type ClaimCode =
+  | "ALREADY_TAKEN"
+  | "NOT_ENOUGH_CAPACITY"
+  | "NEED_CHANGED"
+  | "ALLOCATION_CLOSED"
+  | "VERSION_CONFLICT"
+  | "NOT_AVAILABLE";
+
+export type Result<T = undefined> = { ok: true; value: T } | { ok: false; code: ClaimCode; message: string };

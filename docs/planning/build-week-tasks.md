@@ -62,10 +62,10 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 ## Wed 14 — CP2: publish → you take Families 1+2 → resident sees the window per family
 
 **You**
-- [ ] Team list: colour, distance, last confirmed, "Ask desk to re-confirm"
-- [ ] Take whole family groups; set window; progress; hand back; end outcomes (Done / Already left / Not found / Needs more help); Busy reason + "back about" (T17)
-- [ ] Clear errors: Already taken, This case changed, Needs N seats, This job is closed
-- [ ] Job view: exact point, precision and "Navigate" link shown **only after the team has taken the job** (D25, C16)
+- [x] Team list: colour, distance, last confirmed, "Ask desk to re-confirm" (`web/src/features/team/`, on the C5 fixture `teamMissions.T-S.json`, order from `tiers.py`)
+- [x] Take whole family groups; set window; progress; hand back; end outcomes (Done / Already left / Not found / Needs more help); Busy reason + "back about" (T17) (fixture-mode store applies the C6 rules; switch to the friend's API when it is up)
+- [x] Clear errors: Already taken, This case changed, Needs N seats, This job is closed (`claim.*.json`; `?claim=` dev switch)
+- [x] Job view: exact point, precision and "Navigate" link shown **only after the team has taken the job** (D25, C16) (points from `pickups.synthetic.json`, coordinator-side)
 - [ ] Map: "no satellite data" area and live "reported by callers" points (D26)
 
 **Friend**

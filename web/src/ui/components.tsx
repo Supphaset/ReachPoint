@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { fmtAgo, fmtTime } from "../data/format";
 import { now } from "../data/clock";
 import { Icon, type IconName } from "./Icon";
-import { JOB, PRIORITY, REVIEW, SEGMENT, type StateStyle } from "./states";
+import { JOB, OUTCOME, PRIORITY, REVIEW, SEGMENT, TEAM_STATUS, type StateStyle } from "./states";
 import "./components.css";
 
 function Chip({ s, lang = "both", size = "md" }: { s: StateStyle; lang?: "both" | "en" | "th"; size?: "sm" | "md" }) {
@@ -27,12 +27,12 @@ export function StatusChip({
   lang,
   size,
 }: {
-  kind: "job" | "segment" | "review";
+  kind: "job" | "segment" | "review" | "team" | "outcome";
   state: string;
   lang?: "both" | "en" | "th";
   size?: "sm" | "md";
 }) {
-  const table = kind === "job" ? JOB : kind === "segment" ? SEGMENT : REVIEW;
+  const table = { job: JOB, segment: SEGMENT, review: REVIEW, team: TEAM_STATUS, outcome: OUTCOME }[kind];
   const s = table[state] ?? { th: state, en: state, icon: "question", tone: "unknown" };
   return <Chip s={s} lang={lang} size={size} />;
 }

@@ -1,0 +1,39 @@
+{
+ "dataMode": "synthetic",
+ "request": {
+  "listingId": "L-C01-EVAC",
+  "groupIds": [
+   "L-C01-EVAC-G1"
+  ],
+  "expectedRevision": 2,
+  "submissionId": "SUB-CLAIM-ACCEPTED"
+ },
+ "response": {
+  "ok": true,
+  "allocation": {
+   "allocationId": "AL-M01",
+   "missionId": "M-01",
+   "listingId": "L-C01-EVAC",
+   "caseId": "C-01",
+   "teamId": "T-S",
+   "resourceId": "S1",
+   "groupIds": [
+    "L-C01-EVAC-G1"
+   ],
+   "seatUnits": 2.5,
+   "state": "taken",
+   "window": null,
+   "acceptedAt": "2026-10-11T03:20:00Z",
+   "needRevision": 2,
+   "pickup": {
+    "landmarkLabel": "B-3 · L3 Community building",
+    "at": [
+     100.47471,
+     7.00951
+    ],
+    "precision": "building",
+    "source": "caller described the building; desk confirmed"
+   }
+  }
+ }
+}

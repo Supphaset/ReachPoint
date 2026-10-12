@@ -12,8 +12,9 @@ interface Tab {
 
 const TABS: Record<Role, Tab[]> = {
   team_leader: [
+    { to: "/team/list", label: "Waiting", th: "รอทีม", icon: "list" },
+    { to: "/team/mission", label: "My jobs", th: "งานของฉัน", icon: "mission" },
     { to: "/team/map", label: "Area map", th: "แผนที่", icon: "map" },
-    { to: "/team/mission", label: "My mission", th: "งานของฉัน", icon: "mission" },
   ],
   coordinator: [
     { to: "/desk", label: "Desk", th: "โต๊ะประสานงาน", icon: "list" },

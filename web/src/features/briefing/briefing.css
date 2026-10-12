@@ -77,16 +77,6 @@
   border-radius: var(--radius-md);
 }
 .zb-reviewed { display: flex; align-items: flex-start; gap: var(--space-2); }
-.icon-btn {
-  display: inline-grid;
-  place-items: center;
-  width: var(--tap-min);
-  height: var(--tap-min);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-sunken);
-  cursor: pointer;
-}
 .unknown-row {
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-line);

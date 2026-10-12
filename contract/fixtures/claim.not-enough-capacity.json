@@ -1,0 +1,20 @@
+{
+ "dataMode": "synthetic",
+ "request": {
+  "listingId": "L-C01-EVAC",
+  "groupIds": [
+   "L-C01-EVAC-G1"
+  ],
+  "expectedRevision": 2,
+  "submissionId": "SUB-CLAIM-NOT-ENOUGH-CAPACITY"
+ },
+ "response": {
+  "ok": false,
+  "code": "NOT_ENOUGH_CAPACITY",
+  "message": "Needs 5 seats, you have 4",
+  "detail": {
+   "seatsNeeded": 5,
+   "seatsLeft": 4
+  }
+ }
+}

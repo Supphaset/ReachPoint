@@ -19,6 +19,8 @@ npm run check      # type-check, token check, tests
 | `src/data/api.ts` | Typed API client for the friend's FastAPI (`VITE_API_URL`); every write carries a `submissionId` |
 | `src/data/contract.ts` | Draft view types, hand-written from the fixtures until the generated types land (T2) |
 | `src/features/briefing/` | Area and zone briefing: list first, offline schematic map, zone sheet on phones |
+| `src/features/team/` | Team screens: waiting list (shared order), take families, my jobs (exact point after taking, window, progress, finish, hand back), team status |
+| `src/data/teamStore.ts` | Team view + actions in fixture mode, applying the C6 claim rules; becomes API calls + a listener |
 
 ## Rules for screens
 
@@ -30,4 +32,4 @@ npm run check      # type-check, token check, tests
 
 ## Screen states (dev switches)
 
-Add to any URL: `?variant=empty|stale|layer-missing` (fixture variant), `?offline=1`, `?fail=view|tiles`. The list is on `/dev/ui`.
+Add to any URL: `?variant=empty|stale|layer-missing` (fixture variant), `?offline=1`, `?fail=view|tiles`, `?claim=already-taken|not-enough-capacity|need-changed|allocation-closed|version-conflict` (first claim returns that result). The list is on `/dev/ui`.

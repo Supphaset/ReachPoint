@@ -4,7 +4,7 @@ import { BigButton } from "../ui/components";
 import "./pages.css";
 
 const HOME: Record<Session["role"], string> = {
-  team_leader: "/team/map",
+  team_leader: "/team/list",
   coordinator: "/desk",
   resident: "/status/demo",
 };

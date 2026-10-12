@@ -128,6 +128,13 @@ export function DevUi() {
           <a href="/team/map/P-B?fail=tiles">Map failed</a>
           <a href="/team/map/P-B?fail=view">View failed</a>
           <a href="/team/map/P-C">P-C no recent assessment</a>
+          <a href="/team/list">Team list (sign in as T-S)</a>
+          <a href="/team/list?claim=already-taken">Claim: already taken</a>
+          <a href="/team/list?claim=not-enough-capacity">Claim: not enough seats</a>
+          <a href="/team/list?claim=need-changed">Claim: case changed</a>
+          <a href="/team/list?claim=allocation-closed">Claim: job closed</a>
+          <a href="/team/list?offline=1">Team list offline</a>
+          <a href="/team/list?fail=view">Team list failed</a>
         </div>
       </section>
     </div>
