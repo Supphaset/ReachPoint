@@ -38,3 +38,6 @@ serviceAccount*.json
 firebase-debug*.log
 .terraform/
 *.tfstate*
+
+# Published reference flood maps stay local until their licence is checked
+data/**/reference/

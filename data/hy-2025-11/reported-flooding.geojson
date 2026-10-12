@@ -1,0 +1,408 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.46972,
+     7.00797
+    ]
+   },
+   "properties": {
+    "id": "RPT-01",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ตลาดกิมหยง / ถ.ศุภสารรังสรรค์",
+    "name_en": "Kim Yong Market, Suphasan Rangsan Rd",
+    "report": "Waist to chest deep, still high",
+    "reported_on": "2025-11-23",
+    "sources": [
+     "https://www.fm91bkk.com/newsarticle/61719",
+     "https://www.bangkokbiznews.com/news/news-update/1208878"
+    ],
+    "location": "approximate (landmark, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.46828,
+     7.0117
+    ]
+   },
+   "properties": {
+    "id": "RPT-02",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ตลาดสดพลาซ่า ถ.เพชรเกษม",
+    "name_en": "Hatyai Plaza Market, Phetkasem Rd",
+    "report": "Knee to waist deep, going down",
+    "reported_on": "2025-11-23",
+    "sources": [
+     "https://www.fm91bkk.com/newsarticle/61719",
+     "https://www.bangkokbiznews.com/news/news-update/1208878"
+    ],
+    "location": "approximate (landmark, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.47034,
+     7.00274
+    ]
+   },
+   "properties": {
+    "id": "RPT-03",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ถ.นิพัทธ์อุทิศ 2",
+    "name_en": "Niphat Uthit 2 Rd",
+    "report": "Chest deep to over head height, strong current (most critical)",
+    "reported_on": "2025-11-23",
+    "sources": [
+     "https://www.fm91bkk.com/newsarticle/61719",
+     "https://www.bangkokbiznews.com/news/news-update/1208878"
+    ],
+    "location": "approximate (street, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.47082,
+     7.00385
+    ]
+   },
+   "properties": {
+    "id": "RPT-04",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ถ.นิพัทธ์อุทิศ 3",
+    "name_en": "Niphat Uthit 3 Rd",
+    "report": "Chest deep to over head height, strong current (most critical)",
+    "reported_on": "2025-11-23",
+    "sources": [
+     "https://www.fm91bkk.com/newsarticle/61719",
+     "https://www.bangkokbiznews.com/news/news-update/1208878"
+    ],
+    "location": "approximate (street, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.46965,
+     7.00268
+    ]
+   },
+   "properties": {
+    "id": "RPT-05",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ถ.นิพัทธ์อุทิศ 1",
+    "name_en": "Niphat Uthit 1 Rd",
+    "report": "Improving, water dropping",
+    "reported_on": "2025-11-23",
+    "sources": [
+     "https://www.fm91bkk.com/newsarticle/61719",
+     "https://www.bangkokbiznews.com/news/news-update/1208878"
+    ],
+    "location": "approximate (street, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.46476,
+     7.00627
+    ]
+   },
+   "properties": {
+    "id": "RPT-06",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "สถานีตำรวจภูธรหาดใหญ่",
+    "name_en": "Hat Yai Provincial Police Station",
+    "report": "Flooded (depth not stated)",
+    "reported_on": "2025-11-23",
+    "sources": [
+     "https://www.fm91bkk.com/newsarticle/61719",
+     "https://www.bangkokbiznews.com/news/news-update/1208878"
+    ],
+    "location": "approximate (landmark, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.46374,
+     7.00382
+    ]
+   },
+   "properties": {
+    "id": "RPT-07",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ถ.ราษฎร์อุทิศ",
+    "name_en": "Rat Uthit Rd",
+    "report": "Over head height with fast current (23 Nov); water to the ceiling (24 Nov)",
+    "reported_on": "2025-11-24",
+    "sources": [
+     "https://www.fm91bkk.com/newsarticle/61719",
+     "https://www.thaipbs.or.th/news/content/358797"
+    ],
+    "location": "approximate (street, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.47019,
+     7.01173
+    ]
+   },
+   "properties": {
+    "id": "RPT-08",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "หอนาฬิกา ถ.เพชรเกษม",
+    "name_en": "Clock tower, Phetkasem Rd",
+    "report": "Very deep, impassable",
+    "reported_on": "2025-11-24",
+    "sources": [
+     "https://www.thaipbs.or.th/news/content/358797"
+    ],
+    "location": "approximate (landmark, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.47012,
+     7.01583
+    ]
+   },
+   "properties": {
+    "id": "RPT-09",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ถ.นิพัทธ์สงเคราะห์ 1",
+    "name_en": "Niphat Songkhro 1 Rd",
+    "report": "Flooded along all routes; Soi 23 water up to the second floor",
+    "reported_on": "2025-11-24",
+    "sources": [
+     "https://www.thaipbs.or.th/news/content/358797"
+    ],
+    "location": "approximate (street, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.46745,
+     7.01667
+    ]
+   },
+   "properties": {
+    "id": "RPT-10",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "โรงพยาบาลหาดใหญ่ (บริเวณ)",
+    "name_en": "Hat Yai Hospital area",
+    "report": "Roads from behind the hospital to Jiranakhon Stadium flooded",
+    "reported_on": "2025-11-24",
+    "sources": [
+     "https://www.thaipbs.or.th/news/content/358797"
+    ],
+    "location": "approximate (landmark, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.47184,
+     7.02024
+    ]
+   },
+   "properties": {
+    "id": "RPT-11",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "สนามกีฬาจิระนคร (บริเวณ)",
+    "name_en": "Jiranakhon Stadium area",
+    "report": "Roads from the hospital to the stadium flooded",
+    "reported_on": "2025-11-24",
+    "sources": [
+     "https://www.thaipbs.or.th/news/content/358797"
+    ],
+    "location": "approximate (landmark, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.46844,
+     7.00488
+    ]
+   },
+   "properties": {
+    "id": "RPT-12",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ถ.รัถการ",
+    "name_en": "Rathakan Rd",
+    "report": "Nearly chest deep, very fast current",
+    "reported_on": "2025-11-24",
+    "sources": [
+     "https://www.thaipbs.or.th/news/content/358797"
+    ],
+    "location": "approximate (street, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.4709,
+     7.00432
+    ]
+   },
+   "properties": {
+    "id": "RPT-13",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ถ.ธรรมนูญวิถี",
+    "name_en": "Thammanun Withi Rd",
+    "report": "Water rising; rescuers evacuating people",
+    "reported_on": "2025-11-24",
+    "sources": [
+     "https://www.thaipbs.or.th/news/content/358797"
+    ],
+    "location": "approximate (street, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.46415,
+     7.00885
+    ]
+   },
+   "properties": {
+    "id": "RPT-14",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "วัดโคกสมานคุณ (บริเวณ)",
+    "name_en": "Wat Khok Saman Khun area",
+    "report": "Fast-moving water; only boats can get through",
+    "reported_on": "2025-11-24",
+    "sources": [
+     "https://www.thaipbs.or.th/news/content/358797"
+    ],
+    "location": "approximate (landmark, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.45035,
+     6.99867
+    ]
+   },
+   "properties": {
+    "id": "RPT-15",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ถ.เทศาพัฒนา",
+    "name_en": "Thesa Phatthana Rd",
+    "report": "People stranded on second floors",
+    "reported_on": "2025-11-24",
+    "sources": [
+     "https://www.thaipbs.or.th/news/content/358797"
+    ],
+    "location": "approximate (street, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.45722,
+     7.02115
+    ]
+   },
+   "properties": {
+    "id": "RPT-16",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "ถ.สัจจกุล",
+    "name_en": "Sajjakul Rd",
+    "report": "Water nearly up to the second floor",
+    "reported_on": "2025-11-24",
+    "sources": [
+     "https://www.thaipbs.or.th/news/content/358797"
+    ],
+    "location": "approximate (street, geocoded with OpenStreetMap)"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     100.47248,
+     6.94931
+    ]
+   },
+   "properties": {
+    "id": "RPT-17",
+    "kind": "qualitative_report",
+    "package": "hy-2025-11",
+    "name_th": "บ้านพรุ",
+    "name_en": "Ban Phru",
+    "report": "Residents on rooftops, water over 2 m",
+    "reported_on": "2025-11-25",
+    "sources": [
+     "https://www.thaipbs.or.th/news/content/358821"
+    ],
+    "location": "approximate (area, geocoded with OpenStreetMap)"
+   }
+  }
+ ],
+ "reachpoint": {
+  "label": "Reported flooding: official and news reports, not seen by satellite. Locations are approximate street or landmark points.",
+  "attribution": "Reports: FM91, Bangkok Biz News, Thai PBS (Nov 2025). Locations © OpenStreetMap contributors (ODbL).",
+  "note": "Public streets and landmarks only; no household or personal details. Depths are as reported in text, not measured by ReachPoint."
+ }
+}
