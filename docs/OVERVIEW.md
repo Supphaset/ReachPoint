@@ -2,13 +2,21 @@
 
 This is the one-page picture of the whole system. Details live in the [design doc](designs/resource-split-and-live-loop.md) (behaviour and decisions) and the [joint decision pack](planning/joint-decision-pack.md) (contract §3, transitions §4, walk-through §7). For how our parts connect and are tested, see the [integration map](collaboration/integration-map.md). For who builds what, see the [delivery agreement](collaboration/two-person-delivery-agreement.md) and the [build-week task list](planning/build-week-tasks.md).
 
+## Why we built it
+
+In the Nov 2025 Hat Yai flood, **more than 20,000 people asked for help in one week**, and many were never reached. One volunteer team got 1,000+ calls in a single morning. People alone can't read, compare and rank that many requests.
+
+**ReachPoint answers every caller in seconds and puts the most urgent at the top for everyone to see. The rest becomes zone missions, so a handful of people can run a city-wide flood response.**
+
 ## What it is
 
 ReachPoint helps volunteer rescue teams decide **who to help first when there aren't enough boats, medics or supplies for everyone**, and it tells each family honestly what is happening with their request.
 
 The demo is set in the real **Hat Yai flood (Nov 2025)**. The flood extent is real, computed from Sentinel-1 satellite radar. Families, teams, calls and quantities are synthetic and labelled as such.
 
-**The rule behind everything:** AI can listen, suggest and explain, but only a person changes what is true. Every AI tool is read-only or proposal-only.
+**The rule behind everything:**
+- AI can **listen, read, merge and rank** at a scale people can't. Everything it does is labelled ("AI-read", "AI-ranked") with its reasons, and people can always override it.
+- **Only people** verify facts, promise a family a time, assign a team or close a request.
 
 ## Two kinds of work
 
@@ -20,9 +28,10 @@ The demo is set in the real **Hat Yai flood (Nov 2025)**. The flood extent is re
 ```mermaid
 flowchart TD
   A["Resident call screen<br/>(browser, Thai voice)"] --> B["Thai voice agent<br/>Gemini Live via ADK"]
-  B --> C["Proposed facts with quotes<br/>Gemini Flash"]
-  C --> D["Coordinator desk<br/>a human approves each fact"]
-  D --> E["Listing on shared priority list<br/>red / yellow / green, then nearest"]
+  B --> C["Facts with quotes<br/>Gemini Flash"]
+  C --> TR["Triage agent (ADK)<br/>merge duplicates · rank · safety floor"]
+  TR --> E["Live priority list<br/>AI-flagged RED on top, 'not verified'"]
+  TR -.-> D["Coordinator desk<br/>verify, override, group review"]
   E --> F["Team takes a whole family<br/>first team wins"]
   F --> G["Team sets window, reports progress,<br/>closes the job"]
   G --> H["Resident status page<br/>status per family"]
@@ -108,7 +117,8 @@ A closed allocation rejects late updates with `ALLOCATION_CLOSED`. Supplies mark
 
 | AI | Does | Limit |
 |---|---|---|
-| Thai voice agent (Gemini Live + ADK) | Holds the call, clarifies, reads back | Proposes only |
+| Thai voice agent (Gemini Live + ADK) | Holds the call, clarifies, reads back; many calls in parallel | Extracts facts; doesn't decide |
+| **Triage agent (Gemini + ADK)** | Compares every request against the list, merges duplicates, ranks and updates the live list | Labelled "AI-ranked" with reasons; safety floor; human overrides win; never closes, promises or assigns |
 | Fact extraction (Gemini Flash) | Calls and team reports → facts with quotes | A human approves each one |
 | Coordinator copilot (Gemini + ADK) | "What changed since 10:00?", with record IDs | Read-only; drafts need a human click |
 | Split solver (OR-Tools) | Best split of boats, medics and packs; "What if one more boat?" | Coordinator only; suggestions become direct asks |
@@ -137,6 +147,6 @@ The map has three levels: areas P-A/P-B/P-C → zones B-1…B-5 → landmarks (L
 | CP0 | Mon 12 | Both apps are deployed and the contract is frozen |
 | CP1 | Tue 13 | A text report is approved and shows on the map, with the count unchanged |
 | CP2 | Wed 14 | A team takes Families 1+2 and the resident sees the window per family |
-| CP3 | Thu 15 | The full walk-through runs, including the S1 failure and the B-4 "found a family who never called" scene |
+| CP3 (+ surge) | Thu 15 | The full walk-through runs, including the S1 failure and the B-4 "found a family who never called" scene |
 
 Feature freeze is Fri 16 at 18:00. Submit by Sat 17, 21:00 Bangkok.

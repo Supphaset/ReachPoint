@@ -102,6 +102,7 @@ Claude's synthesis: adopt the "one more boat" comparison and the optional-assign
    - **Adjustable weights** (shown in the UI) are only `w_evac` and `w_supply` in level (2), plus the ranked list display. Waiting time is not weighted. No setting can move a need into or out of tier 1, or let tier 2 displace a coverable tier-1 need.
    - **Unassigned needs are a valid output**, each with a reason (`no_capable_team`, `capacity_exhausted`, `access_unknown`).
    - **Output:** suggestion ID, input versions, assignments, unassigned needs with reasons, and per-need explanation fields for Gemini. It writes nothing authoritative.
+> **Updated by D21–D24 (surge):** non-emergency requests are filed automatically as "AI-read", the triage agent ranks the list directly, and AI-flagged RED requests can be taken by any team at once. Coordinator review is now for groups, unclear cases and verification, not every fact.
 > **Updated by D17–D20 (zone missions):** steps 1–6 below are now the **emergency** path (RED cases). Non-emergency work runs through **zone missions with segments**; see "Zone missions and emergencies" under the design review decisions.
 
 3a. **Pull model: from reviewed case to authoritative records (rules engine, owned by the friend; 21A + eng re-check D6–D13):**
@@ -514,6 +515,56 @@ Backed by real-practice research: `docs/research/real-rescue-practice.md`.
 - **D12 Solver.** Coordinator only (split panel + What-if); no per-team Best fit chips.
 - **D14 TODO.** Import and de-duplicate requests from jitasa.care / Traffy Fondue / LINE channels after the hackathon.
 
+### Surge and the triage agent (user decisions D21–D24, 2026-10-12)
+
+**Why we build this (headline, D24).** In the Nov 2025 Hat Yai flood:
+- more than **20,000 people asked for help in one week**, and many requests never reached a rescue unit ([ThaiPublica](https://thaipublica.org/2026/05/hatyai-flood-systemic-failure-analysis/));
+- the jitasa.care back office was understaffed and closing over 9,000 cases by hand ([MGR Online](https://mgronline.com/live/detail/9680000114332));
+- one volunteer team received **1,000+ calls in a single morning** ([Malay Mail](https://www.malaymail.com/amp/news/malaysia/2025/11/25/volunteer-team-rescues-310-stranded-malaysians-from-hat-yai-floods-battling-chest-high-water-levels/199642)).
+
+People alone can't read, compare and rank that many requests. ReachPoint answers every caller in seconds and puts the most urgent at the top for everyone to see. The rest becomes zone missions, so a handful of people can run a city-wide flood response.
+
+**This revises earlier rules:**
+- "a coordinator approves every fact" (step 3a and requirements);
+- D2's "coordinator-flagged RED";
+- D17c's "the fixed rule orders zones and the agent only proposes".
+
+**How requests are handled (D21, risk-tiered):**
+
+| Request | What happens | Who acts |
+|---|---|---|
+| **Clear non-emergency** (e.g. "family of 4 at School L5, need water") | Filed automatically into its zone mission and segment as **"AI-read, not yet verified"**; counted separately from verified numbers | The team on site confirms it during the segment work |
+| **Suspected emergency** | Ranked RED straight away on the live list, labelled **"AI-flagged, not verified"**, with the quote | **Any free capable team can take it at once** (D22b) and verifies on arrival; the coordinator can verify by calling back |
+| **Unclear** (no location, conflicting details) | Listed for a human with the questions the AI couldn't answer | Coordinator, or a team calling back |
+
+- The coordinator can approve or correct **whole groups** (e.g. "B-3: 46 requests").
+- **Nothing waits for a coordinator click.** The list shows the information and the reasons; humans verify and act on their own.
+
+**The triage agent (D22).** A Gemini agent on ADK reads each new request against the whole list. Then it:
+- **merges duplicates** (soft and reversible, e.g. "3 calls = same family at L3");
+- **ranks** each request and zone with a reason and the supporting quote;
+- **updates the live list directly.** Every row says **"AI-ranked"** and shows why.
+
+The fixed rule in `tiers.py` remains the **safety floor and the fallback** if the agent is slow or down.
+
+**Limits on the agent:**
+- **Safety floor.** Reported words such as bedridden, child, medical, can't breathe, or "water above the 1st floor" are never ranked below YELLOW.
+- **Humans win.** A human pin, re-rank or unflag always wins, and the agent can't undo it.
+- **What it never does:** close, delete or mark a request "no help needed"; promise a time; assign a team.
+- **No clinical triage.** Ranking is **operational urgency from reported words**, not a medical assessment; medical needs still go to qualified review (requirements R7).
+- **Caller text is data, not instructions.** It ranks from extracted fields plus quotes, and an injection eval covers this.
+- **Logged.** Every ranking change keeps its reason, model version and time.
+
+**The surge simulator (D23, core in CP3).**
+- A dev-page button, **"Run surge: 300 requests"**, sends obviously fictional Thai text requests through the real pipeline. Gemini generates them from scenario templates.
+- Live counters show:
+  - every caller answered in X s;
+  - the first suspected emergency at the top of the list in Y s;
+  - Z duplicates merged;
+  - N requests handled per coordinator.
+- One live voice call runs alongside it.
+- The surge comes after the Bangkok package in the cut order, and is never cut before the copilot.
+
 ### Zone missions and emergencies (user decisions D17–D20, 2026-10-11, later)
 Not everyone in danger calls. Hat Yai's own officials kept a list of 230 bedridden patients, and the [research](../research/unreported-needs.md) shows that a quiet area may mean phones are down, not that nobody needs help. So work is **prioritised by zone**, and individual cases are mostly used to keep each family informed.
 
@@ -533,7 +584,7 @@ Not everyone in danger calls. Hat Yai's own officials kept a list of 230 bedridd
 - "Couldn't reach" never clears the zone.
 - People found who hadn't called are reported as a field report (voice or photo). Gemini proposes facts, the coordinator approves them, and they become new cases. A new RED case becomes an emergency; anything else joins the segment's pickup list.
 
-**Zone order: fixed rule plus agent suggestions (D17c)**
+**Zone order (D17c, updated by D22):** the triage agent now ranks directly within the limits in "Surge and the triage agent"; the fixed rule below is its safety floor and fallback.
 1. RED emergencies are always first. They're not zones.
 2. Zones are then ordered by a fixed rule in `api/rules/tiers.py`, with the reasons shown on each row:
    1. reviewed people who called and still need help;

@@ -5,6 +5,7 @@ Date: 2026-10-11 (Asia/Bangkok). Status: **Working document behind [decision 000
 > **Update later on 2026-10-11 (read first).** Three later user decisions supersede parts of this pack:
 > 1. **No real phone line** in the prototype (eng R21). A browser call screen represents a phone call. B4, the "Thai number" row, §5.2/§5.2a, the Twilio items and the phone gate are kept only as history. See the [0009 amendments](../decisions/0009-implementation-start-and-technical-direction.md#amendments-user-decisions-later-on-2026-10-11).
 > 2. **Pull model (21A):** no offers. Reviewed cases go to shared priority lists, and the first capable team to take a family group wins. "offered", offer expiry and `respondToMissionOffer` in §3, §4.2, §6 and §7 are replaced by `publishListing` / `claimListing`, with allocations starting at `accepted`.
+> 5. **Surge and the triage agent (D21–D24).** AI files clear non-emergency requests automatically as "AI-read". A triage agent ranks the live list directly (labelled, with a safety floor; human overrides win). Any team can take an AI-flagged RED request at once. A surge simulator is core in CP3. See the design doc ("Surge and the triage agent").
 > 4. **Zone missions (D17–D20).** Non-emergency work is prioritised by zone and split into segments, one team each. RED emergencies are still handled one by one, straight away. A synthetic vulnerable-residents register and a copilot that can propose zone-order changes support this. See the [design doc](../designs/resource-split-and-live-loop.md) ("Zone missions and emergencies").
 > 3. **Eng re-check decisions D1–D14** (family groups, job endings, outdated-case checks, colour-then-distance ordering, shared open lists, server-checked resident messages, coordinator-only solver): see the [design doc](../designs/resource-split-and-live-loop.md) and the [real rescue practice research](../research/real-rescue-practice.md).
 
@@ -290,7 +291,12 @@ Conventions (from draft v1, kept): ISO-8601 UTC strings; displayed in Asia/Bangk
 | segment | defined → open | coordinator | Segments are cut around landmarks; one segment = one team |
 | segment | open → taken | team_leader (own team, Available, capable) | One transaction; `ALREADY_TAKEN` if another team got it first; the families in the segment show "Team T-x is working in your area" |
 | segment | taken → checked / partly_checked / unreachable | team_leader | Records households found, pickups needed, time and team; `unreachable` keeps the zone gap open; nothing marks a zone "safe" |
-| zone order change | proposed → accepted / rejected | copilot proposes; coordinator decides | Proposal-only tool; reason and author kept |
+| request | received → ai_read (filed to zone/segment) / ai_flagged_red / needs_human | triage pipeline | Labelled; counted separately from verified; safety floor applied |
+| request | ai_read / ai_flagged_red → verified / corrected | team on site, or coordinator | Verifying turns it into a reviewed case (group approve allowed) |
+| priority rank | any → new rank | triage agent | Writes a reason, quote, model version and time; never below the safety floor; never overrides a human pin |
+| priority rank | any → pinned / re-ranked / unflagged | coordinator | Final; the agent can't change it |
+| duplicate merge | separate → merged / unmerged | triage agent merges; coordinator or agent unmerges | Soft and reversible; the original requests are kept |
+| zone order change | ranked by triage agent; coordinator may override | triage agent / coordinator | Replaces the proposal-only rule (D17c → D22) |
 | proposal (routine) | draft → submitted → approved_as_mission / returned | team_leader → coordinator | A draft never changes coverage or stock |
 
 ---

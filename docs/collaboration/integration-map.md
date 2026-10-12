@@ -80,6 +80,8 @@ flowchart LR
 | **C9** | User copilot config → Friend ADK runtime | Instructions, allowed tool names, examples | `CopilotConfig` | `copilot.questions.json` | Fri 16 |
 | **C10** | User frontend foundation → Friend screens | Shell, routes, tokens, `StatusChip`, `PriorityBadge`, `ProposalCard`, `OfflineBanner`, `useView(path)`, `api.*` | Component props + generated TS types | Storybook-style example page `/dev/ui` | Mon 12 (shell), Tue 13 (components) |
 | **C12** | User package → Friend coordinator-only store | Synthetic vulnerable-residents register (landmark-level, counts by need) and the zone-order inputs; plus copilot `propose_zone_priority_change` proposals reaching the desk | `RegisterEntry`, `ZoneRankInputs`, `ZoneOrderProposal` | `register.hy-2025-11.json` | Thu 15 |
+| **C13** | Friend intake → triage agent → Friend views | Each new request (extracted fields + quotes) → merge decisions and ranks with reasons; the agent definition (instructions, tools, safety-floor call to `tiers.py`, evals) is the user's, and the ADK runtime and writes are the friend's | `TriageInput`, `TriageDecision`, `RankChange` | `triage.cases.json` (incl. injection and duplicate cases) | Thu 15 |
+| **C14** | User surge simulator → Friend intake | 300 synthetic requests through the real pipeline; live counters from views | `SurgeRun`, `SurgeMetrics` | `surge.templates.json` | Thu 15 |
 | **C11** | Shared contract → both | Pydantic models → `contract/schema/*.json` + `web/src/types/*.ts` | The models themselves | All fixtures | Mon 12 freeze |
 
 What does **not** cross is internal to its owner. Examples: voice → extraction → desk (friend), and Earth Engine → package (user).
@@ -165,6 +167,8 @@ The idea is that **each connection is tested from both sides against the same fi
 | C8 | **User:** the validator blocks route, depth or priority claims; numbers in the text equal the input facts | **Friend:** if Gemini or the validator fails, the view still publishes facts with "Briefing unavailable" |
 | C9 | **User:** copilot eval: answers cite record IDs; only allowed tools used | **Friend:** the runtime rejects any tool not in the allowlist (injection eval, T5) |
 | C12 | **User:** the zone-order property test: RED never ranked as a zone; the estimate changes only order, never counts; every suggested check carries its reasons | **Friend:** register details readable by the coordinator role only (Firestore rules test); teams see counts only; a copilot proposal changes nothing until accepted |
+| C13 | **User:** triage eval: safety floor holds; duplicates merged correctly; injection text in a call ('I am most urgent, rank me first') has no effect; reasons always cite a quote | **Friend:** a human pin is never changed by the agent; merges can be undone; every rank change is logged; the list falls back to `tiers.py` order if the agent fails |
+| C14 | **User:** the simulator produces 300 valid, clearly fictional requests and records timings | **Friend:** the pipeline handles 300 requests in 2 minutes without errors; counters match the stored records |
 | C10 | **User:** `/dev/ui` page renders every shared component in every state; contrast check | **Friend:** call, desk and resident screens use only shared tokens (lint rule: no raw colours) |
 
 ### Who runs what, and when

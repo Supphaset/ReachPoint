@@ -34,6 +34,12 @@ The prototype deadline is 18 October 2026, with no published cut-off time or tim
 - **Work split refinement (refines 0006).** The user also owns the shared priority tiers/sort and the coordinator split panel; see the [delivery agreement](../collaboration/two-person-delivery-agreement.md#who-owns-what).
 - **Build-week review rule.** The owner may merge their own area after the checks pass; the other human reviews within about 4 hours; shared contract or state changes always need both.
 - **Zone missions (D17–D20).** Non-emergency work is prioritised by zone and split into segments, one team each, following ICS divisions, INSARAG worksites and FEMA block search. RED emergencies stay one by one. The zone order is a fixed rule; the copilot may only propose changes. A synthetic vulnerable-residents register is coordinator-only. The "found a family who never called" scene is core in CP3, and the Bangkok package becomes a stretch goal.
+- **Surge and the triage agent (D21–D24).** This is the headline "why": in Hat Yai, more than 20,000 people asked for help in one week.
+  - AI files clear non-emergency requests automatically as "AI-read".
+  - A triage agent ranks the live list directly, labelled and with reasons. A fixed safety floor applies, human overrides are final, and the agent never closes requests, promises times or assigns teams.
+  - Any team may take an AI-flagged RED request at once and verify it on arrival.
+  - A surge simulator is core in CP3.
+  - This amends the requirement that AI proposals need coordinator approval; see requirements.
 - These amendments are the user's decisions; like the rest of 0009, they bind both humans once the friend confirms.
 
 ## Still open (not decided here)

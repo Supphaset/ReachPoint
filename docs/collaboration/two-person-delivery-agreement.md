@@ -31,6 +31,7 @@ Daily 15-minute check-in: what changed in `contract/`, which checkpoint passed, 
 | Team list + mission screen (take, window, progress, hand back, end outcomes, Busy reason/ETA, re-confirm request) | Build | Enforce the rules behind each action |
 | Zone order rule + suggested checks (in `tiers.py`); synthetic vulnerable-residents register fixture | **Build** | Store the register with coordinator-only access; show suggestions on the desk |
 | Zone missions and segments (publish, cut segments, take, mark) | Team screen side | Rules + desk side |
+| Triage agent definition (instructions, tools, safety floor, evals) + surge simulator | **Build** | ADK runtime, writing ranks and merges to views, override precedence, logs |
 | Copilot agent definition (instructions, tool choice) | Build | Provide the read-only tool layer |
 | Resident call screen + Thai voice agent (ADK Live → push-to-talk → text) | — | Build |
 | Fact extraction, matching calls to existing cases | — | Build |
@@ -66,6 +67,7 @@ Rules:
 - **Core:** the emergency loop from call → review → priority list → team takes a family → resident status, the S1 failure, the split panel with What-if, and the flood map with zone briefings.
 - **Supplies stay in the split.** P-A food packs are allocated by the solver as supply listings that teams can take in part.
 - **Stretch goal (after CP3): the separate routine relief planner.** That's the P-A "80 needed / 20 received / 30 committed" draft proposal and the coordinator review of routine plans. This is the user's proposal; it revises scope v1 ([0005](../decisions/0005-prototype-scope-proposal.md)) once the friend confirms.
+- **Surge and the triage agent (D21–D24):** this is our headline. Clear requests are filed automatically as AI-read, the triage agent ranks the list directly within its limits, any team can take an AI-flagged RED request, and the surge simulator is core in CP3.
 - **Zone missions (D17–D20):** non-emergency work is prioritised by zone and split into segments, one team each. RED emergencies are handled one by one. The Bangkok package is a stretch goal.
 - **Not in the prototype:** a real phone line, imported requests from other channels, and live flood feeds (see [TODOS](../../TODOS.md)).
 

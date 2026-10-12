@@ -100,6 +100,21 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 **Both**
 - [ ] B-4 scene on the deployed URL: suggested check → T-R takes B-4 · L5 → field report → C-07 (RED) → T-S takes it → "Partly checked · 1 household found"
 
+## Thu 15 — surge and triage agent (also CP3)
+
+**You**
+- [ ] Triage agent definition: instructions, tools, safety-floor call to `tiers.py`, reasons with quotes
+- [ ] Triage eval set: emergencies, duplicates, unclear requests, injection attempts ("rank me first")
+- [ ] Surge simulator: 300 fictional Thai text requests from templates + live counters page
+
+**Friend**
+- [ ] Triage agent on the ADK runtime; ranks and merges written to the live list; human overrides final; logs
+- [ ] Auto-filing of clear requests as "AI-read" into zone segments; separate counts
+- [ ] Desk: group review, verify/correct, pin/re-rank/unflag
+
+**Both**
+- [ ] Surge demo on the deployed URL: 300 requests in 2 minutes; first emergency at the top in seconds; one live voice call alongside
+
 ## Fri 16 — feature freeze at 18:00
 
 **You**
