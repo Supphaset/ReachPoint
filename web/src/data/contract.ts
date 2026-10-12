@@ -438,11 +438,20 @@ export interface ReviewRow {
   channel: string;
   proposal: { source: string; note: string | null; facts: ProposedFacts; dropped: string[] };
   suggestedSegment: { segmentId: string | null; zoneId?: string; label: string; why: string } | null;
-  prompts: { kind: "urgent_flag" | "stretcher" | "neighbour"; text: string }[];
+  prompts: { kind: "urgent_flag" | "stretcher" | "neighbour" | "field"; text: string }[];
+  /** The ADK triage agent's proposals (D29): possible duplicates and a rank reason. A person decides. */
+  triage: null | {
+    source: string;
+    at: string;
+    links: { caseId: string; place: string; people: number; reason: string; quote: string; newHazard: boolean }[];
+    rank: { reason: string; quote: string; danger: string[] } | null;
+  };
+  fromTeam?: string;
 }
 export interface ReviewQueueView {
   generatedAt: string;
   label: string;
+  triage: { source: string | null; at: string | null; note?: string | null } | null;
   reports: ReviewRow[];
   landmarks: { segmentId: string; label: string }[];
 }

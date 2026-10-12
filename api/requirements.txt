@@ -1,3 +1,9 @@
 # Runtime for the API on Cloud Run (api/main.py). The rules and views use the standard library only.
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
+httpx==0.27.2               # Gemini REST calls (intake, zone briefing)
+google-adk==2.11.0          # triage agent (api/ai/triage.py)
+# google-adk 2.11 needs opentelemetry <= 1.42.1; google-api-core 2.42+ needs >= 1.44, so pin both sides.
+opentelemetry-api==1.42.1
+opentelemetry-sdk==1.42.1
+google-api-core==2.34.0

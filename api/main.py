@@ -24,7 +24,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-from api.ai import briefing_text
+from api.ai import briefing_text, triage
 from api.intake.extract import extract
 from api.server.memory import Clock, MemoryStore, NotFound, Refused
 from api.views.briefing import area_briefing
@@ -74,6 +74,7 @@ BRIEFINGS: dict[str, dict] = {}
 _pending: set[str] = set()
 _brief_lock = threading.Lock()
 _writer = ThreadPoolExecutor(max_workers=1)
+_triager = ThreadPoolExecutor(max_workers=1)  # triage never waits behind briefing writes
 
 
 def _write_briefing(key: str, facts: dict) -> None:
@@ -279,7 +280,33 @@ def intake_text(b: Intake):
     channel = "field" if b.segmentId else b.channel
     r = memory.write(b.submissionId, lambda: memory.submit_report(b.text, channel, proposal, b.segmentId, b.teamId))
     v = r["value"]
+    _triager.submit(_run_triage)  # the triage agent looks at the new request in the background
     return {"ok": True, "value": {**v, "statusUrl": f"/status/{v['statusToken']}", "aiSource": proposal["source"]}}
+
+
+_triage_lock = threading.Lock()
+_triage_again = threading.Event()
+
+
+def _run_triage() -> None:
+    """One pass at a time; a request that arrives during a pass triggers one more pass after it."""
+    if not _triage_lock.acquire(blocking=False):
+        _triage_again.set()
+        return
+    try:
+        while True:
+            _triage_again.clear()
+            with memory.lock:
+                snapshot = memory.store.__class__(json.loads(json.dumps(memory.store.seed)), memory.store.catalogue,
+                                                  memory.store.exposure, memory.store.register)
+                now = _now()
+            result = triage.run_agent(snapshot, now) if USE_AI else triage.rule_proposals(snapshot, now)
+            with memory.lock:
+                memory.store.seed["triage"] = {**result, "at": now}
+            if not _triage_again.is_set():
+                break
+    finally:
+        _triage_lock.release()
 
 
 @app.get("/api/views/reviewQueue")
@@ -296,6 +323,20 @@ def approve(report_id: str, b: Approve):
 @app.post("/api/reports/{report_id}/reject")
 def reject(report_id: str, b: Reject):
     return memory.write(b.submissionId, lambda: memory.reject_report(report_id, b.reason))
+
+
+class LinkReport(Write):
+    caseId: str
+
+
+@app.post("/api/reports/{report_id}/link")
+def link_report(report_id: str, b: LinkReport):
+    return memory.write(b.submissionId, lambda: memory.link_report(report_id, b.caseId))
+
+
+@app.post("/api/reports/{report_id}/not-same")
+def not_same(report_id: str, b: LinkReport):
+    return memory.write(b.submissionId, lambda: memory.not_same(report_id, b.caseId))
 
 
 @app.get("/api/status/{token}")

@@ -342,3 +342,28 @@ class MemoryStore:
             mark = {"state": state, "at": self.clock.iso(), "teamId": c["teamId"], "householdsFound": hf, "pickupsNeeded": pn}
         self.store.seed["segmentMarks"][c["segmentId"]] = mark
         c.update(state="marked", mark=mark)
+
+    # --- triage proposals (D29): the coordinator links a request to a case, or says it isn't the same ---
+
+    def link_report(self, report_id: str, case_id: str) -> dict:
+        """The request is about an existing case: nothing is deleted. The request is kept, marked linked, and the
+        caller's status link follows that case; the case counts as just confirmed. A request with a danger sign is
+        never linked away (D29): it must be reviewed on its own."""
+        r = self._report(report_id)
+        if r["proposal"]["facts"]["dangerSigns"]:
+            raise Refused("INVALID", "This request reports a danger sign: review it on its own, don't link it away")
+        case = next((c for c in self.store.cases if c["caseId"] == case_id), None)
+        if case is None:
+            raise NotFound(case_id)
+        now = self.clock.iso()
+        r.update(status="linked", caseId=case_id, reviewedAt=now)
+        case["lastConfirmedAt"] = now
+        case.setdefault("linkedReports", []).append(report_id)
+        self.store.seed["statusTokens"][r["statusToken"]]["caseId"] = case_id
+        return {"caseId": case_id}
+
+    def not_same(self, report_id: str, case_id: str) -> None:
+        r = self._report(report_id)
+        r.setdefault("notSameAs", [])
+        if case_id not in r["notSameAs"]:
+            r["notSameAs"].append(case_id)

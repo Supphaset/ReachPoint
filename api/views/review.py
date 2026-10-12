@@ -37,6 +37,10 @@ def suggest_segment(store: Store, text: str) -> dict | None:
 
 
 def review_queue(store: Store) -> dict:
+    """Ordered by the triage pass when there is one (danger signs always first), else oldest first."""
+    triage = store.seed.get("triage") or {}
+    proposals = triage.get("proposals", {})
+    cases = {c["caseId"]: c for c in store.cases}
     rows = []
     for r in store.seed.get("reports", []):
         if r["status"] != "proposed":
@@ -56,9 +60,19 @@ def review_queue(store: Store) -> dict:
             prompts.insert(0, {"kind": "field", "text": f"Field report from team {r['teamId']}: people found who hadn't called (D20)."})
         else:
             sugg = suggest_segment(store, r["text"])
+        t = proposals.get(r["reportId"])
+        tri = None
+        if t:
+            links = [{**l, "place": store.landmarks[cases[l["caseId"]]["segmentId"]]["label"], "people": cases[l["caseId"]]["people"]}
+                     for l in t["links"] if l["caseId"] in cases and l["caseId"] not in r.get("notSameAs", [])]
+            tri = {"source": triage.get("source"), "at": triage.get("at"), "links": links, "rank": t.get("rank")}
         rows.append({"reportId": r["reportId"], "receivedAt": r["receivedAt"], "text": r["text"], "channel": r["channel"],
-                     "proposal": r["proposal"], "suggestedSegment": sugg, "prompts": prompts,
+                     "proposal": r["proposal"], "suggestedSegment": sugg, "prompts": prompts, "triage": tri,
                      **({"fromTeam": r["teamId"]} if r.get("teamId") else {})})
+    order = {rid: i for i, rid in enumerate(triage.get("order", []))}
+    danger = lambda row: 0 if row["proposal"]["facts"]["dangerSigns"] else 1
+    rows.sort(key=lambda row: (danger(row), order.get(row["reportId"], len(order)), row["receivedAt"], row["reportId"]))
     return {"generatedAt": None, "label": "Requests waiting for review. The AI's reading is a proposal; only you make it a case.",
+            "triage": {k: triage.get(k) for k in ("source", "at", "note")} if triage else None,
             "reports": rows,
             "landmarks": [{"segmentId": l["id"], "label": l["label"]} for l in store.catalogue["landmarks"] if l.get("zoneId")]}

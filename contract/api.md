@@ -74,4 +74,18 @@ the fixtures works on the server.
 The team view carries `zoneMissions` (each segment's state, register count, estimate, reviewed families) and
 `segmentJobs` once a mission exists.
 
+## Triage agent (D22, D29, C13)
+
+After each new request the server runs one pass of the ADK triage agent (`api/ai/triage.py`) in the background. Its
+proposals appear on `GET /api/views/reviewQueue` as `triage` per request (possible duplicates with place, reason and
+quote; a rank reason) and the queue is sorted with danger signs always first. The agent's tools are read and propose
+only; a person decides:
+
+| Route | Body | Rules |
+|---|---|---|
+| `POST /api/reports/{reportId}/link` | `caseId` | nothing is deleted: the request is kept as `linked`, the case counts as just confirmed, the caller's status link follows the case; a request with a danger sign is never linked away (`INVALID`) |
+| `POST /api/reports/{reportId}/not-same` | `caseId` | hides that proposal for this request |
+
+Live eval: `python api/scripts/triage_eval.py` (needs the Gemini key; 8 checks).
+
 Still to add (friend): the voice call screen.

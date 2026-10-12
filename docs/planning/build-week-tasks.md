@@ -116,8 +116,8 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 ## Thu 15 — surge and triage agent (also CP3)
 
 **You**
-- [ ] Triage agent definition: instructions, tools, safety-floor call to `tiers.py`, reasons with quotes
-- [ ] Triage eval set: emergencies, duplicates, unclear requests, injection attempts ("rank me first"), plus place cases (Condo X: three callers, overlapping counts; a linked request with a new hazard)
+- [x] Triage agent definition: instructions, tools, safety-floor call to `tiers.py`, reasons with quotes (`api/ai/triage.py`, Google ADK; rules live in the tools)
+- [x] Triage eval set: emergencies, duplicates, unclear requests, injection attempts ("rank me first"), plus place cases (Condo X: three callers, overlapping counts; a linked request with a new hazard) (`api/scripts/triage_eval.py`, 8/8 live on 12 Oct; condo case still to add)
 - [ ] Surge simulator: 300 fictional Thai text requests from templates + live counters page
 
 **Friend**

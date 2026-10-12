@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { AssistanceType, ReviewQueueView, ReviewRow, WaterBand } from "../../data/contract";
-import { approveReport, rejectReport, type Approval } from "../../data/intake";
+import { approveReport, linkReport, notSame, rejectReport, type Approval } from "../../data/intake";
 import { apiMode } from "../../data/mode";
 import { useView } from "../../data/useView";
 import { Banner, BigButton, ProposalCard, Skeleton } from "../../ui/components";
@@ -31,6 +31,12 @@ export function ReviewQueue() {
   return (
     <section className="review" aria-label="Requests to review">
       <h2>Requests to review ({q.reports.length})</h2>
+      {q.triage && (
+        <p className="fine-print">
+          Sorted by the triage agent ({q.triage.source?.replace("agent:", "Google ADK · ") ?? "rules"}): danger signs always first.
+          {q.triage.note ? ` ${q.triage.note}.` : ""}
+        </p>
+      )}
       {q.reports.length === 0 && <p className="muted">No requests waiting. New ones appear here within 15 seconds.</p>}
       {q.reports.map((r) => (
         <Row key={r.reportId} r={r} landmarks={q.landmarks} onDone={() => setN((x) => x + 1)} />
@@ -61,6 +67,13 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
     const res = await approveReport(r.reportId, a);
     setBusy(false);
     if (!res.ok) return setMsg(res.message);
+    onDone();
+  };
+  const act = async (p: Promise<{ ok: boolean; message?: string }>) => {
+    setBusy(true);
+    const res = await p;
+    setBusy(false);
+    if (!res.ok) return setMsg(res.message ?? "Something went wrong");
     onDone();
   };
   const reject = async () => {
@@ -95,6 +108,32 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
           {r.proposal.dropped.length ? ` · ${r.proposal.dropped.length} unquoted item(s) dropped` : ""}
         </p>
       </ProposalCard>
+      {r.triage && (r.triage.links.length > 0 || r.triage.rank) && (
+        <ProposalCard title="Triage agent">
+          {r.triage.rank && <p className="fine-print">{r.triage.rank.reason}</p>}
+          {r.triage.links.map((l) => (
+            <div key={l.caseId} className="triage-link">
+              <p>
+                {l.newHazard ? "Same place as" : "Possibly the same as"} <strong className="num">{l.caseId}</strong> ({l.place}, {l.people}{" "}
+                {l.people === 1 ? "person" : "people"}): {l.reason}
+                {l.quote && <> · <q>{l.quote}</q></>}
+              </p>
+              {l.newHazard ? (
+                <p className="review-prompts">Reports a new danger: review it on its own, don't link it away.</p>
+              ) : (
+                <div className="review-actions">
+                  <BigButton size="md" variant="secondary" disabled={busy} onClick={() => act(linkReport(r.reportId, l.caseId))}>
+                    Link to {l.caseId}
+                  </BigButton>
+                  <BigButton size="md" variant="quiet" disabled={busy} onClick={() => act(notSame(r.reportId, l.caseId))}>
+                    Not the same
+                  </BigButton>
+                </div>
+              )}
+            </div>
+          ))}
+        </ProposalCard>
+      )}
       {r.prompts.length > 0 && (
         <ul className="review-prompts">
           {r.prompts.map((p) => <li key={p.kind}>{p.text}</li>)}

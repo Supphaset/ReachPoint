@@ -38,3 +38,5 @@ export { NEEDS_SERVER };
 
 export const publishMission = (zoneId: string, reasons: string[]): Promise<Done> => send("/api/zone-missions", { zoneId, reasons });
 export const dismissCheck = (zoneId: string, reason: string): Promise<Done> => send(`/api/suggested-checks/${zoneId}/dismiss`, { reason });
+export const linkReport = (reportId: string, caseId: string): Promise<Done> => send(`/api/reports/${reportId}/link`, { caseId });
+export const notSame = (reportId: string, caseId: string): Promise<Done> => send(`/api/reports/${reportId}/not-same`, { caseId });
