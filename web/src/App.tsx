@@ -4,8 +4,10 @@ import { BriefingPage } from "./features/briefing/BriefingPage";
 import { JobsPage, WaitingPage } from "./features/team/TeamPages";
 import { SplitPanel } from "./features/split/SplitPanel";
 import { DeskPage } from "./features/desk/RisingWater";
+import { CallPage } from "./features/intake/CallPage";
+import { StatusPage } from "./features/resident/StatusPage";
 import { DevUi } from "./pages/DevUi";
-import { Home, Placeholder } from "./pages/Home";
+import { Home } from "./pages/Home";
 
 /** Role routes. Team: /team/*; coordinator: /desk; resident: /status/:token; shared parts: /dev/ui. */
 export function App() {
@@ -18,8 +20,8 @@ export function App() {
         <Route path="team/mission" element={<JobsPage />} />
         <Route path="desk/split" element={<SplitPanel />} />
         <Route path="desk" element={<DeskPage />} />
-        <Route path="call" element={<Placeholder title="Call" owner="your friend" day="Wed 14" />} />
-        <Route path="status/:token" element={<Placeholder title="Request status" owner="your friend" day="Wed 14" />} />
+        <Route path="call" element={<CallPage />} />
+        <Route path="status/:token" element={<StatusPage />} />
         <Route path="dev/ui" element={<DevUi />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

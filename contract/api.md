@@ -51,5 +51,14 @@ the fixtures works on the server.
 | `/api/listings/{listingId}/urgent-flag` | `reason`, `confirmedNow` | reason required (`INVALID`); tier 1b → RED on every team view; `needRevision` + 1; `confirmedNow` moves "last confirmed" to now (D42) | — |
 | `/api/ask-teams` | `suggestionId`, `teamIds[]` | returns **200** with `AskResult`: `ok: false, code: VERSION_CONFLICT` and the current suggestion when the input changed (C7) | `AskResult` |
 
-Still to add (friend): intake (`/api/intake/text`, call screen), desk review (approve / reject facts), zone missions
-(`publishZoneMission`, `takeSegment`, `markSegment`), resident status (`/api/status/{token}`).
+## Intake, desk review, family status
+
+| Route | Body | Rules | `value` |
+|---|---|---|---|
+| `POST /api/intake/text` | `text` (1–2,000 chars), `channel` | Gemini proposes facts; each must quote the caller's text or it is dropped (`api/intake/extract.py`); stored as a proposal, never a case | `reportId`, `statusToken`, `statusUrl`, `aiSource` |
+| `GET /api/views/reviewQueue` | — | coordinator only: the caller's words, the proposal, a landmark suggestion, urgent / stretcher / neighbour prompts | `ReviewQueueView` |
+| `POST /api/reports/{reportId}/approve` | `segmentId`, `people{adults,children,infants,stretcher}`, `needs[]`, `waterBand`, `urgentReason`, `deskNote` | the coordinator's values, not the AI's, become a validated case with one listing per need; an urgent reason makes the evacuation listing tier 1b (RED) | `caseId`, `listingIds` |
+| `POST /api/reports/{reportId}/reject` | `reason` | reason required; the family's link shows it | — |
+| `GET /api/status/{token}` | — | that request only, honest per-family lines; a random 128-bit token, 404 if unknown | `ResidentStatusView` |
+
+Still to add (friend): the voice call screen, zone missions (`publishZoneMission`, `takeSegment`, `markSegment`).

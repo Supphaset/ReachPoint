@@ -5,6 +5,7 @@ import { useView } from "../../data/useView";
 import { Banner, BigButton, Skeleton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 import { pickSnapshot, useMinute } from "../briefing/Rain";
+import { ReviewQueue } from "./ReviewQueue";
 import "./desk.css";
 
 type Decision = { kind: "called" } | { kind: "flagged"; reason: string } | { kind: "dismissed" };
@@ -123,11 +124,12 @@ function Row({ r, decision, isRed, onDecide }: { r: ReconfirmRow; decision?: Dec
 /** Coordinator desk, until the friend's desk lands: the water-rising panel first. */
 export function DeskPage() {
   return (
-    <div className="page narrow">
+    <div className="page narrow desk-page">
       <header className="page-head">
         <h1>Coordinator desk</h1>
-        <p className="muted">Review queue, suggested checks and copilot proposals: built by your friend. Below: water rising (D42).</p>
+        <p className="muted">Requests to review, then water rising (D42). Suggested checks and zone missions come next.</p>
       </header>
+      <ReviewQueue />
       <RisingWaterPanel />
     </div>
   );

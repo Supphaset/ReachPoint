@@ -383,3 +383,42 @@ export interface RisingWaterView {
     note: string;
   };
 }
+
+/* ---- Intake, desk review, family status (T3, D6): from the starter server (contract/api.md) ---- */
+export type WaterBand = "knee" | "waist" | "chest" | "over_head" | "second_floor";
+export interface Quoted { quote: string }
+export interface ProposedFacts {
+  kind: "my_household" | "check_on" | "neighbour_report";
+  kindQuote: string | null;
+  people: ({ adults: number; children: number; infants: number; stretcher: number } & Quoted) | null;
+  needs: ({ type: AssistanceType } & Quoted)[];
+  water: ({ band: WaterBand } & Quoted) | null;
+  place: ({ text: string } & Quoted) | null;
+  dangerSigns: ({ text: string } & Quoted)[];
+  cantWalk: Quoted | null;
+  summary: string;
+}
+export interface ReviewRow {
+  reportId: string;
+  receivedAt: string;
+  text: string;
+  channel: string;
+  proposal: { source: string; note: string | null; facts: ProposedFacts; dropped: string[] };
+  suggestedSegment: { segmentId: string | null; zoneId?: string; label: string; why: string } | null;
+  prompts: { kind: "urgent_flag" | "stretcher" | "neighbour"; text: string }[];
+}
+export interface ReviewQueueView {
+  generatedAt: string;
+  label: string;
+  reports: ReviewRow[];
+  landmarks: { segmentId: string; label: string }[];
+}
+export interface ResidentStatusView {
+  reportId: string;
+  caseId?: string;
+  generatedAt: string;
+  label: string;
+  state: string;
+  lastConfirmedAt?: string;
+  lines: { family?: string; state: string; text: string }[];
+}

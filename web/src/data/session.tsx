@@ -16,7 +16,7 @@ export const DEMO_SESSIONS: Session[] = [
   { role: "team_leader", actor: "team:T-S", label: "Team T-S (boat)" },
   { role: "team_leader", actor: "team:T-R", label: "Team T-R (truck)" },
   { role: "coordinator", actor: "coordinator:demo-1", label: "Coordinator desk" },
-  { role: "resident", actor: "resident:demo", label: "Resident (status link)" },
+  { role: "resident", actor: "resident:demo", label: "Resident (ask for help)" },
 ];
 
 const KEY = "reachpoint.session";

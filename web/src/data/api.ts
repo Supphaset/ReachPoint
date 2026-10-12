@@ -31,6 +31,7 @@ async function call<T>(method: "GET" | "POST", path: string, body?: object, toke
     throw new ApiError("OFFLINE", "Can't reach the server. Check your connection and try again");
   }
   const json = await res.json().catch(() => ({}));
+  if (res.status === 422) throw new ApiError("INVALID", "Some details weren't accepted. Check the form and try again.", 422);
   if (!res.ok) throw new ApiError(json.code ?? `HTTP_${res.status}`, json.message ?? res.statusText, res.status);
   return json as T;
 }

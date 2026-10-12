@@ -20,7 +20,9 @@ from pathlib import Path
 from typing import Any
 
 # Tried in order; a busy (503/429) or retired (404) model moves on to the next. GEMINI_MODEL puts one first.
-MODELS = tuple(dict.fromkeys(m for m in (os.environ.get("GEMINI_MODEL"), "gemini-flash-latest", "gemini-3.8-flash", "gemini-3.5-flash") if m))
+# Lite models first: on 12 Oct the full Flash models were often busy (503) or slow, the lite ones answered in ~2 s.
+MODELS = tuple(dict.fromkeys(m for m in (os.environ.get("GEMINI_MODEL"), "gemini-flash-lite-latest", "gemini-3.5-flash-lite",
+                                          "gemini-flash-latest", "gemini-3.8-flash") if m))
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 KINDS = ("my_household", "check_on", "neighbour_report")
 NEEDS = ("evacuation_transport", "medical", "supplies")
@@ -79,7 +81,11 @@ def api_key() -> str | None:
 
 
 def _norm(s: str) -> str:
-    return re.sub(r"\s+", " ", unicodedata.normalize("NFC", s or "")).strip().casefold()
+    """Compare quotes the way a reader would: NFC, the two spellings of Thai SARA AM (U+0E33 vs U+0E4D U+0E32)
+    as one, no zero-width characters, spacing and case ignored."""
+    s = unicodedata.normalize("NFC", s or "").replace("\u0e4d\u0e32", "\u0e33")
+    s = re.sub(r"[\u200b-\u200d\ufeff]", "", s)
+    return re.sub(r"\s+", " ", s).strip().casefold()
 
 
 def quoted(text: str, quote: Any) -> bool:
@@ -172,7 +178,7 @@ def standin_extract(text: str) -> dict:
     return raw
 
 
-def gemini_extract(text: str, key: str, model: str, timeout: float = 15.0) -> dict:
+def gemini_extract(text: str, key: str, model: str, timeout: float = 12.0) -> dict:
     import httpx
     body = {"systemInstruction": {"parts": [{"text": INSTRUCTIONS}]},
             "contents": [{"role": "user", "parts": [{"text": f"Caller's text:\n<<<\n{text}\n>>>"}]}],
@@ -184,20 +190,28 @@ def gemini_extract(text: str, key: str, model: str, timeout: float = 15.0) -> di
     return json.loads("".join(p.get("text", "") for p in parts))
 
 
+RETRY_IF_DROPPED = 3  # a reading that loses this many facts to the quote rule is tried again on the next model
+
+
 def extract(text: str, use_model: bool = True) -> dict:
-    """Proposed facts for the desk, with where they came from. Never raises on model trouble."""
+    """Proposed facts for the desk, with where they came from. Never raises on model trouble. If a reading loses
+    several facts to the quote rule (a model misspelling the caller's words), the next model reads it too, and the
+    reading that kept the most quoted facts wins."""
     text = (text or "").strip()
     key = api_key() if use_model else None
-    source, note, raw = "stand-in", None, None
+    best, note = None, None
     if key:
         for model in MODELS:
             try:
-                raw, source, note = gemini_extract(text, key, model), f"gemini:{model}", None
-                break
-            except Exception as e:  # busy, retired, network, bad JSON: try the next model, then fall back and say so
+                facts, dropped = validate(text, gemini_extract(text, key, model))
+            except Exception as e:  # busy, retired, network, bad JSON: try the next model
                 note = f"AI reading unavailable ({e}); keyword stand-in used"
-    if raw is None:
-        raw = standin_extract(text)
-        note = note or "No AI key on this server; keyword stand-in used"
-    facts, dropped = validate(text, raw)
-    return {"source": source, "note": note, "facts": facts, "dropped": dropped}
+                continue
+            if best is None or len(dropped) < len(best["dropped"]):
+                best = {"source": f"gemini:{model}", "note": None, "facts": facts, "dropped": dropped}
+            if len(dropped) < RETRY_IF_DROPPED:
+                break
+    if best is None:
+        facts, dropped = validate(text, standin_extract(text))
+        best = {"source": "stand-in", "note": note or "No AI key on this server; keyword stand-in used", "facts": facts, "dropped": dropped}
+    return best

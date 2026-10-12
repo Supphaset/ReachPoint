@@ -34,3 +34,21 @@ def test_quotes_ignore_case_and_spacing_but_not_words():
 def test_standin_only_proposes_what_it_can_quote():
     facts, _ = validate(TEXT, standin_extract(TEXT))
     assert facts["water"]["band"] == "chest" and facts["people"] is None
+
+
+def test_a_misspelled_reading_is_read_again_by_the_next_model(monkeypatch):
+    from api.intake import extract as X
+    good = {"kind": "my_household", "kindQuote": "บ้านอยู่", "needs": [], "dangerSigns": [], "summary": "ok",
+            "water": {"band": "chest", "quote": "น้ำถึงอก"}, "people": {"adults": 2, "children": 0, "infants": 0, "stretcher": 0, "quote": "มีผู้ใหญ่ 2 คน"}}
+    garbled = {"kind": "my_household", "kindQuote": "บ้นอยู", "needs": [{"type": "evacuation_transport", "quote": "ช่วยดวย"}], "dangerSigns": [],
+               "summary": "x", "water": {"band": "chest", "quote": "น้ำธิงอก"}, "people": {"adults": 2, "children": 0, "infants": 0, "stretcher": 0, "quote": "มีผู้ใหล่ 2 คน"}}
+    calls = []
+    monkeypatch.setattr(X, "api_key", lambda: "k")
+    monkeypatch.setattr(X, "MODELS", ("m1", "m2"))
+    monkeypatch.setattr(X, "gemini_extract", lambda t, k, m: (calls.append(m), garbled if m == "m1" else good)[1])
+    r = X.extract(TEXT)
+    assert calls == ["m1", "m2"] and r["source"] == "gemini:m2" and r["facts"]["people"]["adults"] == 2
+
+
+def test_thai_sara_am_spellings_match():
+    assert quoted("น้ำถึงอก", "น้ําถึงอก")
