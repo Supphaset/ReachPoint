@@ -10,11 +10,14 @@ from __future__ import annotations
 
 import copy
 import json
+import re
+import secrets
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from api.intake.extract import BANDS, NEEDS
 from api.views import store as views_store
 from api.views.team import group_owner, seats, seats_used
 
@@ -211,3 +214,75 @@ class MemoryStore:
             return ok["response"]
         return {"ok": True, "askedAt": self.clock.iso(), "note": "",
                 "asks": [{"askId": f"ASK-{t}", "teamId": t, "listingIds": []} for t in team_ids]}
+
+    # --- intake and desk review (T3) ---
+
+    def submit_report(self, text: str, channel: str, proposal: dict) -> dict:
+        """A request in the caller's words, with the AI's proposal. Returns its ID and the family's status link token."""
+        if not (text or "").strip():
+            raise Refused("INVALID", "Write what is happening and where")
+        reports = self.store.seed.setdefault("reports", [])
+        rid = f"R-{len(reports) + 1:03d}"
+        token = secrets.token_urlsafe(16)  # 128 bits; carries no personal data
+        reports.append({"reportId": rid, "receivedAt": self.clock.iso(), "channel": channel, "text": text.strip()[:2000],
+                        "proposal": proposal, "status": "proposed", "statusToken": token})
+        self.store.seed.setdefault("statusTokens", {})[token] = {"reportId": rid, "caseId": None}
+        return {"reportId": rid, "statusToken": token}
+
+    def _report(self, report_id: str) -> dict:
+        r = next((r for r in self.store.seed.get("reports", []) if r["reportId"] == report_id), None)
+        if r is None:
+            raise NotFound(report_id)
+        if r["status"] != "proposed":
+            raise Refused("ALLOCATION_CLOSED", f"This request was already {r['status']}")
+        return r
+
+    def approve_report(self, report_id: str, segment_id: str, people: dict, needs: list[str],
+                       water_band: str | None, urgent_reason: str | None, desk_note: str | None) -> dict:
+        """The coordinator's reviewed facts become a case with one listing per need (validated), shown at once on
+        every capable team's list. Counts and needs are what the coordinator approved, not the AI's proposal."""
+        r = self._report(report_id)
+        landmarks = self.store.landmarks
+        if segment_id not in landmarks or landmarks[segment_id].get("zoneId") is None:
+            raise Refused("INVALID", "Pick the landmark nearest the family")
+        party = {k: int(people.get(k) or 0) for k in ("adults", "children", "infants", "stretcher")}
+        if any(v < 0 or v > 60 for v in party.values()) or sum(party.values()) == 0:
+            raise Refused("INVALID", "Enter how many people are there")
+        needs = [n for n in dict.fromkeys(needs) if n in NEEDS]
+        if not needs:
+            raise Refused("INVALID", "Pick at least one kind of help")
+        if water_band is not None and water_band not in BANDS:
+            raise Refused("INVALID", "Pick a water depth from the list")
+        zone = segment_id.rsplit("-", 1)[0]
+        area = next(z["areaId"] for z in self.store.catalogue["zones"] if z["id"] == zone)
+        nums = [int(m.group(1)) for c in self.store.cases if (m := re.match(r"C-(\d+)$", c["caseId"]))]
+        cid = f"C-{max(nums + [0]) + 1:02d}"
+        now = self.clock.iso()
+        total = sum(party.values())
+        suffix = {"evacuation_transport": "EVAC", "medical": "MED", "supplies": "SUP"}
+        case_needs = []
+        for n in needs:
+            rec = {"listingId": f"L-{cid.replace('-', '')}-{suffix[n]}", "type": n,
+                   "units": total if n != "medical" else 1, "unit": "packs" if n == "supplies" else "people",
+                   "review": "validated", "waitingSince": now, "qualifiedAssessment": {"urgentMedical": False},
+                   "urgentFlag": {"reason": urgent_reason.strip()} if urgent_reason and urgent_reason.strip() and n == "evacuation_transport" else None,
+                   "needRevision": 1, "allocation": {"state": "open"}}
+            if n == "evacuation_transport":
+                rec["groups"] = [{"label": "Family 1", "party": party}]
+                rec["destination"] = {"id": "D1", "reason": "Shelter"}
+            if desk_note:
+                rec["deskNote"] = desk_note.strip()[:200]
+            case_needs.append(rec)
+        self.store.seed["cases"].append({"caseId": cid, "areaId": area, "segmentId": segment_id, "people": total, "party": party,
+                                         "note": None, "lastConfirmedAt": now, "needs": case_needs, "fromReport": report_id})
+        if water_band:
+            self.store.seed["waterReports"].append({"caseId": cid, "segmentId": segment_id, "band": water_band, "at": now, "review": "validated"})
+        r.update(status="approved", caseId=cid, reviewedAt=now)
+        self.store.seed["statusTokens"][r["statusToken"]]["caseId"] = cid
+        return {"caseId": cid, "listingIds": [n["listingId"] for n in case_needs]}
+
+    def reject_report(self, report_id: str, reason: str) -> None:
+        if not (reason or "").strip():
+            raise Refused("INVALID", "Say why (for example: duplicate of C-03, or not a flood request)")
+        r = self._report(report_id)
+        r.update(status="rejected", rejectReason=reason.strip()[:200], reviewedAt=self.clock.iso())

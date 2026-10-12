@@ -20,9 +20,12 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from api.intake.extract import extract
 from api.server.memory import Clock, MemoryStore, NotFound, Refused
 from api.views.briefing import area_briefing
 from api.views.desk import rain_view, rising_water_view, zone_order_view
+from api.views.resident import resident_status
+from api.views.review import review_queue
 from api.views.team import team_missions
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -199,6 +202,66 @@ def urgent_flag(listing_id: str, b: UrgentFlag):
 @app.post("/api/ask-teams")
 def ask_teams(b: AskTeams):
     return memory.ask_teams(b.suggestionId, b.teamIds)
+
+
+# --- intake, desk review, family status (T3, D6) ---
+
+USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"
+
+
+class Intake(Write):
+    text: str = Field(min_length=1, max_length=2000)
+    channel: str = "text"
+
+
+class Approve(Write):
+    segmentId: str
+    people: dict[str, int]
+    needs: list[str]
+    waterBand: str | None = None
+    urgentReason: str | None = None
+    deskNote: str | None = None
+
+
+class Reject(Write):
+    reason: str
+
+
+@app.post("/api/intake/text")
+def intake_text(b: Intake):
+    """A request typed by the caller or by a volunteer taking the call. The AI reads it outside the lock (it can take
+    seconds); the report is then stored as a proposal for the desk."""
+    if b.submissionId and b.submissionId in memory.done:
+        return memory.done[b.submissionId]
+    proposal = extract(b.text, use_model=USE_AI)
+    r = memory.write(b.submissionId, lambda: memory.submit_report(b.text, b.channel, proposal))
+    v = r["value"]
+    return {"ok": True, "value": {**v, "statusUrl": f"/status/{v['statusToken']}", "aiSource": proposal["source"]}}
+
+
+@app.get("/api/views/reviewQueue")
+def view_review():
+    with memory.lock:
+        return {**review_queue(memory.store), "generatedAt": _now()}
+
+
+@app.post("/api/reports/{report_id}/approve")
+def approve(report_id: str, b: Approve):
+    return memory.write(b.submissionId, lambda: memory.approve_report(report_id, b.segmentId, b.people, b.needs, b.waterBand, b.urgentReason, b.deskNote))
+
+
+@app.post("/api/reports/{report_id}/reject")
+def reject(report_id: str, b: Reject):
+    return memory.write(b.submissionId, lambda: memory.reject_report(report_id, b.reason))
+
+
+@app.get("/api/status/{token}")
+def status(token: str):
+    with memory.lock:
+        v = resident_status(memory.store, token, _now())
+    if v is None:
+        raise NotFound("status link")
+    return v
 
 
 @app.post("/api/demo/reset")
