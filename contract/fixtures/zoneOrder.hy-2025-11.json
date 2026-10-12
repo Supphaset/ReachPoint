@@ -1,0 +1,438 @@
+{
+ "dataMode": "synthetic",
+ "label": "Desk zone order and suggested checks at 10:16 (C12). Counts only; register details stay with the coordinator",
+ "asOf": "2026-10-11T03:16:00Z",
+ "emergencies": [
+  {
+   "listingId": "L-C01-EVAC",
+   "tier": "1b",
+   "reason": "Transport linked to urgent medical case C-01"
+  },
+  {
+   "listingId": "L-C01-MED",
+   "tier": "1a",
+   "reason": "Qualified review: urgent medical help"
+  }
+ ],
+ "zones": [
+  {
+   "rank": 1,
+   "zoneId": "B-3",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 6,
+   "registerNotChecked": 1,
+   "notYetChecked": [
+    7900,
+    13000
+   ],
+   "lastCheckAt": "2026-10-11T03:05:00Z",
+   "segmentsNotChecked": 6,
+   "segments": 6,
+   "reasons": [
+    "6 reviewed people waiting for a team (2 cases)",
+    "1 on the vulnerable register (not confirmed in need)",
+    "~7,900–13,000 live in segments not yet checked (estimate)",
+    "last checked 11m ago"
+   ]
+  },
+  {
+   "rank": 2,
+   "zoneId": "B-5",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 4,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    3600,
+    4700
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 2,
+   "segments": 2,
+   "reasons": [
+    "4 reviewed people waiting for a team (1 case)",
+    "~3,600–4,700 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 3,
+   "zoneId": "B-6",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 3,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    9100,
+    13000
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 7,
+   "segments": 7,
+   "reasons": [
+    "3 reviewed people waiting for a team (1 case)",
+    "~9,100–13,000 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 4,
+   "zoneId": "B-1",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 3,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    4400,
+    5800
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 3,
+   "segments": 3,
+   "reasons": [
+    "3 reviewed people waiting for a team (1 case)",
+    "~4,400–5,800 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 5,
+   "zoneId": "B-4",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 2,
+   "notYetChecked": [
+    8400,
+    13000
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 5,
+   "segments": 5,
+   "reasons": [
+    "2 on the vulnerable register (not confirmed in need)",
+    "~8,400–13,000 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 6,
+   "zoneId": "B-7",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 1,
+   "notYetChecked": [
+    17000,
+    21000
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 7,
+   "segments": 7,
+   "reasons": [
+    "1 on the vulnerable register (not confirmed in need)",
+    "~17,000–21,000 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 7,
+   "zoneId": "C-1",
+   "areaId": "P-C",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 1,
+   "notYetChecked": [
+    11000,
+    17000
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 3,
+   "segments": 3,
+   "reasons": [
+    "1 on the vulnerable register (not confirmed in need)",
+    "~11,000–17,000 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 8,
+   "zoneId": "B-13",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    7400,
+    11000
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 2,
+   "segments": 2,
+   "reasons": [
+    "~7,400–11,000 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 9,
+   "zoneId": "B-10",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    7200,
+    9200
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 4,
+   "segments": 4,
+   "reasons": [
+    "~7,200–9,200 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 10,
+   "zoneId": "B-2",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    5100,
+    7600
+   ],
+   "lastCheckAt": "2026-10-11T02:20:00Z",
+   "segmentsNotChecked": 4,
+   "segments": 5,
+   "reasons": [
+    "~5,100–7,600 live in segments not yet checked (estimate)",
+    "last checked 56m ago"
+   ]
+  },
+  {
+   "rank": 11,
+   "zoneId": "A-2",
+   "areaId": "P-A",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    4700,
+    9800
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 3,
+   "segments": 3,
+   "reasons": [
+    "~4,700–9,800 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 12,
+   "zoneId": "B-8",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    3900,
+    8600
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 4,
+   "segments": 4,
+   "reasons": [
+    "~3,900–8,600 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 13,
+   "zoneId": "B-12",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    3600,
+    4900
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 3,
+   "segments": 3,
+   "reasons": [
+    "~3,600–4,900 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 14,
+   "zoneId": "B-11",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    3300,
+    5200
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 3,
+   "segments": 3,
+   "reasons": [
+    "~3,300–5,200 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 15,
+   "zoneId": "A-1",
+   "areaId": "P-A",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    2400,
+    3100
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 3,
+   "segments": 3,
+   "reasons": [
+    "~2,400–3,100 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 16,
+   "zoneId": "B-9",
+   "areaId": "P-B",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    2100,
+    5400
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 3,
+   "segments": 3,
+   "reasons": [
+    "~2,100–5,400 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  },
+  {
+   "rank": 17,
+   "zoneId": "C-2",
+   "areaId": "P-C",
+   "pinned": null,
+   "waitingPeople": 0,
+   "registerNotChecked": 0,
+   "notYetChecked": [
+    690,
+    1800
+   ],
+   "lastCheckAt": null,
+   "segmentsNotChecked": 3,
+   "segments": 3,
+   "reasons": [
+    "~690–1,800 live in segments not yet checked (estimate)",
+    "never checked"
+   ]
+  }
+ ],
+ "suggestedChecks": [
+  {
+   "suggestionId": "SC-B-4",
+   "zoneId": "B-4",
+   "areaId": "P-B",
+   "reasons": [
+    "~6,200–8,900 live in the flooded part (estimate)",
+    "0 reviewed calls",
+    "never checked",
+    "2 on the vulnerable register (not confirmed in need)"
+   ]
+  },
+  {
+   "suggestionId": "SC-B-7",
+   "zoneId": "B-7",
+   "areaId": "P-B",
+   "reasons": [
+    "~17,000–21,000 live in the flooded part (estimate)",
+    "2 cited flood reports",
+    "0 reviewed calls",
+    "never checked",
+    "1 on the vulnerable register (not confirmed in need)"
+   ]
+  },
+  {
+   "suggestionId": "SC-C-1",
+   "zoneId": "C-1",
+   "areaId": "P-C",
+   "reasons": [
+    "1 cited flood report",
+    "~11,000–17,000 live here (estimate)",
+    "0 reviewed calls",
+    "never checked",
+    "1 on the vulnerable register (not confirmed in need)"
+   ]
+  },
+  {
+   "suggestionId": "SC-B-13",
+   "zoneId": "B-13",
+   "areaId": "P-B",
+   "reasons": [
+    "~5,400–7,700 live in the flooded part (estimate)",
+    "0 reviewed calls",
+    "never checked"
+   ]
+  },
+  {
+   "suggestionId": "SC-B-10",
+   "zoneId": "B-10",
+   "areaId": "P-B",
+   "reasons": [
+    "~7,200–9,200 live in the flooded part (estimate)",
+    "3 cited flood reports",
+    "0 reviewed calls",
+    "never checked"
+   ]
+  },
+  {
+   "suggestionId": "SC-B-8",
+   "zoneId": "B-8",
+   "areaId": "P-B",
+   "reasons": [
+    "~3,900–8,600 live in the flooded part (estimate)",
+    "0 reviewed calls",
+    "never checked"
+   ]
+  },
+  {
+   "suggestionId": "SC-B-12",
+   "zoneId": "B-12",
+   "areaId": "P-B",
+   "reasons": [
+    "~3,600–4,900 live in the flooded part (estimate)",
+    "0 reviewed calls",
+    "never checked"
+   ]
+  },
+  {
+   "suggestionId": "SC-B-11",
+   "zoneId": "B-11",
+   "areaId": "P-B",
+   "reasons": [
+    "~3,100–5,200 live in the flooded part (estimate)",
+    "0 reviewed calls",
+    "never checked"
+   ]
+  }
+ ]
+}
