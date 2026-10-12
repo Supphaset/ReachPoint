@@ -6,9 +6,11 @@ Three steps, run from the repo root with your sandbox Google Cloud project:
     python data/ee/flood_check.py detect  --project YOUR_EE_PROJECT --package hy-2025-11
     python data/ee/flood_check.py compare --project YOUR_EE_PROJECT --package hy-2025-11 \
         --reference path/to/eos-hatyai.geojson
+    python data/ee/flood_check.py nodata  --project YOUR_EE_PROJECT --package hy-2025-11
 
 `list` writes the available scenes, `detect` writes one flood extent GeoJSON per pass (plus a max-observed union for reference),
-`compare` measures agreement with a published map. Nothing here runs in the app;
+`compare` measures agreement with a published map, `nodata` writes the dense built-up area where
+Sentinel-1 can't see street water (shown as "no satellite data", never as dry; D26). Nothing here runs in the app;
 the outputs are committed under data/<package>/ and served from Cloud Storage.
 """
 
@@ -280,9 +282,50 @@ def cmd_compare(args, pkg, aoi):
     print("Read it with the urban caveat: low agreement in the city core is expected for Sentinel-1.")
 
 
+# "No satellite data" mask (D26), like the Copernicus GFM exclusion mask: dense built-up land, where
+# radar double-bounce hides street water. Run 2026-10-12: 16 of 17 reported flood points fall inside it.
+NODATA = {
+    "built_class": 50,          # ESA WorldCover v200 "Built-up"
+    "radius_m": 200,            # neighbourhood for the built-up share
+    "min_share": 0.5,           # at least half the neighbourhood is built-up
+    "min_area_m2": 300_000,     # drop small villages and isolated blocks
+    "scale_m": 30,
+}
+NODATA_LABEL = ("No satellite data: dense built-up area where Sentinel-1 can't see street water. "
+                "Flooding here is known only from reports and callers. Never shown as dry.")
+
+
+def cmd_nodata(args, pkg, aoi):
+    n = NODATA
+    built = ee.ImageCollection("ESA/WorldCover/v200").first().select("Map").eq(n["built_class"])
+    share = built.reduceNeighborhood(ee.Reducer.mean(), ee.Kernel.circle(n["radius_m"], "meters"))
+    mask = share.gt(n["min_share"]).selfMask().reproject("EPSG:4326", None, n["scale_m"]).rename("flood")
+    vectors = mask.reduceToVectors(geometry=aoi, scale=n["scale_m"], geometryType="polygon",
+                                   eightConnected=True, labelProperty="flood", maxPixels=1e10)
+    props = {"package": args.package, "kind": "no_satellite_data"}
+
+    def tidy(f):
+        f = ee.Feature(f)
+        return f.simplify(n["scale_m"]).set({"area_m2": f.geometry().area(1), **props})
+
+    info = vectors.map(tidy).filter(ee.Filter.gte("area_m2", n["min_area_m2"])).getInfo()
+    meta = {
+        "label": NODATA_LABEL,
+        "attribution": "ESA WorldCover 10 m 2021 v200 (CC BY 4.0), processed by ReachPoint",
+        "method": "Share of WorldCover built-up pixels within the radius, above the minimum share",
+        "parameters": n,
+        "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+    path = DATA_DIR / args.package / "no-satellite-data.geojson"
+    size = write_geojson(info, path, meta)
+    km2 = sum(f["properties"]["area_m2"] for f in info["features"]) / 1e6
+    print(f"No satellite data: {len(info['features'])} polygons, {km2:.2f} km²")
+    print(f"-> {path.relative_to(DATA_DIR.parent)} ({size / 1024:.0f} KB)")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=["list", "detect", "compare"])
+    parser.add_argument("step", choices=["list", "detect", "compare", "nodata"])
     parser.add_argument("--project", required=True, help="Google Cloud project registered for Earth Engine")
     parser.add_argument("--package", default="hy-2025-11", choices=sorted(PACKAGES))
     parser.add_argument("--date", action="append", help="detect: only this event date (YYYY-MM-DD); repeatable")
@@ -297,7 +340,7 @@ def main():
     ee.Initialize(project=args.project)
     pkg = PACKAGES[args.package]
     aoi = ee.Geometry.Rectangle(pkg["bbox"])
-    {"list": cmd_list, "detect": cmd_detect, "compare": cmd_compare}[args.step](args, pkg, aoi)
+    {"list": cmd_list, "detect": cmd_detect, "compare": cmd_compare, "nodata": cmd_nodata}[args.step](args, pkg, aoi)
 
 
 if __name__ == "__main__":

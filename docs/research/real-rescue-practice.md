@@ -123,6 +123,16 @@ Research date: 11 Oct 2026. Sources are listed at the end. Where a source didn't
 
 **For us:** GISTDA's figures are the sanity check for our estimate. Because the water went down slowly, a zone's needs shift from rescue to supplies over days.
 
+## 6. How teams cut and use zones (research 2026-10-12, D30)
+
+- **Edges a crew can see.** Search planners cut segments along features visible in the field (roads, railways, canals, creeks) so teams need less GPS, and they keep segment edges and IDs fixed for the whole incident ([CalTopo segment training](https://training.caltopo.com/firstresponse/course/segment)). Segments of very different size are a planning problem; size follows the work, not a grid.
+- **Use existing lines where they exist.** Segments often follow existing boundaries such as census blocks or fire and police districts.
+- **One written assignment per team and shift.** In ICS, each division or group gets an assignment list (ICS 204) with the team, the area, the work and the radio contact for one operational period ([FEMA ICS 204](https://training.fema.gov/EMIWeb/IS/ICSResource/assets/ICS%20Forms//ICS%20Form%20204,%20Assignment%20List%20(v3.1).pdf)).
+- **Mark what's done.** US&R teams mark each searched building: a slash on entry, an X on exit, with team, date, hazards and people still inside ([TEEX log book](https://teex.org/wp-content/uploads/WAS_PER213_TEEX-Unit_Log_Book.pdf)). ReachPoint's "Checked · T-S · 4 households" is the digital version.
+- **Harvey:** crews searched Houston block by block, each crew on a named neighbourhood ([AP via KTVU](https://www.ktvu.com/news/rescuers-seek-anyone-alive-or-dead-left-in-floodwaters)).
+- **Hat Yai already has the lines.** The city municipality divides itself into 4 districts (เขต 1–4) with 103 communities (28/29/25/21), published as a map ([hatyaicity.go.th](https://hatyaicity.go.th/content/cate/259)), and its Nov 2025 flood warnings counted communities per district ([Thansettakij](https://www.thansettakij.com/general-news/646798)). After the flood, academics proposed that the command centre register which group covers which area, to cut duplicated work ([Thai Post](https://www.thaipost.net/general-news/903372/)).
+- **Consequence (D30):** city zones follow OSM roads, the railway and canals, sit inside one city district each, and keep generic IDs.
+
 ## Sources
 - Rocket Media Lab, Hat Yai help-request systems: https://rocketmedialab.co/flood-relief-system/
 - ThaiPublica, Hat Yai flood white paper: https://thaipublica.org/2026/05/hatyai-flood-systemic-failure-analysis/

@@ -12,6 +12,9 @@ Every published layer must trace back to an entry here. See pack §5.1b–c for 
 | Sentinel Asia products (EOS, AIT), 23 Nov 2025 | Comparison only; not redistributed until the licence is checked | As stated on each product |
 | News and official reports (FM91, Bangkok Biz News, Thai PBS), 23–25 Nov 2025 | `reported-flooding.geojson`: the city centre, where Sentinel-1 can't see water | Cited per point; we paraphrase the text, not copy it |
 | OpenStreetMap / Nominatim | Approximate locations for reported streets and landmarks | © OpenStreetMap contributors, ODbL |
+| OpenStreetMap (Overpass, fetched 2026-10-12) | City zone and segment edges: trunk to tertiary roads, railway, river, canals; municipal boundary (relation 19981578) | © OpenStreetMap contributors, ODbL |
+| Hat Yai City Municipality community map, "ผังรวม 103 ชุมชน" (updated 14 Nov 2565) | District (เขต 1–4) membership of each city zone. Not redistributed; only the traced district outlines were used, kept outside the repo | © เทศบาลนครหาดใหญ่; the map says it is approximate |
+| ESA WorldCover 10 m 2021 v200 (`ESA/WorldCover/v200`) | "No satellite data" mask: dense built-up land (D26) | CC BY 4.0, © ESA WorldCover project |
 
 ## Runs
 
@@ -78,3 +81,26 @@ Every published layer must trace back to an entry here. See pack §5.1b–c for 
   - Places I couldn't geocode reliably were left out: Pom Hok community, Soi Sam Sakun 4, the PWA plant, and Wat Bang Sala (the OSM match was in another district).
 - **Visual check:** the reported points fill the city-centre gap, where the satellite layer is blank.
 - **Still to do:** compare with the EOS/AIT maps (needs the reference file and a licence check).
+
+### hy-2025-11: "no satellite data" mask and planning geography v1 (2026-10-12)
+
+- **Why:** Sentinel-1 can't see water between dense buildings (double-bounce). Like the Copernicus GFM exclusion mask, we ship those areas as "no satellite data", so nothing there is ever shown as dry (D26).
+- **Method (`flood_check.py nodata`):** WorldCover built-up (class 50); share of built-up pixels within 200 m; kept where the share is over 50%; vectorised at 30 m; polygons under 0.3 km² dropped.
+- **Result:** 20 polygons, 54.8 km², 75 KB. The Hat Yai core is one 28 km² polygon.
+- **Check against the reports:** 16 of the 17 cited reported-flooding points fall inside the core polygon. Inside it, the 24 Nov pass detected only about 0.01 km² of water. The 17th point (Ban Phru, RPT-17) falls in a smaller built-up polygon to the south. This matches the expected blind spot.
+- **Threshold choice:** 40% merged the core with surrounding villages (47 km²); 60% shrank it to 24 km² with the same 16 points. We use 50%.
+- **Planning geography v1 (superseded for the city by v2 below):**
+  - P-B (evacuation): B-1…B-5 in the city core, 2.0–3.3 km² each, 69–100% no satellite data. B-3 holds 7 of the reported points; B-4 has none (the "quiet zone" scene).
+  - P-A (support in place): A-1 and A-2 north of the city, where the 24 Nov pass detected water among houses.
+  - P-C (no recent assessment): C-1 and C-2 around Ban Phru (RPT-17: people on rooftops, 25 Nov).
+  - 34 segments (one per landmark) and the shelter D1 on higher ground east of the core.
+  - Rough size check (WorldPop 2020, 100 m): about 13,000–16,000 people in each city-core zone. The real per-segment estimate is Tuesday's task (D27).
+
+### hy-2025-11: planning geography v2, city zones along streets (2026-10-12, D30)
+
+- **District outlines:** the city's community map (PDF, a scanned image) was fitted to the OSM municipal boundary with an affine transform (median error 38 m), and the thick district lines were traced: เขต 1 4.7 km², เขต 2 6.1 km², เขต 3 4.5 km², เขต 4 4.0 km² (narrow edge strips are assigned to the nearest district).
+- **Zones:** OSM trunk/primary/secondary roads, the railway, the river and canals cut the municipality into blocks; each block goes to the district holding most of it; blocks under 60 ha (or thinner than 40 m) merge with a neighbour in the same district. Result: 13 zones, 0.7–4.0 km².
+- **Segments:** each zone is cut again along tertiary roads; pieces under 12 ha (or thinner than 25 m) merge. Result: 54 segments, one generic landmark each.
+- **Scenes:** B-3 (เขต 2) holds 6 of the 17 reported points, the most of any zone, including Niphat Uthit 2/3; B-4 (เขต 2) holds none (quiet zone).
+- **Rural zones** A-1, A-2, C-1, C-2 are unchanged from v1.
+

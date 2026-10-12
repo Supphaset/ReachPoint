@@ -118,7 +118,7 @@ Conventions (from draft v1, kept): ISO-8601 UTC strings; displayed in Asia/Bangk
 
 | Collection | Meaning | Writer (via API only) | Meaning-owner |
 |---|---|---|---|
-| `areas/{areaId}` | P-A/P-B/P-C, boundaryVersion, landmark list (L1…L3) | seed script | **You** |
+| `areas/{areaId}` | P-A/P-B/P-C, boundaryVersion, zones, segments and landmarks. **Geography v1 (12 Oct):** landmark and segment IDs are zone-scoped, e.g. `B-3-L3` shown as "B-3 · L3 Community building" (fixture `contract/fixtures/areas.hy-2025-11.json`) | seed script | **You** |
 | `evidence/{evidenceId}` | typed flood/exposure items (EXT-A, DEP-A, POP-A…) | `submitSourcePackage` | **You** |
 | `reports/{reportId}` | raw incoming items: `channel` ∈ phone, chat, field_observation, team_report | intake, team UI | Friend |
 | `proposedEvents/{eventId}` | AI or human proposals linked to a report span | AI pipeline, desk | Friend |
@@ -346,7 +346,7 @@ Conventions (from draft v1, kept): ISO-8601 UTC strings; displayed in Asia/Bangk
 
 **Scope consequence:** 0005 assumed *one fictional locality*. With two real past events, the simplest honest structure is **one locality hosting all of P-A/P-B/P-C**, plus the other event as a **second map/briefing package with no operational records**. **Decided (human, 2026-10-11): Hat Yai hosts the operational scenario; Bangkok is the second package.**
 - **Hat Yai planning areas:** pick three sub-district-scale areas from the S1 extent. P-A: support-in-place, shallower/peripheral. P-B: deep, evacuation needed. P-C: no recent assessment.
-- **Area IDs:** keep P-A/P-B/P-C as IDs, with real place labels only at district level. Landmarks stay generic (L1–L3, D1).
+- **Area IDs:** keep P-A/P-B/P-C as IDs, with real place labels only at district level. Landmarks stay generic (L1–L3, D1). **D30:** the city's own districts (เขต 1–4 of Hat Yai City Municipality) are also shown; zones and segments keep generic IDs.
 - **Bangkok areas:** IDs `BKK-1…n`, with no operational records.
 - **Contract change:** `areas/{areaId}` gains `packageId` (`HY-2025-11` | `BKK-2026-09`) and `event: {name, start, end}`. Area briefings for Bangkok return operational fields as `null` with `reason: "no_operational_records_in_package"`, not zeros.
 

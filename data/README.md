@@ -14,6 +14,12 @@ Each package folder holds what the app shows for one past flood event:
 | `<package>/extent-max-observed.geojson` | Union of all passes, for reference and comparison only (not shown in the app) |
 | `<package>/layers.json` | Which layers the app shows, their labels and the default |
 | `<package>/reported-flooding.geojson` | Cited reports of flooding the satellite can't see (city centre) |
+| `<package>/no-satellite-data.geojson` | Dense built-up area where Sentinel-1 can't see street water: shown as "no satellite data", never as dry (D26) |
+| `<package>/geography-source.json` | **Hand-drawn** zones and landmarks (edit this one) |
+| `<package>/areas.geojson`, `zones.geojson`, `segments.geojson`, `landmarks.geojson` | Built from the source: areas → zones → one segment per landmark, plus D1 |
+| `scripts/build_geography.py` | Builds the four files above, `districts.geojson`, and the C1 fixture `contract/fixtures/areas.<package>.json` |
+| `scripts/cut_city_zones.py` | Cuts the city (P-B) into zones and segments along OSM streets, grouped by the city's 4 districts (D30); writes the P-B zones into `geography-source.json` |
+| `<package>/osm-lines.geojson`, `osm-municipality.geojson` | Cached OpenStreetMap roads, railway, river, canals and the municipal boundary (ODbL) |
 | `<package>/run-summary.json` | Parameters, scenes used and flooded area for the run |
 | `SOURCES.md` | Record of every run and its comparison with published maps |
 
@@ -65,6 +71,28 @@ python data/ee/flood_check.py compare --project YOUR_SANDBOX_PROJECT --package h
 **If the city core shows no water**, that's the expected Sentinel-1 urban limit. Keep the legend text and don't tune thresholds to force it.
 
 **If our extent is clearly wrong**, use the fallback in pack §5.1c: the published polygons, with attribution, after checking their licence.
+
+## Zones, segments and landmarks
+
+**City (P-B, D30):** zones and segments are cut along real roads, the railway, the river and canals, and each zone sits inside one of the city's 4 districts (เขต 1–4). IDs are generic (`B-3-L5`, shown as "B-3 · L5 School"); landmarks are generic types, not real buildings. **Rural (P-A, P-C):** zones are hand-drawn and cut into one segment per landmark (the part nearer that landmark than any other).
+
+1. Refresh the "no satellite data" mask (Earth Engine, only when its parameters change):
+
+```bash
+python data/ee/flood_check.py nodata --project YOUR_SANDBOX_PROJECT --package hy-2025-11
+```
+
+2. Re-cut the city zones (only when the cut rules change). The district outlines file is traced from the city's community map and kept outside the repo; see `SOURCES.md`:
+
+```bash
+python data/scripts/cut_city_zones.py --districts path/to/districts-traced.geojson
+```
+
+3. After editing `geography-source.json`, rebuild and test:
+
+```bash
+python data/scripts/build_geography.py hy-2025-11
+```
 
 ## Tests
 

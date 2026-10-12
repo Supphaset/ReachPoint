@@ -1,0 +1,1310 @@
+{
+ "label": "Synthetic planning zones and generic landmarks for the demo; not official boundaries or real buildings.",
+ "package": "hy-2025-11",
+ "version": 2,
+ "updatedAt": "2026-10-12",
+ "dataMode": "synthetic",
+ "attribution": "Built-up mask: ESA WorldCover 10 m 2021 v200 (CC BY 4.0)",
+ "areas": [
+  {
+   "id": "P-A",
+   "need": "support_in_place",
+   "label": "P-A · support in place",
+   "description": "Shallower water on the northern edge; people can mostly stay home with supplies",
+   "district": "Hat Yai",
+   "zoneIds": [
+    "A-1",
+    "A-2"
+   ]
+  },
+  {
+   "id": "P-B",
+   "need": "evacuation",
+   "label": "P-B · deep water, evacuation",
+   "description": "Dense city centre; reported chest-deep to over-head water; the satellite can't see it",
+   "district": "Hat Yai",
+   "zoneIds": [
+    "B-1",
+    "B-2",
+    "B-3",
+    "B-4",
+    "B-5",
+    "B-6",
+    "B-7",
+    "B-8",
+    "B-9",
+    "B-10",
+    "B-11",
+    "B-12",
+    "B-13"
+   ]
+  },
+  {
+   "id": "P-C",
+   "need": "no_recent_assessment",
+   "label": "P-C · no recent assessment",
+   "description": "Southern edge; one cited report of people on rooftops, nothing since",
+   "district": "Hat Yai",
+   "zoneIds": [
+    "C-1",
+    "C-2"
+   ]
+  }
+ ],
+ "zones": [
+  {
+   "id": "B-1",
+   "areaId": "P-B",
+   "district": "เขต 1",
+   "segments": [
+    {
+     "id": "B-1-L1",
+     "landmarkId": "B-1-L1",
+     "label": "B-1 · L1 Shrine",
+     "noSatelliteDataShare": 0.81
+    },
+    {
+     "id": "B-1-L2",
+     "landmarkId": "B-1-L2",
+     "label": "B-1 · L2 Temple",
+     "noSatelliteDataShare": 0.71
+    },
+    {
+     "id": "B-1-L3",
+     "landmarkId": "B-1-L3",
+     "label": "B-1 · L3 Market",
+     "noSatelliteDataShare": 0.97
+    }
+   ]
+  },
+  {
+   "id": "B-2",
+   "areaId": "P-B",
+   "district": "เขต 1",
+   "segments": [
+    {
+     "id": "B-2-L1",
+     "landmarkId": "B-2-L1",
+     "label": "B-2 · L1 Temple",
+     "noSatelliteDataShare": 0.93
+    },
+    {
+     "id": "B-2-L2",
+     "landmarkId": "B-2-L2",
+     "label": "B-2 · L2 Market",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-2-L3",
+     "landmarkId": "B-2-L3",
+     "label": "B-2 · L3 Community building",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-2-L4",
+     "landmarkId": "B-2-L4",
+     "label": "B-2 · L4 Mosque",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-2-L5",
+     "landmarkId": "B-2-L5",
+     "label": "B-2 · L5 School",
+     "noSatelliteDataShare": 1.0
+    }
+   ]
+  },
+  {
+   "id": "B-3",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "segments": [
+    {
+     "id": "B-3-L1",
+     "landmarkId": "B-3-L1",
+     "label": "B-3 · L1 Temple",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-3-L2",
+     "landmarkId": "B-3-L2",
+     "label": "B-3 · L2 Market",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-3-L3",
+     "landmarkId": "B-3-L3",
+     "label": "B-3 · L3 Community building",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-3-L4",
+     "landmarkId": "B-3-L4",
+     "label": "B-3 · L4 Mosque",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-3-L5",
+     "landmarkId": "B-3-L5",
+     "label": "B-3 · L5 School",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-3-L6",
+     "landmarkId": "B-3-L6",
+     "label": "B-3 · L6 Health centre",
+     "noSatelliteDataShare": 1.0
+    }
+   ]
+  },
+  {
+   "id": "B-4",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "segments": [
+    {
+     "id": "B-4-L1",
+     "landmarkId": "B-4-L1",
+     "label": "B-4 · L1 Health centre",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-4-L2",
+     "landmarkId": "B-4-L2",
+     "label": "B-4 · L2 Shrine",
+     "noSatelliteDataShare": 0.72
+    },
+    {
+     "id": "B-4-L3",
+     "landmarkId": "B-4-L3",
+     "label": "B-4 · L3 Temple",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-4-L4",
+     "landmarkId": "B-4-L4",
+     "label": "B-4 · L4 Market",
+     "noSatelliteDataShare": 0.58
+    },
+    {
+     "id": "B-4-L5",
+     "landmarkId": "B-4-L5",
+     "label": "B-4 · L5 School",
+     "noSatelliteDataShare": 0.95
+    }
+   ]
+  },
+  {
+   "id": "B-5",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "segments": [
+    {
+     "id": "B-5-L1",
+     "landmarkId": "B-5-L1",
+     "label": "B-5 · L1 Health centre",
+     "noSatelliteDataShare": 0.62
+    },
+    {
+     "id": "B-5-L2",
+     "landmarkId": "B-5-L2",
+     "label": "B-5 · L2 Shrine",
+     "noSatelliteDataShare": 0.89
+    }
+   ]
+  },
+  {
+   "id": "B-6",
+   "areaId": "P-B",
+   "district": "เขต 1",
+   "segments": [
+    {
+     "id": "B-6-L1",
+     "landmarkId": "B-6-L1",
+     "label": "B-6 · L1 Mosque",
+     "noSatelliteDataShare": 0.85
+    },
+    {
+     "id": "B-6-L2",
+     "landmarkId": "B-6-L2",
+     "label": "B-6 · L2 School",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-6-L3",
+     "landmarkId": "B-6-L3",
+     "label": "B-6 · L3 Health centre",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-6-L4",
+     "landmarkId": "B-6-L4",
+     "label": "B-6 · L4 Shrine",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-6-L5",
+     "landmarkId": "B-6-L5",
+     "label": "B-6 · L5 Temple",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-6-L6",
+     "landmarkId": "B-6-L6",
+     "label": "B-6 · L6 Market",
+     "noSatelliteDataShare": 0.76
+    },
+    {
+     "id": "B-6-L7",
+     "landmarkId": "B-6-L7",
+     "label": "B-6 · L7 Community building",
+     "noSatelliteDataShare": 1.0
+    }
+   ]
+  },
+  {
+   "id": "B-7",
+   "areaId": "P-B",
+   "district": "เขต 4",
+   "segments": [
+    {
+     "id": "B-7-L1",
+     "landmarkId": "B-7-L1",
+     "label": "B-7 · L1 Market",
+     "noSatelliteDataShare": 0.55
+    },
+    {
+     "id": "B-7-L2",
+     "landmarkId": "B-7-L2",
+     "label": "B-7 · L2 Community building",
+     "noSatelliteDataShare": 0.48
+    },
+    {
+     "id": "B-7-L3",
+     "landmarkId": "B-7-L3",
+     "label": "B-7 · L3 Mosque",
+     "noSatelliteDataShare": 0.95
+    },
+    {
+     "id": "B-7-L4",
+     "landmarkId": "B-7-L4",
+     "label": "B-7 · L4 School",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-7-L5",
+     "landmarkId": "B-7-L5",
+     "label": "B-7 · L5 Health centre",
+     "noSatelliteDataShare": 0.31
+    },
+    {
+     "id": "B-7-L6",
+     "landmarkId": "B-7-L6",
+     "label": "B-7 · L6 Shrine",
+     "noSatelliteDataShare": 0.92
+    },
+    {
+     "id": "B-7-L7",
+     "landmarkId": "B-7-L7",
+     "label": "B-7 · L7 Temple",
+     "noSatelliteDataShare": 0.66
+    }
+   ]
+  },
+  {
+   "id": "B-8",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "segments": [
+    {
+     "id": "B-8-L1",
+     "landmarkId": "B-8-L1",
+     "label": "B-8 · L1 School",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-8-L2",
+     "landmarkId": "B-8-L2",
+     "label": "B-8 · L2 Health centre",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-8-L3",
+     "landmarkId": "B-8-L3",
+     "label": "B-8 · L3 Shrine",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-8-L4",
+     "landmarkId": "B-8-L4",
+     "label": "B-8 · L4 Temple",
+     "noSatelliteDataShare": 0.89
+    }
+   ]
+  },
+  {
+   "id": "B-9",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "segments": [
+    {
+     "id": "B-9-L1",
+     "landmarkId": "B-9-L1",
+     "label": "B-9 · L1 Community building",
+     "noSatelliteDataShare": 0.62
+    },
+    {
+     "id": "B-9-L2",
+     "landmarkId": "B-9-L2",
+     "label": "B-9 · L2 Mosque",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-9-L3",
+     "landmarkId": "B-9-L3",
+     "label": "B-9 · L3 School",
+     "noSatelliteDataShare": 0.98
+    }
+   ]
+  },
+  {
+   "id": "B-10",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "segments": [
+    {
+     "id": "B-10-L1",
+     "landmarkId": "B-10-L1",
+     "label": "B-10 · L1 Market",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-10-L2",
+     "landmarkId": "B-10-L2",
+     "label": "B-10 · L2 Community building",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-10-L3",
+     "landmarkId": "B-10-L3",
+     "label": "B-10 · L3 Mosque",
+     "noSatelliteDataShare": 0.68
+    },
+    {
+     "id": "B-10-L4",
+     "landmarkId": "B-10-L4",
+     "label": "B-10 · L4 School",
+     "noSatelliteDataShare": 1.0
+    }
+   ]
+  },
+  {
+   "id": "B-11",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "segments": [
+    {
+     "id": "B-11-L1",
+     "landmarkId": "B-11-L1",
+     "label": "B-11 · L1 Community building",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-11-L2",
+     "landmarkId": "B-11-L2",
+     "label": "B-11 · L2 Mosque",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-11-L3",
+     "landmarkId": "B-11-L3",
+     "label": "B-11 · L3 School",
+     "noSatelliteDataShare": 1.0
+    }
+   ]
+  },
+  {
+   "id": "B-12",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "segments": [
+    {
+     "id": "B-12-L1",
+     "landmarkId": "B-12-L1",
+     "label": "B-12 · L1 School",
+     "noSatelliteDataShare": 0.5
+    },
+    {
+     "id": "B-12-L2",
+     "landmarkId": "B-12-L2",
+     "label": "B-12 · L2 Health centre",
+     "noSatelliteDataShare": 0.58
+    },
+    {
+     "id": "B-12-L3",
+     "landmarkId": "B-12-L3",
+     "label": "B-12 · L3 Shrine",
+     "noSatelliteDataShare": 0.48
+    }
+   ]
+  },
+  {
+   "id": "B-13",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "segments": [
+    {
+     "id": "B-13-L1",
+     "landmarkId": "B-13-L1",
+     "label": "B-13 · L1 Mosque",
+     "noSatelliteDataShare": 1.0
+    },
+    {
+     "id": "B-13-L2",
+     "landmarkId": "B-13-L2",
+     "label": "B-13 · L2 School",
+     "noSatelliteDataShare": 1.0
+    }
+   ]
+  },
+  {
+   "id": "A-1",
+   "areaId": "P-A",
+   "district": null,
+   "segments": [
+    {
+     "id": "A-1-L1",
+     "landmarkId": "A-1-L1",
+     "label": "A-1 · L1 Temple",
+     "noSatelliteDataShare": 0.0
+    },
+    {
+     "id": "A-1-L2",
+     "landmarkId": "A-1-L2",
+     "label": "A-1 · L2 School",
+     "noSatelliteDataShare": 0.0
+    },
+    {
+     "id": "A-1-L3",
+     "landmarkId": "A-1-L3",
+     "label": "A-1 · L3 Community building",
+     "noSatelliteDataShare": 0.0
+    }
+   ]
+  },
+  {
+   "id": "A-2",
+   "areaId": "P-A",
+   "district": null,
+   "segments": [
+    {
+     "id": "A-2-L1",
+     "landmarkId": "A-2-L1",
+     "label": "A-2 · L1 School",
+     "noSatelliteDataShare": 0.0
+    },
+    {
+     "id": "A-2-L2",
+     "landmarkId": "A-2-L2",
+     "label": "A-2 · L2 Temple",
+     "noSatelliteDataShare": 0.02
+    },
+    {
+     "id": "A-2-L3",
+     "landmarkId": "A-2-L3",
+     "label": "A-2 · L3 Community building",
+     "noSatelliteDataShare": 0.0
+    }
+   ]
+  },
+  {
+   "id": "C-1",
+   "areaId": "P-C",
+   "district": null,
+   "segments": [
+    {
+     "id": "C-1-L1",
+     "landmarkId": "C-1-L1",
+     "label": "C-1 · L1 Market",
+     "noSatelliteDataShare": 0.33
+    },
+    {
+     "id": "C-1-L2",
+     "landmarkId": "C-1-L2",
+     "label": "C-1 · L2 Community building",
+     "noSatelliteDataShare": 0.0
+    },
+    {
+     "id": "C-1-L3",
+     "landmarkId": "C-1-L3",
+     "label": "C-1 · L3 Temple",
+     "noSatelliteDataShare": 0.41
+    }
+   ]
+  },
+  {
+   "id": "C-2",
+   "areaId": "P-C",
+   "district": null,
+   "segments": [
+    {
+     "id": "C-2-L1",
+     "landmarkId": "C-2-L1",
+     "label": "C-2 · L1 School",
+     "noSatelliteDataShare": 0.0
+    },
+    {
+     "id": "C-2-L2",
+     "landmarkId": "C-2-L2",
+     "label": "C-2 · L2 Temple",
+     "noSatelliteDataShare": 0.0
+    },
+    {
+     "id": "C-2-L3",
+     "landmarkId": "C-2-L3",
+     "label": "C-2 · L3 Community building",
+     "noSatelliteDataShare": 0.0
+    }
+   ]
+  }
+ ],
+ "landmarks": [
+  {
+   "id": "B-1-L1",
+   "code": "L1",
+   "type": "Shrine",
+   "zoneId": "B-1",
+   "label": "B-1 · L1 Shrine",
+   "at": [
+    100.50297,
+    7.0441
+   ]
+  },
+  {
+   "id": "B-1-L2",
+   "code": "L2",
+   "type": "Temple",
+   "zoneId": "B-1",
+   "label": "B-1 · L2 Temple",
+   "at": [
+    100.5015,
+    7.03678
+   ]
+  },
+  {
+   "id": "B-1-L3",
+   "code": "L3",
+   "type": "Market",
+   "zoneId": "B-1",
+   "label": "B-1 · L3 Market",
+   "at": [
+    100.50007,
+    7.02684
+   ]
+  },
+  {
+   "id": "B-2-L1",
+   "code": "L1",
+   "type": "Temple",
+   "zoneId": "B-2",
+   "label": "B-2 · L1 Temple",
+   "at": [
+    100.4653,
+    7.02525
+   ]
+  },
+  {
+   "id": "B-2-L2",
+   "code": "L2",
+   "type": "Market",
+   "zoneId": "B-2",
+   "label": "B-2 · L2 Market",
+   "at": [
+    100.46802,
+    7.02401
+   ]
+  },
+  {
+   "id": "B-2-L3",
+   "code": "L3",
+   "type": "Community building",
+   "zoneId": "B-2",
+   "label": "B-2 · L3 Community building",
+   "at": [
+    100.46802,
+    7.01885
+   ]
+  },
+  {
+   "id": "B-2-L4",
+   "code": "L4",
+   "type": "Mosque",
+   "zoneId": "B-2",
+   "label": "B-2 · L4 Mosque",
+   "at": [
+    100.46907,
+    7.01503
+   ]
+  },
+  {
+   "id": "B-2-L5",
+   "code": "L5",
+   "type": "School",
+   "zoneId": "B-2",
+   "label": "B-2 · L5 School",
+   "at": [
+    100.46849,
+    7.01236
+   ]
+  },
+  {
+   "id": "B-3-L1",
+   "code": "L1",
+   "type": "Temple",
+   "zoneId": "B-3",
+   "label": "B-3 · L1 Temple",
+   "at": [
+    100.47763,
+    7.01557
+   ]
+  },
+  {
+   "id": "B-3-L2",
+   "code": "L2",
+   "type": "Market",
+   "zoneId": "B-3",
+   "label": "B-3 · L2 Market",
+   "at": [
+    100.47125,
+    7.01058
+   ]
+  },
+  {
+   "id": "B-3-L3",
+   "code": "L3",
+   "type": "Community building",
+   "zoneId": "B-3",
+   "label": "B-3 · L3 Community building",
+   "at": [
+    100.47455,
+    7.00937
+   ]
+  },
+  {
+   "id": "B-3-L4",
+   "code": "L4",
+   "type": "Mosque",
+   "zoneId": "B-3",
+   "label": "B-3 · L4 Mosque",
+   "at": [
+    100.47263,
+    7.00525
+   ]
+  },
+  {
+   "id": "B-3-L5",
+   "code": "L5",
+   "type": "School",
+   "zoneId": "B-3",
+   "label": "B-3 · L5 School",
+   "at": [
+    100.46966,
+    7.00262
+   ]
+  },
+  {
+   "id": "B-3-L6",
+   "code": "L6",
+   "type": "Health centre",
+   "zoneId": "B-3",
+   "label": "B-3 · L6 Health centre",
+   "at": [
+    100.47337,
+    7.00049
+   ]
+  },
+  {
+   "id": "B-4-L1",
+   "code": "L1",
+   "type": "Health centre",
+   "zoneId": "B-4",
+   "label": "B-4 · L1 Health centre",
+   "at": [
+    100.48431,
+    7.01626
+   ]
+  },
+  {
+   "id": "B-4-L2",
+   "code": "L2",
+   "type": "Shrine",
+   "zoneId": "B-4",
+   "label": "B-4 · L2 Shrine",
+   "at": [
+    100.49014,
+    7.01416
+   ]
+  },
+  {
+   "id": "B-4-L3",
+   "code": "L3",
+   "type": "Temple",
+   "zoneId": "B-4",
+   "label": "B-4 · L3 Temple",
+   "at": [
+    100.48344,
+    7.0108
+   ]
+  },
+  {
+   "id": "B-4-L4",
+   "code": "L4",
+   "type": "Market",
+   "zoneId": "B-4",
+   "label": "B-4 · L4 Market",
+   "at": [
+    100.49062,
+    7.00746
+   ]
+  },
+  {
+   "id": "B-4-L5",
+   "code": "L5",
+   "type": "School",
+   "zoneId": "B-4",
+   "label": "B-4 · L5 School",
+   "at": [
+    100.48867,
+    7.00473
+   ]
+  },
+  {
+   "id": "B-5-L1",
+   "code": "L1",
+   "type": "Health centre",
+   "zoneId": "B-5",
+   "label": "B-5 · L1 Health centre",
+   "at": [
+    100.44378,
+    7.00015
+   ]
+  },
+  {
+   "id": "B-5-L2",
+   "code": "L2",
+   "type": "Shrine",
+   "zoneId": "B-5",
+   "label": "B-5 · L2 Shrine",
+   "at": [
+    100.43863,
+    6.99667
+   ]
+  },
+  {
+   "id": "B-6-L1",
+   "code": "L1",
+   "type": "Mosque",
+   "zoneId": "B-6",
+   "label": "B-6 · L1 Mosque",
+   "at": [
+    100.47831,
+    7.03167
+   ]
+  },
+  {
+   "id": "B-6-L2",
+   "code": "L2",
+   "type": "School",
+   "zoneId": "B-6",
+   "label": "B-6 · L2 School",
+   "at": [
+    100.47559,
+    7.02873
+   ]
+  },
+  {
+   "id": "B-6-L3",
+   "code": "L3",
+   "type": "Health centre",
+   "zoneId": "B-6",
+   "label": "B-6 · L3 Health centre",
+   "at": [
+    100.47295,
+    7.02521
+   ]
+  },
+  {
+   "id": "B-6-L4",
+   "code": "L4",
+   "type": "Shrine",
+   "zoneId": "B-6",
+   "label": "B-6 · L4 Shrine",
+   "at": [
+    100.47467,
+    7.02542
+   ]
+  },
+  {
+   "id": "B-6-L5",
+   "code": "L5",
+   "type": "Temple",
+   "zoneId": "B-6",
+   "label": "B-6 · L5 Temple",
+   "at": [
+    100.47131,
+    7.02273
+   ]
+  },
+  {
+   "id": "B-6-L6",
+   "code": "L6",
+   "type": "Market",
+   "zoneId": "B-6",
+   "label": "B-6 · L6 Market",
+   "at": [
+    100.48006,
+    7.02233
+   ]
+  },
+  {
+   "id": "B-6-L7",
+   "code": "L7",
+   "type": "Community building",
+   "zoneId": "B-6",
+   "label": "B-6 · L7 Community building",
+   "at": [
+    100.47299,
+    7.01668
+   ]
+  },
+  {
+   "id": "B-7-L1",
+   "code": "L1",
+   "type": "Market",
+   "zoneId": "B-7",
+   "label": "B-7 · L1 Market",
+   "at": [
+    100.45499,
+    7.02497
+   ]
+  },
+  {
+   "id": "B-7-L2",
+   "code": "L2",
+   "type": "Community building",
+   "zoneId": "B-7",
+   "label": "B-7 · L2 Community building",
+   "at": [
+    100.452,
+    7.0242
+   ]
+  },
+  {
+   "id": "B-7-L3",
+   "code": "L3",
+   "type": "Mosque",
+   "zoneId": "B-7",
+   "label": "B-7 · L3 Mosque",
+   "at": [
+    100.45833,
+    7.02308
+   ]
+  },
+  {
+   "id": "B-7-L4",
+   "code": "L4",
+   "type": "School",
+   "zoneId": "B-7",
+   "label": "B-7 · L4 School",
+   "at": [
+    100.46159,
+    7.01321
+   ]
+  },
+  {
+   "id": "B-7-L5",
+   "code": "L5",
+   "type": "Health centre",
+   "zoneId": "B-7",
+   "label": "B-7 · L5 Health centre",
+   "at": [
+    100.45298,
+    7.01082
+   ]
+  },
+  {
+   "id": "B-7-L6",
+   "code": "L6",
+   "type": "Shrine",
+   "zoneId": "B-7",
+   "label": "B-7 · L6 Shrine",
+   "at": [
+    100.45596,
+    7.0117
+   ]
+  },
+  {
+   "id": "B-7-L7",
+   "code": "L7",
+   "type": "Temple",
+   "zoneId": "B-7",
+   "label": "B-7 · L7 Temple",
+   "at": [
+    100.44956,
+    7.00109
+   ]
+  },
+  {
+   "id": "B-8-L1",
+   "code": "L1",
+   "type": "School",
+   "zoneId": "B-8",
+   "label": "B-8 · L1 School",
+   "at": [
+    100.47407,
+    7.01269
+   ]
+  },
+  {
+   "id": "B-8-L2",
+   "code": "L2",
+   "type": "Health centre",
+   "zoneId": "B-8",
+   "label": "B-8 · L2 Health centre",
+   "at": [
+    100.47789,
+    7.01272
+   ]
+  },
+  {
+   "id": "B-8-L3",
+   "code": "L3",
+   "type": "Shrine",
+   "zoneId": "B-8",
+   "label": "B-8 · L3 Shrine",
+   "at": [
+    100.47885,
+    7.00703
+   ]
+  },
+  {
+   "id": "B-8-L4",
+   "code": "L4",
+   "type": "Temple",
+   "zoneId": "B-8",
+   "label": "B-8 · L4 Temple",
+   "at": [
+    100.47653,
+    7.00232
+   ]
+  },
+  {
+   "id": "B-9-L1",
+   "code": "L1",
+   "type": "Community building",
+   "zoneId": "B-9",
+   "label": "B-9 · L1 Community building",
+   "at": [
+    100.50046,
+    7.02489
+   ]
+  },
+  {
+   "id": "B-9-L2",
+   "code": "L2",
+   "type": "Mosque",
+   "zoneId": "B-9",
+   "label": "B-9 · L2 Mosque",
+   "at": [
+    100.48981,
+    6.9984
+   ]
+  },
+  {
+   "id": "B-9-L3",
+   "code": "L3",
+   "type": "School",
+   "zoneId": "B-9",
+   "label": "B-9 · L3 School",
+   "at": [
+    100.48563,
+    6.99109
+   ]
+  },
+  {
+   "id": "B-10-L1",
+   "code": "L1",
+   "type": "Market",
+   "zoneId": "B-10",
+   "label": "B-10 · L1 Market",
+   "at": [
+    100.46523,
+    7.00209
+   ]
+  },
+  {
+   "id": "B-10-L2",
+   "code": "L2",
+   "type": "Community building",
+   "zoneId": "B-10",
+   "label": "B-10 · L2 Community building",
+   "at": [
+    100.46181,
+    7.00072
+   ]
+  },
+  {
+   "id": "B-10-L3",
+   "code": "L3",
+   "type": "Mosque",
+   "zoneId": "B-10",
+   "label": "B-10 · L3 Mosque",
+   "at": [
+    100.45797,
+    6.99938
+   ]
+  },
+  {
+   "id": "B-10-L4",
+   "code": "L4",
+   "type": "School",
+   "zoneId": "B-10",
+   "label": "B-10 · L4 School",
+   "at": [
+    100.45234,
+    6.99849
+   ]
+  },
+  {
+   "id": "B-11-L1",
+   "code": "L1",
+   "type": "Community building",
+   "zoneId": "B-11",
+   "label": "B-11 · L1 Community building",
+   "at": [
+    100.48207,
+    7.00482
+   ]
+  },
+  {
+   "id": "B-11-L2",
+   "code": "L2",
+   "type": "Mosque",
+   "zoneId": "B-11",
+   "label": "B-11 · L2 Mosque",
+   "at": [
+    100.48588,
+    7.00186
+   ]
+  },
+  {
+   "id": "B-11-L3",
+   "code": "L3",
+   "type": "School",
+   "zoneId": "B-11",
+   "label": "B-11 · L3 School",
+   "at": [
+    100.48209,
+    7.00081
+   ]
+  },
+  {
+   "id": "B-12-L1",
+   "code": "L1",
+   "type": "School",
+   "zoneId": "B-12",
+   "label": "B-12 · L1 School",
+   "at": [
+    100.4669,
+    6.99265
+   ]
+  },
+  {
+   "id": "B-12-L2",
+   "code": "L2",
+   "type": "Health centre",
+   "zoneId": "B-12",
+   "label": "B-12 · L2 Health centre",
+   "at": [
+    100.47053,
+    6.99264
+   ]
+  },
+  {
+   "id": "B-12-L3",
+   "code": "L3",
+   "type": "Shrine",
+   "zoneId": "B-12",
+   "label": "B-12 · L3 Shrine",
+   "at": [
+    100.46414,
+    6.99191
+   ]
+  },
+  {
+   "id": "B-13-L1",
+   "code": "L1",
+   "type": "Mosque",
+   "zoneId": "B-13",
+   "label": "B-13 · L1 Mosque",
+   "at": [
+    100.47463,
+    6.99319
+   ]
+  },
+  {
+   "id": "B-13-L2",
+   "code": "L2",
+   "type": "School",
+   "zoneId": "B-13",
+   "label": "B-13 · L2 School",
+   "at": [
+    100.4821,
+    6.99408
+   ]
+  },
+  {
+   "id": "A-1-L1",
+   "code": "L1",
+   "type": "Temple",
+   "zoneId": "A-1",
+   "label": "A-1 · L1 Temple",
+   "at": [
+    100.49,
+    7.095
+   ]
+  },
+  {
+   "id": "A-1-L2",
+   "code": "L2",
+   "type": "School",
+   "zoneId": "A-1",
+   "label": "A-1 · L2 School",
+   "at": [
+    100.506,
+    7.096
+   ]
+  },
+  {
+   "id": "A-1-L3",
+   "code": "L3",
+   "type": "Community building",
+   "zoneId": "A-1",
+   "label": "A-1 · L3 Community building",
+   "at": [
+    100.498,
+    7.107
+   ]
+  },
+  {
+   "id": "A-2-L1",
+   "code": "L1",
+   "type": "School",
+   "zoneId": "A-2",
+   "label": "A-2 · L1 School",
+   "at": [
+    100.446,
+    7.055
+   ]
+  },
+  {
+   "id": "A-2-L2",
+   "code": "L2",
+   "type": "Temple",
+   "zoneId": "A-2",
+   "label": "A-2 · L2 Temple",
+   "at": [
+    100.46,
+    7.056
+   ]
+  },
+  {
+   "id": "A-2-L3",
+   "code": "L3",
+   "type": "Community building",
+   "zoneId": "A-2",
+   "label": "A-2 · L3 Community building",
+   "at": [
+    100.452,
+    7.069
+   ]
+  },
+  {
+   "id": "C-1-L1",
+   "code": "L1",
+   "type": "Market",
+   "zoneId": "C-1",
+   "label": "C-1 · L1 Market",
+   "at": [
+    100.47,
+    6.945
+   ]
+  },
+  {
+   "id": "C-1-L2",
+   "code": "L2",
+   "type": "Community building",
+   "zoneId": "C-1",
+   "label": "C-1 · L2 Community building",
+   "at": [
+    100.48,
+    6.948
+   ]
+  },
+  {
+   "id": "C-1-L3",
+   "code": "L3",
+   "type": "Temple",
+   "zoneId": "C-1",
+   "label": "C-1 · L3 Temple",
+   "at": [
+    100.474,
+    6.956
+   ]
+  },
+  {
+   "id": "C-2-L1",
+   "code": "L1",
+   "type": "School",
+   "zoneId": "C-2",
+   "label": "C-2 · L1 School",
+   "at": [
+    100.447,
+    6.946
+   ]
+  },
+  {
+   "id": "C-2-L2",
+   "code": "L2",
+   "type": "Temple",
+   "zoneId": "C-2",
+   "label": "C-2 · L2 Temple",
+   "at": [
+    100.456,
+    6.947
+   ]
+  },
+  {
+   "id": "C-2-L3",
+   "code": "L3",
+   "type": "Community building",
+   "zoneId": "C-2",
+   "label": "C-2 · L3 Community building",
+   "at": [
+    100.451,
+    6.958
+   ]
+  },
+  {
+   "id": "D1",
+   "code": "D1",
+   "type": "Shelter (high ground)",
+   "zoneId": null,
+   "label": "D1 Shelter (high ground)",
+   "at": [
+    100.4985,
+    7.0065
+   ]
+  }
+ ]
+}

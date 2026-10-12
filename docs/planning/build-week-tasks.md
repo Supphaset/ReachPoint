@@ -24,8 +24,8 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] Register the Earth Engine noncommercial project (your sandbox)
 - [ ] Flood check (pack §5.1c): list the Sentinel-1 scenes for Oct–Dec 2025, run change detection, compare with the EOS/AIT maps, record the result in `data/SOURCES.md`
 - [ ] Export the Hat Yai extent as GeoJSON under 300 KB (T9)
-- [ ] Draw the P-A/P-B/P-C areas and zones B-1…B-5, with landmarks L1–L3 and D1, and cut each zone into **segments** around its landmarks
-- [ ] Add the "no satellite data" area (dense urban core) to the package, so nothing is ever shown as dry (D26)
+- [x] Draw the P-A/P-B/P-C areas and zones, with landmarks and D1, and cut each zone into **segments** (D30: city zones along OSM streets inside the 4 city districts, `cut_city_zones.py` + `build_geography.py`; 17 zones, 66 segments; C1 fixture `contract/fixtures/areas.hy-2025-11.json`)
+- [x] Add the "no satellite data" area (dense urban core) to the package, so nothing is ever shown as dry (D26) (`flood_check.py nodata`; 16 of 17 reported points inside)
 - [ ] Ship the area-briefing fixture files **by noon**
 - [ ] **Frontend foundation (you own it):** one React app shell, role routes, wordmark, phone tab bar; placeholder tokens; data hooks (sign-in, live Firestore views, typed API client)
 - [ ] Map + list on the shell, same IDs

@@ -75,7 +75,7 @@ flowchart LR
 
 | # | From → To | What crosses | Contract (in `api/contract/`) | Fixture | Needed by |
 |---|---|---|---|---|---|
-| **C1** | User package → Friend seed + rules | Areas, zones, **segments**, landmarks, flood extent (GeoJSON in Cloud Storage) with "no satellite data" areas, per-segment exposure ranges (everyone living there + inside the extent, D27) | `AreaPackage`, `Landmark`, `Segment`, `ExposureEstimate` | `areas.hy-2025-11.json` | Mon 12 noon |
+| **C1** | User package → Friend seed + rules | Areas, zones, **segments**, landmarks, flood extent (GeoJSON in Cloud Storage) with "no satellite data" areas, per-segment exposure ranges (everyone living there + inside the extent, D27) | `AreaPackage`, `Landmark`, `Segment`, `ExposureEstimate` | `areas.hy-2025-11.json` (geography shipped 12 Oct; exposure ranges added Tue) | Mon 12 noon |
 | **C2** | Friend views → User map | Badges, Facts, Unknown row, cases in zone, exposure range, briefing text | `AreaBriefingView`, `ZoneBriefingView` | `areaBriefing.P-B.json` (+ empty, stale, failed-layer variants) | Mon 12 noon (fixture), Tue 13 (live) |
 | **C3** | User `tiers.py` → Friend rules/views | `colour(listing)`, `sort_key(listing, team_location)` | Python function signature + `PriorityColour` enum | `listings.sort-cases.json` | Tue 13 |
 | **C4** | Friend snapshot → User solver → Friend persists | Reviewed needs, teams, resources, accepted allocations → assignments + unmet reasons | `AllocationInput`, `AllocationSuggestion` | `allocationInput.cp3.json`, `allocationSuggestion.cp3.json` | Tue 13 (stub), Thu 15 (real) |
@@ -165,7 +165,7 @@ The idea is that **each connection is tested from both sides against the same fi
 
 | # | Producer test (proves the output) | Consumer test (proves handling) |
 |---|---|---|
-| C1 | **User:** `scripts/validate_package.py`: GeoJSON valid, < 300 KB, IDs unique, every landmark inside its zone, source dates present | **Friend:** the seed script loads the fixture into the emulator; area IDs resolve |
+| C1 | **User:** `data/tests/test_geography.py`: IDs unique and linked, every landmark inside its own segment, segments tile each zone, zones don't overlap, D1 outside every zone, files < 300 KB | **Friend:** the seed script loads the fixture into the emulator; area IDs resolve |
 | C2 | **Friend:** regenerating P-B from seed matches `areaBriefing.P-B.json` (shape + counts: still 24 after C-01) | **User:** the map renders every variant (normal, empty "not checked", stale, flood layer missing → nothing shaded dry) |
 | C3 | **User:** Hypothesis property test: red always first; same tiers as the solver; nearest first within a colour | **Friend:** the open-list view order equals `sort_key` order on `listings.sort-cases.json` |
 | C4 | **User:** `solve_split` on `allocationInput.cp3.json` returns a valid suggestion in < 5 s; never exceeds capacity; tier 1a before tier 2 | **Friend:** storing a suggestion; a stale `inputVersions` → `VERSION_CONFLICT`, writes nothing |

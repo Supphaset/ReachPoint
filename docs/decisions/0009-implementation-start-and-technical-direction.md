@@ -46,6 +46,11 @@ The prototype deadline is 18 October 2026, with no published cut-off time or tim
   - Radar blind spots are "no satellite data", never dry; the satellite can only raise concern.
   - The estimate is per segment, switches to the full count when callers report water, drops out when checked, and adds a call rate.
   - Pinpoint is the one non-Google service; its terms and cost are checked before use.
+- **City zones along streets, grouped by the city's districts (D30, 2026-10-12).**
+  - Zones and segments in the city (P-B) are cut along real roads, the railway, the river and canals (OpenStreetMap), the way search teams cut segments a crew can follow on the ground. Each zone sits inside one of the Hat Yai City Municipality's 4 districts (เขต 1–4).
+  - IDs stay generic (B-1…B-13, "B-3 · L5 School"); the district names are the only real labels below the city. Rural zones (P-A, P-C) stay hand-drawn.
+  - IDs and edges don't change once the event starts.
+- **City estimate shows two numbers (D31, 2026-10-12, proposed, friend to confirm).** In "no satellite data" segments, show everyone living there **and** a likely-flooded share modelled from reported depths plus ground height, labelled as a model. This revises "no own depth model" for the city only.
 - These amendments are the user's decisions; like the rest of 0009, they bind both humans once the friend confirms.
 
 ## Still open (not decided here)
@@ -53,7 +58,7 @@ The prototype deadline is 18 October 2026, with no published cut-off time or tim
 - Total spend cap and its split across projects (blocks CP0 billing). The Twilio and AIS questions are moot after the D5 amendment.
 - Contract v1.0 freeze: the pack's §3–§4 record shapes, one assistance document per type per case, and resident visibility of reported-but-unreviewed problems.
 - Thai intake with English for the other screens (still proposed).
-- Exact Hat Yai P-A/P-B/P-C boundaries; whether Bangkok has a usable Sentinel-1 pass in the event window (checked first on 12 Oct).
+- Whether Bangkok has a usable Sentinel-1 pass in the event window (checked first on 12 Oct).
 
 ## Consequences
 
