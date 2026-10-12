@@ -95,12 +95,14 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 **You**
 - [ ] Zone order rule in `tiers.py` (called → register → estimate in segments not yet checked → time since check) + suggested checks with reasons; property test
 - [ ] `api/rules/exposure.py` (C15): segment basis (satellite → callers → checked), zone "not yet checked" range, call rate per 1,000 residents + "quiet: phones may be down" flag; property tests
+- [ ] Depth tool for the triage agent (C17, D32): segment band, sources, trend, conflicts, kit; area-depth raise with its own reason; tests
 - [ ] Synthetic vulnerable-residents register fixture (`register.hy-2025-11.json`, landmark-level)
 - [ ] Team screen: take a segment, pickup list, mark Checked / Partly checked / Couldn't reach, field report button
 - [ ] Copilot instructions for `propose_zone_priority_change`
 
 **Friend**
 - [ ] Zone missions + segments in the rules engine (`publishZoneMission`, cut segments, `takeSegment`, `markSegment`)
+- [ ] Intake extraction: `waterDepth` (quote, band, time) + eval (C17, D32)
 - [ ] Register stored with coordinator-only access (Firestore rules test)
 - [ ] Desk: suggested checks (publish / dismiss), segment cutting, copilot proposals (accept / reject)
 - [ ] Resident line "Team T-x is working in your area today"

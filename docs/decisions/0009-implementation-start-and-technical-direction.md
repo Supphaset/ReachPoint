@@ -51,6 +51,11 @@ The prototype deadline is 18 October 2026, with no published cut-off time or tim
   - IDs stay generic (B-1…B-13, "B-3 · L5 School"); the district names are the only real labels below the city. Rural zones (P-A, P-C) stay hand-drawn.
   - IDs and edges don't change once the event starts.
 - **City estimate shows two numbers (D31, 2026-10-12, proposed, friend to confirm).** In "no satellite data" segments, show everyone living there **and** a likely-flooded share modelled from reported depths plus ground height, labelled as a model. This revises "no own depth model" for the city only.
+- **Water depth from callers, reconciled by the triage agent (D32, 2026-10-12, proposed, friend to confirm).**
+  - Depth comes from teams on site, callers ("water at my chest", "we're on the 2nd floor"), cited news reports and the D31 model, in that order of trust. The satellite gives no depth.
+  - Intake extraction adds a `waterDepth` fact to each request: the quote, a band in metres and the time (friend). The triage agent gets a depth tool (user) that keeps one band per segment, with its sources, freshness (stale after 6 h), trend (rising or falling) and any conflicts. It never averages a conflict away, never drops a caller, and never reads "no reports" as dry.
+  - The reconciled depth sets the team's kit ("boat needed" at 1.2 m or more, or a fast current), raises zone order, and can raise a request's rank. Area depth only ever **raises** a request, and its reason is shown apart from the caller's own words, e.g. "Caller: 'need water' · Area: B-3 · L5 about 2 m (callers + model)".
+  - This extends D31's model to a depth band per segment, labelled as a model until callers or teams confirm it.
 - These amendments are the user's decisions; like the rest of 0009, they bind both humans once the friend confirms.
 
 ## Still open (not decided here)

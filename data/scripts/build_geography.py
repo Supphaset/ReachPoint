@@ -23,6 +23,10 @@ Open Buildings × people per building from DOPA), rounded outwards:
     inSatelliteExtent   people inside the dated satellite extent
     modelledFlooded     city segments that are mostly "no satellite data" only: people where reported
                         depths plus ground height put water (a model, labelled as one; D31)
+Each segment also gets `depth` (D32): its bare-earth ground height (10th/50th/90th percentile, m), so the
+app can turn a caller's "chest deep" into a water level without Earth Engine, and, where the model is
+shown, `modelledM`: the median modelled depth where flooded, low to high, rounded outwards to 0.5 m and
+capped at the deepest reported depth (the model doesn't go beyond its evidence; [3, 3] reads "over 3 m").
 Needs shapely (data/requirements.txt). Nothing here runs in the app.
 """
 
@@ -89,6 +93,14 @@ def fmt(r):
     return f"{r[0]:,}–{r[1]:,}"
 
 
+def depth_info(d, modelled, cap):
+    """D32: ground height and, where the city model is shown, its depth band in metres."""
+    band = None
+    if modelled and d["depth_lo_p50"] is not None and d["depth_hi_p50"] is not None:
+        band = [min(math.floor(d["depth_lo_p50"] * 2) / 2, cap), min(math.ceil(d["depth_hi_p50"] * 2) / 2, cap)]
+    return {"groundM": [d["ground_p10"], d["ground_p50"], d["ground_p90"]], "modelledM": band}
+
+
 def build(package):
     folder = DATA_DIR / package
     src = json.loads((folder / "geography-source.json").read_text())
@@ -148,7 +160,10 @@ def build(package):
                                         "labelAt": [round(c, 5) for c in cell.representative_point().coords[0]],
                                         "landmarkId": sid, "label": label, "area_m2": round(area_m2(cell)),
                                         "noSatelliteDataShare": share,
-                                        "estimate": seg_estimate([sid], z["area"], share)}))
+                                        "estimate": (est := seg_estimate([sid], z["area"], share)),
+                                        "depth": depth_info(exposure["depth"][sid], est["basis"] == "model",
+                                                         max(h for _, h in exposure["reportedDepthM"].values()))
+                                        if exposure and "depth" in exposure else None}))
             mark_f.append(feature(p, {**common, "id": sid, "kind": "landmark", "code": m["code"], "type": m["type"],
                                       "zoneId": z["id"], "areaId": z["area"], "segmentId": sid, "label": label}))
         zone_f.append(feature(poly, {**common, "id": z["id"], "kind": "zone", "areaId": z["area"], "label": z["id"],
@@ -162,7 +177,7 @@ def build(package):
                           "estimate": zone_f[-1]["properties"]["estimate"], "segments": [
             {"id": s, "landmarkId": s, "label": f["properties"]["label"],
              "noSatelliteDataShare": f["properties"]["noSatelliteDataShare"],
-             "estimate": f["properties"]["estimate"]}
+             "estimate": f["properties"]["estimate"], "depth": f["properties"]["depth"]}
             for s, f in zip(seg_ids, seg_f[-len(seg_ids):])]})
 
     for d in src["destinations"]:

@@ -192,6 +192,19 @@ class Estimate(unittest.TestCase):
             self.assertLessEqual(sum(s["everyone"][0] for s in segs), hi * 1.01)
             self.assertLessEqual(lo, sum(s["everyone"][1] for s in segs) * 1.01)
 
+    def test_depth_is_ground_plus_model_band_only_where_modelled(self):
+        # D32: every segment has ground height for live caller depths; the depth band is a model, city only.
+        for f in self.segments["features"]:
+            p, d = f["properties"], f["properties"]["depth"]
+            g = d["groundM"]
+            self.assertTrue(g[0] <= g[1] <= g[2], p["id"])
+            if d["modelledM"] is None:
+                continue
+            self.assertEqual(p["estimate"]["basis"], "model", p["id"])
+            lo, hi = d["modelledM"]
+            cap = max(h for _, h in self.exposure["reportedDepthM"].values())
+            self.assertTrue(0 <= lo <= hi <= cap, (p["id"], lo, hi))  # never deeper than any report
+
     def test_fixture_carries_the_estimate(self):
         cat = json.loads((DATA.parent / "contract" / "fixtures" / "areas.hy-2025-11.json").read_text())
         for z in cat["zones"]:

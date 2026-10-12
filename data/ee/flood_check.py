@@ -393,8 +393,11 @@ def flood_model(reports):
         stats = wse.reduceColumns(ee.Reducer.mean().combine(ee.Reducer.stdDev(), None, True), ["wse"])
         surface = wse.inverseDistance(e["model_radius_m"], "wse", stats.get("mean"), stats.get("stdDev"), 2)
         near = ee.Image(0).byte().paint(reports.map(lambda f: f.buffer(e["model_radius_m"])), 1)
-        out[k] = surface.subtract(dem).gt(e["model_min_depth_m"]).And(near).unmask(0)
+        depth = surface.subtract(dem)
+        out[k] = depth.gt(e["model_min_depth_m"]).And(near).unmask(0)
+        out[f"depth_{k}"] = depth.updateMask(out[k]).rename(f"depth_{k}")
     out["ground"] = ground
+    out["dem"] = dem.rename("ground")
     return out
 
 
@@ -415,6 +418,14 @@ def cmd_exposure(args, pkg, aoi):
     sums = ["wp", "bld", "wp_ext", "bld_ext", "wp_lo", "bld_lo", "wp_hi", "bld_hi"]
     rows = exposure_image(e["scale_m"], extent, model, segs.geometry().bounds()).reduceRegions(
         segs, ee.Reducer.sum(), e["scale_m"], tileScale=4).getInfo()["features"]
+
+    # D32: ground height per segment (for live depth from callers) and the modelled depth where flooded.
+    pct = ee.Reducer.percentile([10, 50, 90])
+    depth_rows = ee.Image.cat(model["dem"], model["depth_lo"], model["depth_hi"]).reproject(  # without this it stalls
+        "EPSG:4326", None, 30).reduceRegions(
+        segs, pct, 30, tileScale=4).getInfo()["features"]
+    depth = {f["properties"]["id"]: {k: (round(v, 1) if v is not None else None)
+                                     for k, v in f["properties"].items() if k != "id"} for f in depth_rows}
 
     # Whole-district check against GISTDA (25 Nov): people in the extent plus the modelled city part
     # that falls in the "no satellite data" area.
@@ -451,6 +462,8 @@ def cmd_exposure(args, pkg, aoi):
         "district": {"name": "Hat Yai (FAO GAUL 2025)", "buildings": exact_buildings,
                      **{k: round(v) for k, v in district_stats.items()}},
         "segments": {f["properties"]["id"]: {k: round(f["properties"].get(k) or 0, 1) for k in sums} for f in rows},
+        # Metres. ground_p10/p50/p90: bare-earth height; depth_{lo,hi}_p50: median modelled depth where flooded.
+        "depth": depth,
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     path = folder / "exposure.json"

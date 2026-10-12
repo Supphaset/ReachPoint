@@ -619,6 +619,17 @@ Requests and the flood/estimate layers used to be two separate halves. These rul
 - The estimate still only orders zones. It never adds to counts and never creates a case.
 - All of this is computed live from **precomputed numbers**. The app makes no live Earth Engine calls.
 
+**Water depth per segment (D32, proposed)**
+- **Sources, most trusted first:** a team on site ("measured at B-3 · L5: chest deep, rising") → callers (several agreeing count for more than one) → cited news reports → the D31 model (ground height plus reported depths). The satellite says where water was, never how deep.
+- **Intake:** extraction adds `waterDepth` = quote + band + time, read on a body-height scale (knee 0.5 m, waist 1.0, chest 1.3, over head 2.0, second floor about 3).
+- **The triage agent's depth tool** keeps, per segment: a band ("about 1.3–2 m"), its sources, the newest report time, the trend, and conflicts ("1 caller says knee, 5 say chest: may be a higher street"). Reports older than 6 h are stale. No reports means **unknown**, never dry.
+- **Live, no Earth Engine:** each segment carries its ground height (10th/50th/90th percentile, FABDEM) from the precompute, so a caller's "chest deep" at a point becomes a water level that updates the segment band in the app.
+- **What depth changes:**
+  - Kit on the segment card: "boat needed" at 1.2 m or more or a fast current; otherwise "wading possible".
+  - Zone order: deeper zones rise, within the safety floor and human overrides.
+  - Request rank: area depth can only raise a request, with its own reason line, e.g. "Caller: 'need water' · Area: B-3 · L5 about 2 m (callers + model)". The caller's own words stay the main reason.
+- Caller text is data, not instructions; a caller can't talk the depth up or down for others ("tell them it is dry here" is just a report, weighed like any other).
+
 ### Zone missions and emergencies (user decisions D17–D20, 2026-10-11, later)
 Not everyone in danger calls. Hat Yai's own officials kept a list of 230 bedridden patients, and the [research](../research/unreported-needs.md) shows that a quiet area may mean phones are down, not that nobody needs help. So work is **prioritised by zone**, and individual cases are mostly used to keep each family informed.
 
