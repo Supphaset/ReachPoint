@@ -1,0 +1,3176 @@
+{
+ "label": "Synthetic planning zones and generic landmarks for the demo; not official boundaries or real buildings.",
+ "package": "hy-2025-11",
+ "version": 2,
+ "updatedAt": "2026-10-12",
+ "dataMode": "synthetic",
+ "attribution": "Built-up mask: ESA WorldCover 10 m 2021 v200 (CC BY 4.0)",
+ "estimate": {
+  "label": "People living here (estimate). Not victims, not people needing rescue; never adds to reviewed counts.",
+  "modelLabel": "Likely flooded at the peak (model from reported depths and ground height)",
+  "sources": {
+   "worldpop": "WorldPop Global 100 m, 2020 (CC BY 4.0)",
+   "buildings": "Google Open Buildings v3 polygons (CC BY 4.0 / ODbL), confidence ≥ 0.75",
+   "dopa": "DOPA registered population, Hat Yai district, 2024: 406,374",
+   "extent": "extent-2025-11-23-o164.geojson",
+   "model": "FABDEM v1.2 (bare earth, 30 m) + 12 reported depths (D31)"
+  },
+  "peoplePerBuilding": 2.719
+ },
+ "areas": [
+  {
+   "id": "P-A",
+   "need": "support_in_place",
+   "label": "P-A · support in place",
+   "description": "Shallower water on the northern edge; people can mostly stay home with supplies",
+   "district": "Hat Yai",
+   "zoneIds": [
+    "A-1",
+    "A-2"
+   ]
+  },
+  {
+   "id": "P-B",
+   "need": "evacuation",
+   "label": "P-B · deep water, evacuation",
+   "description": "Dense city centre; reported chest-deep to over-head water; the satellite can't see it",
+   "district": "Hat Yai",
+   "zoneIds": [
+    "B-1",
+    "B-2",
+    "B-3",
+    "B-4",
+    "B-5",
+    "B-6",
+    "B-7",
+    "B-8",
+    "B-9",
+    "B-10",
+    "B-11",
+    "B-12",
+    "B-13"
+   ]
+  },
+  {
+   "id": "P-C",
+   "need": "no_recent_assessment",
+   "label": "P-C · no recent assessment",
+   "description": "Southern edge; one cited report of people on rooftops, nothing since",
+   "district": "Hat Yai",
+   "zoneIds": [
+    "C-1",
+    "C-2"
+   ]
+  }
+ ],
+ "zones": [
+  {
+   "id": "B-1",
+   "areaId": "P-B",
+   "district": "เขต 1",
+   "estimate": {
+    "everyone": [
+     4400,
+     5800
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     590,
+     1900
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-1-L1",
+     "landmarkId": "B-1-L1",
+     "label": "B-1 · L1 Shrine",
+     "noSatelliteDataShare": 0.81,
+     "estimate": {
+      "everyone": [
+       590,
+       780
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       0
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       12.0,
+       14.9,
+       17.3
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "B-1-L2",
+     "landmarkId": "B-1-L2",
+     "label": "B-1 · L2 Temple",
+     "noSatelliteDataShare": 0.71,
+     "estimate": {
+      "everyone": [
+       920,
+       1100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       0
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       11.3,
+       13.3,
+       16.9
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "B-1-L3",
+     "landmarkId": "B-1-L3",
+     "label": "B-1 · L3 Market",
+     "noSatelliteDataShare": 0.97,
+     "estimate": {
+      "everyone": [
+       2700,
+       4100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       590,
+       1900
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.6,
+       8.1,
+       9.9
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-2",
+   "areaId": "P-B",
+   "district": "เขต 1",
+   "estimate": {
+    "everyone": [
+     5600,
+     8500
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     5500,
+     8500
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-2-L1",
+     "landmarkId": "B-2-L1",
+     "label": "B-2 · L1 Temple",
+     "noSatelliteDataShare": 0.93,
+     "estimate": {
+      "everyone": [
+       480,
+       840
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       480,
+       840
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.2,
+       6.9,
+       7.3
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-2-L2",
+     "landmarkId": "B-2-L2",
+     "label": "B-2 · L2 Market",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1100,
+       1600
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1100,
+       1600
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.0,
+       7.7,
+       8
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-2-L3",
+     "landmarkId": "B-2-L3",
+     "label": "B-2 · L3 Community building",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1500,
+       2500
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1500,
+       2500
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.8,
+       7.9,
+       8.4
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-2-L4",
+     "landmarkId": "B-2-L4",
+     "label": "B-2 · L4 Mosque",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       490,
+       980
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       490,
+       980
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.5,
+       8.9,
+       9.2
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-2-L5",
+     "landmarkId": "B-2-L5",
+     "label": "B-2 · L5 School",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1900,
+       2700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1800,
+       2700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.9,
+       9.8,
+       11.5
+      ],
+      "modelledM": [
+       1.5,
+       2.5
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-3",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "estimate": {
+    "everyone": [
+     7900,
+     13000
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     7700,
+     12000
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-3-L1",
+     "landmarkId": "B-3-L1",
+     "label": "B-3 · L1 Temple",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1600,
+       2400
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1600,
+       2400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.1,
+       8.6,
+       10.0
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-3-L2",
+     "landmarkId": "B-3-L2",
+     "label": "B-3 · L2 Market",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1000,
+       1500
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1000,
+       1500
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.4,
+       10.3,
+       12.1
+      ],
+      "modelledM": [
+       1.5,
+       2.5
+      ]
+     }
+    },
+    {
+     "id": "B-3-L3",
+     "landmarkId": "B-3-L3",
+     "label": "B-3 · L3 Community building",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1200,
+       2200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1200,
+       2200
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.6,
+       9.3,
+       9.7
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-3-L4",
+     "landmarkId": "B-3-L4",
+     "label": "B-3 · L4 Mosque",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1000,
+       1400
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1000,
+       1400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.1,
+       10.3,
+       11.6
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-3-L5",
+     "landmarkId": "B-3-L5",
+     "label": "B-3 · L5 School",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       2100,
+       3700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1900,
+       3400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.7,
+       9.5,
+       13.1
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-3-L6",
+     "landmarkId": "B-3-L6",
+     "label": "B-3 · L6 Health centre",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       740,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       740,
+       1300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.6,
+       9.9,
+       10.1
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-4",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "estimate": {
+    "everyone": [
+     8400,
+     13000
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     6200,
+     8900
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-4-L1",
+     "landmarkId": "B-4-L1",
+     "label": "B-4 · L1 Health centre",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       740,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       740,
+       1300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.4,
+       8.9,
+       9.6
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-4-L2",
+     "landmarkId": "B-4-L2",
+     "label": "B-4 · L2 Shrine",
+     "noSatelliteDataShare": 0.72,
+     "estimate": {
+      "everyone": [
+       4400,
+       6000
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       2900,
+       3400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.4,
+       10.1,
+       26.2
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-4-L3",
+     "landmarkId": "B-4-L3",
+     "label": "B-4 · L3 Temple",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1500,
+       2400
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1500,
+       2400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.0,
+       9.6,
+       10.2
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-4-L4",
+     "landmarkId": "B-4-L4",
+     "label": "B-4 · L4 Market",
+     "noSatelliteDataShare": 0.58,
+     "estimate": {
+      "everyone": [
+       140,
+       630
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       10
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       17.8,
+       20.7,
+       24.2
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "B-4-L5",
+     "landmarkId": "B-4-L5",
+     "label": "B-4 · L5 School",
+     "noSatelliteDataShare": 0.95,
+     "estimate": {
+      "everyone": [
+       1500,
+       2500
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1000,
+       2000
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       10.2,
+       11.5,
+       16.1
+      ],
+      "modelledM": [
+       1.0,
+       1.5
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-5",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "estimate": {
+    "everyone": [
+     3600,
+     4700
+    ],
+    "inSatelliteExtent": [
+     0,
+     10
+    ],
+    "modelledFlooded": [
+     1900,
+     3400
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-5-L1",
+     "landmarkId": "B-5-L1",
+     "label": "B-5 · L1 Health centre",
+     "noSatelliteDataShare": 0.62,
+     "estimate": {
+      "everyone": [
+       210,
+       570
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       210,
+       570
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.7,
+       7.9,
+       9.1
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-5-L2",
+     "landmarkId": "B-5-L2",
+     "label": "B-5 · L2 Shrine",
+     "noSatelliteDataShare": 0.89,
+     "estimate": {
+      "everyone": [
+       3400,
+       4100
+      ],
+      "inSatelliteExtent": [
+       0,
+       10
+      ],
+      "modelledFlooded": [
+       1700,
+       2800
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.3,
+       11.1,
+       17.9
+      ],
+      "modelledM": [
+       1.5,
+       2.5
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-6",
+   "areaId": "P-B",
+   "district": "เขต 1",
+   "estimate": {
+    "everyone": [
+     9100,
+     13000
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     9100,
+     13000
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-6-L1",
+     "landmarkId": "B-6-L1",
+     "label": "B-6 · L1 Mosque",
+     "noSatelliteDataShare": 0.85,
+     "estimate": {
+      "everyone": [
+       990,
+       1100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       990,
+       1100
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.6,
+       7.3,
+       8.0
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-6-L2",
+     "landmarkId": "B-6-L2",
+     "label": "B-6 · L2 School",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       760,
+       970
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       760,
+       970
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.8,
+       7.1,
+       7.4
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-6-L3",
+     "landmarkId": "B-6-L3",
+     "label": "B-6 · L3 Health centre",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       2000,
+       2600
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       2000,
+       2600
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.7,
+       8.1,
+       8.9
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-6-L4",
+     "landmarkId": "B-6-L4",
+     "label": "B-6 · L4 Shrine",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       950,
+       1100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       950,
+       1100
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.7,
+       7.8,
+       8.9
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-6-L5",
+     "landmarkId": "B-6-L5",
+     "label": "B-6 · L5 Temple",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       730,
+       1200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       730,
+       1200
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.6,
+       7.9,
+       8.1
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-6-L6",
+     "landmarkId": "B-6-L6",
+     "label": "B-6 · L6 Market",
+     "noSatelliteDataShare": 0.76,
+     "estimate": {
+      "everyone": [
+       2900,
+       4700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       2900,
+       4700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.0,
+       7.5,
+       8.5
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-6-L7",
+     "landmarkId": "B-6-L7",
+     "label": "B-6 · L7 Community building",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       730,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       730,
+       1300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.4,
+       9.2,
+       9.8
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-7",
+   "areaId": "P-B",
+   "district": "เขต 4",
+   "estimate": {
+    "everyone": [
+     17000,
+     21000
+    ],
+    "inSatelliteExtent": [
+     0,
+     60
+    ],
+    "modelledFlooded": [
+     17000,
+     21000
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-7-L1",
+     "landmarkId": "B-7-L1",
+     "label": "B-7 · L1 Market",
+     "noSatelliteDataShare": 0.55,
+     "estimate": {
+      "everyone": [
+       390,
+       610
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       390,
+       610
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.6,
+       7.2,
+       7.7
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-7-L2",
+     "landmarkId": "B-7-L2",
+     "label": "B-7 · L2 Community building",
+     "noSatelliteDataShare": 0.48,
+     "estimate": {
+      "everyone": [
+       670,
+       780
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       2,
+       7.8,
+       8.0
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "B-7-L3",
+     "landmarkId": "B-7-L3",
+     "label": "B-7 · L3 Mosque",
+     "noSatelliteDataShare": 0.95,
+     "estimate": {
+      "everyone": [
+       1200,
+       1500
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1200,
+       1500
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.2,
+       6.6,
+       7.6
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-7-L4",
+     "landmarkId": "B-7-L4",
+     "label": "B-7 · L4 School",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       9200,
+       11000
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       9200,
+       11000
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.2,
+       7.8,
+       8.2
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-7-L5",
+     "landmarkId": "B-7-L5",
+     "label": "B-7 · L5 Health centre",
+     "noSatelliteDataShare": 0.31,
+     "estimate": {
+      "everyone": [
+       840,
+       2300
+      ],
+      "inSatelliteExtent": [
+       0,
+       60
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       2.5,
+       7.0,
+       8.2
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "B-7-L6",
+     "landmarkId": "B-7-L6",
+     "label": "B-7 · L6 Shrine",
+     "noSatelliteDataShare": 0.92,
+     "estimate": {
+      "everyone": [
+       3500,
+       4700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       3500,
+       4700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.2,
+       8.1,
+       8.6
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-7-L7",
+     "landmarkId": "B-7-L7",
+     "label": "B-7 · L7 Temple",
+     "noSatelliteDataShare": 0.66,
+     "estimate": {
+      "everyone": [
+       770,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       770,
+       1300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.4,
+       8.0,
+       9.0
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-8",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "estimate": {
+    "everyone": [
+     3900,
+     8600
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     3900,
+     8600
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-8-L1",
+     "landmarkId": "B-8-L1",
+     "label": "B-8 · L1 School",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       550,
+       1200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       550,
+       1200
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.2,
+       9.7,
+       10.6
+      ],
+      "modelledM": [
+       1.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-8-L2",
+     "landmarkId": "B-8-L2",
+     "label": "B-8 · L2 Health centre",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1000,
+       2100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1000,
+       2100
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.6,
+       8.7,
+       9.8
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-8-L3",
+     "landmarkId": "B-8-L3",
+     "label": "B-8 · L3 Shrine",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       820,
+       1700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       820,
+       1700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.6,
+       8.7,
+       9.0
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-8-L4",
+     "landmarkId": "B-8-L4",
+     "label": "B-8 · L4 Temple",
+     "noSatelliteDataShare": 0.89,
+     "estimate": {
+      "everyone": [
+       1400,
+       3800
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1400,
+       3800
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.9,
+       9.2,
+       10.3
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-9",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "estimate": {
+    "everyone": [
+     2100,
+     5400
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     0,
+     360
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-9-L1",
+     "landmarkId": "B-9-L1",
+     "label": "B-9 · L1 Community building",
+     "noSatelliteDataShare": 0.62,
+     "estimate": {
+      "everyone": [
+       650,
+       3100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       140
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       10.6,
+       15.6,
+       25.6
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "B-9-L2",
+     "landmarkId": "B-9-L2",
+     "label": "B-9 · L2 Mosque",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1000,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       190
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       12.4,
+       13.0,
+       16.2
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "B-9-L3",
+     "landmarkId": "B-9-L3",
+     "label": "B-9 · L3 School",
+     "noSatelliteDataShare": 0.98,
+     "estimate": {
+      "everyone": [
+       500,
+       1100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       30
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       13.5,
+       19.0,
+       22.2
+      ],
+      "modelledM": [
+       0.0,
+       0.5
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-10",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "estimate": {
+    "everyone": [
+     7200,
+     9200
+    ],
+    "inSatelliteExtent": [
+     0,
+     30
+    ],
+    "modelledFlooded": [
+     7200,
+     9200
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-10-L1",
+     "landmarkId": "B-10-L1",
+     "label": "B-10 · L1 Market",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       2100,
+       3700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       2100,
+       3700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.2,
+       8.5,
+       8.9
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-10-L2",
+     "landmarkId": "B-10-L2",
+     "label": "B-10 · L2 Community building",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1400,
+       1700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1400,
+       1700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.1,
+       8.5,
+       9.5
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-10-L3",
+     "landmarkId": "B-10-L3",
+     "label": "B-10 · L3 Mosque",
+     "noSatelliteDataShare": 0.68,
+     "estimate": {
+      "everyone": [
+       760,
+       1400
+      ],
+      "inSatelliteExtent": [
+       0,
+       30
+      ],
+      "modelledFlooded": [
+       760,
+       1300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       2.5,
+       8.6,
+       9.6
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-10-L4",
+     "landmarkId": "B-10-L4",
+     "label": "B-10 · L4 School",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       2500,
+       2900
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       2500,
+       2900
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.8,
+       8.7,
+       9.1
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-11",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "estimate": {
+    "everyone": [
+     3300,
+     5200
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     3100,
+     5200
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-11-L1",
+     "landmarkId": "B-11-L1",
+     "label": "B-11 · L1 Community building",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       680,
+       1200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       680,
+       1200
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.0,
+       9.7,
+       10.2
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-11-L2",
+     "landmarkId": "B-11-L2",
+     "label": "B-11 · L2 Mosque",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1500,
+       2200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1300,
+       2200
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       10.1,
+       11.6,
+       11.9
+      ],
+      "modelledM": [
+       0.5,
+       1.5
+      ]
+     }
+    },
+    {
+     "id": "B-11-L3",
+     "landmarkId": "B-11-L3",
+     "label": "B-11 · L3 School",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       1100,
+       1900
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1100,
+       1900
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.4,
+       10.1,
+       11.1
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-12",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "estimate": {
+    "everyone": [
+     3600,
+     4900
+    ],
+    "inSatelliteExtent": [
+     0,
+     10
+    ],
+    "modelledFlooded": [
+     3600,
+     4900
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-12-L1",
+     "landmarkId": "B-12-L1",
+     "label": "B-12 · L1 School",
+     "noSatelliteDataShare": 0.5,
+     "estimate": {
+      "everyone": [
+       1500,
+       2300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1500,
+       2300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.7,
+       9.0,
+       9.5
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-12-L2",
+     "landmarkId": "B-12-L2",
+     "label": "B-12 · L2 Health centre",
+     "noSatelliteDataShare": 0.58,
+     "estimate": {
+      "everyone": [
+       1100,
+       1400
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1100,
+       1400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.6,
+       8.8,
+       9.2
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-12-L3",
+     "landmarkId": "B-12-L3",
+     "label": "B-12 · L3 Shrine",
+     "noSatelliteDataShare": 0.48,
+     "estimate": {
+      "everyone": [
+       850,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       10
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       2.5,
+       8.5,
+       9.0
+      ],
+      "modelledM": null
+     }
+    }
+   ]
+  },
+  {
+   "id": "B-13",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "estimate": {
+    "everyone": [
+     7400,
+     11000
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     5400,
+     7700
+    ],
+    "basis": "model"
+   },
+   "segments": [
+    {
+     "id": "B-13-L1",
+     "landmarkId": "B-13-L1",
+     "label": "B-13 · L1 Mosque",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       4100,
+       5000
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       3700,
+       4700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.9,
+       9.8,
+       11.9
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     }
+    },
+    {
+     "id": "B-13-L2",
+     "landmarkId": "B-13-L2",
+     "label": "B-13 · L2 School",
+     "noSatelliteDataShare": 1.0,
+     "estimate": {
+      "everyone": [
+       3200,
+       5200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1700,
+       3100
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       10.0,
+       12.2,
+       17.5
+      ],
+      "modelledM": [
+       1.0,
+       2.0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "A-1",
+   "areaId": "P-A",
+   "district": null,
+   "estimate": {
+    "everyone": [
+     2400,
+     3100
+    ],
+    "inSatelliteExtent": [
+     0,
+     980
+    ],
+    "modelledFlooded": null,
+    "basis": "satellite"
+   },
+   "segments": [
+    {
+     "id": "A-1-L1",
+     "landmarkId": "A-1-L1",
+     "label": "A-1 · L1 Temple",
+     "noSatelliteDataShare": 0.0,
+     "estimate": {
+      "everyone": [
+       20,
+       440
+      ],
+      "inSatelliteExtent": [
+       0,
+       370
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       0.8,
+       0.9,
+       1
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "A-1-L2",
+     "landmarkId": "A-1-L2",
+     "label": "A-1 · L2 School",
+     "noSatelliteDataShare": 0.0,
+     "estimate": {
+      "everyone": [
+       1400,
+       3000
+      ],
+      "inSatelliteExtent": [
+       0,
+       240
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       0.9,
+       2.1,
+       8.4
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "A-1-L3",
+     "landmarkId": "A-1-L3",
+     "label": "A-1 · L3 Community building",
+     "noSatelliteDataShare": 0.0,
+     "estimate": {
+      "everyone": [
+       40,
+       600
+      ],
+      "inSatelliteExtent": [
+       0,
+       380
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       0.7,
+       1.0,
+       1.6
+      ],
+      "modelledM": null
+     }
+    }
+   ]
+  },
+  {
+   "id": "A-2",
+   "areaId": "P-A",
+   "district": null,
+   "estimate": {
+    "everyone": [
+     4700,
+     9800
+    ],
+    "inSatelliteExtent": [
+     20,
+     200
+    ],
+    "modelledFlooded": null,
+    "basis": "satellite"
+   },
+   "segments": [
+    {
+     "id": "A-2-L1",
+     "landmarkId": "A-2-L1",
+     "label": "A-2 · L1 School",
+     "noSatelliteDataShare": 0.0,
+     "estimate": {
+      "everyone": [
+       1000,
+       2500
+      ],
+      "inSatelliteExtent": [
+       0,
+       80
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       2.0,
+       3.9,
+       7.3
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "A-2-L2",
+     "landmarkId": "A-2-L2",
+     "label": "A-2 · L2 Temple",
+     "noSatelliteDataShare": 0.02,
+     "estimate": {
+      "everyone": [
+       2400,
+       3100
+      ],
+      "inSatelliteExtent": [
+       0,
+       60
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       3.7,
+       5.8,
+       9.7
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "A-2-L3",
+     "landmarkId": "A-2-L3",
+     "label": "A-2 · L3 Community building",
+     "noSatelliteDataShare": 0.0,
+     "estimate": {
+      "everyone": [
+       1200,
+       4300
+      ],
+      "inSatelliteExtent": [
+       10,
+       70
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       1.5,
+       4.9,
+       8.3
+      ],
+      "modelledM": null
+     }
+    }
+   ]
+  },
+  {
+   "id": "C-1",
+   "areaId": "P-C",
+   "district": null,
+   "estimate": {
+    "everyone": [
+     11000,
+     17000
+    ],
+    "inSatelliteExtent": [
+     0,
+     10
+    ],
+    "modelledFlooded": null,
+    "basis": "satellite"
+   },
+   "segments": [
+    {
+     "id": "C-1-L1",
+     "landmarkId": "C-1-L1",
+     "label": "C-1 · L1 Market",
+     "noSatelliteDataShare": 0.33,
+     "estimate": {
+      "everyone": [
+       4000,
+       7400
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       10.3,
+       13.7,
+       16.6
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "C-1-L2",
+     "landmarkId": "C-1-L2",
+     "label": "C-1 · L2 Community building",
+     "noSatelliteDataShare": 0.0,
+     "estimate": {
+      "everyone": [
+       1700,
+       2900
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       19.6,
+       28.1,
+       45.4
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "C-1-L3",
+     "landmarkId": "C-1-L3",
+     "label": "C-1 · L3 Temple",
+     "noSatelliteDataShare": 0.41,
+     "estimate": {
+      "everyone": [
+       5500,
+       6500
+      ],
+      "inSatelliteExtent": [
+       0,
+       10
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       9.1,
+       14.9,
+       27.4
+      ],
+      "modelledM": null
+     }
+    }
+   ]
+  },
+  {
+   "id": "C-2",
+   "areaId": "P-C",
+   "district": null,
+   "estimate": {
+    "everyone": [
+     690,
+     1800
+    ],
+    "inSatelliteExtent": [
+     30,
+     220
+    ],
+    "modelledFlooded": null,
+    "basis": "satellite"
+   },
+   "segments": [
+    {
+     "id": "C-2-L1",
+     "landmarkId": "C-2-L1",
+     "label": "C-2 · L1 School",
+     "noSatelliteDataShare": 0.0,
+     "estimate": {
+      "everyone": [
+       110,
+       290
+      ],
+      "inSatelliteExtent": [
+       20,
+       60
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       4.5,
+       9.4,
+       19.5
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "C-2-L2",
+     "landmarkId": "C-2-L2",
+     "label": "C-2 · L2 Temple",
+     "noSatelliteDataShare": 0.0,
+     "estimate": {
+      "everyone": [
+       230,
+       740
+      ],
+      "inSatelliteExtent": [
+       0,
+       50
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       8.3,
+       9.4,
+       14.3
+      ],
+      "modelledM": null
+     }
+    },
+    {
+     "id": "C-2-L3",
+     "landmarkId": "C-2-L3",
+     "label": "C-2 · L3 Community building",
+     "noSatelliteDataShare": 0.0,
+     "estimate": {
+      "everyone": [
+       350,
+       760
+      ],
+      "inSatelliteExtent": [
+       0,
+       120
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       6.4,
+       12.3,
+       27.6
+      ],
+      "modelledM": null
+     }
+    }
+   ]
+  }
+ ],
+ "landmarks": [
+  {
+   "id": "B-1-L1",
+   "code": "L1",
+   "type": "Shrine",
+   "zoneId": "B-1",
+   "label": "B-1 · L1 Shrine",
+   "at": [
+    100.50297,
+    7.0441
+   ]
+  },
+  {
+   "id": "B-1-L2",
+   "code": "L2",
+   "type": "Temple",
+   "zoneId": "B-1",
+   "label": "B-1 · L2 Temple",
+   "at": [
+    100.5015,
+    7.03678
+   ]
+  },
+  {
+   "id": "B-1-L3",
+   "code": "L3",
+   "type": "Market",
+   "zoneId": "B-1",
+   "label": "B-1 · L3 Market",
+   "at": [
+    100.50007,
+    7.02684
+   ]
+  },
+  {
+   "id": "B-2-L1",
+   "code": "L1",
+   "type": "Temple",
+   "zoneId": "B-2",
+   "label": "B-2 · L1 Temple",
+   "at": [
+    100.4653,
+    7.02525
+   ]
+  },
+  {
+   "id": "B-2-L2",
+   "code": "L2",
+   "type": "Market",
+   "zoneId": "B-2",
+   "label": "B-2 · L2 Market",
+   "at": [
+    100.46802,
+    7.02401
+   ]
+  },
+  {
+   "id": "B-2-L3",
+   "code": "L3",
+   "type": "Community building",
+   "zoneId": "B-2",
+   "label": "B-2 · L3 Community building",
+   "at": [
+    100.46802,
+    7.01885
+   ]
+  },
+  {
+   "id": "B-2-L4",
+   "code": "L4",
+   "type": "Mosque",
+   "zoneId": "B-2",
+   "label": "B-2 · L4 Mosque",
+   "at": [
+    100.46907,
+    7.01503
+   ]
+  },
+  {
+   "id": "B-2-L5",
+   "code": "L5",
+   "type": "School",
+   "zoneId": "B-2",
+   "label": "B-2 · L5 School",
+   "at": [
+    100.46849,
+    7.01236
+   ]
+  },
+  {
+   "id": "B-3-L1",
+   "code": "L1",
+   "type": "Temple",
+   "zoneId": "B-3",
+   "label": "B-3 · L1 Temple",
+   "at": [
+    100.47763,
+    7.01557
+   ]
+  },
+  {
+   "id": "B-3-L2",
+   "code": "L2",
+   "type": "Market",
+   "zoneId": "B-3",
+   "label": "B-3 · L2 Market",
+   "at": [
+    100.47125,
+    7.01058
+   ]
+  },
+  {
+   "id": "B-3-L3",
+   "code": "L3",
+   "type": "Community building",
+   "zoneId": "B-3",
+   "label": "B-3 · L3 Community building",
+   "at": [
+    100.47455,
+    7.00937
+   ]
+  },
+  {
+   "id": "B-3-L4",
+   "code": "L4",
+   "type": "Mosque",
+   "zoneId": "B-3",
+   "label": "B-3 · L4 Mosque",
+   "at": [
+    100.47263,
+    7.00525
+   ]
+  },
+  {
+   "id": "B-3-L5",
+   "code": "L5",
+   "type": "School",
+   "zoneId": "B-3",
+   "label": "B-3 · L5 School",
+   "at": [
+    100.46966,
+    7.00262
+   ]
+  },
+  {
+   "id": "B-3-L6",
+   "code": "L6",
+   "type": "Health centre",
+   "zoneId": "B-3",
+   "label": "B-3 · L6 Health centre",
+   "at": [
+    100.47337,
+    7.00049
+   ]
+  },
+  {
+   "id": "B-4-L1",
+   "code": "L1",
+   "type": "Health centre",
+   "zoneId": "B-4",
+   "label": "B-4 · L1 Health centre",
+   "at": [
+    100.48431,
+    7.01626
+   ]
+  },
+  {
+   "id": "B-4-L2",
+   "code": "L2",
+   "type": "Shrine",
+   "zoneId": "B-4",
+   "label": "B-4 · L2 Shrine",
+   "at": [
+    100.49014,
+    7.01416
+   ]
+  },
+  {
+   "id": "B-4-L3",
+   "code": "L3",
+   "type": "Temple",
+   "zoneId": "B-4",
+   "label": "B-4 · L3 Temple",
+   "at": [
+    100.48344,
+    7.0108
+   ]
+  },
+  {
+   "id": "B-4-L4",
+   "code": "L4",
+   "type": "Market",
+   "zoneId": "B-4",
+   "label": "B-4 · L4 Market",
+   "at": [
+    100.49062,
+    7.00746
+   ]
+  },
+  {
+   "id": "B-4-L5",
+   "code": "L5",
+   "type": "School",
+   "zoneId": "B-4",
+   "label": "B-4 · L5 School",
+   "at": [
+    100.48867,
+    7.00473
+   ]
+  },
+  {
+   "id": "B-5-L1",
+   "code": "L1",
+   "type": "Health centre",
+   "zoneId": "B-5",
+   "label": "B-5 · L1 Health centre",
+   "at": [
+    100.44378,
+    7.00015
+   ]
+  },
+  {
+   "id": "B-5-L2",
+   "code": "L2",
+   "type": "Shrine",
+   "zoneId": "B-5",
+   "label": "B-5 · L2 Shrine",
+   "at": [
+    100.43863,
+    6.99667
+   ]
+  },
+  {
+   "id": "B-6-L1",
+   "code": "L1",
+   "type": "Mosque",
+   "zoneId": "B-6",
+   "label": "B-6 · L1 Mosque",
+   "at": [
+    100.47831,
+    7.03167
+   ]
+  },
+  {
+   "id": "B-6-L2",
+   "code": "L2",
+   "type": "School",
+   "zoneId": "B-6",
+   "label": "B-6 · L2 School",
+   "at": [
+    100.47559,
+    7.02873
+   ]
+  },
+  {
+   "id": "B-6-L3",
+   "code": "L3",
+   "type": "Health centre",
+   "zoneId": "B-6",
+   "label": "B-6 · L3 Health centre",
+   "at": [
+    100.47295,
+    7.02521
+   ]
+  },
+  {
+   "id": "B-6-L4",
+   "code": "L4",
+   "type": "Shrine",
+   "zoneId": "B-6",
+   "label": "B-6 · L4 Shrine",
+   "at": [
+    100.47467,
+    7.02542
+   ]
+  },
+  {
+   "id": "B-6-L5",
+   "code": "L5",
+   "type": "Temple",
+   "zoneId": "B-6",
+   "label": "B-6 · L5 Temple",
+   "at": [
+    100.47131,
+    7.02273
+   ]
+  },
+  {
+   "id": "B-6-L6",
+   "code": "L6",
+   "type": "Market",
+   "zoneId": "B-6",
+   "label": "B-6 · L6 Market",
+   "at": [
+    100.48006,
+    7.02233
+   ]
+  },
+  {
+   "id": "B-6-L7",
+   "code": "L7",
+   "type": "Community building",
+   "zoneId": "B-6",
+   "label": "B-6 · L7 Community building",
+   "at": [
+    100.47299,
+    7.01668
+   ]
+  },
+  {
+   "id": "B-7-L1",
+   "code": "L1",
+   "type": "Market",
+   "zoneId": "B-7",
+   "label": "B-7 · L1 Market",
+   "at": [
+    100.45499,
+    7.02497
+   ]
+  },
+  {
+   "id": "B-7-L2",
+   "code": "L2",
+   "type": "Community building",
+   "zoneId": "B-7",
+   "label": "B-7 · L2 Community building",
+   "at": [
+    100.452,
+    7.0242
+   ]
+  },
+  {
+   "id": "B-7-L3",
+   "code": "L3",
+   "type": "Mosque",
+   "zoneId": "B-7",
+   "label": "B-7 · L3 Mosque",
+   "at": [
+    100.45833,
+    7.02308
+   ]
+  },
+  {
+   "id": "B-7-L4",
+   "code": "L4",
+   "type": "School",
+   "zoneId": "B-7",
+   "label": "B-7 · L4 School",
+   "at": [
+    100.46159,
+    7.01321
+   ]
+  },
+  {
+   "id": "B-7-L5",
+   "code": "L5",
+   "type": "Health centre",
+   "zoneId": "B-7",
+   "label": "B-7 · L5 Health centre",
+   "at": [
+    100.45298,
+    7.01082
+   ]
+  },
+  {
+   "id": "B-7-L6",
+   "code": "L6",
+   "type": "Shrine",
+   "zoneId": "B-7",
+   "label": "B-7 · L6 Shrine",
+   "at": [
+    100.45596,
+    7.0117
+   ]
+  },
+  {
+   "id": "B-7-L7",
+   "code": "L7",
+   "type": "Temple",
+   "zoneId": "B-7",
+   "label": "B-7 · L7 Temple",
+   "at": [
+    100.44956,
+    7.00109
+   ]
+  },
+  {
+   "id": "B-8-L1",
+   "code": "L1",
+   "type": "School",
+   "zoneId": "B-8",
+   "label": "B-8 · L1 School",
+   "at": [
+    100.47407,
+    7.01269
+   ]
+  },
+  {
+   "id": "B-8-L2",
+   "code": "L2",
+   "type": "Health centre",
+   "zoneId": "B-8",
+   "label": "B-8 · L2 Health centre",
+   "at": [
+    100.47789,
+    7.01272
+   ]
+  },
+  {
+   "id": "B-8-L3",
+   "code": "L3",
+   "type": "Shrine",
+   "zoneId": "B-8",
+   "label": "B-8 · L3 Shrine",
+   "at": [
+    100.47885,
+    7.00703
+   ]
+  },
+  {
+   "id": "B-8-L4",
+   "code": "L4",
+   "type": "Temple",
+   "zoneId": "B-8",
+   "label": "B-8 · L4 Temple",
+   "at": [
+    100.47653,
+    7.00232
+   ]
+  },
+  {
+   "id": "B-9-L1",
+   "code": "L1",
+   "type": "Community building",
+   "zoneId": "B-9",
+   "label": "B-9 · L1 Community building",
+   "at": [
+    100.50046,
+    7.02489
+   ]
+  },
+  {
+   "id": "B-9-L2",
+   "code": "L2",
+   "type": "Mosque",
+   "zoneId": "B-9",
+   "label": "B-9 · L2 Mosque",
+   "at": [
+    100.48981,
+    6.9984
+   ]
+  },
+  {
+   "id": "B-9-L3",
+   "code": "L3",
+   "type": "School",
+   "zoneId": "B-9",
+   "label": "B-9 · L3 School",
+   "at": [
+    100.48563,
+    6.99109
+   ]
+  },
+  {
+   "id": "B-10-L1",
+   "code": "L1",
+   "type": "Market",
+   "zoneId": "B-10",
+   "label": "B-10 · L1 Market",
+   "at": [
+    100.46523,
+    7.00209
+   ]
+  },
+  {
+   "id": "B-10-L2",
+   "code": "L2",
+   "type": "Community building",
+   "zoneId": "B-10",
+   "label": "B-10 · L2 Community building",
+   "at": [
+    100.46181,
+    7.00072
+   ]
+  },
+  {
+   "id": "B-10-L3",
+   "code": "L3",
+   "type": "Mosque",
+   "zoneId": "B-10",
+   "label": "B-10 · L3 Mosque",
+   "at": [
+    100.45797,
+    6.99938
+   ]
+  },
+  {
+   "id": "B-10-L4",
+   "code": "L4",
+   "type": "School",
+   "zoneId": "B-10",
+   "label": "B-10 · L4 School",
+   "at": [
+    100.45234,
+    6.99849
+   ]
+  },
+  {
+   "id": "B-11-L1",
+   "code": "L1",
+   "type": "Community building",
+   "zoneId": "B-11",
+   "label": "B-11 · L1 Community building",
+   "at": [
+    100.48207,
+    7.00482
+   ]
+  },
+  {
+   "id": "B-11-L2",
+   "code": "L2",
+   "type": "Mosque",
+   "zoneId": "B-11",
+   "label": "B-11 · L2 Mosque",
+   "at": [
+    100.48588,
+    7.00186
+   ]
+  },
+  {
+   "id": "B-11-L3",
+   "code": "L3",
+   "type": "School",
+   "zoneId": "B-11",
+   "label": "B-11 · L3 School",
+   "at": [
+    100.48209,
+    7.00081
+   ]
+  },
+  {
+   "id": "B-12-L1",
+   "code": "L1",
+   "type": "School",
+   "zoneId": "B-12",
+   "label": "B-12 · L1 School",
+   "at": [
+    100.4669,
+    6.99265
+   ]
+  },
+  {
+   "id": "B-12-L2",
+   "code": "L2",
+   "type": "Health centre",
+   "zoneId": "B-12",
+   "label": "B-12 · L2 Health centre",
+   "at": [
+    100.47053,
+    6.99264
+   ]
+  },
+  {
+   "id": "B-12-L3",
+   "code": "L3",
+   "type": "Shrine",
+   "zoneId": "B-12",
+   "label": "B-12 · L3 Shrine",
+   "at": [
+    100.46414,
+    6.99191
+   ]
+  },
+  {
+   "id": "B-13-L1",
+   "code": "L1",
+   "type": "Mosque",
+   "zoneId": "B-13",
+   "label": "B-13 · L1 Mosque",
+   "at": [
+    100.47463,
+    6.99319
+   ]
+  },
+  {
+   "id": "B-13-L2",
+   "code": "L2",
+   "type": "School",
+   "zoneId": "B-13",
+   "label": "B-13 · L2 School",
+   "at": [
+    100.4821,
+    6.99408
+   ]
+  },
+  {
+   "id": "A-1-L1",
+   "code": "L1",
+   "type": "Temple",
+   "zoneId": "A-1",
+   "label": "A-1 · L1 Temple",
+   "at": [
+    100.49,
+    7.095
+   ]
+  },
+  {
+   "id": "A-1-L2",
+   "code": "L2",
+   "type": "School",
+   "zoneId": "A-1",
+   "label": "A-1 · L2 School",
+   "at": [
+    100.506,
+    7.096
+   ]
+  },
+  {
+   "id": "A-1-L3",
+   "code": "L3",
+   "type": "Community building",
+   "zoneId": "A-1",
+   "label": "A-1 · L3 Community building",
+   "at": [
+    100.498,
+    7.107
+   ]
+  },
+  {
+   "id": "A-2-L1",
+   "code": "L1",
+   "type": "School",
+   "zoneId": "A-2",
+   "label": "A-2 · L1 School",
+   "at": [
+    100.446,
+    7.055
+   ]
+  },
+  {
+   "id": "A-2-L2",
+   "code": "L2",
+   "type": "Temple",
+   "zoneId": "A-2",
+   "label": "A-2 · L2 Temple",
+   "at": [
+    100.46,
+    7.056
+   ]
+  },
+  {
+   "id": "A-2-L3",
+   "code": "L3",
+   "type": "Community building",
+   "zoneId": "A-2",
+   "label": "A-2 · L3 Community building",
+   "at": [
+    100.452,
+    7.069
+   ]
+  },
+  {
+   "id": "C-1-L1",
+   "code": "L1",
+   "type": "Market",
+   "zoneId": "C-1",
+   "label": "C-1 · L1 Market",
+   "at": [
+    100.47,
+    6.945
+   ]
+  },
+  {
+   "id": "C-1-L2",
+   "code": "L2",
+   "type": "Community building",
+   "zoneId": "C-1",
+   "label": "C-1 · L2 Community building",
+   "at": [
+    100.48,
+    6.948
+   ]
+  },
+  {
+   "id": "C-1-L3",
+   "code": "L3",
+   "type": "Temple",
+   "zoneId": "C-1",
+   "label": "C-1 · L3 Temple",
+   "at": [
+    100.474,
+    6.956
+   ]
+  },
+  {
+   "id": "C-2-L1",
+   "code": "L1",
+   "type": "School",
+   "zoneId": "C-2",
+   "label": "C-2 · L1 School",
+   "at": [
+    100.447,
+    6.946
+   ]
+  },
+  {
+   "id": "C-2-L2",
+   "code": "L2",
+   "type": "Temple",
+   "zoneId": "C-2",
+   "label": "C-2 · L2 Temple",
+   "at": [
+    100.456,
+    6.947
+   ]
+  },
+  {
+   "id": "C-2-L3",
+   "code": "L3",
+   "type": "Community building",
+   "zoneId": "C-2",
+   "label": "C-2 · L3 Community building",
+   "at": [
+    100.451,
+    6.958
+   ]
+  },
+  {
+   "id": "D1",
+   "code": "D1",
+   "type": "Shelter (high ground)",
+   "zoneId": null,
+   "label": "D1 Shelter (high ground)",
+   "at": [
+    100.4985,
+    7.0065
+   ]
+  }
+ ]
+}

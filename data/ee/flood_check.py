@@ -6,9 +6,11 @@ Three steps, run from the repo root with your sandbox Google Cloud project:
     python data/ee/flood_check.py detect  --project YOUR_EE_PROJECT --package hy-2025-11
     python data/ee/flood_check.py compare --project YOUR_EE_PROJECT --package hy-2025-11 \
         --reference path/to/eos-hatyai.geojson
+    python data/ee/flood_check.py nodata  --project YOUR_EE_PROJECT --package hy-2025-11
 
 `list` writes the available scenes, `detect` writes one flood extent GeoJSON per pass (plus a max-observed union for reference),
-`compare` measures agreement with a published map. Nothing here runs in the app;
+`compare` measures agreement with a published map, `nodata` writes the dense built-up area where
+Sentinel-1 can't see street water (shown as "no satellite data", never as dry; D26). Nothing here runs in the app;
 the outputs are committed under data/<package>/ and served from Cloud Storage.
 """
 
@@ -280,9 +282,205 @@ def cmd_compare(args, pkg, aoi):
     print("Read it with the urban caveat: low agreement in the city core is expected for Sentinel-1.")
 
 
+# "No satellite data" mask (D26), like the Copernicus GFM exclusion mask: dense built-up land, where
+# radar double-bounce hides street water. Run 2026-10-12: 16 of 17 reported flood points fall inside it.
+NODATA = {
+    "built_class": 50,          # ESA WorldCover v200 "Built-up"
+    "radius_m": 200,            # neighbourhood for the built-up share
+    "min_share": 0.5,           # at least half the neighbourhood is built-up
+    "min_area_m2": 300_000,     # drop small villages and isolated blocks
+    "scale_m": 30,
+}
+NODATA_LABEL = ("No satellite data: dense built-up area where Sentinel-1 can't see street water. "
+                "Flooding here is known only from reports and callers. Never shown as dry.")
+
+
+def cmd_nodata(args, pkg, aoi):
+    n = NODATA
+    built = ee.ImageCollection("ESA/WorldCover/v200").first().select("Map").eq(n["built_class"])
+    share = built.reduceNeighborhood(ee.Reducer.mean(), ee.Kernel.circle(n["radius_m"], "meters"))
+    mask = share.gt(n["min_share"]).selfMask().reproject("EPSG:4326", None, n["scale_m"]).rename("flood")
+    vectors = mask.reduceToVectors(geometry=aoi, scale=n["scale_m"], geometryType="polygon",
+                                   eightConnected=True, labelProperty="flood", maxPixels=1e10)
+    props = {"package": args.package, "kind": "no_satellite_data"}
+
+    def tidy(f):
+        f = ee.Feature(f)
+        return f.simplify(n["scale_m"]).set({"area_m2": f.geometry().area(1), **props})
+
+    info = vectors.map(tidy).filter(ee.Filter.gte("area_m2", n["min_area_m2"])).getInfo()
+    meta = {
+        "label": NODATA_LABEL,
+        "attribution": "ESA WorldCover 10 m 2021 v200 (CC BY 4.0), processed by ReachPoint",
+        "method": "Share of WorldCover built-up pixels within the radius, above the minimum share",
+        "parameters": n,
+        "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+    path = DATA_DIR / args.package / "no-satellite-data.geojson"
+    size = write_geojson(info, path, meta)
+    km2 = sum(f["properties"]["area_m2"] for f in info["features"]) / 1e6
+    print(f"No satellite data: {len(info['features'])} polygons, {km2:.2f} km²")
+    print(f"-> {path.relative_to(DATA_DIR.parent)} ({size / 1024:.0f} KB)")
+
+
+# Exposure estimate per segment (D27, D31). Two independent counts, so the app can show a range:
+#   WorldPop 2020 (100 m, unconstrained) and Open Buildings v3 × people per building, where people per
+#   building = DOPA registered population of Hat Yai district / Open Buildings count in the district.
+EXPOSURE = {
+    "extent_file": "extent-2025-11-23-o164.geojson",   # the default dated layer (24 Nov 06:03 Bangkok)
+    "worldpop_year": 2020,                              # latest WorldPop year in Earth Engine
+    "min_building_confidence": 0.75,
+    "dopa_district_population": 406_374,                # อำเภอหาดใหญ่, registered, 2567 (2024); see data/SOURCES.md
+    "dopa_year": 2024,
+    "scale_m": 5,                                       # segments; buildings are rasterised as points at this scale
+    "district_scale_m": 20,                             # the whole-district sanity check
+    # D31 model, city only: water surface = ground height + reported depth at each report, spread by
+    # inverse distance; a pixel is "likely flooded" where that surface is above the bare-earth ground.
+    "model_radius_m": 2500,                             # no model further than this from a report with a depth
+    "model_min_depth_m": 0.1,
+    "dem": "FABDEM v1.2 (bare earth, 30 m)",
+}
+# Depth in metres read from each report's words (low, high); body heights: knee 0.5, waist 1.0, chest 1.3,
+# over head 2.0, second floor about 3. Reports without a depth are not used by the model.
+REPORTED_DEPTH_M = {
+    "RPT-01": (1.0, 1.3),   # waist to chest
+    "RPT-02": (0.5, 1.0),   # knee to waist
+    "RPT-03": (1.3, 2.0),   # chest to over head
+    "RPT-04": (1.3, 2.0),   # chest to over head
+    "RPT-07": (2.0, 3.0),   # over head; water to the ceiling
+    "RPT-08": (1.0, 2.0),   # very deep, impassable
+    "RPT-09": (2.5, 3.0),   # up to the second floor
+    "RPT-12": (1.1, 1.3),   # nearly chest deep
+    "RPT-14": (1.0, 2.0),   # only boats get through
+    "RPT-15": (2.0, 3.0),   # stranded on second floors
+    "RPT-16": (2.5, 3.0),   # nearly up to the second floor
+    "RPT-17": (2.0, 3.0),   # over 2 m, rooftops
+}
+
+
+def local_fc(path):
+    return ee.FeatureCollection([ee.Feature(f) for f in json.loads(Path(path).read_text())["features"]])
+
+
+def exposure_image(scale, extent, model, bounds):
+    """People and buildings per pixel, inside the extent and inside the modelled flood (low, high)."""
+    e = EXPOSURE
+    wp = (ee.ImageCollection("WorldPop/GP/100m/pop").filter(ee.Filter.eq("country", "THA"))
+          .filter(ee.Filter.eq("year", e["worldpop_year"])).first())
+    people = wp.divide(ee.Image.pixelArea().reproject(wp.projection())).multiply(ee.Image.pixelArea())
+    proj = ee.Projection("EPSG:4326").atScale(scale)
+    pts = (ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons").filterBounds(bounds)
+           .filter(ee.Filter.gte("confidence", e["min_building_confidence"]))
+           .map(lambda f: ee.Feature(ee.Geometry(f.get("longitude_latitude")), {"one": 1})))
+    bld = pts.reduceToImage(["one"], ee.Reducer.sum()).reproject(proj).unmask(0)
+    in_ext = ee.Image(0).byte().paint(extent, 1)
+    bands = [people.rename("wp"), bld.rename("bld"),
+             people.updateMask(in_ext).rename("wp_ext"), bld.updateMask(in_ext).rename("bld_ext")]
+    for k in ("lo", "hi"):
+        bands += [people.updateMask(model[k]).rename(f"wp_{k}"), bld.updateMask(model[k]).rename(f"bld_{k}")]
+    return ee.Image.cat(bands)
+
+
+def flood_model(reports):
+    """D31: likely-flooded masks for the low and high reported depths."""
+    e = EXPOSURE
+    dem = ee.ImageCollection("projects/sat-io/open-datasets/FABDEM").mosaic().setDefaultProjection("EPSG:4326", None, 30)
+    ground = reports.map(lambda f: f.set("mean", dem.reduceRegion(
+        ee.Reducer.mean(), f.geometry().buffer(100), 30).get("b1")))  # mean ground within 100 m (geocoding is approximate)
+    out = {}
+    for i, k in enumerate(("lo", "hi")):
+        wse = ground.map(lambda f: f.set("wse", ee.Number(f.get("mean")).add(ee.List(f.get("depth")).get(i))))
+        stats = wse.reduceColumns(ee.Reducer.mean().combine(ee.Reducer.stdDev(), None, True), ["wse"])
+        surface = wse.inverseDistance(e["model_radius_m"], "wse", stats.get("mean"), stats.get("stdDev"), 2)
+        near = ee.Image(0).byte().paint(reports.map(lambda f: f.buffer(e["model_radius_m"])), 1)
+        depth = surface.subtract(dem)
+        out[k] = depth.gt(e["model_min_depth_m"]).And(near).unmask(0)
+        out[f"depth_{k}"] = depth.updateMask(out[k]).rename(f"depth_{k}")
+    out["ground"] = ground
+    out["dem"] = dem.rename("ground")
+    return out
+
+
+def cmd_exposure(args, pkg, aoi):
+    e = EXPOSURE
+    folder = DATA_DIR / args.package
+    segs = local_fc(folder / "segments.geojson").select(["id"])
+    extent = local_fc(folder / e["extent_file"])
+    nodata = local_fc(folder / "no-satellite-data.geojson")
+    rep = [f for f in json.loads((folder / "reported-flooding.geojson").read_text())["features"]
+           if f["properties"]["id"] in REPORTED_DEPTH_M]
+    reports = ee.FeatureCollection([ee.Feature(ee.Geometry.Point(f["geometry"]["coordinates"]),
+                                               {"id": f["properties"]["id"], "depth": list(REPORTED_DEPTH_M[f["properties"]["id"]])})
+                                    for f in rep])
+    model = flood_model(reports)
+    district = ee.FeatureCollection("FAO/GAUL/2025/level2").filter(ee.Filter.eq("GAUL2_NAME", "Hat Yai")).geometry()
+
+    sums = ["wp", "bld", "wp_ext", "bld_ext", "wp_lo", "bld_lo", "wp_hi", "bld_hi"]
+    rows = exposure_image(e["scale_m"], extent, model, segs.geometry().bounds()).reduceRegions(
+        segs, ee.Reducer.sum(), e["scale_m"], tileScale=4).getInfo()["features"]
+
+    # D32: ground height per segment (for live depth from callers) and the modelled depth where flooded.
+    pct = ee.Reducer.percentile([10, 50, 90])
+    depth_rows = ee.Image.cat(model["dem"], model["depth_lo"], model["depth_hi"]).reproject(  # without this it stalls
+        "EPSG:4326", None, 30).reduceRegions(
+        segs, pct, 30, tileScale=4).getInfo()["features"]
+    depth = {f["properties"]["id"]: {k: (round(v, 1) if v is not None else None)
+                                     for k, v in f["properties"].items() if k != "id"} for f in depth_rows}
+
+    # Whole-district check against GISTDA (25 Nov): people in the extent plus the modelled city part
+    # that falls in the "no satellite data" area.
+    ds = e["district_scale_m"]
+    img = exposure_image(ds, extent, model, district)
+    nd = ee.Image(0).byte().paint(nodata, 1)
+    in_ext = ee.Image(0).byte().paint(extent, 1)
+    area = ee.Image.cat(in_ext.multiply(ee.Image.pixelArea()).rename("ext_m2"),
+                        model["hi"].And(nd).And(in_ext.Not()).multiply(ee.Image.pixelArea()).rename("model_nd_m2"))
+    city = img.select(["wp_lo", "wp_hi", "bld_lo", "bld_hi"]).updateMask(nd.And(in_ext.Not()))
+    district_stats = ee.Image.cat(img.select(["wp", "bld", "wp_ext", "bld_ext"]), area,
+                                  city.rename(["wp_lo_nd", "wp_hi_nd", "bld_lo_nd", "bld_hi_nd"])).reduceRegion(
+        ee.Reducer.sum(), district, ds, maxPixels=1e10, tileScale=4).getInfo()
+    exact_buildings = (ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons")
+                       .filterBounds(district).filter(ee.Filter.gte("confidence", e["min_building_confidence"]))
+                       .size().getInfo())
+    per_building = e["dopa_district_population"] / exact_buildings
+    ground = {f["properties"]["id"]: round(f["properties"]["mean"], 1) for f in model["ground"].getInfo()["features"]}
+
+    out = {
+        "label": "People living in each segment (estimate). Never a count of victims; never adds to reviewed counts.",
+        "sources": {
+            "worldpop": f"WorldPop Global 100 m, {e['worldpop_year']} (CC BY 4.0)",
+            "buildings": "Google Open Buildings v3 polygons (CC BY 4.0 / ODbL), confidence ≥ "
+                         f"{e['min_building_confidence']}",
+            "dopa": f"DOPA registered population, Hat Yai district, {e['dopa_year']}: {e['dopa_district_population']:,}",
+            "extent": e["extent_file"],
+            "model": f"{e['dem']} + {len(rep)} reported depths (D31)",
+        },
+        "parameters": e,
+        "reportedDepthM": REPORTED_DEPTH_M,
+        "groundAtReportM": ground,
+        "peoplePerBuilding": round(per_building, 3),
+        "district": {"name": "Hat Yai (FAO GAUL 2025)", "buildings": exact_buildings,
+                     **{k: round(v) for k, v in district_stats.items()}},
+        "segments": {f["properties"]["id"]: {k: round(f["properties"].get(k) or 0, 1) for k in sums} for f in rows},
+        # Metres. ground_p10/p50/p90: bare-earth height; depth_{lo,hi}_p50: median modelled depth where flooded.
+        "depth": depth,
+        "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+    path = folder / "exposure.json"
+    path.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n")
+    d = out["district"]
+    print(f"People per building {per_building:.2f} ({exact_buildings:,} buildings in the district)")
+    print(f"District: WorldPop {d['wp']:,}, buildings × rate {d['bld'] * per_building:,.0f}")
+    print(f"  in the extent: {d['ext_m2'] / 1600:,.0f} rai, WorldPop {d['wp_ext']:,}, buildings × rate {d['bld_ext'] * per_building:,.0f}")
+    print(f"  modelled city part (no satellite data): {d['model_nd_m2'] / 1600:,.0f} rai, "
+          f"WorldPop {d['wp_lo_nd']:,}–{d['wp_hi_nd']:,}, buildings × rate "
+          f"{d['bld_lo_nd'] * per_building:,.0f}–{d['bld_hi_nd'] * per_building:,.0f}")
+    print(f"{len(rows)} segments -> {path.relative_to(DATA_DIR.parent)}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=["list", "detect", "compare"])
+    parser.add_argument("step", choices=["list", "detect", "compare", "nodata", "exposure"])
     parser.add_argument("--project", required=True, help="Google Cloud project registered for Earth Engine")
     parser.add_argument("--package", default="hy-2025-11", choices=sorted(PACKAGES))
     parser.add_argument("--date", action="append", help="detect: only this event date (YYYY-MM-DD); repeatable")
@@ -297,7 +495,8 @@ def main():
     ee.Initialize(project=args.project)
     pkg = PACKAGES[args.package]
     aoi = ee.Geometry.Rectangle(pkg["bbox"])
-    {"list": cmd_list, "detect": cmd_detect, "compare": cmd_compare}[args.step](args, pkg, aoi)
+    {"list": cmd_list, "detect": cmd_detect, "compare": cmd_compare, "nodata": cmd_nodata,
+     "exposure": cmd_exposure}[args.step](args, pkg, aoi)
 
 
 if __name__ == "__main__":

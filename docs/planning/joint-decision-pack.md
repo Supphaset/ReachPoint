@@ -5,6 +5,9 @@ Date: 2026-10-11 (Asia/Bangkok). Status: **Working document behind [decision 000
 > **Update later on 2026-10-11 (read first).** Three later user decisions supersede parts of this pack:
 > 1. **No real phone line** in the prototype (eng R21). A browser call screen represents a phone call. B4, the "Thai number" row, §5.2/§5.2a, the Twilio items and the phone gate are kept only as history. See the [0009 amendments](../decisions/0009-implementation-start-and-technical-direction.md#amendments-user-decisions-later-on-2026-10-11).
 > 2. **Pull model (21A):** no offers. Reviewed cases go to shared priority lists, and the first capable team to take a family group wins. "offered", offer expiry and `respondToMissionOffer` in §3, §4.2, §6 and §7 are replaced by `publishListing` / `claimListing`, with allocations starting at `accepted`.
+> 5. **Surge and the triage agent (D21–D24).** AI files clear non-emergency requests automatically as "AI-read". A triage agent ranks the live list directly (labelled, with a safety floor; human overrides win). Any team can take an AI-flagged RED request at once. A surge simulator is core in CP3. See the design doc ("Surge and the triage agent").
+> 6. **Requests meet the flood map and estimate (D25–D29).** Exact locations via Pinpoint, Google Places or a caller pin, visible only to the coordinator and the taking team. Three report kinds grouped into places; neighbour counts never summed. "No satellite data", never dry. Per-segment estimate that switches on caller water reports, drops out when checked, plus a call rate. See the design doc ("Requests, the flood map and the estimate").
+> 4. **Zone missions (D17–D20).** Non-emergency work is prioritised by zone and split into segments, one team each. RED emergencies are still handled one by one, straight away. A synthetic vulnerable-residents register and a copilot that can propose zone-order changes support this. See the [design doc](../designs/resource-split-and-live-loop.md) ("Zone missions and emergencies").
 > 3. **Eng re-check decisions D1–D14** (family groups, job endings, outdated-case checks, colour-then-distance ordering, shared open lists, server-checked resident messages, coordinator-only solver): see the [design doc](../designs/resource-split-and-live-loop.md) and the [real rescue practice research](../research/real-rescue-practice.md).
 
 Labels: **[ACCEPTED]** = already a recorded human decision in the repo. **[PROPOSED]** = recommendation in this pack or an existing proposal in the repo. **[OPEN]** = unresolved and needs a human.
@@ -115,7 +118,7 @@ Conventions (from draft v1, kept): ISO-8601 UTC strings; displayed in Asia/Bangk
 
 | Collection | Meaning | Writer (via API only) | Meaning-owner |
 |---|---|---|---|
-| `areas/{areaId}` | P-A/P-B/P-C, boundaryVersion, landmark list (L1…L3) | seed script | **You** |
+| `areas/{areaId}` | P-A/P-B/P-C, boundaryVersion, zones, segments and landmarks. **Geography v1 (12 Oct):** landmark and segment IDs are zone-scoped, e.g. `B-3-L3` shown as "B-3 · L3 Community building" (fixture `contract/fixtures/areas.hy-2025-11.json`) | seed script | **You** |
 | `evidence/{evidenceId}` | typed flood/exposure items (EXT-A, DEP-A, POP-A…) | `submitSourcePackage` | **You** |
 | `reports/{reportId}` | raw incoming items: `channel` ∈ phone, chat, field_observation, team_report | intake, team UI | Friend |
 | `proposedEvents/{eventId}` | AI or human proposals linked to a report span | AI pipeline, desk | Friend |
@@ -285,6 +288,16 @@ Conventions (from draft v1, kept): ISO-8601 UTC strings; displayed in Asia/Bangk
 | resource.availability | available → unavailable_reported | team_leader (report) | Creates desk attention; nothing else changes yet |
 | resource.availability + mission.state + window | unavailable_reported → unavailable; accepted → held; current → withdrawn | coordinator (reviews report) | Linked missions only; nextStatusUpdate set with owner; brief v(n+1) saved with ack pending |
 | outcome | unconfirmed → receipt_confirmed / care_handover_confirmed | coordinator, with a separate confirmation | Never inferred from progress |
+| zoneMission | suggested → published / dismissed | rule suggests; coordinator decides | Reason kept (calls, register count, estimate, last check); dismissing keeps the reason in history |
+| segment | defined → open | coordinator | Segments are cut around landmarks; one segment = one team |
+| segment | open → taken | team_leader (own team, Available, capable) | One transaction; `ALREADY_TAKEN` if another team got it first; the families in the segment show "Team T-x is working in your area" |
+| segment | taken → checked / partly_checked / unreachable | team_leader | Records households found, pickups needed, time and team; `unreachable` keeps the zone gap open; nothing marks a zone "safe" |
+| request | received → ai_read (filed to zone/segment) / ai_flagged_red / needs_human | triage pipeline | Labelled; counted separately from verified; safety floor applied |
+| request | ai_read / ai_flagged_red → verified / corrected | team on site, or coordinator | Verifying turns it into a reviewed case (group approve allowed) |
+| priority rank | any → new rank | triage agent | Writes a reason, quote, model version and time; never below the safety floor; never overrides a human pin |
+| priority rank | any → pinned / re-ranked / unflagged | coordinator | Final; the agent can't change it |
+| duplicate merge | separate → merged / unmerged | triage agent merges; coordinator or agent unmerges | Soft and reversible; the original requests are kept |
+| zone order change | ranked by triage agent; coordinator may override | triage agent / coordinator | Replaces the proposal-only rule (D17c → D22) |
 | proposal (routine) | draft → submitted → approved_as_mission / returned | team_leader → coordinator | A draft never changes coverage or stock |
 
 ---
@@ -333,7 +346,7 @@ Conventions (from draft v1, kept): ISO-8601 UTC strings; displayed in Asia/Bangk
 
 **Scope consequence:** 0005 assumed *one fictional locality*. With two real past events, the simplest honest structure is **one locality hosting all of P-A/P-B/P-C**, plus the other event as a **second map/briefing package with no operational records**. **Decided (human, 2026-10-11): Hat Yai hosts the operational scenario; Bangkok is the second package.**
 - **Hat Yai planning areas:** pick three sub-district-scale areas from the S1 extent. P-A: support-in-place, shallower/peripheral. P-B: deep, evacuation needed. P-C: no recent assessment.
-- **Area IDs:** keep P-A/P-B/P-C as IDs, with real place labels only at district level. Landmarks stay generic (L1–L3, D1).
+- **Area IDs:** keep P-A/P-B/P-C as IDs, with real place labels only at district level. Landmarks stay generic (L1–L3, D1). **D30:** the city's own districts (เขต 1–4 of Hat Yai City Municipality) are also shown; zones and segments keep generic IDs.
 - **Bangkok areas:** IDs `BKK-1…n`, with no operational records.
 - **Contract change:** `areas/{areaId}` gains `packageId` (`HY-2025-11` | `BKK-2026-09`) and `event: {name, start, end}`. Area briefings for Bangkok return operational fields as `null` with `reason: "no_operational_records_in_package"`, not zeros.
 
@@ -379,6 +392,13 @@ Conventions (from draft v1, kept): ISO-8601 UTC strings; displayed in Asia/Bangk
 - It never adds to reviewed counts and never creates a listing.
 - It shows its source dates and its uncertainty. Buildings are not the same as households: one shophouse can hold several households, and some buildings are shops or warehouses.
 - The gap between estimated and reported shows places that may have unreported needs ([unreported needs](../research/unreported-needs.md)).
+
+**Per segment, and joined to requests (D26–D28, 2026-10-12).**
+- Precompute two ranges per **segment**: everyone living there, and people inside the satellite extent.
+- The live basis is satellite → callers (a reviewed water report from a "no data" or dry segment switches to the full count) → checked (drops out). The zone shows "people in segments not yet checked".
+- Call rate = reviewed callers per 1,000 estimated residents. A high estimate with a low call rate flags "quiet: phones may be down".
+- The radar-blind urban core is shipped as a "no satellite data" area.
+- Sanity check against GISTDA's 25 Nov figure for Hat Yai district: 52,731 rai flooded, about 150,230 people affected ([Thairath](https://en.thairath.co.th/scoop/infographic/2897818)).
 
 Earth Engine noncommercial projects get 150 EECU-hours/month (Community tier). One small region is well within that. Register the project as noncommercial; one project only (quota farming is prohibited).
 
@@ -430,8 +450,8 @@ Cost order of magnitude (verify before buying): a US number is a few USD/month; 
 | **Mon 12** | **Real extent, Hat Yai first:** register the Earth Engine noncommercial project; check which S1 scenes exist for both events (§5.1b); run the §5.1c flood check (scene list, change detection, compare with EOS/AIT maps), then Hat Yai change detection (Oct 2025 baseline vs. 22–25 Nov); export extent GeoJSON (EXT-A/B/C with acquisition dates). Draw the Hat Yai P-A/P-B/P-C boundaries over it. Bangkok package follows on Tue/Wed. Ship `contract/fixtures/areaBriefing.*.json` (synthetic operational numbers) **by noon** so your friend isn't blocked. React shell with map + list + same-ID selection | FastAPI skeleton deployed on Cloud Run; Firestore + seed script loading **your** fixtures; auth with 4 test roles; ADK Live browser-voice spike | **CP0 (evening): both deployed URLs load; the seed is shared** |
 | **Tue 13** | Open Buildings counts + WorldPop exposure per area, cross-checked with DOPA registered population (§5.1c ranges) (POP-x, with reference year and uncertainty). Area briefing screen against the live `views/areaBriefing`; planning calculation `planning.py` + tests on the P-A numbers (80/20/30 → 60/30) | Chat/text intake → Gemini extraction → `proposedEvents`; desk approve/reject → case/assistance; view regeneration | **CP1: text report → coordinator approves → need on your P-B list/map (no double-count: still 24)** |
 | **Wed 14** | Team list + mission screen: priority list → take family group → ack brief → set window, hand back, end outcomes (routine P-A planner is a stretch goal after CP3) | Publish/claim flow with capability checks; resident status page from the token; browser call screen (ADK Live) | **CP2: publish → your take + window → resident sees 13:00–14:00 for transport while medical shows "seeking team"**. Decide F2 go/no-go |
-| **Thu 15** | Report resource unavailable; area briefing reacts (P-B capacity); Gemini area-explainer | Review team report → hold, withdraw window, next-update; history view | **CP3: the full emergency walk-through (§7) on the deployed app** |
-| **Fri 16** | P-C field report (scoped, pending); polish map/UX; F2 if go | Reconciliation suggestion UI, retry/conflict handling, Firestore rules | **Feature freeze 18:00.** Run the joint acceptance checklist |
+| **Thu 15** | Report resource unavailable; area briefing reacts (P-B capacity); Gemini area-explainer; zone order rule + suggested checks; segment take/mark on the team screen | Review team report → hold, withdraw window, next-update; history view; zone missions, segments, register (coordinator-only) | **CP3: the full emergency walk-through (§7) + the B-4 "found a family who never called" scene on the deployed app** |
+| **Fri 16** | Polish map/UX; stretch: Bangkok package | Reconciliation suggestion UI, retry/conflict handling, Firestore rules | **Feature freeze 18:00.** Run the joint acceptance checklist |
 | **Sat 17** | Video shots (volunteer parts); deck sections: impact, map, data honesty | Video shots (phone, desk, resident); deck: architecture, AI | **Submit by 21:00 Bangkok** |
 | Sun 18 | Buffer only | Buffer only | — |
 

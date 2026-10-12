@@ -14,3 +14,5 @@ Build-week rules (from 12 Oct):
 - The Google Maps key is restricted by HTTP referrer and API.
 - Resident status links use random tokens (128-bit), carry no personal data, expire, and can only read their own status.
 - Only the coordinator role can read call transcripts; team leaders see counts and pickup points only.
+- Exact household points (D25) are synthetic: invented house numbers on real streets, or public buildings (schools, condos by name). Never a real person's home. The exact point is readable only by the coordinator and the team that took the job (Firestore rules test), and leaves shared views when the job closes.
+- Pinpoint and Google Places are called only server-side, with keys in Secret Manager. Only synthetic addresses are sent to them.

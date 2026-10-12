@@ -11,9 +11,9 @@ The base assignment is accepted in [decision 0006](../decisions/0006-two-person-
 | When (Bangkok) | You | Friend | Joint checkpoint |
 |---|---|---|---|
 | Mon 12 | Earth Engine flood check + Hat Yai extent (pack §5.1c); zone boundaries; area-briefing fixtures **by noon**; **frontend foundation:** app shell, role routes, placeholder tokens, data hooks | `reachpoint-main` + budget alert; FastAPI skeleton on Cloud Run; Firestore + seed; 4 test roles; ADK hello-world | **CP0:** both deployed URLs load; contract v1.0 frozen together |
-| Tue 13 | `/design-consultation` → final tokens; shared components ready for both; exposure estimate per zone (Open Buildings + WorldPop + DOPA); area briefing on live views; `tiers.py` + colour/distance sort | Text intake → Gemini proposed facts → desk approve → case/listing; view regeneration | **CP1:** text report → approved → on your P-B list/map, count unchanged |
-| Wed 14 | Team list: take family groups, set window, progress, hand back, end outcomes, Busy reason | `claimListing` / hand-back / close rules with `NEED_CHANGED` + `ALLOCATION_CLOSED`; open lists per assistance type; resident status per family; browser call screen (ADK Live, fallback decided at 12:00) | **CP2:** publish → you take Families 1+2 → resident sees the per-family window |
-| Thu 15 | Split panel with OR-Tools solver + "Ask these teams" + What-if; Gemini zone briefing text | Resource-failure review → hold + relist unfinished groups; message templates with "No longer current"; history view | **CP3:** full walk-through (pack §7), including the S1 failure |
+| Tue 13 | `/design-consultation` → final tokens; shared components ready for both; exposure estimate per segment (Open Buildings + WorldPop + DOPA, GISTDA sanity check); area briefing on live views; `tiers.py` + colour/distance sort | Text intake → Gemini proposed facts → desk approve → case/listing; view regeneration | **CP1:** text report → approved → on your P-B list/map, count unchanged |
+| Wed 14 | Team list: take family groups, set window, progress, hand back, end outcomes, Busy reason | `claimListing` / hand-back / close rules with `NEED_CHANGED` + `ALLOCATION_CLOSED`; open lists per assistance type; resident status per family; location resolver + places (D25, D29); browser call screen (ADK Live, fallback decided at 12:00) | **CP2:** publish → you take Families 1+2 → resident sees the per-family window |
+| Thu 15 | Split panel with OR-Tools solver + "Ask these teams" + What-if; Gemini zone briefing text; zone-order rule + suggested checks; take/mark segments on the team screen; synthetic register fixture | Resource-failure review → hold + relist unfinished groups; message templates with "No longer current"; history view; zone missions + segments (`takeSegment`, `markSegment`), coordinator-only register, desk suggested checks, copilot `propose_zone_priority_change` tool | **CP3:** full walk-through (pack §7), including the S1 failure and the B-4 "found a family who never called" scene |
 | Fri 16 | Consistency pass across all six screens + accessibility review; map/UX polish; stretch: routine planner | Copilot read-only Q&A; retry/conflict handling; Firestore rules | Feature freeze 18:00; run the joint checklist below |
 | Sat 17 | Video shots + deck: impact, map, data honesty | Video shots + deck: architecture, AI | **Submit by 21:00** |
 
@@ -23,12 +23,17 @@ Daily 15-minute check-in: what changed in `contract/`, which checkpoint passed, 
 
 | Area | You | Friend |
 |---|---|---|
-| Flood map, zones, landmarks, exposure estimate | Build | Store/publish the files and views |
+| Flood map, zones, segments, landmarks, per-segment exposure estimate, "no satellite data" area | Build | Store/publish the files and views |
+| `api/rules/exposure.py`: segment basis, "not yet checked", call rate (D27–D28, C15) | **Build** | Call it when views regenerate |
+| Location resolver (Pinpoint, Google Places, caller pin), places, report kinds, exact-point access (D25, D29, C16) | Team job view + map side | **Build** |
 | Zone briefing (Gemini text from computed fields) | Build (prompt + UI) | Serve the view |
 | Priority tiers, colour and distance sort (`api/rules/tiers.py`) | **Build** (shared with the solver) | Call it when listings change |
 | Split solver (`api/rules/allocation.py`, OR-Tools) | Build | Call it, persist suggestions |
 | Coordinator split panel, "Ask these teams", What-if | **Build** | Provide the direct-ask operation |
 | Team list + mission screen (take, window, progress, hand back, end outcomes, Busy reason/ETA, re-confirm request) | Build | Enforce the rules behind each action |
+| Zone order rule + suggested checks (in `tiers.py`); synthetic vulnerable-residents register fixture | **Build** | Store the register with coordinator-only access; show suggestions on the desk |
+| Zone missions and segments (publish, cut segments, take, mark) | Team screen side | Rules + desk side |
+| Triage agent definition (instructions, tools, safety floor, evals) + surge simulator | **Build** | ADK runtime, writing ranks and merges to views, override precedence, logs |
 | Copilot agent definition (instructions, tool choice) | Build | Provide the read-only tool layer |
 | Resident call screen + Thai voice agent (ADK Live → push-to-talk → text) | — | Build |
 | Fact extraction, matching calls to existing cases | — | Build |
@@ -64,11 +69,13 @@ Rules:
 - **Core:** the emergency loop from call → review → priority list → team takes a family → resident status, the S1 failure, the split panel with What-if, and the flood map with zone briefings.
 - **Supplies stay in the split.** P-A food packs are allocated by the solver as supply listings that teams can take in part.
 - **Stretch goal (after CP3): the separate routine relief planner.** That's the P-A "80 needed / 20 received / 30 committed" draft proposal and the coordinator review of routine plans. This is the user's proposal; it revises scope v1 ([0005](../decisions/0005-prototype-scope-proposal.md)) once the friend confirms.
+- **Surge and the triage agent (D21–D24):** this is our headline. Clear requests are filed automatically as AI-read, the triage agent ranks the list directly within its limits, any team can take an AI-flagged RED request, and the surge simulator is core in CP3.
+- **Zone missions (D17–D20):** non-emergency work is prioritised by zone and split into segments, one team each. RED emergencies are handled one by one. The Bangkok package is a stretch goal.
 - **Not in the prototype:** a real phone line, imported requests from other channels, and live flood feeds (see [TODOS](../../TODOS.md)).
 
 ## What crosses the boundary
 
-The [integration map](integration-map.md) has the full diagram, numbered connections C1–C11 with their contract and fixture, the two cross-boundary sequence diagrams, and how our tests cover each connection.
+The [integration map](integration-map.md) has the full diagram, numbered connections C1–C16 with their contract and fixture, the two cross-boundary sequence diagrams, and how our tests cover each connection.
 
 | Producer → consumer | Action | Required result |
 |---|---|---|

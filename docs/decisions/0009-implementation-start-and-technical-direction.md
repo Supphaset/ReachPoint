@@ -33,6 +33,29 @@ The prototype deadline is 18 October 2026, with no published cut-off time or tim
 - **Routine relief planner becomes a stretch goal (revises 0005).** The separate P-A planner and coordinator review of routine plans move after CP3; P-A supplies stay in the solver's split as supply listings.
 - **Work split refinement (refines 0006).** The user also owns the shared priority tiers/sort and the coordinator split panel; see the [delivery agreement](../collaboration/two-person-delivery-agreement.md#who-owns-what).
 - **Build-week review rule.** The owner may merge their own area after the checks pass; the other human reviews within about 4 hours; shared contract or state changes always need both.
+- **Zone missions (D17–D20).** Non-emergency work is prioritised by zone and split into segments, one team each, following ICS divisions, INSARAG worksites and FEMA block search. RED emergencies stay one by one. The zone order is a fixed rule; the copilot may only propose changes. A synthetic vulnerable-residents register is coordinator-only. The "found a family who never called" scene is core in CP3, and the Bangkok package becomes a stretch goal.
+- **Surge and the triage agent (D21–D24).** This is the headline "why": in Hat Yai, more than 20,000 people asked for help in one week.
+  - AI files clear non-emergency requests automatically as "AI-read".
+  - A triage agent ranks the live list directly, labelled and with reasons. A fixed safety floor applies, human overrides are final, and the agent never closes requests, promises times or assigns teams.
+  - Any team may take an AI-flagged RED request at once and verify it on arrival.
+  - A surge simulator is core in CP3.
+  - This amends the requirement that AI proposals need coordinator approval; see requirements.
+- **Requests meet the flood map and estimate (D25–D29, 2026-10-12).**
+  - Each household gets an exact location: Pinpoint (Thai addresses), Google Places (buildings) or a caller pin, with its source and precision. Only the coordinator and the team that took the job see the exact point; shared views show the segment and landmark.
+  - Requests are one of three kinds (my household, check-on, neighbour report) and are grouped into places. Neighbour counts are never summed.
+  - Radar blind spots are "no satellite data", never dry; the satellite can only raise concern.
+  - The estimate is per segment, switches to the full count when callers report water, drops out when checked, and adds a call rate.
+  - Pinpoint is the one non-Google service; its terms and cost are checked before use.
+- **City zones along streets, grouped by the city's districts (D30, 2026-10-12).**
+  - Zones and segments in the city (P-B) are cut along real roads, the railway, the river and canals (OpenStreetMap), the way search teams cut segments a crew can follow on the ground. Each zone sits inside one of the Hat Yai City Municipality's 4 districts (เขต 1–4).
+  - IDs stay generic (B-1…B-13, "B-3 · L5 School"); the district names are the only real labels below the city. Rural zones (P-A, P-C) stay hand-drawn.
+  - IDs and edges don't change once the event starts.
+- **City estimate shows two numbers (D31, 2026-10-12, proposed, friend to confirm).** In "no satellite data" segments, show everyone living there **and** a likely-flooded share modelled from reported depths plus ground height, labelled as a model. This revises "no own depth model" for the city only.
+- **Water depth from callers, reconciled by the triage agent (D32, 2026-10-12, proposed, friend to confirm).**
+  - Depth comes from teams on site, callers ("water at my chest", "we're on the 2nd floor"), cited news reports and the D31 model, in that order of trust. The satellite gives no depth.
+  - Intake extraction adds a `waterDepth` fact to each request: the quote, a band in metres and the time (friend). The triage agent gets a depth tool (user) that keeps one band per segment, with its sources, freshness (stale after 6 h), trend (rising or falling) and any conflicts. It never averages a conflict away, never drops a caller, and never reads "no reports" as dry.
+  - The reconciled depth sets the team's kit ("boat needed" at 1.2 m or more, or a fast current), raises zone order, and can raise a request's rank. Area depth only ever **raises** a request, and its reason is shown apart from the caller's own words, e.g. "Caller: 'need water' · Area: B-3 · L5 about 2 m (callers + model)".
+  - This extends D31's model to a depth band per segment, labelled as a model until callers or teams confirm it.
 - These amendments are the user's decisions; like the rest of 0009, they bind both humans once the friend confirms.
 
 ## Still open (not decided here)
@@ -40,7 +63,7 @@ The prototype deadline is 18 October 2026, with no published cut-off time or tim
 - Total spend cap and its split across projects (blocks CP0 billing). The Twilio and AIS questions are moot after the D5 amendment.
 - Contract v1.0 freeze: the pack's §3–§4 record shapes, one assistance document per type per case, and resident visibility of reported-but-unreviewed problems.
 - Thai intake with English for the other screens (still proposed).
-- Exact Hat Yai P-A/P-B/P-C boundaries; whether Bangkok has a usable Sentinel-1 pass in the event window (checked first on 12 Oct).
+- Whether Bangkok has a usable Sentinel-1 pass in the event window (checked first on 12 Oct).
 
 ## Consequences
 
