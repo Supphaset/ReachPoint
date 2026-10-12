@@ -138,9 +138,12 @@ class Geography(unittest.TestCase):
         self.assertEqual(max(count, key=count.get), "B-3")
         self.assertEqual(count["B-4"], 0)
 
-    def test_shelter_is_outside_every_zone(self):
-        d1 = next(m for m in self.marks if m["properties"]["id"] == "D1")
-        self.assertFalse(any(contains(z["geometry"], d1["geometry"]["coordinates"]) for z in self.zones))
+    def test_destinations_are_outside_every_zone(self):
+        # D1 shelter and H1 hospital (synthetic) sit on high ground, outside the flooded zones.
+        for did in ("D1", "H1"):
+            d = next(m for m in self.marks if m["properties"]["id"] == did)
+            self.assertEqual(d["properties"]["kind"], "destination")
+            self.assertFalse(any(contains(z["geometry"], d["geometry"]["coordinates"]) for z in self.zones), did)
 
     def test_no_satellite_data_share_is_a_fraction(self):
         for f in self.zones + self.segments:

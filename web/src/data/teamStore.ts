@@ -10,13 +10,14 @@
  * makes the first claim on this page return that result (from contract/fixtures/claim.*.json).
  */
 import { useSyncExternalStore } from "react";
-import type { Group, Job, OpenListing, Outcome, Result, TeamMissionsView, TeamStatus } from "./contract";
+import type { Group, Job, MedicalNotes, OpenListing, Outcome, Result, TeamMissionsView, TeamStatus } from "./contract";
 import { now } from "./clock";
 import { devSwitch } from "./source";
 
 const views = import.meta.glob("../../../contract/fixtures/teamMissions.*.json", { import: "default" });
 const pickupsFile = import.meta.glob("../../../contract/fixtures/pickups.synthetic.json", { import: "default" });
 const claimFiles = import.meta.glob("../../../contract/fixtures/claim.*.json", { import: "default" });
+const medicalFile = import.meta.glob("../../../contract/fixtures/medicalNotes.synthetic.json", { import: "default" });
 
 type Pickups = { pickups: Record<string, Omit<Job["pickup"], "landmarkLabel">> };
 type ClaimFixture = { response: { code: string; message: string } };
@@ -31,6 +32,7 @@ type State =
 let state: State = { status: "loading" };
 let loadedFor: string | null = null;
 let pickups: Pickups["pickups"] = {};
+let medical: Record<string, MedicalNotes> = {};
 let forcedUsed = false;
 const listeners = new Set<() => void>();
 
@@ -66,6 +68,7 @@ export async function loadTeam(teamId: string) {
     const view = clone((await load()) as TeamMissionsView);
     const p = (await pickupsFile["../../../contract/fixtures/pickups.synthetic.json"]()) as Pickups;
     pickups = p.pickups;
+    medical = ((await medicalFile["../../../contract/fixtures/medicalNotes.synthetic.json"]()) as { notes: Record<string, MedicalNotes> }).notes;
     emit({ status: "ready", view, offline: Boolean(devSwitch("offline")) });
   } catch (e) {
     emit({ status: "error", message: e instanceof Error ? e.message : String(e) });
@@ -136,6 +139,8 @@ export async function claimListing(listingId: string, groupIds: string[], seenRe
     colour: l.colour,
     landmarkLabel: l.landmarkLabel,
     urgency: clone(l.urgency),
+    destination: clone(l.destination),
+    medical: medical[listingId] ? clone(medical[listingId]) : null,
     groups: clone(groups).map((g) => ({ ...g, state: "taken", takenBy: v.teamId })),
     seatUnits: need,
     state: "taken",
@@ -198,6 +203,10 @@ export async function closeAllocation(allocationId: string, outcome: Outcome) {
     j.state = "closed";
     j.outcome = outcome;
     j.closedAt = iso();
+    if (j.medical) {
+      j.medical = null; // D38: medical notes leave the team's phone when the job closes
+      j.medicalRemovedAt = j.closedAt;
+    }
     if (outcome === "needs_more_help") reopen(v, j, `Back from ${v.teamId}: needs more help`);
     else if (outcome !== "done") v.team.resource.seatUnitsLeft += j.seatUnits;
   });

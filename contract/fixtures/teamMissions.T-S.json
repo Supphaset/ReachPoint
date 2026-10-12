@@ -89,7 +89,12 @@
      "Boat needed (water 1.2 m or more)",
      "Life jackets for 1 child"
     ],
-    "withheld": "Medical details stay with the desk and the medical team"
+    "withheld": "Medical details come with the job, for the team that takes it"
+   },
+   "destination": {
+    "id": "H1",
+    "label": "H1 Hospital (synthetic)",
+    "reason": "One person needs urgent medical care; the medical team meets you at H1"
    },
    "people": 3,
    "groups": [
@@ -147,6 +152,11 @@
     ],
     "withheld": null
    },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
+   },
    "people": 4,
    "groups": [
     {
@@ -201,6 +211,11 @@
      "Boat needed (water 1.2 m or more)"
     ],
     "withheld": null
+   },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
    },
    "people": 2,
    "groups": [
@@ -258,6 +273,11 @@
     ],
     "withheld": null
    },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
+   },
    "people": 5,
    "groups": [
     {
@@ -314,6 +334,11 @@
     ],
     "withheld": null
    },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
+   },
    "people": 3,
    "groups": [
     {
@@ -368,6 +393,11 @@
      "Wading may be possible; check on arrival"
     ],
     "withheld": null
+   },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
    },
    "people": 4,
    "groups": [
@@ -432,6 +462,11 @@
     "summary": "Can't walk: must be carried",
     "facts": [
      {
+      "kind": "medical_category",
+      "text": "Medical need: affects how to move them",
+      "basis": "coordinator"
+     },
+     {
       "kind": "people",
       "text": "3 people: 2 adults, 1 stretcher case",
       "basis": "reviewed call"
@@ -454,7 +489,12 @@
      "Boat needed (water 1.2 m or more)",
      "Stretcher, and at least 2 people to carry"
     ],
-    "withheld": null
+    "withheld": "Medical details come with the job, for the team that takes it"
+   },
+   "destination": {
+    "id": "H1",
+    "label": "H1 Hospital (synthetic)",
+    "reason": "Needs oxygen and power"
    },
    "people": 3,
    "groups": [

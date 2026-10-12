@@ -108,3 +108,7 @@
 .urgency-kit { margin-top: var(--space-2); font-size: var(--text-sm); }
 .urgency-kit ul { margin: var(--space-1) 0 0; padding-left: var(--space-5); }
 .urgency[open] .urgency-summary { display: none; }
+
+.dest-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); font-size: var(--text-sm); font-weight: var(--weight-medium); }
+.medical { border: 2px solid var(--color-ink); border-radius: var(--radius-sm); padding: var(--space-3) !important; background: var(--color-surface); }
+.medical ul { margin: 0; padding-left: var(--space-5); display: grid; gap: var(--space-1); }

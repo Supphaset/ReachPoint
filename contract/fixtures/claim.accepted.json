@@ -66,7 +66,21 @@
      "Boat needed (water 1.2 m or more)",
      "Life jackets for 1 child"
     ],
-    "withheld": "Medical details stay with the desk and the medical team"
+    "withheld": "Medical details come with the job, for the team that takes it"
+   },
+   "destination": {
+    "id": "H1",
+    "label": "H1 Hospital (synthetic)",
+    "reason": "One person needs urgent medical care; the medical team meets you at H1"
+   },
+   "medical": {
+    "consent": "given",
+    "basis": "Consent given by the person during the call",
+    "functional": [
+     "Short of breath lying flat: carry her sitting up",
+     "Keep her inhaler with her"
+    ],
+    "condition": "Severe asthma attack, getting worse (synthetic)"
    }
   }
  }

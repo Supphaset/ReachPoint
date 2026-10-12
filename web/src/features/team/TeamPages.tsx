@@ -181,7 +181,7 @@ const BASIS: Record<string, string> = {
   none: "no report",
 };
 
-export function UrgencyBox({ u, colour, open = false }: { u: Urgency; colour: string; open?: boolean }) {
+export function UrgencyBox({ u, colour, open = false, inJob = false }: { u: Urgency; colour: string; open?: boolean; inJob?: boolean }) {
   return (
     <details className={`urgency tone-${colour}`} open={open}>
       <summary>
@@ -215,7 +215,7 @@ export function UrgencyBox({ u, colour, open = false }: { u: Urgency; colour: st
           </ul>
         </div>
       )}
-      {u.withheld && (
+      {u.withheld && !inJob && (
         <p className="fine-print">
           <Icon name="lock" size={12} /> {u.withheld}.
         </p>
@@ -277,6 +277,11 @@ function ListingRow({ l, v, offline }: { l: OpenListing; v: TeamMissionsView; of
         <span className="listing-dist num">{fmtDistance(l.distanceM)}</span>
       </div>
       <UrgencyBox u={l.urgency} colour={l.colour} />
+      {l.destination.id !== "D1" && (
+        <p className="dest-line">
+          <Icon name="chevron" size={14} /> Goes to {l.destination.label}
+        </p>
+      )}
       {l.reasons
         .filter((r) => !r.startsWith("Urgent:"))
         .map((r) => (
@@ -452,7 +457,7 @@ function JobCard({ j }: { j: Job }) {
           {closed && j.outcome ? <OutcomeChip o={j.outcome} /> : <StatusChip kind="job" state={j.state} lang="en" size="sm" />}
         </span>
       </header>
-      {j.urgency && <UrgencyBox u={j.urgency} colour={j.colour} open={!closed} />}
+      {j.urgency && <UrgencyBox u={j.urgency} colour={j.colour} open={!closed} inJob />}
       <ul className="group-list">
         {j.groups.map((g) => (
           <li key={g.groupId}>
@@ -463,6 +468,30 @@ function JobCard({ j }: { j: Job }) {
           </li>
         ))}
       </ul>
+
+      {j.medical && (
+        <section className="medical" aria-label="Medical, for your team only">
+          <h3>
+            <Icon name="lock" size={16} /> Medical · for your team only
+          </h3>
+          <ul>
+            {j.medical.functional.map((f) => (
+              <li key={f}>{f}</li>
+            ))}
+          </ul>
+          <p>
+            <span className="muted">Condition (from the desk):</span> {j.medical.condition}
+          </p>
+          <p className="fine-print">
+            {j.medical.basis}. Removed from this phone when the job closes. Don't share or photograph it.
+          </p>
+        </section>
+      )}
+      {!j.medical && j.medicalRemovedAt && (
+        <p className="fine-print">
+          <Icon name="lock" size={12} /> Medical notes removed at {fmtTime(j.medicalRemovedAt)}, when the job closed.
+        </p>
+      )}
 
       <section className="pickup">
         <h3>
@@ -477,6 +506,10 @@ function JobCard({ j }: { j: Job }) {
           </a>
         )}
         <p className="fine-print">Only you and the desk see this point. Roads may be flooded: the route is your call.</p>
+        <p className="dest-line">
+          <Icon name="chevron" size={14} /> Take them to <strong>{j.destination.label}</strong>
+          <span className="muted"> · {j.destination.reason}</span>
+        </p>
       </section>
 
       <section className="window">

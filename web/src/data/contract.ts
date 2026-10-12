@@ -168,9 +168,23 @@ export interface Group {
 export interface Urgency {
   title: string;
   summary: string;
-  facts: { kind: "medical" | "flag" | "people" | "mobility" | "water"; text: string; basis: string; at?: string; callers?: number; stale?: boolean }[];
+  facts: { kind: "medical" | "medical_category" | "flag" | "people" | "mobility" | "water"; text: string; basis: string; at?: string; callers?: number; stale?: boolean }[];
   kit: string[];
   withheld: string | null;
+}
+
+export interface Destination {
+  id: string; // D1 shelter, H1 hospital (synthetic)
+  label: string;
+  reason: string;
+}
+
+/** Medical notes for the team that took the job only (D38): functional first, then the condition, with the legal basis. */
+export interface MedicalNotes {
+  consent: "given" | "cannot_consent";
+  basis: string;
+  functional: string[];
+  condition: string;
 }
 
 /** One open listing (case × help type) as a team sees it: landmark-level only, no exact point (D25). */
@@ -191,6 +205,7 @@ export interface OpenListing {
   reconfirmRequestedAt?: string;
   reasons: string[];
   urgency: Urgency;
+  destination: Destination;
   people: number;
   groups: Group[];
 }
@@ -218,6 +233,10 @@ export interface Job {
   colour: Priority;
   landmarkLabel: string;
   urgency: Urgency;
+  destination: Destination;
+  /** Present while the job is open; removed from the team's view when it closes (D38). */
+  medical: MedicalNotes | null;
+  medicalRemovedAt?: string;
   groups: Group[];
   seatUnits: number;
   state: JobState;
