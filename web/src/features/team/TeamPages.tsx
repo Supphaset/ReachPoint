@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { Group, Job, OpenListing, Outcome, Party, TeamMissionsView, TeamStatus } from "../../data/contract";
+import type { Group, Job, OpenListing, Outcome, Party, TeamMissionsView, TeamStatus, Urgency } from "../../data/contract";
 import { now } from "../../data/clock";
 import { ASSISTANCE_LABEL, fmtAgo, fmtTime } from "../../data/format";
 import { useSession } from "../../data/session";
@@ -171,6 +171,59 @@ function StatusSheet({ v, onClose }: { v: TeamMissionsView; onClose: () => void 
   );
 }
 
+/* ---------------- Why it's urgent ---------------- */
+
+const BASIS: Record<string, string> = {
+  "qualified review": "qualified review",
+  coordinator: "coordinator",
+  "reviewed call": "reviewed call",
+  callers: "callers",
+  none: "no report",
+};
+
+export function UrgencyBox({ u, colour, open = false }: { u: Urgency; colour: string; open?: boolean }) {
+  return (
+    <details className={`urgency tone-${colour}`} open={open}>
+      <summary>
+        <span className="urgency-title">{u.title}</span>
+        <span className="urgency-summary">{u.summary}</span>
+      </summary>
+      <ul className="urgency-facts">
+        {u.facts.map((f) => (
+          <li key={f.kind + f.text}>
+            <span>
+              {f.text}
+              {f.at && (
+                <span className={f.stale ? "is-stale" : ""}>
+                  {" "}
+                  · reported {fmtTime(f.at)} by {f.callers} caller{f.callers === 1 ? "" : "s"}
+                  {f.stale && " · older than 6 h, may have changed"}
+                </span>
+              )}
+            </span>
+            <span className="basis-tag">{BASIS[f.basis] ?? f.basis}</span>
+          </li>
+        ))}
+      </ul>
+      {u.kit.length > 0 && (
+        <div className="urgency-kit">
+          <strong>Bring</strong>
+          <ul>
+            {u.kit.map((k) => (
+              <li key={k}>{k}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {u.withheld && (
+        <p className="fine-print">
+          <Icon name="lock" size={12} /> {u.withheld}.
+        </p>
+      )}
+    </details>
+  );
+}
+
 /* ---------------- Waiting list (C5) ---------------- */
 
 export function WaitingPage() {
@@ -223,11 +276,14 @@ function ListingRow({ l, v, offline }: { l: OpenListing; v: TeamMissionsView; of
         <span className="muted">{l.landmarkLabel}</span>
         <span className="listing-dist num">{fmtDistance(l.distanceM)}</span>
       </div>
-      {l.reasons.map((r) => (
-        <p key={r} className="listing-reason">
-          {r}
-        </p>
-      ))}
+      <UrgencyBox u={l.urgency} colour={l.colour} />
+      {l.reasons
+        .filter((r) => !r.startsWith("Urgent:"))
+        .map((r) => (
+          <p key={r} className="listing-reason">
+            {r}
+          </p>
+        ))}
       <ul className="group-list">
         {l.groups.map((g) => (
           <li key={g.groupId} className={g.state === "taken" ? "is-taken" : ""}>
@@ -396,6 +452,7 @@ function JobCard({ j }: { j: Job }) {
           {closed && j.outcome ? <OutcomeChip o={j.outcome} /> : <StatusChip kind="job" state={j.state} lang="en" size="sm" />}
         </span>
       </header>
+      {j.urgency && <UrgencyBox u={j.urgency} colour={j.colour} open={!closed} />}
       <ul className="group-list">
         {j.groups.map((g) => (
           <li key={g.groupId}>

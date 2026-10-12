@@ -87,4 +87,12 @@ describe("team actions (C6 rules, fixture mode)", () => {
     await closeAllocation(b.value.allocationId, "not_found");
     expect(read().team.resource.seatUnitsLeft).toBe(10);
   });
+
+  it("the job carries why it's urgent and what to bring", async () => {
+    const r = await claimListing("L-C01-EVAC", ["L-C01-EVAC-G1"], 2);
+    if (!r.ok) throw new Error(r.message);
+    expect(r.value.urgency.title).toBe("Why this is an emergency");
+    expect(r.value.urgency.kit).toContain("Boat needed (water 1.2 m or more)");
+    expect(r.value.urgency.withheld).toBe("Medical details stay with the desk and the medical team");
+  });
 });

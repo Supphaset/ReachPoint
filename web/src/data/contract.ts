@@ -164,6 +164,15 @@ export interface Group {
   takenBy?: string;
 }
 
+/** Why a case is red/yellow/green and what to bring: reviewed operational facts only (pack §4.1). */
+export interface Urgency {
+  title: string;
+  summary: string;
+  facts: { kind: "medical" | "flag" | "people" | "mobility" | "water"; text: string; basis: string; at?: string; callers?: number; stale?: boolean }[];
+  kit: string[];
+  withheld: string | null;
+}
+
 /** One open listing (case × help type) as a team sees it: landmark-level only, no exact point (D25). */
 export interface OpenListing {
   listingId: string;
@@ -181,6 +190,7 @@ export interface OpenListing {
   lastConfirmedAt: string;
   reconfirmRequestedAt?: string;
   reasons: string[];
+  urgency: Urgency;
   people: number;
   groups: Group[];
 }
@@ -207,6 +217,7 @@ export interface Job {
   caseId: string;
   colour: Priority;
   landmarkLabel: string;
+  urgency: Urgency;
   groups: Group[];
   seatUnits: number;
   state: JobState;

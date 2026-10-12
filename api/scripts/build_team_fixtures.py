@@ -62,9 +62,55 @@ def nice_distance(m):
     return int(round(m / 50.0) * 50)
 
 
+BOAT_DEPTH_M = 1.2  # D32: "boat needed" at 1.2 m or more (or a fast current); otherwise wading may be possible
+TITLE = {"red": "Why this is an emergency", "yellow": "Why it's urgent", "green": "Why it can wait"}
+WITHHELD = "Medical details stay with the desk and the medical team"
+
+
+def party_text(p):
+    names = {"adults": ("adult", "adults"), "children": ("child", "children"), "infants": ("baby", "babies"),
+             "stretcher": ("stretcher case", "stretcher cases")}
+    return ", ".join(f"{p[k]} {names[k][p[k] != 1]}" for k in names if p.get(k))
+
+
+def urgency(n, snap, water, colour_):
+    """What a team needs to know to judge and prepare: reviewed operational facts only, never transcripts or
+    medical narrative (pack §4.1). Each fact names its basis, so the team can see where it comes from."""
+    facts, kit = [], []
+    flag = (n.get("urgentFlag") or {}).get("reason", "").strip()
+    if (n.get("qualifiedAssessment") or {}).get("urgentMedical"):
+        facts.append({"kind": "medical", "text": "A qualified review says someone here needs urgent medical help", "basis": "qualified review"})
+    if flag:
+        facts.append({"kind": "flag", "text": f"Coordinator flagged urgent: {flag}", "basis": "coordinator"})
+    linked = [m for m in snap["needs"] if m["caseId"] == n["caseId"] and m["listingId"] != n["listingId"]
+              and m["assistanceType"] == "medical" and (m.get("qualifiedAssessment") or {}).get("urgentMedical")]
+    if linked:
+        facts.append({"kind": "medical", "text": f"{linked[0]['units']} person in this household needs urgent medical help; "
+                      "the medical team is asked separately", "basis": "qualified review"})
+    p = n["party"]
+    facts.append({"kind": "people", "text": f"{n['units']} people: {party_text(p)}", "basis": "reviewed call"})
+    if p["stretcher"]:
+        facts.append({"kind": "mobility", "text": "Can't walk: must be carried", "basis": "reviewed call"})
+        kit.append("Stretcher, and at least 2 people to carry")
+    if p["children"] or p["infants"]:
+        kit.append(f"Life jackets for {p['children'] + p['infants']} {'child' if p['children'] + p['infants'] == 1 else 'children'}")
+    w = water.get(n["pickup"]["landmarkId"])
+    if w:
+        facts.append({"kind": "water", "text": f"{w['bandLabel']} (about {w['approxM']:g} m) at the landmark",
+                      "basis": "callers", "at": w["latestAt"], "callers": w["callers"], "stale": w["stale"]})
+        kit.insert(0, "Boat needed (water 1.2 m or more)" if w["approxM"] >= BOAT_DEPTH_M else "Wading may be possible; check on arrival")
+    else:
+        facts.append({"kind": "water", "text": "Water depth here: unknown (no reviewed report)", "basis": "none"})
+    summary = next((f["text"] for k in ("flag", "medical", "mobility", "water") for f in facts if f["kind"] == k), "")
+    return {"title": TITLE[colour_], "summary": summary, "facts": facts, "kit": kit,
+            "withheld": WITHHELD if any(f["kind"] == "medical" for f in facts) else None}
+
+
 def main():
     snap = json.loads((FIXTURES / "allocationInput.cp3.json").read_text())
     evac = [n for n in snap["needs"] if n["assistanceType"] == "evacuation_transport"]
+    briefing = json.loads((FIXTURES / "areaBriefing.P-B.json").read_text())
+    water = {w["segmentId"]: w for w in briefing["callerWater"]}
     rows = []
     for n in evac:
         t = TierInput.from_listing(n)
@@ -80,6 +126,7 @@ def main():
             "distanceBasis": "straight line from your landmark, not a route",
             "waitingSince": n["waitingSince"], "lastConfirmedAt": f"2026-10-11T{LAST_CONFIRMED[case]}:00Z",
             "reasons": [f"Urgent: {n['urgentFlag']['reason']}"] if (n.get("urgentFlag") or {}).get("reason", "").strip() else [],
+            "urgency": urgency(n, snap, water, colour(t).value),
             "people": n["units"],
             "groups": [{"groupId": f"{n['listingId']}-G{i + 1}", "label": label, "people": sum(p.values()), "party": p,
                         "seatUnits": seats(p), "state": "open"} for i, (label, p) in enumerate(groups)],
@@ -112,7 +159,7 @@ def main():
             "allocationId": "AL-M01", "missionId": "M-01", "listingId": "L-C01-EVAC", "caseId": "C-01", "teamId": "T-S",
             "resourceId": "S1", "groupIds": [g["groupId"] for g in c01["groups"]], "seatUnits": 2.5, "state": "taken",
             "window": None, "acceptedAt": "2026-10-11T03:20:00Z", "needRevision": 2,
-            "pickup": {"landmarkLabel": c01["landmarkLabel"], **exact}}},
+            "pickup": {"landmarkLabel": c01["landmarkLabel"], **exact}, "urgency": c01["urgency"]}},
         "already-taken": {"ok": False, "code": "ALREADY_TAKEN", "message": "Already taken by T-R",
                           "detail": {"groupIds": ["L-C06-EVAC-G1"], "takenBy": "T-R"}},
         "not-enough-capacity": {"ok": False, "code": "NOT_ENOUGH_CAPACITY", "message": "Needs 5 seats, you have 4",
