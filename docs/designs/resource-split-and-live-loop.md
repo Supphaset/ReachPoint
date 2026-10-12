@@ -39,7 +39,7 @@ Agreed after three rounds; the user corrected rounds 1 and 2.
    - Coordinator: change summaries.
 4. **Google products only where they do real work.** That now includes Google OR-Tools for the split.
 5. **No real phone line in the prototype** (0009 amendments); the browser call screen represents a call and is disclosed.
-6. **Cut order if behind:** Bangkok package → reconciliation UI polish → **coordinator copilot's replan drafting** (keep its read-only Q&A) → whole coordinator copilot (the demo falls back to Approach B: solver + Gemini explanation, no agent) → P-C field-report scene → Open Buildings counts → real phone line. The split suggestion and replanning are never cut.
+6. **Cut order if behind:** reconciliation UI polish → **coordinator copilot's replan drafting** (keep its read-only Q&A) → whole coordinator copilot (the demo falls back to Approach B: solver + Gemini explanation, no agent) → Open Buildings counts → real phone line. (The Bangkok package is a stretch goal; the "found a family who never called" zone-mission scene is core, D20.) The split suggestion and replanning are never cut.
 
 ## Cross-Model Perspective
 
@@ -102,6 +102,9 @@ Claude's synthesis: adopt the "one more boat" comparison and the optional-assign
    - **Adjustable weights** (shown in the UI) are only `w_evac` and `w_supply` in level (2), plus the ranked list display. Waiting time is not weighted. No setting can move a need into or out of tier 1, or let tier 2 displace a coverable tier-1 need.
    - **Unassigned needs are a valid output**, each with a reason (`no_capable_team`, `capacity_exhausted`, `access_unknown`).
    - **Output:** suggestion ID, input versions, assignments, unassigned needs with reasons, and per-need explanation fields for Gemini. It writes nothing authoritative.
+> **Updated by D21–D24 (surge):** non-emergency requests are filed automatically as "AI-read", the triage agent ranks the list directly, and AI-flagged RED requests can be taken by any team at once. Coordinator review is now for groups, unclear cases and verification, not every fact.
+> **Updated by D17–D20 (zone missions):** steps 1–6 below are now the **emergency** path (RED cases). Non-emergency work runs through **zone missions with segments**; see "Zone missions and emergencies" under the design review decisions.
+
 3a. **Pull model: from reviewed case to authoritative records (rules engine, owned by the friend; 21A + eng re-check D6–D13):**
    1. **Publish.** A reviewed case becomes a **listing** per case × assistance type, with `needRevision`, `lastConfirmedAt` and its **household groups**. Each household from one call is one "together" group by default; only the coordinator can split a group (D6). The listing appears in the server-written open list for its assistance type (evacuation / medical / supplies). Every team reads the lists it is qualified for, so a team that turns Available later still sees every waiting case (D10). Resident views say "seeking a suitable team; arrival time is not confirmed".
    2. **Order.** Lists are sorted by visible priority colour (RED life-threatening / YELLOW urgent / GREEN can wait, mapped from the shared tiers in `api/rules/tiers.py`), then distance from the team, then waiting time. RED always comes first (D9). **Colour mapping (proposed 12 Oct by the user, friend to confirm):** RED = tier 1 (1a: a qualified review requiring urgent medical capability; 1b: a coordinator `urgent` flag with a stated reason, e.g. C-01's transport); YELLOW = any other validated evacuation or medical need; GREEN = validated supplies. Unknown distance (unlocated pickup, or no team location) sorts after every known distance within its colour; the listing ID breaks the last ties. Free text never changes the order, only reviewed fields do. Each row shows the distance and "last confirmed HH:MM". A team can ask the desk to re-confirm before leaving (D8).
@@ -505,6 +508,9 @@ Backed by real-practice research: `docs/research/real-rescue-practice.md`.
 - **D34 Safe split suggestions (2026-10-12, user, proposed, friend to confirm; extends D6).** The split solver may suggest splitting a family only when that fits more people. A part never goes, and never waits, with a child, a baby or a stretcher case but no adult; both parts go to the same shelter. Each split is a suggestion the coordinator approves (the existing coordinator group split); teams still take whole groups.
 - **D35 Waiting and weights (2026-10-12, user, proposed, friend to confirm).** The waiting tie-break counts person-minutes. Each weight stays at 0.1 or more (a zero weight could leave a seat empty while people wait). Tier-2 medical needs use `w_evac`.
 - **D36 Stretcher cases (2026-10-12, user: prompt, not automatic; friend to confirm).** Seat units alone push a bedridden person behind families that fit more people (notebook run, C-05). The desk prompts the coordinator for an urgent flag with a reason ("bedridden, can't self-evacuate") whenever a request includes a stretcher or wheelchair, which makes it tier 1b.
+- **D37 Teams see why a case is urgent (2026-10-12, user; friend to confirm).** Every listing and job carries "Why this is an emergency / Why it's urgent / Why it can wait": reviewed operational facts with their basis (qualified review, coordinator flag with reason, reviewed call, callers), who is there (adults, children, stretcher cases, "can't walk"), water at the landmark with time and stale label, and what to bring (D32 kit: boat at 1.2 m or more, life jackets for children, stretcher and carriers). Never transcripts or medical narrative (pack §4.1): a linked medical need shows only "needs urgent medical help; the medical team is asked separately", with "Medical details stay with the desk and the medical team".
+- **D38 Medical notes for the team that took the job (2026-10-12, user; friend to confirm; amends pack §4.1).** Real rescue needs function more than diagnosis (CMIST: communication, maintaining health, independence, support and safety, transportation), and the user chose to show the condition too. The shared list shows only "Medical need: affects how to move them". After a team takes the job it sees the coordinator-written notes: functional notes first (e.g. "Uses home oxygen: keep the tank with her"), then the condition, with the legal basis ("Consent given by the person", or "Shared to protect her life: she can't consent (PDPA s.26(1))"). The notes are removed from the team's view when the job closes. Never transcripts. The intake asks "May we tell the rescue team about your health needs?" when the caller can answer (friend's task). Synthetic data only.
+- **D39 Destination per family (2026-10-12, user; friend to confirm).** The coordinator sets where each family goes: D1 Shelter (high ground) or H1 Hospital (synthetic, generic landmark on high ground), with a reason ("Needs oxygen and power"). The list shows "Goes to H1" when it isn't the shelter; the job shows "Take them to …". The solver doesn't route; destination is information for the team.
 - **D2 Urgent first, no timers.** RED is pinned, there is a one-time prompt on becoming Available, and the coordinator can send a direct "Can you take this?" ask.
 - **D3 Ordering.** One deterministic sort shares its tiers with the solver (`api/rules/tiers.py`); publishing never waits for the solver.
 - **D4/D13 Team status.** Available / Busy / Off duty, with the time it was set and an optional reason (refuelling, boat repair, rest, on another job) and "back about HH:MM". It never changes automatically.
@@ -515,6 +521,176 @@ Backed by real-practice research: `docs/research/real-rescue-practice.md`.
 - **D10 Shared open lists** per assistance type, so teams that become free later see every waiting case.
 - **D12 Solver.** Coordinator only (split panel + What-if); no per-team Best fit chips.
 - **D14 TODO.** Import and de-duplicate requests from jitasa.care / Traffy Fondue / LINE channels after the hackathon.
+
+### Surge and the triage agent (user decisions D21–D24, 2026-10-12)
+
+**Why we build this (headline, D24).** In the Nov 2025 Hat Yai flood:
+- more than **20,000 people asked for help in one week**, and many requests never reached a rescue unit ([ThaiPublica](https://thaipublica.org/2026/05/hatyai-flood-systemic-failure-analysis/));
+- the jitasa.care back office was understaffed and closing over 9,000 cases by hand ([MGR Online](https://mgronline.com/live/detail/9680000114332));
+- one volunteer team received **1,000+ calls in a single morning** ([Malay Mail](https://www.malaymail.com/amp/news/malaysia/2025/11/25/volunteer-team-rescues-310-stranded-malaysians-from-hat-yai-floods-battling-chest-high-water-levels/199642)).
+
+People alone can't read, compare and rank that many requests. ReachPoint answers every caller in seconds and puts the most urgent at the top for everyone to see. The rest becomes zone missions, so a handful of people can run a city-wide flood response.
+
+**This revises earlier rules:**
+- "a coordinator approves every fact" (step 3a and requirements);
+- D2's "coordinator-flagged RED";
+- D17c's "the fixed rule orders zones and the agent only proposes".
+
+**How requests are handled (D21, risk-tiered):**
+
+| Request | What happens | Who acts |
+|---|---|---|
+| **Clear non-emergency** (e.g. "family of 4 at School L5, need water") | Filed automatically into its zone mission and segment as **"AI-read, not yet verified"**; counted separately from verified numbers | The team on site confirms it during the segment work |
+| **Suspected emergency** | Ranked RED straight away on the live list, labelled **"AI-flagged, not verified"**, with the quote | **Any free capable team can take it at once** (D22b) and verifies on arrival; the coordinator can verify by calling back |
+| **Unclear** (no location, conflicting details) | Listed for a human with the questions the AI couldn't answer | Coordinator, or a team calling back |
+
+- The coordinator can approve or correct **whole groups** (e.g. "B-3: 46 requests").
+- **Nothing waits for a coordinator click.** The list shows the information and the reasons; humans verify and act on their own.
+
+**The triage agent (D22).** A Gemini agent on ADK reads each new request against the whole list. Then it:
+- **merges duplicates** (soft and reversible, e.g. "3 calls = same family at L3");
+- **ranks** each request and zone with a reason and the supporting quote;
+- **updates the live list directly.** Every row says **"AI-ranked"** and shows why.
+
+The fixed rule in `tiers.py` remains the **safety floor and the fallback** if the agent is slow or down.
+
+**Limits on the agent:**
+- **Safety floor.** Reported words such as bedridden, child, medical, can't breathe, or "water above the 1st floor" are never ranked below YELLOW.
+- **Humans win.** A human pin, re-rank or unflag always wins, and the agent can't undo it.
+- **What it never does:** close, delete or mark a request "no help needed"; promise a time; assign a team.
+- **No clinical triage.** Ranking is **operational urgency from reported words**, not a medical assessment; medical needs still go to qualified review (requirements R7).
+- **Caller text is data, not instructions.** It ranks from extracted fields plus quotes, and an injection eval covers this.
+- **Logged.** Every ranking change keeps its reason, model version and time.
+
+**The surge simulator (D23, core in CP3).**
+- A dev-page button, **"Run surge: 300 requests"**, sends obviously fictional Thai text requests through the real pipeline. Gemini generates them from scenario templates.
+- Live counters show:
+  - every caller answered in X s;
+  - the first suspected emergency at the top of the list in Y s;
+  - Z duplicates merged;
+  - N requests handled per coordinator.
+- One live voice call runs alongside it.
+- The surge comes after the Bangkok package in the cut order, and is never cut before the copilot.
+
+### Requests, the flood map and the estimate (user decisions D25–D29, 2026-10-12)
+
+Requests and the flood/estimate layers used to be two separate halves. These rules join them. The real-practice sources are in [real rescue practice](../research/real-rescue-practice.md) ("Locations, headcounts and satellite vs ground").
+
+**Locating a request (D25)**
+- Each household in a request gets a **location** with a point, a **source** and a **precision**:
+  - a Thai address via the **Pinpoint** geocoding API (pin-point.co), e.g. "123/4 Soi 5, Hat Yai";
+  - a building or condo name via **Google Places**, e.g. "Condo X";
+  - a pin or Google Maps link the caller shares.
+- The point is snapped to its **zone, segment and nearest landmark** ("B-3 · L5 School").
+- Precision is always shown ("house", "building", "street", "area"). Thai addresses often geocode to the street, not the house.
+- A request that can't be placed goes to the coordinator's **unlocated** list. It is never dropped.
+- **Who sees the exact point:**
+  - only the coordinator and the team that has **taken** that job, which gets a "Navigate" link;
+  - everyone else (other teams, residents, the public map) sees the segment and landmark only;
+  - once the job is closed, the exact point leaves every shared view.
+
+**Places and headcounts (D29)**
+- Every request is one of three kinds:
+  1. **My household**: counted once reviewed.
+  2. **Someone else's household** ("please check on my mum, room 412"): a **check-on** entry, like the welfare-check lists in Hurricane Helene. It isn't counted until someone confirms it.
+  3. **What I can see** ("about 20 people still on floor 3"): a **neighbour report**.
+- Requests at the same building or address become one **place**. A condo or apartment block becomes one **building job**, worked like a small segment.
+- Neighbour reports are **never added up**. The place shows the largest single report as a floor, next to the confirmed count. Example: "Reported by neighbours: at least 20 (largest single report) · Confirmed: 1 household, 4 people."
+- **Linking duplicates:**
+  - The triage agent suggests links when it sees the same phone number, the same place or a point within about 150 m, plus a short time window.
+  - Linked requests stay attached to the place. Nothing is deleted.
+  - A linked request that reports a **new hazard** (for example, "now someone is unconscious") is never merged away. It is ranked on its own.
+  - In Kerala in 2018, about 25% of requests were duplicates.
+- The team on site records the **real count**, and that replaces the neighbour estimate.
+
+**The satellite map and the requests (D26)**
+- Areas the radar can't see, mainly the dense city centre, are shown as **"no satellite data"**, never as dry. This follows the Copernicus Global Flood Monitoring exclusion mask.
+- The satellite layer can **raise** concern but never lower it. "Outside the satellite extent" is never shown against a caller or used in ranking.
+- Each **reviewed** request that reports water becomes a live **"reported by callers"** point. It sits next to the cited news points (`reported-flooding.geojson`), so the map fills in where the satellite is blind.
+
+**The estimate per segment (D27, D28)**
+- In Earth Engine we precompute two ranges per **segment**:
+  - **everyone living there**;
+  - **people inside the satellite extent**.
+- Each segment uses one of three bases:
+
+  | Basis | When | Label |
+  |---|---|---|
+  | Satellite | default | "people living in the flooded part (estimate)" |
+  | Callers | a reviewed water report comes from a "no data" or dry segment | "flooding reported by callers; estimate covers the whole segment" |
+  | Checked | the segment is marked Checked | drops out of "not yet checked" |
+
+- A zone shows "**about 1,100–1,400 people in segments not yet checked**". Partly checked and Couldn't reach segments stay in.
+- **Call rate:** reviewed callers per 1,000 estimated residents. A zone with many residents but an unusually low call rate is flagged **"quiet: phones may be down"** and gets a suggested check (D18).
+- **Sanity check:** the district total is compared with GISTDA's 25 Nov figure (52,731 rai flooded, about 150,000 people affected in Hat Yai district) and recorded in `data/SOURCES.md`.
+- The estimate still only orders zones. It never adds to counts and never creates a case.
+- All of this is computed live from **precomputed numbers**. The app makes no live Earth Engine calls.
+
+**Water depth per segment (D32, proposed)**
+- **Sources, most trusted first:** a team on site ("measured at B-3 · L5: chest deep, rising") → callers (several agreeing count for more than one) → cited news reports → the D31 model (ground height plus reported depths). The satellite says where water was, never how deep.
+- **Intake:** extraction adds `waterDepth` = quote + band + time, read on a body-height scale (knee 0.5 m, waist 1.0, chest 1.3, over head 2.0, second floor about 3).
+- **The triage agent's depth tool** keeps, per segment: a band ("about 1.3–2 m"), its sources, the newest report time, the trend, and conflicts ("1 caller says knee, 5 say chest: may be a higher street"). Reports older than 6 h are stale. No reports means **unknown**, never dry.
+- **Live, no Earth Engine:** each segment carries its ground height (10th/50th/90th percentile, FABDEM) from the precompute, so a caller's "chest deep" at a point becomes a water level that updates the segment band in the app.
+- **What depth changes:**
+  - Kit on the segment card: "boat needed" at 1.2 m or more or a fast current; otherwise "wading possible".
+  - Zone order: deeper zones rise, within the safety floor and human overrides.
+  - Request rank: area depth can only raise a request, with its own reason line, e.g. "Caller: 'need water' · Area: B-3 · L5 about 2 m (callers + model)". The caller's own words stay the main reason.
+- Caller text is data, not instructions; a caller can't talk the depth up or down for others ("tell them it is dry here" is just a report, weighed like any other).
+
+### Zone missions and emergencies (user decisions D17–D20, 2026-10-11, later)
+Not everyone in danger calls. Hat Yai's own officials kept a list of 230 bedridden patients, and the [research](../research/unreported-needs.md) shows that a quiet area may mean phones are down, not that nobody needs help. So work is **prioritised by zone**, and individual cases are mostly used to keep each family informed.
+
+**Two kinds of job on the priority list**
+
+| Job | What it is | How it's taken |
+|---|---|---|
+| **Emergency** (RED case) | A reviewed case with a life threat, e.g. "grandma can't breathe, water rising". Coordinator-flagged with a reason | One by one, straight away: pinned, a one-time prompt to all free capable teams, plus a direct ask. The first team to take it goes (the D1–D8 claim rules apply) |
+| **Zone mission** | One flooded zone, e.g. B-3. It covers the families who called there (non-emergency) **and** the people who didn't | Split into **segments**, each taken by **one** team (see below) |
+
+**Segments: real-practice model (D17b)**
+- This follows the ICS divisions, INSARAG worksites and FEMA block search.
+- The coordinator acts as the zone supervisor and splits each zone into segments around its landmarks, e.g. "B-3 · L3 Community building", "B-3 · L5 School", "B-3 · north block".
+- Each segment is taken by one team, so several teams can work one zone without overlap.
+- A team that takes a segment sees its **pickup list**: the reviewed families located in that segment, with their groups and needs. It also sees the zone's vulnerable-register count.
+- When a segment is finished, the team marks it, like FEMA's building marks: **"Checked 13:40 · T-S · 4 households found · 1 pickup needed"**, **"Partly checked"**, or **"Couldn't reach · access blocked"**.
+- "Couldn't reach" never clears the zone.
+- People found who hadn't called are reported as a field report (voice or photo). Gemini proposes facts, the coordinator approves them, and they become new cases. A new RED case becomes an emergency; anything else joins the segment's pickup list.
+
+**Zone order (D17c, updated by D22):** the triage agent now ranks directly within the limits in "Surge and the triage agent"; the fixed rule below is its safety floor and fallback.
+1. RED emergencies are always first. They're not zones.
+2. Zones are then ordered by a fixed rule in `api/rules/tiers.py`, with the reasons shown on each row:
+   1. reviewed people who called and still need help;
+   2. vulnerable residents on the register;
+   3. estimated people in segments not yet checked (per-segment estimate, D27–D28; low call rate flags a quiet zone);
+   4. time since the last check.
+
+   The estimate only orders zones. It never adds to counts and never creates a case.
+3. **Agent suggestions.** The coordinator copilot (Gemini, ADK) gets one propose-only tool, `propose_zone_priority_change`. For example: "Move B-5 up: 3 calls dropped mid-sentence, none since 11:00, phones may be down", or "T-S's field report mentions more families on the next street (B-4): suggest a segment". The coordinator accepts or rejects; every change keeps its reason and author.
+4. The OR-Tools solver still suggests which team goes to which zone or segment, in the split panel.
+
+**Suggested checks (D18)**
+- The same rule flags zones that are flooded, have buildings in the water, have had no check in the last 6 hours, and have few or no calls. The flag carries its reason, e.g. "~800 live in the flooded part · 0 calls · not checked since 09:00".
+- The desk shows these as **suggested zone missions**. The coordinator publishes or dismisses them; nothing is published automatically.
+
+**Vulnerable-residents register (D19, synthetic)**
+- It's like the Hat Yai bedridden list or the village health volunteer (อสม.) lists. Entries look like "2 bedridden, 1 on dialysis", with a landmark-level location and "not confirmed in need".
+- Only the coordinator sees the details. Teams see counts only, with no names.
+- The register informs zone order and the coordinator's urgent flag. It never creates a case by itself.
+
+**What residents see**
+- A family who called from a zone with a taken segment sees **"Team T-S is working in your area (B-3 · L3) today, about 13:00–16:00 (team estimate). Call again if it becomes an emergency."**
+- If no team has started there yet: "Your zone B-3 is on the list; no team has started there yet."
+- Once picked up, the family's own status takes over (per family, D6).
+
+**Demo (D20):** the "found a family who never called" scene is core, in CP3:
+1. A suggested check for B-4 appears; the coordinator publishes it.
+2. T-R takes segment B-4 · L5.
+3. T-R sends a field report: "elderly couple on the 2nd floor, one bedridden".
+4. The coordinator approves case C-07 (RED); T-S takes it.
+5. The segment is marked "Partly checked · 1 household found".
+
+The Bangkok package moves fully to stretch.
+
 
 **Other decisions:**
 - **Weights (17A).** Only the coordinator changes weights, and they apply on an explicit "Recalculate". Leaders see the current weights read-only, with who set them and when.

@@ -2,6 +2,13 @@
   "package": "hy-2025-11",
   "layers": [
     {
+      "id": "no-satellite-data",
+      "file": "no-satellite-data.geojson",
+      "kind": "no_satellite_data",
+      "default": true,
+      "label": "No satellite data · dense city where the satellite can't see street water · never means dry"
+    },
+    {
       "id": "s1-2025-11-24",
       "file": "extent-2025-11-23-o164.geojson",
       "kind": "observed_extent",
@@ -23,5 +30,13 @@
       "label": "Reported flooding (official and news reports, not seen by satellite) · approximate locations"
     }
   ],
-  "attribution": "Contains modified Copernicus Sentinel data 2025, processed by ReachPoint"
+  "attribution": "Contains modified Copernicus Sentinel data 2025, processed by ReachPoint",
+  "geography": {
+    "areas": "areas.geojson",
+    "zones": "zones.geojson",
+    "segments": "segments.geojson",
+    "landmarks": "landmarks.geojson",
+    "label": "Synthetic planning zones and generic landmarks; not official boundaries or real buildings",
+    "districts": "districts.geojson"
+  }
 }

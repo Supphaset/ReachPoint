@@ -2,6 +2,8 @@
 
 Working direction for the Google Cloud AI Builder Cup 2026, Sustainability & Social Impact.
 
+**Why ReachPoint:** in the Nov 2025 Hat Yai flood, more than 20,000 people asked for help in one week, and many were never reached. ReachPoint answers every caller in seconds and puts the most urgent at the top for everyone to see. The rest becomes zone missions, so a handful of people can run a city-wide flood response. See [how it works](docs/OVERVIEW.md).
+
 We are two Data Scientists exploring how organized volunteer teams could plan where to help and what resources to bring, while coordinators validate/allocate emergency assistance and residents follow their own request status. The problem, operational partner and smallest useful scope still need evidence.
 
 **Current phase: build week (12–18 Oct 2026).** [Decision 0009](docs/decisions/0009-implementation-start-and-technical-direction.md) authorizes implementation and sets the stack: React on Firebase Hosting, FastAPI on Cloud Run, Firestore, Gemini via Vertex AI, Google Maps. Flood data comes from real past events (Hat Yai Nov 2025 main, Bangkok Sep 2026 second); operational records are synthetic. The [joint decision pack](docs/planning/joint-decision-pack.md) holds the contract proposal, the walk-through and the daily plan. The old discussion prototype is not the specification and its code is not reused.
