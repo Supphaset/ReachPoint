@@ -10,7 +10,7 @@ describe("water rising view (D42)", () => {
   it("shows the gauge reading at 10:00 with no prompt, and the prompt once the DDPM forecast is out", () => {
     expect(pickSnapshot(snaps, at(10, 5))?.prompt).toBeNull();
     const p = pickSnapshot(snaps, at(10, 35))?.prompt;
-    expect(p?.reconfirm.slice(0, 2).map((r) => r.caseId)).toEqual(["C-08", "C-04"]);
+    expect(p?.reconfirm.slice(0, 2).map((r) => r.caseId)).toEqual(["C-08", "C-05"]);
     expect(p?.rise?.text).toBe("Forecast rise at the canal: 1.25–1.45 m");
   });
   it("labels every rise as an estimate and never lists a RED case", () => {

@@ -6,3 +6,4 @@ protobuf==6.33.6
 nbformat==5.10.4
 nbclient==0.10.0
 ipykernel==6.29.5
+httpx==0.27.2

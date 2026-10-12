@@ -8,6 +8,8 @@
  *   ?clock=14:00                             start the demo clock at another Bangkok time (data/clock.ts)
  */
 import type { Connection } from "./useView";
+import { ApiError, get } from "./api";
+import { apiMode } from "./mode";
 
 const briefings = import.meta.glob("../../../contract/fixtures/areaBriefing.*.json", { import: "default" });
 const rainFile = import.meta.glob("../../../contract/fixtures/rainStatus.hy-2025-11.json", { import: "default" });
@@ -23,7 +25,18 @@ function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+/** In API mode: GET /api/views/<rest of the path>; a 404 means "no such view" (null), like a missing fixture. */
+async function readApiView<T>(path: string): Promise<{ data: T; connection: Connection } | null> {
+  try {
+    return { data: await get<T>(`/api/${path}`), connection: "live" };
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) return null;
+    throw e;
+  }
+}
+
 export async function readView<T>(path: string): Promise<{ data: T; connection: Connection } | null> {
+  if (apiMode()) return readApiView<T>(path);
   await delay(150);
   if (devSwitch("fail") === "view") throw new Error("View failed to load");
   const r = path.match(/^views\/rain\/([\w-]+)$/);

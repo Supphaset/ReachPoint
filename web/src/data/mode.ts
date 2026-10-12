@@ -1,0 +1,17 @@
+/**
+ * Where the screens get their data (one switch for the whole app):
+ *   "fixtures"  the shared files in contract/fixtures, with the in-browser rules (dev, tests, offline demo)
+ *   "api"       the server: GET /api/views/..., POST /api/... (contract/api.md)
+ *
+ * Set at build time with VITE_DATA=api (the Cloud Run image does this), or per tab with ?data=api / ?data=fixtures.
+ * VITE_API_URL points at another server; empty means the same origin, which is how Cloud Run serves it.
+ */
+export type DataMode = "fixtures" | "api";
+
+export function dataMode(): DataMode {
+  const q = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("data");
+  if (q === "api" || q === "fixtures") return q;
+  return import.meta.env.VITE_DATA === "api" ? "api" : "fixtures";
+}
+
+export const apiMode = () => dataMode() === "api";

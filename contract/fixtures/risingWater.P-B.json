@@ -72,35 +72,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 6,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 1h 20m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -126,7 +97,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -154,7 +125,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -183,10 +154,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 3,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 35m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -246,35 +244,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 6,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 1h 50m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -300,7 +269,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -328,7 +297,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -357,10 +326,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 3,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 1h 05m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -420,35 +416,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 6,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 2h 20m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -474,7 +441,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -502,7 +469,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -531,10 +498,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 3,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 1h 35m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -594,35 +588,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 6,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 2h 50m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -648,7 +613,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -676,7 +641,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -705,10 +670,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 3,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 2h 05m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -768,35 +760,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 7,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 3h 20m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -822,7 +785,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -850,7 +813,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -879,10 +842,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 3,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 2h 35m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -942,35 +932,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 7,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 3h 50m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -996,7 +957,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -1024,7 +985,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -1053,10 +1014,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 4,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 3h 05m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -1116,35 +1104,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 7,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 4h 20m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -1170,7 +1129,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -1198,7 +1157,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -1227,10 +1186,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 4,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 3h 35m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -1295,35 +1281,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 7,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 4h 50m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -1349,7 +1306,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -1377,7 +1334,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -1406,10 +1363,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 4,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 4h 05m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -1474,35 +1458,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 7,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 5h 20m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -1528,7 +1483,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -1556,7 +1511,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -1585,10 +1540,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 4,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 4h 35m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -1653,35 +1635,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 7,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 5h 50m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -1707,7 +1660,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -1735,7 +1688,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -1764,10 +1717,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 4,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 5h 05m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -1832,35 +1812,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 8,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 6h 20m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -1886,7 +1837,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -1914,7 +1865,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -1943,10 +1894,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 4,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 5h 35m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -2011,35 +1989,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 8,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 6h 50m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -2065,7 +2014,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -2093,7 +2042,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -2122,10 +2071,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 5,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 6h 05m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -2185,35 +2161,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 8,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 7h 20m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -2239,7 +2186,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -2267,7 +2214,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -2296,10 +2243,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 5,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 6h 35m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   },
@@ -2359,35 +2333,6 @@
       "rank": 1
      },
      {
-      "listingId": "L-C04-EVAC",
-      "caseId": "C-04",
-      "label": "B-2 · L3 Community building",
-      "people": "5 people: 2 adults, 2 children, 1 baby",
-      "points": 8,
-      "reasons": [
-       "Chest deep (about 1.3 m) at 09:10",
-       "lower ground than 74% of P-B",
-       "3 children",
-       "may reach over head height if the canal rises as forecast",
-       "last confirmed 7h 50m ago"
-      ],
-      "lastConfirmedAt": "2026-10-11T02:10:00Z",
-      "ifItRises": {
-       "text": "If the water here rises like the canal: about 2.5–2.8 m, over head height (estimate)",
-       "rangeM": [
-        2.5,
-        2.8
-       ],
-       "mayBeOverHead": true
-      },
-      "actions": [
-       "call_back",
-       "flag_urgent",
-       "dismiss"
-      ],
-      "rank": 2
-     },
-     {
       "listingId": "L-C05-EVAC",
       "caseId": "C-05",
       "label": "B-1 · L2 Temple",
@@ -2413,7 +2358,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 3
+      "rank": 2
      },
      {
       "listingId": "L-C03-EVAC",
@@ -2441,7 +2386,7 @@
        "flag_urgent",
        "dismiss"
       ],
-      "rank": 4
+      "rank": 3
      },
      {
       "listingId": "L-C02-EVAC",
@@ -2470,10 +2415,37 @@
        "flag_urgent",
        "dismiss"
       ],
+      "rank": 4
+     },
+     {
+      "listingId": "L-C06-EVAC",
+      "caseId": "C-06",
+      "label": "B-5 · L1 Health centre",
+      "people": "4 people: 4 adults",
+      "points": 5,
+      "reasons": [
+       "Knee deep (about 0.5 m) at 09:55",
+       "lower ground than 74% of P-B",
+       "last confirmed 7h 05m ago"
+      ],
+      "lastConfirmedAt": "2026-10-11T02:55:00Z",
+      "ifItRises": {
+       "text": "If the water here rises like the canal: about 1.8–1.9 m, chest deep (estimate)",
+       "rangeM": [
+        1.8,
+        1.9
+       ],
+       "mayBeOverHead": false
+      },
+      "actions": [
+       "call_back",
+       "flag_urgent",
+       "dismiss"
+      ],
       "rank": 5
      }
     ],
-    "more": 1,
+    "more": 0,
     "note": "Water rising is a reason to ask again, not proof of danger. A family becomes RED only after a callback reports danger or the coordinator flags it urgent with a reason."
    }
   }
