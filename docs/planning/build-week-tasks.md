@@ -54,7 +54,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] Desk approve/reject → case → listing; views regenerated in the same transaction (T3)
 - [ ] Allowlisted read/propose-only tool registry + prompt-injection eval (T5)
 - [ ] Start screens (call, desk, resident) on your shared shell and components; ask you for any new shared component
-- [ ] Intake records each household's make-up (`party`: adults, children under 12, babies, stretchers or wheelchairs) for seat units (D33); desk prompts for an urgent flag when a request includes a stretcher or wheelchair (proposed, see D33–D35)
+- [ ] Intake records each household's make-up (`party`: adults, children under 12, babies, stretchers or wheelchairs) for seat units (D33); desk prompts for an urgent flag when a request includes a stretcher or wheelchair (proposed, see D33–D36; the coordinator decides, nothing becomes urgent automatically)
 
 ## Wed 14 — CP2: publish → you take Families 1+2 → resident sees the window per family
 
