@@ -267,7 +267,7 @@ Conventions (from draft v1, kept): ISO-8601 UTC strings; displayed in Asia/Bangk
 | Role | Reads | Never sees |
 |---|---|---|
 | coordinator | all `views/desk`, reports+transcripts, proposedEvents, all missions, area briefings | — |
-| team_leader (T-x) | all `views/areaBriefing` (aggregates), own `views/teamMissions/T-x`, own mission pickup/destination | transcripts, medical narrative, other teams' missions, phone/caller refs |
+| team_leader (T-x) | all `views/areaBriefing` (aggregates), own `views/teamMissions/T-x`, own mission pickup/destination; **D38:** coordinator-written medical notes (functional + condition, with legal basis) for its own taken jobs, removed when the job closes | transcripts, other teams' missions, phone/caller refs, medical notes before taking or after closing |
 | resident (token) | own `views/residentStatus/{token}` only | anything else; no lookup by phone |
 | qualified_reviewer_fixture | assigned case's operational facts; writes the Q-01 fixture | — |
 | ai (service) | minimum context for one report or area | write access to anything except `proposedEvents` |

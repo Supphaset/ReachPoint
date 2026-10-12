@@ -93,6 +93,19 @@ describe("team actions (C6 rules, fixture mode)", () => {
     if (!r.ok) throw new Error(r.message);
     expect(r.value.urgency.title).toBe("Why this is an emergency");
     expect(r.value.urgency.kit).toContain("Boat needed (water 1.2 m or more)");
-    expect(r.value.urgency.withheld).toBe("Medical details stay with the desk and the medical team");
+    expect(r.value.urgency.withheld).toBe("Medical details come with the job, for the team that takes it");
+  });
+
+  it("medical notes come with the job and leave when it closes (D38)", async () => {
+    const r = await claimListing("L-C05-EVAC", ["L-C05-EVAC-G1"], 1);
+    if (!r.ok) throw new Error(r.message);
+    expect(r.value.medical?.consent).toBe("cannot_consent");
+    expect(r.value.destination.id).toBe("H1");
+    const open = read().open.find((l) => l.listingId === "L-C05-EVAC")!;
+    expect(JSON.stringify(open)).not.toContain("COPD");
+    await closeAllocation(r.value.allocationId, "done");
+    const job = read().jobs.find((j) => j.allocationId === r.value.allocationId)!;
+    expect(job.medical).toBeNull();
+    expect(job.medicalRemovedAt).toBeTruthy();
   });
 });

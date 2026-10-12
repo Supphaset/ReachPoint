@@ -3171,6 +3171,17 @@
     100.4985,
     7.0065
    ]
+  },
+  {
+   "id": "H1",
+   "code": "H1",
+   "type": "Hospital (synthetic, generic)",
+   "zoneId": null,
+   "label": "H1 Hospital (synthetic, generic)",
+   "at": [
+    100.5045,
+    7.012
+   ]
   }
  ]
 }

@@ -62,9 +62,31 @@ def nice_distance(m):
     return int(round(m / 50.0) * 50)
 
 
+# Coordinator-side medical notes (synthetic), D38: a team sees them only in its own job, after taking it, and they
+# are removed from the team's view when the job closes. Functional notes first (CMIST: what changes the rescue),
+# then the condition. Each carries its legal basis: consent, or "can't consent" (PDPA s.26(1), vital interest).
+MEDICAL = {
+    "L-C01-EVAC": {
+        "consent": "given", "basis": "Consent given by the person during the call",
+        "functional": ["Short of breath lying flat: carry her sitting up", "Keep her inhaler with her"],
+        "condition": "Severe asthma attack, getting worse (synthetic)",
+    },
+    "L-C05-EVAC": {
+        "consent": "cannot_consent",
+        "basis": "Shared to protect her life: she can't consent (PDPA s.26(1)); her daughter told the desk",
+        "functional": ["Bedridden: carry on a stretcher, at least 2 people",
+                       "Uses home oxygen: keep the tank with her; about 3 h left (daughter's estimate)"],
+        "condition": "COPD on home oxygen; stroke 2 years ago (synthetic)",
+    },
+}
+MEDICAL_CATEGORY = "Medical need: affects how to move them"
+DESTINATIONS = {"D1": "D1 Shelter (high ground)", "H1": "H1 Hospital (synthetic)"}
+DESTINATION = {"L-C01-EVAC": ("H1", "One person needs urgent medical care; the medical team meets you at H1"),
+               "L-C05-EVAC": ("H1", "Needs oxygen and power")}
+
 BOAT_DEPTH_M = 1.2  # D32: "boat needed" at 1.2 m or more (or a fast current); otherwise wading may be possible
 TITLE = {"red": "Why this is an emergency", "yellow": "Why it's urgent", "green": "Why it can wait"}
-WITHHELD = "Medical details stay with the desk and the medical team"
+WITHHELD = "Medical details come with the job, for the team that takes it"
 
 
 def party_text(p):
@@ -87,6 +109,8 @@ def urgency(n, snap, water, colour_):
     if linked:
         facts.append({"kind": "medical", "text": f"{linked[0]['units']} person in this household needs urgent medical help; "
                       "the medical team is asked separately", "basis": "qualified review"})
+    if n["listingId"] in MEDICAL and not linked:
+        facts.append({"kind": "medical_category", "text": MEDICAL_CATEGORY, "basis": "coordinator"})
     p = n["party"]
     facts.append({"kind": "people", "text": f"{n['units']} people: {party_text(p)}", "basis": "reviewed call"})
     if p["stretcher"]:
@@ -101,9 +125,14 @@ def urgency(n, snap, water, colour_):
         kit.insert(0, "Boat needed (water 1.2 m or more)" if w["approxM"] >= BOAT_DEPTH_M else "Wading may be possible; check on arrival")
     else:
         facts.append({"kind": "water", "text": "Water depth here: unknown (no reviewed report)", "basis": "none"})
-    summary = next((f["text"] for k in ("flag", "medical", "mobility", "water") for f in facts if f["kind"] == k), "")
+    summary = next((f["text"] for k in ("flag", "medical", "mobility", "medical_category", "water") for f in facts if f["kind"] == k), "")
     return {"title": TITLE[colour_], "summary": summary, "facts": facts, "kit": kit,
-            "withheld": WITHHELD if any(f["kind"] == "medical" for f in facts) else None}
+            "withheld": WITHHELD if any(f["kind"] in ("medical", "medical_category") for f in facts) else None}
+
+
+def dest(listing_id):
+    did, why = DESTINATION.get(listing_id, ("D1", "Shelter"))
+    return {"id": did, "label": DESTINATIONS[did], "reason": why}
 
 
 def main():
@@ -127,6 +156,7 @@ def main():
             "waitingSince": n["waitingSince"], "lastConfirmedAt": f"2026-10-11T{LAST_CONFIRMED[case]}:00Z",
             "reasons": [f"Urgent: {n['urgentFlag']['reason']}"] if (n.get("urgentFlag") or {}).get("reason", "").strip() else [],
             "urgency": urgency(n, snap, water, colour(t).value),
+            "destination": dest(n["listingId"]),
             "people": n["units"],
             "groups": [{"groupId": f"{n['listingId']}-G{i + 1}", "label": label, "people": sum(p.values()), "party": p,
                         "seatUnits": seats(p), "state": "open"} for i, (label, p) in enumerate(groups)],
@@ -147,6 +177,10 @@ def main():
     }
     write("teamMissions.T-S.json", view)
 
+    write("medicalNotes.synthetic.json", {
+        "label": "Coordinator-side medical notes (synthetic). A team sees one only in its own job after taking it, "
+                 "and it is removed when the job closes (D38). Never on the shared list.",
+        "dataMode": "synthetic", "notes": MEDICAL})
     pickups = {"label": "Coordinator-side exact pickup points (synthetic). A team sees one only in its own job, after taking it (D25).",
                "dataMode": "synthetic",
                "pickups": {lid: {"at": at, "precision": prec, "source": src} for lid, (at, prec, src) in EXACT.items()}}
@@ -159,7 +193,8 @@ def main():
             "allocationId": "AL-M01", "missionId": "M-01", "listingId": "L-C01-EVAC", "caseId": "C-01", "teamId": "T-S",
             "resourceId": "S1", "groupIds": [g["groupId"] for g in c01["groups"]], "seatUnits": 2.5, "state": "taken",
             "window": None, "acceptedAt": "2026-10-11T03:20:00Z", "needRevision": 2,
-            "pickup": {"landmarkLabel": c01["landmarkLabel"], **exact}, "urgency": c01["urgency"]}},
+            "pickup": {"landmarkLabel": c01["landmarkLabel"], **exact}, "urgency": c01["urgency"],
+            "destination": c01["destination"], "medical": MEDICAL["L-C01-EVAC"]}},
         "already-taken": {"ok": False, "code": "ALREADY_TAKEN", "message": "Already taken by T-R",
                           "detail": {"groupIds": ["L-C06-EVAC-G1"], "takenBy": "T-R"}},
         "not-enough-capacity": {"ok": False, "code": "NOT_ENOUGH_CAPACITY", "message": "Needs 5 seats, you have 4",
