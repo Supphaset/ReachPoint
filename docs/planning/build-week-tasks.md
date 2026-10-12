@@ -2,6 +2,8 @@
 
 Based on the [delivery agreement](../collaboration/two-person-delivery-agreement.md) and the eng review tasks (T-numbers). For the whole flow, see the [overview](../OVERVIEW.md). Times are Bangkok.
 
+The consolidated intake, map, water-estimation and rescue-demo implementation order is in [the connected demonstration plan](surge-demo.md). Its W1–W8 tasks clarify the surge work below; current completion status and proposed algorithms are explicitly separated.
+
 **Owners**
 - **You:** map, flood data, solver, team screens, split panel.
 - **Friend:** voice and intake, coordinator desk, rules engine, database, deploys.

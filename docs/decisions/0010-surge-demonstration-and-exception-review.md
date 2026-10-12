@@ -21,3 +21,7 @@ Reject mandatory individual approval of every routine request: it contradicts th
 - [Surge demonstration plan](../planning/surge-demo.md)
 
 Implementation details and evaluation thresholds remain proposed until implemented and validated.
+
+## Later user clarification — 12 Oct 2026
+
+The user requested using the flood map for rescue planning, estimating water levels from multiple intake reports, and then instructed “Now plan all for me.” These requested capabilities are accepted. The consolidated [implementation plan](../planning/surge-demo.md) records dependencies, proposed records, uncertainty treatment, demonstration acceptance and cuts. Numerical algorithms, thresholds, interpolation and UI details remain proposed and require validation. This documentation update does not claim implementation or authorize new services/spend.
