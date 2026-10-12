@@ -135,6 +135,10 @@ export function DevUi() {
           <a href="/team/list?claim=allocation-closed">Claim: job closed</a>
           <a href="/team/list?offline=1">Team list offline</a>
           <a href="/team/list?fail=view">Team list failed</a>
+          <a href="/desk/split">Split panel (coordinator)</a>
+          <a href="/desk/split?ask=stale">Split panel: stale ask</a>
+          <a href="/desk/split?variant=all-unmet">Split panel: no capacity left</a>
+          <a href="/desk/split?fail=split">Split panel failed</a>
         </div>
       </section>
     </div>

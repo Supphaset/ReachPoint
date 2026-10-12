@@ -18,6 +18,7 @@ const TABS: Record<Role, Tab[]> = {
   ],
   coordinator: [
     { to: "/desk", label: "Desk", th: "โต๊ะประสานงาน", icon: "list" },
+    { to: "/desk/split", label: "Split", th: "แบ่งงาน", icon: "people" },
     { to: "/team/map", label: "Area map", th: "แผนที่", icon: "map" },
   ],
   resident: [],
@@ -45,7 +46,7 @@ export function AppShell() {
         {tabs.length > 0 && (
           <nav className="topnav" aria-label="Main">
             {tabs.map((t) => (
-              <NavLink key={t.to} to={t.to} className="topnav-link">
+              <NavLink key={t.to} to={t.to} end={t.to === "/desk"} className="topnav-link">
                 <Icon name={t.icon} size={18} />
                 {t.label}
               </NavLink>
@@ -67,7 +68,7 @@ export function AppShell() {
       {tabs.length > 0 && (
         <nav className="tabbar" aria-label="Main">
           {tabs.map((t) => (
-            <NavLink key={t.to} to={t.to} className="tab">
+            <NavLink key={t.to} to={t.to} end={t.to === "/desk"} className="tab">
               <Icon name={t.icon} size={22} />
               <span>{t.th}</span>
               <span className="tab-en">{t.label}</span>

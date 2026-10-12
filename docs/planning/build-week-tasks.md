@@ -80,7 +80,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 
 **You**
 - [x] OR-Tools split solver: staged, reasons, cache key, 5 s limit (T4) (`api/rules/allocation.py`: `solve_split`, `compare_scenarios`; `suggestionId` from the input is the cache key; seat units and safe splits D33–D35; solver half of T15 in `api/tests/test_allocation.py`; fixture `allocationSuggestion.cp3.json`)
-- [ ] Split panel: team rows, "Still unmet", "Ask these N teams", What-if tab
+- [x] Split panel: team rows, "Still unmet", "Ask these N teams", What-if tab (`web/src/features/split/`, `/desk/split`; real solver output in `splitPanel.cp3.json` with precomputed What-ifs until the API serves `compare_scenarios`; stale ask shows the diff; `askTeams.*.json`)
 - [ ] Gemini zone briefing text, from computed fields only; prose validator (T7, shared)
 
 **Friend**
