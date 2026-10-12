@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from api.intake.extract import BANDS, NEEDS
+from api.rules.failure import hold_transport
 from api.views import store as views_store
 from api.views.missions import MARKS, active_claim
 from api.views.team import group_owner, seats, seats_used
@@ -86,6 +87,8 @@ class MemoryStore:
             raise NotFound(allocation_id)
         if a["state"] == "closed":
             raise Refused("ALLOCATION_CLOSED", "This job is closed", {"closedAt": a.get("closedAt"), "outcome": a.get("outcome")})
+        if a["state"] == "held":
+            raise Refused("ALLOCATION_HELD", "This job is on hold; the coordinator owns the next update")
         return a
 
     def _summarise(self, need: dict) -> None:
@@ -120,6 +123,8 @@ class MemoryStore:
         team = self._team(team_id)
         if team["status"] != "available":
             raise Refused("NOT_AVAILABLE", "Set your team to Available to take cases")
+        if team["resource"].get("status") == "unavailable":
+            raise Refused("NOT_AVAILABLE", "Your resource is unavailable; the coordinator is finding replacement transport")
         if need["type"] not in team["capabilities"]:
             raise Refused("NOT_AVAILABLE", "Your team can't take this kind of case")
         if need["review"] != "validated":
@@ -195,6 +200,24 @@ class MemoryStore:
         need["reconfirmRequestedAt"] = self.clock.iso()
 
     # --- desk actions ---
+
+    def resource_unavailable(self, resource_id: str, reason: str, next_update: str) -> dict:
+        try:
+            result = hold_transport(self.store.seed, resource_id, reason, next_update, self.clock.iso())
+        except KeyError:
+            raise NotFound(resource_id) from None
+        except ValueError as e:
+            raise Refused("INVALID", str(e)) from None
+        held = set(result["heldAllocationIds"])
+        for a in self.store.seed["allocations"]:
+            if a["allocationId"] in held:
+                _, need = self._need(a["listingId"])
+                note = f"Back from {a['teamId']}: {resource_id} unavailable: {reason.strip()}"
+                reasons = need.setdefault("reasons", [])
+                if note not in reasons:
+                    reasons.append(note)
+                self._summarise(need)
+        return result
 
     def urgent_flag(self, listing_id: str, reason: str, confirmed_now: bool) -> None:
         r = (reason or "").strip()

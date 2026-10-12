@@ -1,8 +1,9 @@
 // C10 rule: screens use the shared tokens only. Fails on raw colours outside src/ui/tokens.css.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = new URL("../src", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../src", import.meta.url));
 const ALLOWED = new Set([join(ROOT, "ui/tokens.css")]);
 const RAW = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/;
 

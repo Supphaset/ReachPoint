@@ -435,13 +435,14 @@ function windowStarts() {
 
 const DURATIONS = [30, 60, 90, 120];
 
-function JobCard({ j }: { j: Job }) {
+export function JobCard({ j }: { j: Job }) {
   const [error, setError] = useState<string | null>(null);
   const [start, setStart] = useState(windowStarts()[1]);
   const [mins, setMins] = useState(60);
   const [handing, setHanding] = useState(false);
   const [ending, setEnding] = useState(false);
   const closed = j.state === "closed";
+  const held = j.state === "held";
 
   const run = async (p: Promise<{ ok: boolean; message?: string }>) => {
     const r = await p;
@@ -503,7 +504,7 @@ function JobCard({ j }: { j: Job }) {
         <p className="num">
           {lat.toFixed(5)}, {lon.toFixed(5)} · <span className="muted">{j.pickup.precision}: {j.pickup.source}</span>
         </p>
-        {!closed && (
+        {!closed && !held && (
           <a className="btn btn-secondary btn-md nav-link" href={nav} target="_blank" rel="noreferrer">
             <Icon name="chevron" size={18} /> Navigate (Google Maps)
           </a>
@@ -519,7 +520,13 @@ function JobCard({ j }: { j: Job }) {
         <h3>
           <Icon name="clock" size={16} /> Arrival window
         </h3>
-        {j.window ? (
+        {held ? (
+          <p>
+            On hold: {j.holdReason}. New time not known.
+            {j.withdrawnWindow && <> Earlier <s className="num">{fmtTime(j.withdrawnWindow.start)}–{fmtTime(j.withdrawnWindow.end)}</s> estimate withdrawn.</>}
+            {j.nextStatusUpdate && <> Next status update {fmtTime(j.nextStatusUpdate.at)} from the coordinator desk.</>}
+          </p>
+        ) : j.window ? (
           <p>
             <strong className="num">
               {fmtTime(j.window.start)}–{fmtTime(j.window.end)}
@@ -565,7 +572,7 @@ function JobCard({ j }: { j: Job }) {
 
       {error && <Banner kind="error">{error}</Banner>}
 
-      {!closed && (
+      {!closed && !held && (
         <div className="job-actions">
           {j.state === "taken" && (
             <BigButton size="md" disabled={!j.window} onClick={() => run(reportProgress(j.allocationId, "on_the_way"))}>

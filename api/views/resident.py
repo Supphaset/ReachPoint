@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from api.views.store import Store
-from api.views.team import allocations_for, group_owner
+from api.views.team import ACTIVE, allocations_for, group_owner
 
 BANGKOK = timezone(timedelta(hours=7))
 
@@ -18,13 +18,20 @@ def _clock(iso: str) -> str:
 
 
 def _family_line(store: Store, need: dict, gid: str) -> dict:
-    a = next((a for a in allocations_for(store, need["listingId"]) if gid in a["groupIds"]), None)
+    candidates = [a for a in allocations_for(store, need["listingId"]) if gid in a["groupIds"]]
+    a = next((a for a in reversed(candidates) if a["state"] in ACTIVE or
+              a.get("outcome") in ("done", "already_left", "not_found")), candidates[-1] if candidates else None)
     owner = group_owner(store, need, gid)
     if a is None and not owner:
         return {"state": "waiting", "text": "On the list. No team has taken it yet. Call again if it becomes an emergency."}
     if a is None:
         return {"state": "taken", "text": f"Team {owner} is handling your request."}
     t = a["teamId"]
+    if a["state"] == "held":
+        w = a.get("window")
+        earlier = f"earlier {_clock(w['start'])}–{_clock(w['end'])} estimate withdrawn" if w else "arrival time not confirmed"
+        return {"state": "held", "text": f"Transport: on hold; new time not known; {earlier}. "
+                f"Next update {_clock(a['nextStatusUpdate']['at'])} from the coordinator desk (status update, not arrival)."}
     if a["state"] == "closed":
         return {"state": a["outcome"], "text": {
             "done": f"Picked up by Team {t} at {_clock(a['closedAt'])}.",
