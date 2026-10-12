@@ -1,0 +1,78 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading);
+  color: var(--color-ink);
+  background: var(--color-canvas);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+}
+
+h2 {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+h3 {
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--color-brand);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--color-ink-3);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

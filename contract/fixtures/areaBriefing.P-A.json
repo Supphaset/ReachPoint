@@ -1,0 +1,387 @@
+{
+ "areaId": "P-A",
+ "label": "P-A · support in place",
+ "need": "support_in_place",
+ "description": "Shallower water on the northern edge; people can mostly stay home with supplies",
+ "dataMode": "synthetic",
+ "package": "hy-2025-11",
+ "generatedAt": "2026-10-11T03:15:00Z",
+ "inputVersions": {
+  "geography": 2,
+  "cases": 7
+ },
+ "dataLabel": "Synthetic demo records; geography and estimates from the C1 fixture",
+ "badge": {
+  "urgent": 0,
+  "unreviewed": 0
+ },
+ "facts": [
+  {
+   "key": "suppliesNeeded",
+   "label": "Food packs needed",
+   "value": 80,
+   "unit": "packs",
+   "basis": "reviewed requests"
+  },
+  {
+   "key": "suppliesDelivered",
+   "label": "Delivered",
+   "value": 20,
+   "unit": "packs",
+   "basis": "team reports"
+  },
+  {
+   "key": "suppliesRemaining",
+   "label": "Still needed",
+   "value": 60,
+   "unit": "packs",
+   "basis": "needed minus delivered"
+  },
+  {
+   "key": "suppliesUnassigned",
+   "label": "Not yet in a plan",
+   "value": 30,
+   "unit": "packs",
+   "basis": "remaining minus plan PL-A"
+  }
+ ],
+ "estimate": {
+  "label": "People living here (estimate). Not victims, not people needing rescue; never adds to reviewed counts.",
+  "modelLabel": "Likely flooded at the peak (model from reported depths and ground height)",
+  "everyone": [
+   7100,
+   13000
+  ],
+  "notYetChecked": [
+   7100,
+   13000
+  ]
+ },
+ "layers": {
+  "floodExtent": {
+   "state": "available",
+   "id": "s1-2025-11-24",
+   "label": "Flood extent on 24 Nov 2025 06:03 Bangkok (Sentinel-1) · urban areas may be under-detected"
+  },
+  "noSatelliteData": {
+   "state": "available",
+   "label": "No satellite data · never means dry"
+  },
+  "reportedFlooding": {
+   "state": "available",
+   "label": "Reported flooding (official and news reports)"
+  }
+ },
+ "zones": [
+  {
+   "zoneId": "A-1",
+   "areaId": "P-A",
+   "district": null,
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 3,
+     "of": 3,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 0,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 3 of 3 segments not checked"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     2400,
+     3100
+    ],
+    "inSatelliteExtent": [
+     0,
+     980
+    ],
+    "modelledFlooded": null,
+    "basis": "satellite",
+    "notYetChecked": [
+     2400,
+     3100
+    ]
+   },
+   "depth": null,
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "A-1-L1",
+     "label": "A-1 · L1 Temple",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       20,
+       440
+      ],
+      "inSatelliteExtent": [
+       0,
+       370
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       0.8,
+       0.9,
+       1
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "A-1-L2",
+     "label": "A-1 · L2 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1400,
+       3000
+      ],
+      "inSatelliteExtent": [
+       0,
+       240
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       0.9,
+       2.1,
+       8.4
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "A-1-L3",
+     "label": "A-1 · L3 Community building",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       40,
+       600
+      ],
+      "inSatelliteExtent": [
+       0,
+       380
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       0.7,
+       1.0,
+       1.6
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.0,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "A-2",
+   "areaId": "P-A",
+   "district": null,
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 3,
+     "of": 3,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 0,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 3 of 3 segments not checked"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     4700,
+     9800
+    ],
+    "inSatelliteExtent": [
+     20,
+     200
+    ],
+    "modelledFlooded": null,
+    "basis": "satellite",
+    "notYetChecked": [
+     4700,
+     9800
+    ]
+   },
+   "depth": null,
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "A-2-L1",
+     "label": "A-2 · L1 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1000,
+       2500
+      ],
+      "inSatelliteExtent": [
+       0,
+       80
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       2.0,
+       3.9,
+       7.3
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "A-2-L2",
+     "label": "A-2 · L2 Temple",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       2400,
+       3100
+      ],
+      "inSatelliteExtent": [
+       0,
+       60
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       3.7,
+       5.8,
+       9.7
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.02,
+     "cases": 0
+    },
+    {
+     "segmentId": "A-2-L3",
+     "label": "A-2 · L3 Community building",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1200,
+       4300
+      ],
+      "inSatelliteExtent": [
+       10,
+       70
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       1.5,
+       4.9,
+       8.3
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.0,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  }
+ ]
+}

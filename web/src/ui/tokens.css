@@ -1,0 +1,114 @@
+/*
+ * ReachPoint design tokens (C10). The only place colours, fonts and sizes are defined:
+ * screens use these variables, never raw values (`npm run check:tokens` enforces it).
+ *
+ * Proposed tokens, 12 Oct; /design-consultation may adjust the values, not the names.
+ * Rules behind them (design doc, "Design system"):
+ * - Each state has exactly one colour + one icon + a Thai/English label. Colour is never the only signal.
+ * - Red means one thing: RED priority (life-threatening). Errors use ink, delays use amber, never red alarm.
+ * - Unknown is grey and hatched, never green, never "safe". "No satellite data" is dotted, never dry.
+ * - AI output is a dashed violet border until a person approves it.
+ * - Light, high-contrast surfaces for phones used outdoors; text pairs meet WCAG AA (4.5:1).
+ */
+:root {
+  color-scheme: light;
+
+  /* Type: IBM Plex Sans Thai covers Thai and Latin with one family */
+  --font-sans: "IBM Plex Sans Thai", "Noto Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --text-2xs: 0.6875rem; /* 11: tab bar sub-labels only */
+  --text-xs: 0.8125rem;  /* 13 */
+  --text-sm: 0.9375rem;  /* 15 */
+  --text-md: 1.0625rem;  /* 17: body on phones */
+  --text-lg: 1.25rem;    /* 20 */
+  --text-xl: 1.5rem;     /* 24 */
+  --text-2xl: 1.875rem;  /* 30 */
+  --leading: 1.5;        /* Thai needs room for marks above and below */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 600;
+
+  /* Space: 4 px steps */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --tap-min: 48px;       /* smallest touch target */
+  --button-big: 56px;    /* big buttons */
+  --tabbar-height: 64px;
+  --color-scrim: rgb(16 24 40 / 0.35);
+  --shadow-sheet: 0 -6px 24px rgb(16 24 40 / 0.14);
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.1);
+
+  /* Neutrals */
+  --color-canvas: #f4f5f7;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #eceef1;
+  --color-line: #d5d9df;
+  --color-line-strong: #a9b0ba;
+  --color-ink: #161b22;
+  --color-ink-2: #3f4753;
+  --color-ink-3: #5d6673;   /* smallest text colour on white: 5.9:1 */
+  --color-on-ink: #ffffff;
+  --color-focus: #1d5fd1;
+
+  /* Brand */
+  --color-brand: #0f4c81;
+  --color-brand-ink: #ffffff;
+
+  /* Priority (shared tiers, D9): one colour each */
+  --color-red: #b42318;
+  --color-red-bg: #fdecea;
+  --color-red-line: #f3b8b2;
+  --color-yellow: #7a4f00;
+  --color-yellow-bg: #fff3cf;
+  --color-yellow-line: #e8b931;
+  --color-green: #17633a;
+  --color-green-bg: #e3f3e8;
+  --color-green-line: #9dd1b0;
+
+  /* Job and segment states */
+  --color-waiting: #344e79;
+  --color-waiting-bg: #e8eef8;
+  --color-taken: #4b3a99;
+  --color-taken-bg: #eeebfa;
+  --color-moving: #0b6672;
+  --color-moving-bg: #e1f3f5;
+  --color-held: #7a4f00;      /* amber: delays and holds, never red */
+  --color-held-bg: #fff3cf;
+  --color-done: #3f4753;
+  --color-done-bg: #eceef1;
+
+  /* Unknown / not checked */
+  --color-unknown: #5d6673;
+  --color-unknown-bg: #eceef1;
+  --pattern-unknown: repeating-linear-gradient(135deg, #eceef1 0 6px, #ffffff 6px 12px);
+
+  /* AI proposals */
+  --color-ai: #6237b8;
+  --color-ai-bg: #f5f0ff;
+  --border-ai: 2px dashed #6237b8;
+
+  /* Banners */
+  --color-error: #161b22;
+  --color-error-bg: #ffffff;
+  --color-offline: #344e79;
+  --color-offline-bg: #e8eef8;
+
+  /* Map */
+  --map-land: #f7f7f5;
+  --map-water: #2f6fb0;
+  --map-water-fill: rgb(47 111 176 / 0.32);
+  --map-no-data: #7c8794;
+  --map-zone-line: #3f4753;
+  --map-zone-fill: rgb(255 255 255 / 0.01);
+  --map-zone-selected: #0f4c81;
+  --map-report: #0b3d6e;
+  --map-landmark: #161b22;
+}

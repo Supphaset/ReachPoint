@@ -26,9 +26,9 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] Export the Hat Yai extent as GeoJSON under 300 KB (T9)
 - [x] Draw the P-A/P-B/P-C areas and zones, with landmarks and D1, and cut each zone into **segments** (D30: city zones along OSM streets inside the 4 city districts, `cut_city_zones.py` + `build_geography.py`; 17 zones, 66 segments; C1 fixture `contract/fixtures/areas.hy-2025-11.json`)
 - [x] Add the "no satellite data" area (dense urban core) to the package, so nothing is ever shown as dry (D26) (`flood_check.py nodata`; 16 of 17 reported points inside)
-- [ ] Ship the area-briefing fixture files **by noon**
-- [ ] **Frontend foundation (you own it):** one React app shell, role routes, wordmark, phone tab bar; placeholder tokens; data hooks (sign-in, live Firestore views, typed API client)
-- [ ] Map + list on the shell, same IDs
+- [x] Ship the area-briefing fixture files **by noon** (`contract/fixtures/areaBriefing.*.json`: P-A/P-B/P-C + empty, stale and layer-missing variants; `build_briefing_fixtures.py`)
+- [x] **Frontend foundation (you own it):** one React app shell, role routes, wordmark, phone tab bar; placeholder tokens; data hooks (sign-in, live Firestore views, typed API client) (`web/`; demo role picker and fixture-backed `useView` until Firebase Auth and Firestore are up)
+- [x] Map + list on the shell, same IDs (offline schematic map from the package; Google Maps base later)
 
 **Friend**
 - [ ] Create `reachpoint-main` with a budget alert on every project; add you as Editor
@@ -44,11 +44,11 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 ## Tue 13 — CP1: text report → approved → shows on your map, count unchanged
 
 **You**
-- [ ] Run `/design-consultation` → final tokens (state colours, Thai + Latin fonts, spacing)
-- [ ] Shared components ready for your friend: status chip, priority badge, "AI proposal" card, error/offline banner, "last updated" line, big buttons
+- [ ] Run `/design-consultation` → final tokens (state colours, Thai + Latin fonts, spacing). Proposed tokens are in `web/src/ui/tokens.css`; the consultation adjusts values, not names
+- [x] Shared components ready for your friend: status chip, priority badge, "AI proposal" card, error/offline banner, "last updated" line, big buttons (`web/src/ui/`, all states on `/dev/ui`)
 - [x] Exposure estimate **per segment** (D27): two ranges each, everyone living there and people inside the satellite extent (Open Buildings + WorldPop, cross-checked with DOPA)
 - [x] Sanity check: the district total against GISTDA's 25 Nov figure (52,731 rai, ~150,000 people affected); record it in `data/SOURCES.md`
-- [ ] Area and zone briefing screen on live views
+- [ ] Area and zone briefing screen on live views (built on the C2 fixtures with every state; switch to the live view when the friend's Firestore views exist)
 - [ ] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15)
 - [ ] Solver notebook run on the fixture
 
