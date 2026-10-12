@@ -5,12 +5,15 @@
  */
 import type { AskResult, SplitPanelView } from "./contract";
 import { now } from "./clock";
+import { get, post, submissionId } from "./api";
+import { apiMode } from "./mode";
 import { devSwitch } from "./source";
 
 const panel = import.meta.glob("../../../contract/fixtures/splitPanel.cp3.json", { import: "default" });
 const asks = import.meta.glob("../../../contract/fixtures/askTeams.*.json", { import: "default" });
 
 export async function loadSplitPanel(): Promise<SplitPanelView> {
+  if (apiMode()) return get<SplitPanelView>("/api/views/splitPanel");
   await new Promise((r) => setTimeout(r, 300));
   if (devSwitch("fail") === "split") throw new Error("Split unavailable");
   const view = (await panel["../../../contract/fixtures/splitPanel.cp3.json"]()) as SplitPanelView;
@@ -26,6 +29,7 @@ export async function loadSplitPanel(): Promise<SplitPanelView> {
 type AskFixture = { request: { suggestionId: string }; response: AskResult };
 
 export async function askTeams(suggestionId: string, teamIds: string[], snapshotAt?: string): Promise<AskResult> {
+  if (apiMode()) return post<AskResult>("/api/ask-teams", { suggestionId, teamIds, submissionId: submissionId() });
   await new Promise((r) => setTimeout(r, 300));
   const stale = (await asks["../../../contract/fixtures/askTeams.stale.json"]()) as AskFixture;
   const ok = (await asks["../../../contract/fixtures/askTeams.ok.json"]()) as AskFixture;

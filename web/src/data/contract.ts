@@ -265,7 +265,9 @@ export type ClaimCode =
   | "NEED_CHANGED"
   | "ALLOCATION_CLOSED"
   | "VERSION_CONFLICT"
-  | "NOT_AVAILABLE";
+  | "NOT_AVAILABLE"
+  | "INVALID" // e.g. an urgent flag without a reason
+  | "OFFLINE"; // API mode: the server couldn't be reached; nothing was changed
 
 export type Result<T = undefined> = { ok: true; value: T } | { ok: false; code: ClaimCode; message: string };
 

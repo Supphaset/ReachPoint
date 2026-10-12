@@ -6,11 +6,16 @@
  * the revision the team saw, and no updates after a job is closed. Screens call these functions and read
  * `useTeam()`; with the real API they become `api.post(...)` calls plus a Firestore listener, same results.
  *
+ * API mode (data/mode.ts): the view is GET /api/views/teamMissions/{teamId} and every action is a POST from
+ * contract/api.md; after each one the view is fetched again, so the screen shows what the server decided.
+ *
  * Dev switch: `?claim=already-taken | not-enough-capacity | need-changed | allocation-closed | version-conflict`
  * makes the first claim on this page return that result (from contract/fixtures/claim.*.json).
  */
 import { useSyncExternalStore } from "react";
-import type { Group, Job, MedicalNotes, OpenListing, Outcome, Result, TeamMissionsView, TeamStatus } from "./contract";
+import { ApiError, get, post, submissionId } from "./api";
+import type { ClaimCode, Group, Job, MedicalNotes, OpenListing, Outcome, Result, TeamMissionsView, TeamStatus } from "./contract";
+import { apiMode } from "./mode";
 import { now } from "./clock";
 import { devSwitch } from "./source";
 
@@ -60,6 +65,7 @@ export async function loadTeam(teamId: string) {
   if (loadedFor === teamId && state.status === "ready") return;
   loadedFor = teamId;
   emit({ status: "loading" });
+  if (apiMode()) return fetchTeam(teamId);
   try {
     await new Promise((r) => setTimeout(r, 150));
     if (devSwitch("fail") === "view") throw new Error("Team view failed to load");
@@ -74,6 +80,32 @@ export async function loadTeam(teamId: string) {
     emit({ status: "error", message: e instanceof Error ? e.message : String(e) });
   }
 }
+
+async function fetchTeam(teamId: string) {
+  try {
+    const view = await get<TeamMissionsView>(`/api/views/teamMissions/${teamId}`);
+    emit({ status: "ready", view, offline: false });
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) return emit({ status: "missing", teamId });
+    if (state.status === "ready") return emit({ ...state, offline: true });
+    emit({ status: "error", message: e instanceof Error ? e.message : String(e) });
+  }
+}
+
+/** API mode: POST the action, then fetch the team view again. Rule failures come back as a Result, not a throw. */
+async function remote<T = undefined>(path: string, body: object): Promise<Result<T>> {
+  try {
+    const r = await post<{ value?: T }>(path, { ...body, submissionId: submissionId() });
+    if (loadedFor) await fetchTeam(loadedFor);
+    return { ok: true, value: r.value as T };
+  } catch (e) {
+    if (loadedFor && e instanceof ApiError && e.status === 409) await fetchTeam(loadedFor);
+    if (e instanceof ApiError) return fail((e.code as ClaimCode) ?? "VERSION_CONFLICT", e.message);
+    return fail("OFFLINE", "Can't reach the server. Nothing was changed; try again");
+  }
+}
+
+const teamPath = () => `/api/teams/${loadedFor}`;
 
 export function useTeam(): State {
   return useSyncExternalStore(
@@ -103,6 +135,7 @@ function seatsText(n: number) {
 
 /** Take whole open groups of one listing, with the revision the team saw. */
 export async function claimListing(listingId: string, groupIds: string[], seenRevision: number): Promise<Result<Job>> {
+  if (apiMode()) return remote<Job>(`/api/listings/${listingId}/claim`, { teamId: loadedFor, groupIds, expectedRevision: seenRevision });
   await new Promise((r) => setTimeout(r, 250));
   if (state.status !== "ready") return fail("VERSION_CONFLICT", "Your screen was out of date; it has been refreshed");
   const f = await forced();
@@ -186,12 +219,14 @@ function reopen(v: TeamMissionsView, j: Job, note?: string) {
 }
 
 export async function setWindow(allocationId: string, start: string, end: string) {
+  if (apiMode()) return remote(`/api/allocations/${allocationId}/window`, { start, end });
   return withJob(allocationId, (j) => {
     j.window = { start, end, setAt: iso() };
   });
 }
 
 export async function reportProgress(allocationId: string, next: "on_the_way" | "on_scene") {
+  if (apiMode()) return remote(`/api/allocations/${allocationId}/progress`, { state: next });
   return withJob(allocationId, (j) => {
     j.state = next;
   });
@@ -199,6 +234,7 @@ export async function reportProgress(allocationId: string, next: "on_the_way" | 
 
 /** Close a job with its outcome. People who weren't moved free their seats again. */
 export async function closeAllocation(allocationId: string, outcome: Outcome) {
+  if (apiMode()) return remote(`/api/allocations/${allocationId}/close`, { outcome });
   return withJob(allocationId, (j, v) => {
     j.state = "closed";
     j.outcome = outcome;
@@ -214,13 +250,15 @@ export async function closeAllocation(allocationId: string, outcome: Outcome) {
 
 /** Give the job back: its groups go back on the open list, the seats come back. */
 export async function handBack(allocationId: string, reason: string) {
+  if (apiMode()) return remote(`/api/allocations/${allocationId}/hand-back`, { reason });
   return withJob(allocationId, (j, v) => {
     reopen(v, j, `Back from ${v.teamId}: ${reason}`);
     v.jobs = v.jobs.filter((x) => x.allocationId !== allocationId);
   });
 }
 
-export async function setTeamStatus(status: TeamStatus, reason: string | null, backAbout: string | null) {
+export async function setTeamStatus(status: TeamStatus, reason: string | null, backAbout: string | null): Promise<Result> {
+  if (apiMode()) return remote(`${teamPath()}/status`, { status, reason, backAbout });
   update((v) => {
     v.team = { ...v.team, status, reason: status === "available" ? null : reason, backAbout: status === "available" ? null : backAbout, statusSetAt: iso() };
   });
@@ -235,7 +273,8 @@ export async function setTeamStatus(status: TeamStatus, reason: string | null, b
  */
 export async function flagUrgent(listingId: string, reason: string, confirmedNow = false): Promise<Result> {
   const r = reason.trim();
-  if (!r) return fail("NEED_CHANGED", "An urgent flag needs a reason");
+  if (!r) return fail("INVALID", "An urgent flag needs a reason");
+  if (apiMode()) return remote(`/api/listings/${listingId}/urgent-flag`, { reason: r, confirmedNow });
   if (state.status !== "ready") return fail("VERSION_CONFLICT", "Your screen was out of date; it has been refreshed");
   if (!state.view.open.some((x) => x.listingId === listingId)) return fail("ALLOCATION_CLOSED", "This case is no longer open");
   update((v) => {
@@ -255,7 +294,8 @@ export async function flagUrgent(listingId: string, reason: string, confirmedNow
   return { ok: true, value: undefined };
 }
 
-export async function requestReconfirm(listingId: string) {
+export async function requestReconfirm(listingId: string): Promise<Result> {
+  if (apiMode()) return remote(`/api/listings/${listingId}/reconfirm`, { teamId: loadedFor });
   update((v) => {
     const l: OpenListing | undefined = v.open.find((x) => x.listingId === listingId);
     if (l) l.reconfirmRequestedAt = iso();
