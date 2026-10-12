@@ -16,7 +16,13 @@ and the C1 fixture `contract/fixtures/areas.<package>.json`: the same IDs withou
 seed script (`areas/{areaId}`) and the friend's contract tests.
 
 Each segment and zone carries `noSatelliteDataShare`: the share of its area inside the
-"no satellite data" mask (D26). The people estimate per segment is added on Tuesday (D27).
+"no satellite data" mask (D26), and, once `flood_check.py exposure` has written `exposure.json`,
+an `estimate` of people living there (D27, D31). Each range spans two independent counts (WorldPop and
+Open Buildings × people per building from DOPA), rounded outwards:
+    everyone            everyone living in the segment
+    inSatelliteExtent   people inside the dated satellite extent
+    modelledFlooded     city segments that are mostly "no satellite data" only: people where reported
+                        depths plus ground height put water (a model, labelled as one; D31)
 Needs shapely (data/requirements.txt). Nothing here runs in the app.
 """
 
@@ -53,6 +59,36 @@ def write(path, features, meta):
     path.write_text(json.dumps(doc, ensure_ascii=False, separators=(",", ":")))
 
 
+MODEL_MIN_NODATA_SHARE = 0.5  # D31: the model is shown where the satellite is mostly blind
+
+
+def nice(x, up):
+    """Round outwards to 2 significant figures (10 below 1,000), so a range never looks precise."""
+    if x <= 0:
+        return 0
+    step = 10 if x < 1000 else 10 ** (len(str(int(x))) - 2)
+    return int(math.ceil(x / step) * step) if up else int(math.floor(x / step) * step)
+
+
+def span(*values):
+    return [nice(min(values), False), nice(max(values), True)]
+
+
+def estimate(raw, rate, model):
+    """Ranges for one segment or zone from summed raw counts (exposure.json)."""
+    est = {"everyone": span(raw["wp"], raw["bld"] * rate),
+           "inSatelliteExtent": span(raw["wp_ext"], raw["bld_ext"] * rate),
+           "modelledFlooded": None}
+    if model:
+        est["modelledFlooded"] = span(raw["wp_lo"], raw["bld_lo"] * rate, raw["wp_hi"], raw["bld_hi"] * rate)
+    est["basis"] = "model" if est["modelledFlooded"] else "satellite"
+    return est
+
+
+def fmt(r):
+    return f"{r[0]:,}–{r[1]:,}"
+
+
 def build(package):
     folder = DATA_DIR / package
     src = json.loads((folder / "geography-source.json").read_text())
@@ -70,6 +106,19 @@ def build(package):
     meta = {"label": LABEL, "package": package, "version": src["version"], "updatedAt": src["updatedAt"],
             "dataMode": "synthetic", "attribution": "Built-up mask: ESA WorldCover 10 m 2021 v200 (CC BY 4.0)"}
     common = {"package": package, "version": src["version"], "dataMode": "synthetic"}
+    exp_path = folder / "exposure.json"
+    exposure = json.loads(exp_path.read_text()) if exp_path.exists() else None
+    if exposure:
+        meta["estimate"] = {"label": "People living here (estimate). Not victims, not people needing rescue; "
+                                     "never adds to reviewed counts.",
+                            "modelLabel": "Likely flooded at the peak (model from reported depths and ground height)",
+                            "sources": exposure["sources"], "peoplePerBuilding": exposure["peoplePerBuilding"]}
+
+    def seg_estimate(ids, area_id, share):
+        if not exposure:
+            return None
+        raw = {k: sum(exposure["segments"][i][k] for i in ids) for k in exposure["segments"][ids[0]]}
+        return estimate(raw, exposure["peoplePerBuilding"], area_id == "P-B" and share >= MODEL_MIN_NODATA_SHARE)
     areas = {a["id"]: {**a, "zones": []} for a in src["areas"]}
     zone_f, seg_f, mark_f, cat_zones = [], [], [], []
 
@@ -93,21 +142,27 @@ def build(package):
             sid = f"{z['id']}-{m['code']}"
             label = f"{z['id']} · {m['code']} {m['type']}"
             seg_ids.append(sid)
+            share = nodata_share(cell)
             seg_f.append(feature(cell, {**common, "id": sid, "kind": "segment", "zoneId": z["id"], "areaId": z["area"],
                                         "district": district,
-                                     "labelAt": [round(c, 5) for c in poly.representative_point().coords[0]], "landmarkId": sid, "label": label, "area_m2": round(area_m2(cell)),
-                                        "noSatelliteDataShare": nodata_share(cell)}))
+                                        "labelAt": [round(c, 5) for c in cell.representative_point().coords[0]],
+                                        "landmarkId": sid, "label": label, "area_m2": round(area_m2(cell)),
+                                        "noSatelliteDataShare": share,
+                                        "estimate": seg_estimate([sid], z["area"], share)}))
             mark_f.append(feature(p, {**common, "id": sid, "kind": "landmark", "code": m["code"], "type": m["type"],
                                       "zoneId": z["id"], "areaId": z["area"], "segmentId": sid, "label": label}))
         zone_f.append(feature(poly, {**common, "id": z["id"], "kind": "zone", "areaId": z["area"], "label": z["id"],
                                      "district": district,
                                      "labelAt": [round(c, 5) for c in poly.representative_point().coords[0]],
                                      "segmentIds": seg_ids, "area_m2": round(area_m2(poly)),
-                                     "noSatelliteDataShare": nodata_share(poly)}))
+                                     "noSatelliteDataShare": nodata_share(poly),
+                                     "estimate": seg_estimate(seg_ids, z["area"], nodata_share(poly))}))
         areas[z["area"]]["zones"].append(z["id"])
-        cat_zones.append({"id": z["id"], "areaId": z["area"], "district": district, "segments": [
+        cat_zones.append({"id": z["id"], "areaId": z["area"], "district": district,
+                          "estimate": zone_f[-1]["properties"]["estimate"], "segments": [
             {"id": s, "landmarkId": s, "label": f["properties"]["label"],
-             "noSatelliteDataShare": f["properties"]["noSatelliteDataShare"]}
+             "noSatelliteDataShare": f["properties"]["noSatelliteDataShare"],
+             "estimate": f["properties"]["estimate"]}
             for s, f in zip(seg_ids, seg_f[-len(seg_ids):])]})
 
     for d in src["destinations"]:
@@ -147,7 +202,10 @@ def build(package):
     for f in zone_f:
         p = f["properties"]
         print(f"  {p['id']} ({p['areaId']}): {p['area_m2'] / 1e6:.2f} km², {len(p['segmentIds'])} segments, "
-              f"{p['noSatelliteDataShare']:.0%} no satellite data")
+              f"{p['noSatelliteDataShare']:.0%} no satellite data"
+              + (f"; people {fmt(e['everyone'])}, in extent {fmt(e['inSatelliteExtent'])}"
+                 + (f", modelled flooded {fmt(e['modelledFlooded'])}" if e["modelledFlooded"] else "")
+                 if (e := p["estimate"]) else ""))
 
 
 if __name__ == "__main__":

@@ -147,6 +147,59 @@ class Geography(unittest.TestCase):
             self.assertTrue(0 <= f["properties"]["noSatelliteDataShare"] <= 1)
 
 
+class Estimate(unittest.TestCase):
+    """People per segment (D27, D31): ranges, never counts."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.segments = load("segments.geojson")
+        cls.zones = load("zones.geojson")["features"]
+        cls.exposure = load("exposure.json")
+
+    def test_label_never_says_victims(self):
+        self.assertIn("Never a count of victims", self.exposure["label"])
+        self.assertIn("never adds to reviewed counts", self.segments["reachpoint"]["estimate"]["label"])
+        self.assertIn("model", self.segments["reachpoint"]["estimate"]["modelLabel"])
+
+    def test_every_segment_has_ordered_ranges(self):
+        for f in self.segments["features"] + self.zones:
+            e = f["properties"]["estimate"]
+            for key in ("everyone", "inSatelliteExtent"):
+                lo, hi = e[key]
+                self.assertTrue(isinstance(lo, int) and isinstance(hi, int) and 0 <= lo <= hi, (f["properties"]["id"], key))
+            self.assertLessEqual(e["inSatelliteExtent"][1], e["everyone"][1])
+
+    def test_model_only_in_blind_city_segments(self):
+        for f in self.segments["features"]:
+            p, e = f["properties"], f["properties"]["estimate"]
+            blind_city = p["areaId"] == "P-B" and p["noSatelliteDataShare"] >= 0.5
+            if e["modelledFlooded"] is None:
+                self.assertEqual(e["basis"], "satellite")
+                continue
+            self.assertTrue(blind_city, p["id"])
+            self.assertEqual(e["basis"], "model")
+            self.assertLessEqual(e["modelledFlooded"][1], e["everyone"][1], p["id"])
+
+    def test_hot_zone_is_modelled_as_flooded(self):
+        b3 = next(z for z in self.zones if z["properties"]["id"] == "B-3")["properties"]["estimate"]
+        self.assertGreater(b3["modelledFlooded"][1], 0)
+
+    def test_zone_range_matches_its_segments(self):
+        by_id = {f["properties"]["id"]: f["properties"]["estimate"] for f in self.segments["features"]}
+        for z in self.zones:
+            segs = [by_id[s] for s in z["properties"]["segmentIds"]]
+            lo, hi = z["properties"]["estimate"]["everyone"]
+            self.assertLessEqual(sum(s["everyone"][0] for s in segs), hi * 1.01)
+            self.assertLessEqual(lo, sum(s["everyone"][1] for s in segs) * 1.01)
+
+    def test_fixture_carries_the_estimate(self):
+        cat = json.loads((DATA.parent / "contract" / "fixtures" / "areas.hy-2025-11.json").read_text())
+        for z in cat["zones"]:
+            self.assertIn("everyone", z["estimate"])
+            for s in z["segments"]:
+                self.assertIn("inSatelliteExtent", s["estimate"])
+
+
 class NoSatelliteData(unittest.TestCase):
     def test_label_size_and_kind(self):
         path = PKG / "no-satellite-data.geojson"

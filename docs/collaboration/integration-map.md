@@ -75,7 +75,7 @@ flowchart LR
 
 | # | From → To | What crosses | Contract (in `api/contract/`) | Fixture | Needed by |
 |---|---|---|---|---|---|
-| **C1** | User package → Friend seed + rules | Areas, zones, **segments**, landmarks, flood extent (GeoJSON in Cloud Storage) with "no satellite data" areas, per-segment exposure ranges (everyone living there + inside the extent, D27) | `AreaPackage`, `Landmark`, `Segment`, `ExposureEstimate` | `areas.hy-2025-11.json` (geography shipped 12 Oct; exposure ranges added Tue) | Mon 12 noon |
+| **C1** | User package → Friend seed + rules | Areas, zones, **segments**, landmarks, flood extent (GeoJSON in Cloud Storage) with "no satellite data" areas, per-segment exposure ranges (everyone living there + inside the extent, D27; city model range, D31 proposed) | `AreaPackage`, `Landmark`, `Segment`, `ExposureEstimate` | `areas.hy-2025-11.json` (geography and per-segment ranges `estimate` shipped 12 Oct) | Mon 12 noon |
 | **C2** | Friend views → User map | Badges, Facts, Unknown row, cases in zone, exposure range, briefing text | `AreaBriefingView`, `ZoneBriefingView` | `areaBriefing.P-B.json` (+ empty, stale, failed-layer variants) | Mon 12 noon (fixture), Tue 13 (live) |
 | **C3** | User `tiers.py` → Friend rules/views | `colour(listing)`, `sort_key(listing, team_location)` | Python function signature + `PriorityColour` enum | `listings.sort-cases.json` | Tue 13 |
 | **C4** | Friend snapshot → User solver → Friend persists | Reviewed needs, teams, resources, accepted allocations → assignments + unmet reasons | `AllocationInput`, `AllocationSuggestion` | `allocationInput.cp3.json`, `allocationSuggestion.cp3.json` | Tue 13 (stub), Thu 15 (real) |

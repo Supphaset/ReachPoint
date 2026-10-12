@@ -46,8 +46,8 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 **You**
 - [ ] Run `/design-consultation` → final tokens (state colours, Thai + Latin fonts, spacing)
 - [ ] Shared components ready for your friend: status chip, priority badge, "AI proposal" card, error/offline banner, "last updated" line, big buttons
-- [ ] Exposure estimate **per segment** (D27): two ranges each, everyone living there and people inside the satellite extent (Open Buildings + WorldPop, cross-checked with DOPA)
-- [ ] Sanity check: the district total against GISTDA's 25 Nov figure (52,731 rai, ~150,000 people affected); record it in `data/SOURCES.md`
+- [x] Exposure estimate **per segment** (D27): two ranges each, everyone living there and people inside the satellite extent (Open Buildings + WorldPop, cross-checked with DOPA)
+- [x] Sanity check: the district total against GISTDA's 25 Nov figure (52,731 rai, ~150,000 people affected); record it in `data/SOURCES.md`
 - [ ] Area and zone briefing screen on live views
 - [ ] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15)
 - [ ] Solver notebook run on the fixture

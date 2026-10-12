@@ -15,6 +15,11 @@ Every published layer must trace back to an entry here. See pack §5.1b–c for 
 | OpenStreetMap (Overpass, fetched 2026-10-12) | City zone and segment edges: trunk to tertiary roads, railway, river, canals; municipal boundary (relation 19981578) | © OpenStreetMap contributors, ODbL |
 | Hat Yai City Municipality community map, "ผังรวม 103 ชุมชน" (updated 14 Nov 2565) | District (เขต 1–4) membership of each city zone. Not redistributed; only the traced district outlines were used, kept outside the repo | © เทศบาลนครหาดใหญ่; the map says it is approximate |
 | ESA WorldCover 10 m 2021 v200 (`ESA/WorldCover/v200`) | "No satellite data" mask: dense built-up land (D26) | CC BY 4.0, © ESA WorldCover project |
+| WorldPop Global 100 m, 2020 (`WorldPop/GP/100m/pop`) | People per segment, count 1 (D27) | CC BY 4.0, WorldPop (University of Southampton) |
+| Google Open Buildings v3 polygons (`GOOGLE/Research/open-buildings/v3/polygons`), confidence ≥ 0.75 | People per segment, count 2: buildings × people per building (D27) | CC BY 4.0 and ODbL |
+| DOPA registered population, อำเภอหาดใหญ่, 2567 (2024): 406,374 ([Wikipedia infobox](https://th.wikipedia.org/wiki/อำเภอหาดใหญ่), which links DOPA's district statistics; **to confirm** on stat.bora.dopa.go.th) | People per building for count 2: 406,374 / 149,430 buildings = 2.72 | Public statistics, กรมการปกครอง |
+| FABDEM v1.2 bare-earth 30 m (`projects/sat-io/open-datasets/FABDEM`, community catalogue) | Ground height for the city flood model (D31) | CC BY-NC-SA 4.0 (noncommercial; fine for this prototype) |
+| FAO GAUL 2025 level 2 (`FAO/GAUL/2025/level2`) | Hat Yai district outline for the GISTDA sanity check | FAO, non-commercial use |
 
 ## Runs
 
@@ -104,3 +109,20 @@ Every published layer must trace back to an entry here. See pack §5.1b–c for 
 - **Scenes:** B-3 (เขต 2) holds 6 of the 17 reported points, the most of any zone, including Niphat Uthit 2/3; B-4 (เขต 2) holds none (quiet zone).
 - **Rural zones** A-1, A-2, C-1, C-2 are unchanged from v1.
 
+
+### hy-2025-11: people per segment (2026-10-12, D27, D31)
+
+- **Command:** `flood_check.py exposure`, then `build_geography.py` (writes `exposure.json`; the ranges go into `segments.geojson`, `zones.geojson` and the C1 fixture). About 4 minutes.
+- **Two counts per segment:** WorldPop 2020, and Open Buildings × 2.72 people per building (DOPA's 406,374 registered people / 149,430 buildings in the district). Each range spans both, rounded outwards to 2 significant figures. Across the district the two agree within 11% (WorldPop 449,262; buildings × rate 406,034); inside segments they differ more, so the ranges are wide on purpose (B-3: 7,900–13,000).
+- **City model (D31):** water surface = mean FABDEM ground within 100 m of each report + the depth read from its words (low and high; 12 of 17 reports state a depth, table in `flood_check.py`), spread by inverse distance within 2.5 km; a pixel is likely flooded where the surface is more than 0.1 m above the ground. Shown only in city segments that are at least half "no satellite data". Reported ground heights 7–16 m.
+- **City result:** the 24 Nov extent holds almost nobody in the city zones (0–60 people per zone), as D26 predicts. The model puts most of the core under water (B-3: 7,700–12,000 of 7,900–13,000 people); B-9 in the north-east comes out mostly dry (0–360 of 2,100–5,400).
+- **Sanity check against GISTDA (25 Nov: 52,731 rai flooded, about 150,230 people affected in Hat Yai district):**
+
+  | | Area | People |
+  |---|---|---|
+  | Satellite extent, 24 Nov, inside the district | 13,223 rai | 270–6,200 |
+  | City model, "no satellite data" part only | 13,756 rai | 98,000–124,000 |
+  | **Ours, total** | **26,979 rai (51% of GISTDA)** | **98,000–130,000 (65–87% of GISTDA)** |
+
+  Same order of magnitude, and below GISTDA, as expected: one Sentinel-1 pass versus GISTDA's several passes plus RADARSAT-2 and HAND depth, and our model stops 2.5 km from the reports. The satellite alone finds about 4% of GISTDA's people, which is the case for D26/D31. For scale, relief was later paid to 185,650 households in the district ([Thansettakij, 17 Dec 2025](https://www.thansettakij.com/general-news/646798)), so "affected" in the relief sense is much wider than "living in flooded area".
+- **Limits:** WorldPop 2020 spreads people into fields (A-1: 980 people in the extent by WorldPop, almost none by buildings). Buildings are not households. The model is a bathtub fill: no flow, drainage or timing. All of these are why the app shows ranges with the label "estimate", never a count.

@@ -94,6 +94,17 @@ python data/scripts/cut_city_zones.py --districts path/to/districts-traced.geojs
 python data/scripts/build_geography.py hy-2025-11
 ```
 
+## People per segment (D27, D31)
+
+Earth Engine counts people in each segment two ways (WorldPop, and Open Buildings × people per building from DOPA's registered population) and writes `exposure.json`. Run it after the segments change, then rebuild the geography so every segment and zone gets an `estimate`:
+
+```bash
+python data/ee/flood_check.py exposure --project YOUR_SANDBOX_PROJECT --package hy-2025-11
+python data/scripts/build_geography.py hy-2025-11
+```
+
+Each estimate is a range, rounded outwards: `everyone` living there, `inSatelliteExtent` (inside the 24 Nov extent), and, for city segments that are mostly "no satellite data", `modelledFlooded`: where reported depths plus ground height put water (D31, labelled as a model). It is never a count of victims and never adds to reviewed counts. The district sanity check against GISTDA is recorded in `SOURCES.md`.
+
 ## Tests
 
 ```bash
