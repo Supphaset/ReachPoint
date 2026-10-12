@@ -47,3 +47,5 @@ web/node_modules/
 web/dist/
 web/*.tsbuildinfo
 web/.vite/
+.hypothesis/
+.pytest_cache/

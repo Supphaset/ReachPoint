@@ -49,14 +49,15 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [x] Exposure estimate **per segment** (D27): two ranges each, everyone living there and people inside the satellite extent (Open Buildings + WorldPop, cross-checked with DOPA)
 - [x] Sanity check: the district total against GISTDA's 25 Nov figure (52,731 rai, ~150,000 people affected); record it in `data/SOURCES.md`
 - [ ] Area and zone briefing screen on live views (built on the C2 fixtures with every state; switch to the live view when the friend's Firestore views exist)
-- [ ] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15)
-- [ ] Solver notebook run on the fixture
+- [x] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15). Done: `tier()`, `colour()`, `sort_key()` and Hypothesis tests (RED first, nearest first, waiting breaks ties, colour = view of tier); the solver half of T15 is added when `allocation.py` calls `tier()`
+- [x] Solver notebook run on the fixture (`api/notebooks/split-solver.ipynb` on `contract/fixtures/allocationInput.cp3.json`: checks (a)–(d) pass; seat units and safe splits (D33–D35) take S1 from 12 to 16 people; findings: weights ≥ 0.1, and stretcher cases need an urgent flag)
 
 **Friend**
 - [ ] Text intake → Gemini structured output → proposed facts with transcript quotes
 - [ ] Desk approve/reject → case → listing; views regenerated in the same transaction (T3)
 - [ ] Allowlisted read/propose-only tool registry + prompt-injection eval (T5)
 - [ ] Start screens (call, desk, resident) on your shared shell and components; ask you for any new shared component
+- [ ] Intake records each household's make-up (`party`: adults, children under 12, babies, stretchers or wheelchairs) for seat units (D33); desk prompts for an urgent flag when a request includes a stretcher or wheelchair (proposed, see D33–D36; the coordinator decides, nothing becomes urgent automatically)
 
 ## Wed 14 — CP2: publish → you take Families 1+2 → resident sees the window per family
 
