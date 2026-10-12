@@ -65,6 +65,44 @@ UNREVIEWED = [
      "text": "A neighbour stayed at B-3 · L3; identity unknown"},
 ]
 
+# Water reported by callers (D26, D32): from reviewed cases only, placed at the segment's landmark (never at a
+# house, D25), read on the body-height scale. The unreviewed one is here to prove it never shows.
+BANDS = {"knee": ("Knee deep", 0.5), "waist": ("Waist deep", 1.0), "chest": ("Chest deep", 1.3),
+         "over_head": ("Over head height", 2.0), "second_floor": ("Up to the 2nd floor", 3.0)}
+WATER = [
+    {"caseId": "C-01", "segmentId": "B-3-L3", "band": "chest", "at": "2026-10-11T03:15:00Z", "review": "validated"},
+    {"caseId": "C-02", "segmentId": "B-3-L5", "band": "waist", "at": "2026-10-11T02:40:00Z", "review": "validated"},
+    {"caseId": "C-03", "segmentId": "B-3-L1", "band": "chest", "at": "2026-10-11T01:05:00Z", "review": "validated"},
+    {"caseId": "C-04", "segmentId": "B-2-L3", "band": "chest", "at": "2026-10-11T02:10:00Z", "review": "validated"},
+    {"caseId": "C-05", "segmentId": "B-1-L2", "band": "over_head", "at": "2026-10-10T21:00:00Z", "review": "validated"},  # first call at 04:00: stale by 10:15
+    {"caseId": "C-06", "segmentId": "B-5-L1", "band": "knee", "at": "2026-10-11T02:55:00Z", "review": "validated"},
+    {"caseId": "C-08", "segmentId": "B-6-L2", "band": "second_floor", "at": "2026-10-11T01:30:00Z", "review": "validated"},
+    {"caseId": "CALL-09", "segmentId": "B-4-L2", "band": "chest", "at": "2026-10-11T03:10:00Z", "review": "reported"},
+]
+STALE_HOURS = 6
+
+
+def caller_water(seg_ids, landmarks, at):
+    """Reviewed water reports per segment: newest band, number of callers, stale after 6 h (D32)."""
+    from datetime import datetime
+    now = datetime.fromisoformat(at.replace("Z", "+00:00"))
+    out = {}
+    for w in WATER:
+        if w["review"] != "validated" or w["segmentId"] not in seg_ids:
+            continue
+        cur = out.get(w["segmentId"])
+        if cur is None or w["at"] > cur["latestAt"]:
+            label, m = BANDS[w["band"]]
+            out[w["segmentId"]] = {**(cur or {"callers": 0}), "segmentId": w["segmentId"],
+                                   "landmarkLabel": landmarks[w["segmentId"]]["label"], "at": landmarks[w["segmentId"]]["at"],
+                                   "band": w["band"], "bandLabel": label, "approxM": m, "latestAt": w["at"]}
+        out[w["segmentId"]]["callers"] += 1
+    for v in out.values():
+        age_h = (now - datetime.fromisoformat(v["latestAt"].replace("Z", "+00:00"))).total_seconds() / 3600
+        v["stale"] = age_h > STALE_HOURS
+    return sorted(out.values(), key=lambda v: v["segmentId"])
+
+
 # Segment marks by teams (D17b). Everything else is "not_checked".
 MARKS = {
     "B-2-L1": {"state": "checked", "at": "2026-10-11T02:20:00Z", "teamId": "T-R", "householdsFound": 3, "pickupsNeeded": 0},
@@ -119,13 +157,16 @@ def depth_band(segments):
             "label": "Modelled from reported depths and ground height (D31), not measured"}
 
 
-def zone_view(zone, area, cases, unreviewed, marks, reports, raw, rate):
+def zone_view(zone, area, cases, unreviewed, marks, reports, raw, rate, water):
     segs = []
     for s in zone["segments"]:
         mark = marks.get(s["id"], {"state": "not_checked"})
+        est = dict(s["estimate"])
+        if est["basis"] == "satellite" and any(w["segmentId"] == s["id"] for w in water):
+            est["basis"] = "callers"  # D28: flooding reported by callers; estimate covers the whole segment
         segs.append({
             "segmentId": s["id"], "label": s["label"], "check": mark,
-            "estimate": s["estimate"], "depth": s["depth"],
+            "estimate": est, "depth": s["depth"],
             "noSatelliteDataShare": s["noSatelliteDataShare"],
             "cases": sum(c["segmentId"] == s["id"] for c in cases),
         })
@@ -170,6 +211,7 @@ def zone_view(zone, area, cases, unreviewed, marks, reports, raw, rate):
         "cases": [{"caseId": c["caseId"], "segmentId": c["segmentId"], "people": c["people"],
                    "lastConfirmedAt": c["lastConfirmedAt"], "assistance": c["assistance"]} for c in zcases],
         "segments": segs,
+        "callerWater": water,
         "briefing": {"state": "unavailable", "text": None, "reason": "briefing_text_not_built_yet"},
     }
 
@@ -178,7 +220,10 @@ def area_view(area, cat, cases, unreviewed, marks, reports_in, at):
     raw = json.loads((ROOT / "data" / cat["package"] / "exposure.json").read_text())["segments"]
     rate = cat["estimate"]["peoplePerBuilding"]
     zones = [z for z in cat["zones"] if z["areaId"] == area["id"]]
-    zviews = [zone_view(z, area, cases, unreviewed, marks, reports_in.get(z["id"], 0), raw, rate) for z in zones]
+    landmarks = {l["id"]: l for l in cat["landmarks"]}
+    water_all = caller_water({s["id"] for z in zones for s in z["segments"]}, landmarks, at) if cases else []
+    zviews = [zone_view(z, area, cases, unreviewed, marks, reports_in.get(z["id"], 0), raw, rate,
+                        [w for w in water_all if w["segmentId"].rsplit("-", 1)[0] == z["id"]]) for z in zones]
     seg_ids = [s["segmentId"] for z in zviews for s in z["segments"]]
     open_ids = [s["segmentId"] for z in zviews for s in z["segments"] if s["check"]["state"] != "checked"]
     return {
@@ -192,6 +237,8 @@ def area_view(area, cat, cases, unreviewed, marks, reports_in, at):
         "estimate": {"label": cat["estimate"]["label"], "modelLabel": cat["estimate"]["modelLabel"],
                      "everyone": people(seg_ids, raw, rate), "notYetChecked": people(open_ids, raw, rate)},
         "layers": copy.deepcopy(LAYERS),
+        "callerWater": water_all,
+        "callerWaterLabel": "Water reported by callers (reviewed requests only), at the landmark of their segment; older than 6 h shown as stale",
         "zones": zviews,
     }
 

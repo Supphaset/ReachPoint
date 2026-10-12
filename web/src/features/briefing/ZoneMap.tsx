@@ -3,6 +3,7 @@ import type { Feature, FeatureCollection, Geometry, Point, Polygon, MultiPolygon
 import { readPackageFile } from "../../data/source";
 import type { AreaBriefingView } from "../../data/contract";
 import { Banner } from "../../ui/components";
+import { fmtTime } from "../../data/format";
 
 /**
  * Offline schematic map of an area, drawn from the flood package (no tiles, no API key).
@@ -111,7 +112,7 @@ export function ZoneMap({
   return (
     <figure className="zone-map">
       {!extentOk && (
-        <Banner kind="stale">Flood extent unavailable. Nothing on this map is shown as dry.</Banner>
+        <Banner kind="stale">Flood extent unavailable. Nothing on this map is shown as dry; callers' reports still show.</Banner>
       )}
       <svg viewBox={`0 0 ${W} ${height}`} role="img" aria-label={`Map of ${view.label}`}>
         <defs>
@@ -158,6 +159,15 @@ export function ZoneMap({
             </g>
           );
         })}
+        {view.callerWater.map((w) => {
+          const [x, y] = project(w.at);
+          return (
+            <g key={`cw-${w.segmentId}`} transform={`translate(${x},${y})`} className={`map-caller ${w.stale ? "is-stale" : ""}`}>
+              <circle r="8" />
+              <title>{`Reported by callers: ${w.bandLabel} (about ${w.approxM} m) at ${w.landmarkLabel}, ${fmtTime(w.latestAt)}, ${w.callers} caller${w.callers > 1 ? "s" : ""}${w.stale ? " · older than 6 h" : ""}`}</title>
+            </g>
+          );
+        })}
         {marks.map((f) => {
           const [x, y] = project((f.geometry as Point).coordinates);
           return (
@@ -195,7 +205,13 @@ export function ZoneMap({
           <i className="lg lg-nodata" /> No satellite data · never means dry
         </span>
         <span>
-          <i className="lg lg-report" /> Cited flood report
+          <i className="lg lg-report" /> Cited news report
+        </span>
+        <span>
+          <i className="lg lg-caller" /> Reported by callers (reviewed)
+        </span>
+        <span>
+          <i className="lg lg-caller is-stale" /> Callers, older than 6 h
         </span>
         <span>
           <i className="lg lg-empty" /> No reports yet · not checked

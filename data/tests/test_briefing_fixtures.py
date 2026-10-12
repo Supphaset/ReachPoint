@@ -71,6 +71,26 @@ class Briefing(unittest.TestCase):
         self.assertLess(self.views["P-B.stale"]["generatedAt"], self.pb["generatedAt"])
         self.assertEqual(self.views["P-B.layer-missing"]["layers"]["floodExtent"]["state"], "unavailable")
 
+    def test_caller_water_is_reviewed_and_at_landmarks(self):
+        # D26: only reviewed requests become "reported by callers" points; D25: at the landmark, never a house.
+        cat = load("areas.hy-2025-11.json")
+        marks = {l["id"]: l["at"] for l in cat["landmarks"]}
+        water = self.pb["callerWater"]
+        self.assertTrue(water)
+        self.assertNotIn("B-4-L2", {w["segmentId"] for w in water})  # the unreviewed call in the quiet zone
+        for w in water:
+            self.assertEqual(w["at"], marks[w["segmentId"]], w["segmentId"])
+            self.assertGreaterEqual(w["callers"], 1)
+            self.assertFalse({"caseId", "quote", "phone", "name"} & set(w))
+        self.assertEqual({w["segmentId"] for w in water},
+                         {w["segmentId"] for z in self.pb["zones"] for w in z["callerWater"]})
+        self.assertTrue(any(w["stale"] for w in water))  # older than 6 h is labelled, not hidden
+
+    def test_caller_water_survives_a_missing_flood_layer(self):
+        # Callers are not satellite data: when the extent is missing, their points stay.
+        self.assertEqual(self.views["P-B.layer-missing"]["callerWater"], self.pb["callerWater"])
+        self.assertEqual(self.views["P-B.empty"]["callerWater"], [])
+
     def test_synthetic(self):
         for doc in self.views.values():
             self.assertEqual(doc["dataMode"], "synthetic")

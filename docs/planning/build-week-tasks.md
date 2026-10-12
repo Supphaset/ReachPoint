@@ -66,7 +66,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [x] Take whole family groups; set window; progress; hand back; end outcomes (Done / Already left / Not found / Needs more help); Busy reason + "back about" (T17) (fixture-mode store applies the C6 rules; switch to the friend's API when it is up)
 - [x] Clear errors: Already taken, This case changed, Needs N seats, This job is closed (`claim.*.json`; `?claim=` dev switch)
 - [x] Job view: exact point, precision and "Navigate" link shown **only after the team has taken the job** (D25, C16) (points from `pickups.synthetic.json`, coordinator-side)
-- [ ] Map: "no satellite data" area and live "reported by callers" points (D26)
+- [x] Map: "no satellite data" area and live "reported by callers" points (D26) (reviewed requests only, at landmark level, body-height band, stale after 6 h; still shown when the flood layer is missing; `callerWater` in the C2 view, live once the friend's views regenerate it)
 
 **Friend**
 - [ ] `claimListing`, hand back, close: one transaction; `NEED_CHANGED`, `ALLOCATION_CLOSED` (T13)

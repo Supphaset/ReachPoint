@@ -72,6 +72,8 @@
    "label": "Reported flooding (official and news reports)"
   }
  },
+ "callerWater": [],
+ "callerWaterLabel": "Water reported by callers (reviewed requests only), at the landmark of their segment; older than 6 h shown as stale",
  "zones": [
   {
    "zoneId": "A-1",
@@ -222,6 +224,7 @@
      "cases": 0
     }
    ],
+   "callerWater": [],
    "briefing": {
     "state": "unavailable",
     "text": null,
@@ -377,6 +380,7 @@
      "cases": 0
     }
    ],
+   "callerWater": [],
    "briefing": {
     "state": "unavailable",
     "text": null,

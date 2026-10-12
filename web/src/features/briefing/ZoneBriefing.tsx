@@ -108,6 +108,27 @@ export function ZoneBriefing({ zone, area, onClose }: { zone: ZoneBriefingView; 
       </section>
 
       <section>
+        <h3>
+          <Icon name="water" size={18} /> Water reported by callers
+        </h3>
+        {zone.callerWater.length === 0 ? (
+          <p className="muted">No reviewed caller has described the water here. That doesn't mean it's dry.</p>
+        ) : (
+          <ul className="water-list">
+            {zone.callerWater.map((w) => (
+              <li key={w.segmentId} className={w.stale ? "is-stale" : ""}>
+                <strong>{w.bandLabel}</strong> <span className="muted">(about {w.approxM} m)</span>
+                <span className="fine-print">
+                  {w.landmarkLabel} · {fmtTime(w.latestAt)} · {w.callers} caller{w.callers > 1 ? "s" : ""}
+                  {w.stale && " · older than 6 h, may have changed"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
         <h3>Cases in this zone</h3>
         {zone.cases.length === 0 ? (
           <p className="muted">No reviewed cases. That doesn't mean no one needs help.</p>

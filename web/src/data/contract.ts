@@ -91,6 +91,19 @@ export interface Briefing {
   reason?: string;
 }
 
+/** Water reported by callers (D26, D32): reviewed requests only, at the segment's landmark (D25). */
+export interface CallerWater {
+  segmentId: string;
+  landmarkLabel: string;
+  at: [number, number];
+  band: "knee" | "waist" | "chest" | "over_head" | "second_floor";
+  bandLabel: string;
+  approxM: number;
+  callers: number;
+  latestAt: string;
+  stale: boolean;
+}
+
 export interface ZoneBriefingView {
   zoneId: string;
   areaId: string;
@@ -103,6 +116,7 @@ export interface ZoneBriefingView {
   depth: { modelledM: Range; source: "model"; label: string } | null;
   cases: CaseRow[];
   segments: SegmentView[];
+  callerWater: CallerWater[];
   briefing: Briefing;
 }
 
@@ -126,6 +140,8 @@ export interface AreaBriefingView {
   facts: Fact[];
   estimate: { label: string; modelLabel: string; everyone: Range; notYetChecked: Range };
   layers: { floodExtent: Layer; noSatelliteData: Layer; reportedFlooding: Layer };
+  callerWater: CallerWater[];
+  callerWaterLabel: string;
   zones: ZoneBriefingView[];
 }
 
