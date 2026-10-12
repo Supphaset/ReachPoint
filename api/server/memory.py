@@ -19,6 +19,7 @@ from typing import Any, Callable
 
 from api.intake.extract import BANDS, NEEDS
 from api.views import store as views_store
+from api.views.missions import MARKS, active_claim
 from api.views.team import group_owner, seats, seats_used
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -217,7 +218,7 @@ class MemoryStore:
 
     # --- intake and desk review (T3) ---
 
-    def submit_report(self, text: str, channel: str, proposal: dict) -> dict:
+    def submit_report(self, text: str, channel: str, proposal: dict, segment_id: str | None = None, team_id: str | None = None) -> dict:
         """A request in the caller's words, with the AI's proposal. Returns its ID and the family's status link token."""
         if not (text or "").strip():
             raise Refused("INVALID", "Write what is happening and where")
@@ -225,7 +226,8 @@ class MemoryStore:
         rid = f"R-{len(reports) + 1:03d}"
         token = secrets.token_urlsafe(16)  # 128 bits; carries no personal data
         reports.append({"reportId": rid, "receivedAt": self.clock.iso(), "channel": channel, "text": text.strip()[:2000],
-                        "proposal": proposal, "status": "proposed", "statusToken": token})
+                        "proposal": proposal, "status": "proposed", "statusToken": token,
+                        **({"segmentId": segment_id, "teamId": team_id} if segment_id else {})})
         self.store.seed.setdefault("statusTokens", {})[token] = {"reportId": rid, "caseId": None}
         return {"reportId": rid, "statusToken": token}
 
@@ -286,3 +288,57 @@ class MemoryStore:
             raise Refused("INVALID", "Say why (for example: duplicate of C-03, or not a flood request)")
         r = self._report(report_id)
         r.update(status="rejected", rejectReason=reason.strip()[:200], reviewedAt=self.clock.iso())
+
+    # --- zone missions and segments (D17b, D18, D20) ---
+
+    def publish_zone_mission(self, zone_id: str, reasons: list[str], by: str = "coordinator") -> dict:
+        if not any(z["id"] == zone_id for z in self.store.catalogue["zones"]):
+            raise NotFound(zone_id)
+        missions = self.store.seed.setdefault("zoneMissions", [])
+        if any(m["zoneId"] == zone_id for m in missions):
+            raise Refused("ALLOCATION_CLOSED", f"{zone_id} already has a zone mission")
+        mid = f"M-{zone_id}"
+        missions.append({"missionId": mid, "zoneId": zone_id, "publishedAt": self.clock.iso(), "by": by, "reasons": list(reasons)[:6]})
+        return {"missionId": mid}
+
+    def dismiss_check(self, zone_id: str, reason: str) -> None:
+        if not (reason or "").strip():
+            raise Refused("INVALID", "Say why you're dismissing this check")
+        self.store.seed.setdefault("dismissedChecks", []).append({"zoneId": zone_id, "reason": reason.strip()[:200], "at": self.clock.iso()})
+
+    def take_segment(self, segment_id: str, team_id: str) -> dict:
+        team = self._team(team_id)
+        zone = segment_id.rsplit("-", 1)[0]
+        if not any(s["id"] == segment_id for z in self.store.catalogue["zones"] for s in z["segments"]):
+            raise NotFound(segment_id)
+        if not any(m["zoneId"] == zone for m in self.store.seed.get("zoneMissions", [])):
+            raise Refused("ALLOCATION_CLOSED", f"{zone} has no published zone mission")
+        if team["status"] != "available":
+            raise Refused("NOT_AVAILABLE", "Set your team to Available to take a segment")
+        held = active_claim(self.store, segment_id)
+        if held:
+            raise Refused("ALREADY_TAKEN", f"Already taken by {held['teamId']}", {"takenBy": held["teamId"]})
+        claims = self.store.seed.setdefault("segmentClaims", [])
+        cid = f"SC-{segment_id}-{len(claims) + 1:02d}"
+        claims.append({"claimId": cid, "segmentId": segment_id, "zoneId": zone, "teamId": team_id, "state": "taken", "takenAt": self.clock.iso()})
+        return {"claimId": cid}
+
+    def mark_segment(self, claim_id: str, state: str, households_found: int | None, pickups_needed: int | None, reason: str | None) -> None:
+        c = next((c for c in self.store.seed.get("segmentClaims", []) if c["claimId"] == claim_id), None)
+        if c is None:
+            raise NotFound(claim_id)
+        if c["state"] != "taken":
+            raise Refused("ALLOCATION_CLOSED", "This segment is already marked")
+        if state not in MARKS:
+            raise Refused("INVALID", "Mark it Checked, Partly checked or Couldn't reach")
+        if state == "could_not_reach":
+            if not (reason or "").strip():
+                raise Refused("INVALID", "Say why you couldn't reach it (for example: access blocked)")
+            mark = {"state": state, "at": self.clock.iso(), "teamId": c["teamId"], "reason": reason.strip()[:120]}
+        else:
+            hf, pn = int(households_found or 0), int(pickups_needed or 0)
+            if hf < 0 or pn < 0 or pn > hf or hf > 500:
+                raise Refused("INVALID", "Households found and pickups needed don't add up")
+            mark = {"state": state, "at": self.clock.iso(), "teamId": c["teamId"], "householdsFound": hf, "pickupsNeeded": pn}
+        self.store.seed["segmentMarks"][c["segmentId"]] = mark
+        c.update(state="marked", mark=mark)

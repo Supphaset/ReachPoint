@@ -134,6 +134,7 @@ def test_ask_teams(m):
 
 def test_fixtures_are_untouched_by_the_server_store(m):
     # The server works on a copy: the seed the fixtures come from stays as it was.
-    claim(m, "L-C01-EVAC", 2)
     from api.views import store as S
-    assert not S.load().seed.get("allocations")
+    before = S.load().seed["allocations"]
+    claim(m, "L-C01-EVAC", 2)
+    assert S.load().seed["allocations"] == before and len(m.store.seed["allocations"]) == len(before) + 1

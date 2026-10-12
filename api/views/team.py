@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from api.rules.tiers import TierInput, colour, distance_m, sort_key, tier
 from api.views.briefing import caller_water
+from api.views.missions import segment_jobs, zone_missions
 from api.views.store import Store
 
 SEAT = {"adults": 1.0, "children": 0.5, "infants": 0.0, "stretcher": 3.0}
@@ -193,6 +194,8 @@ def team_missions(store: Store, team_id: str, at: str, water_at: str | None = No
         "seatUnits": {**SEAT, "label": SEAT_LABEL},
         "open": [r for _, r in rows],
         "jobs": jobs,
+        **({"zoneMissions": zone_missions(store), "segmentJobs": segment_jobs(store, team_id)}
+           if store.seed.get("zoneMissions") or store.seed.get("segmentClaims") else {}),
     }
 
 

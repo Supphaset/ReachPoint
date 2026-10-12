@@ -43,7 +43,10 @@ def red_listings(store: Store) -> list[TierInput]:
 
 
 def zone_order_view(store: Store, as_of: datetime, briefing_at: str) -> dict:
-    return zone_order(zone_inputs(store, briefing_at), red_listings(store), as_of)
+    """Published missions and dismissed checks (desk decisions) get no new suggested check (D18)."""
+    published = {m["zoneId"] for m in store.seed.get("zoneMissions", [])}
+    dismissed = {d["zoneId"] for d in store.seed.get("dismissedChecks", [])}
+    return zone_order(zone_inputs(store, briefing_at), red_listings(store), as_of, published=published, dismissed=dismissed)
 
 
 def _ground(store: Store, area_id: str | None = None) -> dict[str, float]:

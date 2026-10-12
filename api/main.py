@@ -212,6 +212,8 @@ USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"
 class Intake(Write):
     text: str = Field(min_length=1, max_length=2000)
     channel: str = "text"
+    segmentId: str | None = None  # a field report from a team in its segment (D20)
+    teamId: str | None = None
 
 
 class Approve(Write):
@@ -234,7 +236,8 @@ def intake_text(b: Intake):
     if b.submissionId and b.submissionId in memory.done:
         return memory.done[b.submissionId]
     proposal = extract(b.text, use_model=USE_AI)
-    r = memory.write(b.submissionId, lambda: memory.submit_report(b.text, b.channel, proposal))
+    channel = "field" if b.segmentId else b.channel
+    r = memory.write(b.submissionId, lambda: memory.submit_report(b.text, channel, proposal, b.segmentId, b.teamId))
     v = r["value"]
     return {"ok": True, "value": {**v, "statusUrl": f"/status/{v['statusToken']}", "aiSource": proposal["source"]}}
 
@@ -262,6 +265,46 @@ def status(token: str):
     if v is None:
         raise NotFound("status link")
     return v
+
+
+class Publish(Write):
+    zoneId: str
+    reasons: list[str] = []
+
+
+class Dismiss(Write):
+    reason: str
+
+
+class TakeSegment(Write):
+    teamId: str
+
+
+class MarkSegment(Write):
+    state: str
+    householdsFound: int | None = None
+    pickupsNeeded: int | None = None
+    reason: str | None = None
+
+
+@app.post("/api/zone-missions")
+def publish_mission(b: Publish):
+    return memory.write(b.submissionId, lambda: memory.publish_zone_mission(b.zoneId, b.reasons))
+
+
+@app.post("/api/suggested-checks/{zone_id}/dismiss")
+def dismiss_check(zone_id: str, b: Dismiss):
+    return memory.write(b.submissionId, lambda: memory.dismiss_check(zone_id, b.reason))
+
+
+@app.post("/api/segments/{segment_id}/take")
+def take_segment(segment_id: str, b: TakeSegment):
+    return memory.write(b.submissionId, lambda: memory.take_segment(segment_id, b.teamId))
+
+
+@app.post("/api/segment-claims/{claim_id}/mark")
+def mark_segment(claim_id: str, b: MarkSegment):
+    return memory.write(b.submissionId, lambda: memory.mark_segment(claim_id, b.state, b.householdsFound, b.pickupsNeeded, b.reason))
 
 
 @app.post("/api/demo/reset")

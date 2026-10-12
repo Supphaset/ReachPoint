@@ -37,7 +37,8 @@ def test_briefing_fixture_is_the_view(area):
 
 
 def test_team_fixtures_are_the_view():
-    assert json.loads(json.dumps(team_missions(ST, "T-S", "2026-10-11T03:16:00Z", "2026-10-11T03:15:00Z"))) == fixture("teamMissions.T-S.json")
+    for t in ("T-S", "T-R"):
+        assert json.loads(json.dumps(team_missions(ST, t, "2026-10-11T03:16:00Z", "2026-10-11T03:15:00Z"))) == fixture(f"teamMissions.{t}.json")
     mod = _script(ROOT / "api/scripts/build_team_fixtures.py")
     st = S.load()
     assert json.loads(json.dumps(mod.pickups(st))) == fixture("pickups.synthetic.json")

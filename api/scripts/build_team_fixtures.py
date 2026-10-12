@@ -33,6 +33,7 @@ def main():
     st = views_store.load()
     view = team_missions(st, "T-S", AT, BRIEFING_AT)
     write("teamMissions.T-S.json", view)
+    write("teamMissions.T-R.json", team_missions(st, "T-R", AT, BRIEFING_AT))
     write("medicalNotes.synthetic.json", medical_notes(st))
     pk = pickups(st)
     write("pickups.synthetic.json", pk)

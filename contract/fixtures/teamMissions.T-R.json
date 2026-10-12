@@ -1,0 +1,590 @@
+{
+ "teamId": "T-R",
+ "label": "Team T-R (truck)",
+ "dataMode": "synthetic",
+ "generatedAt": "2026-10-11T03:16:00Z",
+ "dataLabel": "Synthetic demo records at 10:16; order from api/rules/tiers.py (colour, distance, waiting)",
+ "inputVersions": {
+  "listings": 3,
+  "team": 4
+ },
+ "team": {
+  "status": "available",
+  "statusSetAt": "2026-10-11T02:30:00Z",
+  "reason": null,
+  "backAbout": null,
+  "capabilities": [
+   "evacuation_transport"
+  ],
+  "location": {
+   "landmarkId": "B-2-L1",
+   "label": "B-2 · L1 Temple",
+   "at": [
+    100.4653,
+    7.02525
+   ]
+  },
+  "resource": {
+   "resourceId": "R1",
+   "kind": "truck",
+   "seatUnits": 6,
+   "seatUnitsLeft": 3.0,
+   "basis": "high-clearance truck, 6 seats, shallow water only"
+  }
+ },
+ "seatUnits": {
+  "adults": 1.0,
+  "children": 0.5,
+  "infants": 0.0,
+  "stretcher": 3.0,
+  "label": "Seats: adult 1, child under 12 half, baby on a lap 0, stretcher or wheelchair 3 (D33)"
+ },
+ "open": [
+  {
+   "listingId": "L-C01-EVAC",
+   "caseId": "C-01",
+   "assistanceType": "evacuation_transport",
+   "colour": "red",
+   "tier": "1b",
+   "needRevision": 2,
+   "zoneId": "B-3",
+   "segmentId": "B-3-L3",
+   "landmarkLabel": "B-3 · L3 Community building",
+   "distanceM": 2050,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T03:15:00Z",
+   "lastConfirmedAt": "2026-10-11T03:15:00Z",
+   "reasons": [
+    "Urgent: Transport linked to urgent medical case C-01"
+   ],
+   "urgency": {
+    "title": "Why this is an emergency",
+    "summary": "Coordinator flagged urgent: Transport linked to urgent medical case C-01",
+    "facts": [
+     {
+      "kind": "flag",
+      "text": "Coordinator flagged urgent: Transport linked to urgent medical case C-01",
+      "basis": "coordinator"
+     },
+     {
+      "kind": "medical",
+      "text": "1 person in this household needs urgent medical help; the medical team is asked separately",
+      "basis": "qualified review"
+     },
+     {
+      "kind": "people",
+      "text": "3 people: 2 adults, 1 child",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "water",
+      "text": "Chest deep (about 1.3 m) at the landmark",
+      "basis": "callers",
+      "at": "2026-10-11T03:15:00Z",
+      "callers": 1,
+      "stale": false
+     }
+    ],
+    "kit": [
+     "Boat needed (water 1.2 m or more)",
+     "Life jackets for 1 child"
+    ],
+    "withheld": "Medical details come with the job, for the team that takes it"
+   },
+   "destination": {
+    "id": "H1",
+    "label": "H1 Hospital (synthetic)",
+    "reason": "One person needs urgent medical care; the medical team meets you at H1"
+   },
+   "people": 3,
+   "groups": [
+    {
+     "groupId": "L-C01-EVAC-G1",
+     "label": "Family 1",
+     "people": 3,
+     "party": {
+      "adults": 2,
+      "children": 1,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 2.5,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C04-EVAC",
+   "caseId": "C-04",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-2",
+   "segmentId": "B-2-L3",
+   "landmarkLabel": "B-2 · L3 Community building",
+   "distanceM": 750,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T02:10:00Z",
+   "lastConfirmedAt": "2026-10-11T02:10:00Z",
+   "reasons": [],
+   "urgency": {
+    "title": "Why it's urgent",
+    "summary": "Chest deep (about 1.3 m) at the landmark",
+    "facts": [
+     {
+      "kind": "people",
+      "text": "5 people: 2 adults, 2 children, 1 baby",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "water",
+      "text": "Chest deep (about 1.3 m) at the landmark",
+      "basis": "callers",
+      "at": "2026-10-11T02:10:00Z",
+      "callers": 1,
+      "stale": false
+     }
+    ],
+    "kit": [
+     "Boat needed (water 1.2 m or more)",
+     "Life jackets for 3 children"
+    ],
+    "withheld": null
+   },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
+   },
+   "people": 5,
+   "groups": [
+    {
+     "groupId": "L-C04-EVAC-G1",
+     "label": "Family 1",
+     "people": 5,
+     "party": {
+      "adults": 2,
+      "children": 2,
+      "infants": 1,
+      "stretcher": 0
+     },
+     "seatUnits": 3.0,
+     "state": "taken",
+     "takenBy": "T-R"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C08-EVAC",
+   "caseId": "C-08",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-6",
+   "segmentId": "B-6-L2",
+   "landmarkLabel": "B-6 · L2 School",
+   "distanceM": 1200,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T01:30:00Z",
+   "lastConfirmedAt": "2026-10-11T01:30:00Z",
+   "reasons": [],
+   "urgency": {
+    "title": "Why it's urgent",
+    "summary": "Up to the 2nd floor (about 3 m) at the landmark",
+    "facts": [
+     {
+      "kind": "people",
+      "text": "3 people: 1 adult, 2 children",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "water",
+      "text": "Up to the 2nd floor (about 3 m) at the landmark",
+      "basis": "callers",
+      "at": "2026-10-11T01:30:00Z",
+      "callers": 1,
+      "stale": false
+     }
+    ],
+    "kit": [
+     "Boat needed (water 1.2 m or more)",
+     "Life jackets for 2 children"
+    ],
+    "withheld": null
+   },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
+   },
+   "people": 3,
+   "groups": [
+    {
+     "groupId": "L-C08-EVAC-G1",
+     "label": "Family 1",
+     "people": 3,
+     "party": {
+      "adults": 1,
+      "children": 2,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 2.0,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C03-EVAC",
+   "caseId": "C-03",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-3",
+   "segmentId": "B-3-L1",
+   "landmarkLabel": "B-3 · L1 Temple",
+   "distanceM": 1750,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T01:05:00Z",
+   "lastConfirmedAt": "2026-10-11T01:05:00Z",
+   "reasons": [],
+   "urgency": {
+    "title": "Why it's urgent",
+    "summary": "Chest deep (about 1.3 m) at the landmark",
+    "facts": [
+     {
+      "kind": "people",
+      "text": "2 people: 2 adults",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "water",
+      "text": "Chest deep (about 1.3 m) at the landmark",
+      "basis": "callers",
+      "at": "2026-10-11T01:05:00Z",
+      "callers": 1,
+      "stale": false
+     }
+    ],
+    "kit": [
+     "Boat needed (water 1.2 m or more)"
+    ],
+    "withheld": null
+   },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
+   },
+   "people": 2,
+   "groups": [
+    {
+     "groupId": "L-C03-EVAC-G1",
+     "label": "Family 1",
+     "people": 2,
+     "party": {
+      "adults": 2,
+      "children": 0,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 2.0,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C02-EVAC",
+   "caseId": "C-02",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-3",
+   "segmentId": "B-3-L5",
+   "landmarkLabel": "B-3 · L5 School",
+   "distanceM": 2550,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T02:40:00Z",
+   "lastConfirmedAt": "2026-10-11T02:40:00Z",
+   "reasons": [],
+   "urgency": {
+    "title": "Why it's urgent",
+    "summary": "Waist deep (about 1 m) at the landmark",
+    "facts": [
+     {
+      "kind": "people",
+      "text": "4 people: 2 adults, 2 children",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "water",
+      "text": "Waist deep (about 1 m) at the landmark",
+      "basis": "callers",
+      "at": "2026-10-11T02:40:00Z",
+      "callers": 1,
+      "stale": false
+     }
+    ],
+    "kit": [
+     "Wading may be possible; check on arrival",
+     "Life jackets for 2 children"
+    ],
+    "withheld": null
+   },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
+   },
+   "people": 4,
+   "groups": [
+    {
+     "groupId": "L-C02-EVAC-G1",
+     "label": "Family 1",
+     "people": 4,
+     "party": {
+      "adults": 2,
+      "children": 2,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 3.0,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C06-EVAC",
+   "caseId": "C-06",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-5",
+   "segmentId": "B-5-L1",
+   "landmarkLabel": "B-5 · L1 Health centre",
+   "distanceM": 3650,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T02:55:00Z",
+   "lastConfirmedAt": "2026-10-11T02:55:00Z",
+   "reasons": [],
+   "urgency": {
+    "title": "Why it's urgent",
+    "summary": "Knee deep (about 0.5 m) at the landmark",
+    "facts": [
+     {
+      "kind": "people",
+      "text": "4 people: 4 adults",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "water",
+      "text": "Knee deep (about 0.5 m) at the landmark",
+      "basis": "callers",
+      "at": "2026-10-11T02:55:00Z",
+      "callers": 1,
+      "stale": false
+     }
+    ],
+    "kit": [
+     "Wading may be possible; check on arrival"
+    ],
+    "withheld": null
+   },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
+   },
+   "people": 4,
+   "groups": [
+    {
+     "groupId": "L-C06-EVAC-G1",
+     "label": "Family 1",
+     "people": 2,
+     "party": {
+      "adults": 2,
+      "children": 0,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 2.0,
+     "state": "open"
+    },
+    {
+     "groupId": "L-C06-EVAC-G2",
+     "label": "Family 2",
+     "people": 1,
+     "party": {
+      "adults": 1,
+      "children": 0,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 1.0,
+     "state": "open"
+    },
+    {
+     "groupId": "L-C06-EVAC-G3",
+     "label": "Family 3",
+     "people": 1,
+     "party": {
+      "adults": 1,
+      "children": 0,
+      "infants": 0,
+      "stretcher": 0
+     },
+     "seatUnits": 1.0,
+     "state": "open"
+    }
+   ]
+  },
+  {
+   "listingId": "L-C05-EVAC",
+   "caseId": "C-05",
+   "assistanceType": "evacuation_transport",
+   "colour": "yellow",
+   "tier": "2",
+   "needRevision": 1,
+   "zoneId": "B-1",
+   "segmentId": "B-1-L2",
+   "landmarkLabel": "B-1 · L2 Temple",
+   "distanceM": 4200,
+   "distanceBasis": "straight line from your landmark, not a route",
+   "waitingSince": "2026-10-11T00:50:00Z",
+   "lastConfirmedAt": "2026-10-11T00:50:00Z",
+   "reasons": [],
+   "urgency": {
+    "title": "Why it's urgent",
+    "summary": "Can't walk: must be carried",
+    "facts": [
+     {
+      "kind": "medical_category",
+      "text": "Medical need: affects how to move them",
+      "basis": "coordinator"
+     },
+     {
+      "kind": "people",
+      "text": "3 people: 2 adults, 1 stretcher case",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "mobility",
+      "text": "Can't walk: must be carried",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "water",
+      "text": "Over head height (about 2 m) at the landmark",
+      "basis": "callers",
+      "at": "2026-10-10T21:00:00Z",
+      "callers": 1,
+      "stale": true
+     }
+    ],
+    "kit": [
+     "Boat needed (water 1.2 m or more)",
+     "Stretcher, and at least 2 people to carry"
+    ],
+    "withheld": "Medical details come with the job, for the team that takes it"
+   },
+   "destination": {
+    "id": "H1",
+    "label": "H1 Hospital (synthetic)",
+    "reason": "Needs oxygen and power"
+   },
+   "people": 3,
+   "groups": [
+    {
+     "groupId": "L-C05-EVAC-G1",
+     "label": "Family 1",
+     "people": 3,
+     "party": {
+      "adults": 2,
+      "children": 0,
+      "infants": 0,
+      "stretcher": 1
+     },
+     "seatUnits": 5.0,
+     "state": "open"
+    }
+   ]
+  }
+ ],
+ "jobs": [
+  {
+   "allocationId": "AL-C04-EVAC-R01",
+   "listingId": "L-C04-EVAC",
+   "caseId": "C-04",
+   "colour": "yellow",
+   "landmarkLabel": "B-2 · L3 Community building",
+   "urgency": {
+    "title": "Why it's urgent",
+    "summary": "Chest deep (about 1.3 m) at the landmark",
+    "facts": [
+     {
+      "kind": "people",
+      "text": "5 people: 2 adults, 2 children, 1 baby",
+      "basis": "reviewed call"
+     },
+     {
+      "kind": "water",
+      "text": "Chest deep (about 1.3 m) at the landmark",
+      "basis": "callers",
+      "at": "2026-10-11T02:10:00Z",
+      "callers": 1,
+      "stale": false
+     }
+    ],
+    "kit": [
+     "Boat needed (water 1.2 m or more)",
+     "Life jackets for 3 children"
+    ],
+    "withheld": null
+   },
+   "destination": {
+    "id": "D1",
+    "label": "D1 Shelter (high ground)",
+    "reason": "Shelter"
+   },
+   "medical": null,
+   "groups": [
+    {
+     "groupId": "L-C04-EVAC-G1",
+     "label": "Family 1",
+     "people": 5,
+     "party": {
+      "adults": 2,
+      "children": 2,
+      "infants": 1,
+      "stretcher": 0
+     },
+     "seatUnits": 3.0,
+     "state": "taken",
+     "takenBy": "T-R"
+    }
+   ],
+   "seatUnits": 3.0,
+   "state": "on_the_way",
+   "window": {
+    "start": "2026-10-11T03:00:00Z",
+    "end": "2026-10-11T04:00:00Z",
+    "setAt": "2026-10-11T02:35:00Z"
+   },
+   "acceptedAt": "2026-10-11T02:30:00Z",
+   "pickup": {
+    "landmarkLabel": "B-2 · L3 Community building",
+    "at": [
+     100.46825,
+     7.01902
+    ],
+    "precision": "building",
+    "source": "Google Places match, desk confirmed"
+   }
+  }
+ ]
+}

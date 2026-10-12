@@ -50,8 +50,15 @@ def review_queue(store: Store) -> dict:
             prompts.append({"kind": "stretcher", "text": "Someone can't walk: consider an urgent flag (\"bedridden, can't self-evacuate\", D36)."})
         if f["kind"] == "neighbour_report":
             prompts.append({"kind": "neighbour", "text": "A neighbour's report: counts are \"at least\", never added up (D29). Confirm with a callback."})
+        if r.get("segmentId"):  # a field report from a team in its segment: that is the place
+            lm = store.landmarks[r["segmentId"]]
+            sugg = {"segmentId": r["segmentId"], "label": lm["label"], "why": f"field report from {r['teamId']} in this segment"}
+            prompts.insert(0, {"kind": "field", "text": f"Field report from team {r['teamId']}: people found who hadn't called (D20)."})
+        else:
+            sugg = suggest_segment(store, r["text"])
         rows.append({"reportId": r["reportId"], "receivedAt": r["receivedAt"], "text": r["text"], "channel": r["channel"],
-                     "proposal": r["proposal"], "suggestedSegment": suggest_segment(store, r["text"]), "prompts": prompts})
+                     "proposal": r["proposal"], "suggestedSegment": sugg, "prompts": prompts,
+                     **({"fromTeam": r["teamId"]} if r.get("teamId") else {})})
     return {"generatedAt": None, "label": "Requests waiting for review. The AI's reading is a proposal; only you make it a case.",
             "reports": rows,
             "landmarks": [{"segmentId": l["id"], "label": l["label"]} for l in store.catalogue["landmarks"] if l.get("zoneId")]}
