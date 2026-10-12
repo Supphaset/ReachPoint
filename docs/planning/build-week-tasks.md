@@ -46,7 +46,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] Shared components ready for your friend: status chip, priority badge, "AI proposal" card, error/offline banner, "last updated" line, big buttons
 - [ ] Exposure estimate per zone: Open Buildings + WorldPop, cross-checked with DOPA, shown as a range
 - [ ] Area and zone briefing screen on live views
-- [ ] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15)
+- [x] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15). Done: `tier()`, `colour()`, `sort_key()` and Hypothesis tests (RED first, nearest first, waiting breaks ties, colour = view of tier); the solver half of T15 is added when `allocation.py` calls `tier()`
 - [ ] Solver notebook run on the fixture
 
 **Friend**
