@@ -6,7 +6,7 @@ import "./pages.css";
 const HOME: Record<Session["role"], string> = {
   team_leader: "/team/list",
   coordinator: "/desk",
-  resident: "/status/demo",
+  resident: "/call",
 };
 
 /** Demo sign-in: pick one of the seeded roles. Firebase Auth replaces this when the friend's project is up. */

@@ -150,12 +150,13 @@ def area_facts(store: Store, area_id: str, cases: list[dict]) -> list[dict]:
     zones = {z["id"] for z in store.catalogue["zones"] if z["areaId"] == area_id}
     mine = [c for c in cases if c["segmentId"].rsplit("-", 1)[0] in zones]
     demand = sum(c["people"] for c in mine if any(a["type"] == "evacuation_transport" and a["review"] == "validated" for a in c["assistance"]))
-    seats = [t["resource"] for t in store.seed["teams"] if "evacuation_transport" in t["capabilities"]]
+    serving = [t for t in store.seed["teams"] if "evacuation_transport" in t["capabilities"] and area_id in t.get("areas", [area_id])]
+    seats = [t["resource"] for t in serving]
     offered = sum(r["seatUnits"] for r in seats if not r.get("confirmed"))
     confirmed = sum(r["seatUnits"] for r in seats if r.get("confirmed"))
     medical = sum(1 for c in mine if any(a["type"] == "medical" and a["review"] == "validated" for a in c["assistance"]))
     basis = " + ".join(f"{t['teamId']} {t['resource']['kind']} {t['resource']['resourceId']} (conditional)"
-                       for t in store.seed["teams"] if not t["resource"].get("confirmed")) or "none"
+                       for t in serving if not t["resource"].get("confirmed")) or "none"
     return [
         {"key": "reviewedDemand", "label": "People needing evacuation (reviewed)", "value": demand, "unit": "people", "basis": "reviewed cases"},
         {"key": "conditionalCapacity", "label": "Seats offered, not yet confirmed", "value": offered, "unit": "seats", "basis": basis},

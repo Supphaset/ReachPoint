@@ -10,12 +10,16 @@ from __future__ import annotations
 
 import copy
 import json
+import re
+import secrets
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from api.intake.extract import BANDS, NEEDS
 from api.views import store as views_store
+from api.views.missions import MARKS, active_claim
 from api.views.team import group_owner, seats, seats_used
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -211,3 +215,155 @@ class MemoryStore:
             return ok["response"]
         return {"ok": True, "askedAt": self.clock.iso(), "note": "",
                 "asks": [{"askId": f"ASK-{t}", "teamId": t, "listingIds": []} for t in team_ids]}
+
+    # --- intake and desk review (T3) ---
+
+    def submit_report(self, text: str, channel: str, proposal: dict, segment_id: str | None = None, team_id: str | None = None) -> dict:
+        """A request in the caller's words, with the AI's proposal. Returns its ID and the family's status link token."""
+        if not (text or "").strip():
+            raise Refused("INVALID", "Write what is happening and where")
+        reports = self.store.seed.setdefault("reports", [])
+        rid = f"R-{len(reports) + 1:03d}"
+        token = secrets.token_urlsafe(16)  # 128 bits; carries no personal data
+        reports.append({"reportId": rid, "receivedAt": self.clock.iso(), "channel": channel, "text": text.strip()[:2000],
+                        "proposal": proposal, "status": "proposed", "statusToken": token,
+                        **({"segmentId": segment_id, "teamId": team_id} if segment_id else {})})
+        self.store.seed.setdefault("statusTokens", {})[token] = {"reportId": rid, "caseId": None}
+        return {"reportId": rid, "statusToken": token}
+
+    def _report(self, report_id: str) -> dict:
+        r = next((r for r in self.store.seed.get("reports", []) if r["reportId"] == report_id), None)
+        if r is None:
+            raise NotFound(report_id)
+        if r["status"] != "proposed":
+            raise Refused("ALLOCATION_CLOSED", f"This request was already {r['status']}")
+        return r
+
+    def approve_report(self, report_id: str, segment_id: str, people: dict, needs: list[str],
+                       water_band: str | None, urgent_reason: str | None, desk_note: str | None) -> dict:
+        """The coordinator's reviewed facts become a case with one listing per need (validated), shown at once on
+        every capable team's list. Counts and needs are what the coordinator approved, not the AI's proposal."""
+        r = self._report(report_id)
+        landmarks = self.store.landmarks
+        if segment_id not in landmarks or landmarks[segment_id].get("zoneId") is None:
+            raise Refused("INVALID", "Pick the landmark nearest the family")
+        party = {k: int(people.get(k) or 0) for k in ("adults", "children", "infants", "stretcher")}
+        if any(v < 0 or v > 60 for v in party.values()) or sum(party.values()) == 0:
+            raise Refused("INVALID", "Enter how many people are there")
+        needs = [n for n in dict.fromkeys(needs) if n in NEEDS]
+        if not needs:
+            raise Refused("INVALID", "Pick at least one kind of help")
+        if water_band is not None and water_band not in BANDS:
+            raise Refused("INVALID", "Pick a water depth from the list")
+        zone = segment_id.rsplit("-", 1)[0]
+        area = next(z["areaId"] for z in self.store.catalogue["zones"] if z["id"] == zone)
+        nums = [int(m.group(1)) for c in self.store.cases if (m := re.match(r"C-(\d+)$", c["caseId"]))]
+        cid = f"C-{max(nums + [0]) + 1:02d}"
+        now = self.clock.iso()
+        total = sum(party.values())
+        suffix = {"evacuation_transport": "EVAC", "medical": "MED", "supplies": "SUP"}
+        case_needs = []
+        for n in needs:
+            rec = {"listingId": f"L-{cid.replace('-', '')}-{suffix[n]}", "type": n,
+                   "units": total if n != "medical" else 1, "unit": "packs" if n == "supplies" else "people",
+                   "review": "validated", "waitingSince": now, "qualifiedAssessment": {"urgentMedical": False},
+                   "urgentFlag": {"reason": urgent_reason.strip()} if urgent_reason and urgent_reason.strip() and n == "evacuation_transport" else None,
+                   "needRevision": 1, "allocation": {"state": "open"}}
+            if n == "evacuation_transport":
+                rec["groups"] = [{"label": "Family 1", "party": party}]
+                rec["destination"] = {"id": "D1", "reason": "Shelter"}
+            if desk_note:
+                rec["deskNote"] = desk_note.strip()[:200]
+            case_needs.append(rec)
+        self.store.seed["cases"].append({"caseId": cid, "areaId": area, "segmentId": segment_id, "people": total, "party": party,
+                                         "note": None, "lastConfirmedAt": now, "needs": case_needs, "fromReport": report_id})
+        if water_band:
+            self.store.seed["waterReports"].append({"caseId": cid, "segmentId": segment_id, "band": water_band, "at": now, "review": "validated"})
+        r.update(status="approved", caseId=cid, reviewedAt=now)
+        self.store.seed["statusTokens"][r["statusToken"]]["caseId"] = cid
+        return {"caseId": cid, "listingIds": [n["listingId"] for n in case_needs]}
+
+    def reject_report(self, report_id: str, reason: str) -> None:
+        if not (reason or "").strip():
+            raise Refused("INVALID", "Say why (for example: duplicate of C-03, or not a flood request)")
+        r = self._report(report_id)
+        r.update(status="rejected", rejectReason=reason.strip()[:200], reviewedAt=self.clock.iso())
+
+    # --- zone missions and segments (D17b, D18, D20) ---
+
+    def publish_zone_mission(self, zone_id: str, reasons: list[str], by: str = "coordinator") -> dict:
+        if not any(z["id"] == zone_id for z in self.store.catalogue["zones"]):
+            raise NotFound(zone_id)
+        missions = self.store.seed.setdefault("zoneMissions", [])
+        if any(m["zoneId"] == zone_id for m in missions):
+            raise Refused("ALLOCATION_CLOSED", f"{zone_id} already has a zone mission")
+        mid = f"M-{zone_id}"
+        missions.append({"missionId": mid, "zoneId": zone_id, "publishedAt": self.clock.iso(), "by": by, "reasons": list(reasons)[:6]})
+        return {"missionId": mid}
+
+    def dismiss_check(self, zone_id: str, reason: str) -> None:
+        if not (reason or "").strip():
+            raise Refused("INVALID", "Say why you're dismissing this check")
+        self.store.seed.setdefault("dismissedChecks", []).append({"zoneId": zone_id, "reason": reason.strip()[:200], "at": self.clock.iso()})
+
+    def take_segment(self, segment_id: str, team_id: str) -> dict:
+        team = self._team(team_id)
+        zone = segment_id.rsplit("-", 1)[0]
+        if not any(s["id"] == segment_id for z in self.store.catalogue["zones"] for s in z["segments"]):
+            raise NotFound(segment_id)
+        if not any(m["zoneId"] == zone for m in self.store.seed.get("zoneMissions", [])):
+            raise Refused("ALLOCATION_CLOSED", f"{zone} has no published zone mission")
+        if team["status"] != "available":
+            raise Refused("NOT_AVAILABLE", "Set your team to Available to take a segment")
+        held = active_claim(self.store, segment_id)
+        if held:
+            raise Refused("ALREADY_TAKEN", f"Already taken by {held['teamId']}", {"takenBy": held["teamId"]})
+        claims = self.store.seed.setdefault("segmentClaims", [])
+        cid = f"SC-{segment_id}-{len(claims) + 1:02d}"
+        claims.append({"claimId": cid, "segmentId": segment_id, "zoneId": zone, "teamId": team_id, "state": "taken", "takenAt": self.clock.iso()})
+        return {"claimId": cid}
+
+    def mark_segment(self, claim_id: str, state: str, households_found: int | None, pickups_needed: int | None, reason: str | None) -> None:
+        c = next((c for c in self.store.seed.get("segmentClaims", []) if c["claimId"] == claim_id), None)
+        if c is None:
+            raise NotFound(claim_id)
+        if c["state"] != "taken":
+            raise Refused("ALLOCATION_CLOSED", "This segment is already marked")
+        if state not in MARKS:
+            raise Refused("INVALID", "Mark it Checked, Partly checked or Couldn't reach")
+        if state == "could_not_reach":
+            if not (reason or "").strip():
+                raise Refused("INVALID", "Say why you couldn't reach it (for example: access blocked)")
+            mark = {"state": state, "at": self.clock.iso(), "teamId": c["teamId"], "reason": reason.strip()[:120]}
+        else:
+            hf, pn = int(households_found or 0), int(pickups_needed or 0)
+            if hf < 0 or pn < 0 or pn > hf or hf > 500:
+                raise Refused("INVALID", "Households found and pickups needed don't add up")
+            mark = {"state": state, "at": self.clock.iso(), "teamId": c["teamId"], "householdsFound": hf, "pickupsNeeded": pn}
+        self.store.seed["segmentMarks"][c["segmentId"]] = mark
+        c.update(state="marked", mark=mark)
+
+    # --- triage proposals (D29): the coordinator links a request to a case, or says it isn't the same ---
+
+    def link_report(self, report_id: str, case_id: str) -> dict:
+        """The request is about an existing case: nothing is deleted. The request is kept, marked linked, and the
+        caller's status link follows that case; the case counts as just confirmed. A request with a danger sign is
+        never linked away (D29): it must be reviewed on its own."""
+        r = self._report(report_id)
+        if r["proposal"]["facts"]["dangerSigns"]:
+            raise Refused("INVALID", "This request reports a danger sign: review it on its own, don't link it away")
+        case = next((c for c in self.store.cases if c["caseId"] == case_id), None)
+        if case is None:
+            raise NotFound(case_id)
+        now = self.clock.iso()
+        r.update(status="linked", caseId=case_id, reviewedAt=now)
+        case["lastConfirmedAt"] = now
+        case.setdefault("linkedReports", []).append(report_id)
+        self.store.seed["statusTokens"][r["statusToken"]]["caseId"] = case_id
+        return {"caseId": case_id}
+
+    def not_same(self, report_id: str, case_id: str) -> None:
+        r = self._report(report_id)
+        r.setdefault("notSameAs", [])
+        if case_id not in r["notSameAs"]:
+            r["notSameAs"].append(case_id)

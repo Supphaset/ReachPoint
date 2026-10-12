@@ -86,9 +86,11 @@ export interface SegmentView {
 }
 
 export interface Briefing {
-  state: "ready" | "unavailable";
+  /** writing: the server is asking Gemini; the facts are complete without it (C8). */
+  state: "ready" | "writing" | "unavailable";
   text: string | null;
-  reason?: string;
+  reason?: string | null;
+  source?: string;
 }
 
 /** Water reported by callers (D26, D32): reviewed requests only, at the segment's landmark (D25). */
@@ -247,6 +249,35 @@ export interface Job {
   pickup: { landmarkLabel: string; at: [number, number]; precision: "rooftop" | "building" | "landmark"; source: string };
 }
 
+/** Zone missions and segments (D17b, D20): on the team view once the desk has published a mission. */
+export type SegmentMark =
+  | { state: "checked" | "partly_checked"; at: string; teamId: string; householdsFound: number; pickupsNeeded: number }
+  | { state: "could_not_reach"; at: string; teamId: string; reason: string };
+export interface SegmentRow {
+  segmentId: string;
+  label: string;
+  state: "open" | "taken" | SegmentCheckState;
+  takenBy: string | null;
+  claimId: string | null;
+  mark: SegmentMark | null;
+  registerCount: number;
+  estimate: { everyone: Range; label: string };
+  families: { caseId: string; people: number; listingIds: string[] }[];
+}
+export interface ZoneMissionView {
+  missionId: string;
+  zoneId: string;
+  publishedAt: string;
+  by: string;
+  reasons: string[];
+  segments: SegmentRow[];
+}
+export interface SegmentJob extends Omit<SegmentRow, "state" | "claimId" | "takenBy"> {
+  claimId: string;
+  state: "taken" | "marked";
+  takenAt: string;
+}
+
 export interface TeamMissionsView {
   teamId: string;
   label: string;
@@ -257,6 +288,8 @@ export interface TeamMissionsView {
   seatUnits: Record<keyof Party, number> & { label: string };
   open: OpenListing[];
   jobs: Job[];
+  zoneMissions?: ZoneMissionView[];
+  segmentJobs?: SegmentJob[];
 }
 
 export type ClaimCode =
@@ -382,4 +415,52 @@ export interface RisingWaterView {
     more: number;
     note: string;
   };
+}
+
+/* ---- Intake, desk review, family status (T3, D6): from the starter server (contract/api.md) ---- */
+export type WaterBand = "knee" | "waist" | "chest" | "over_head" | "second_floor";
+export interface Quoted { quote: string }
+export interface ProposedFacts {
+  kind: "my_household" | "check_on" | "neighbour_report";
+  kindQuote: string | null;
+  people: ({ adults: number; children: number; infants: number; stretcher: number } & Quoted) | null;
+  needs: ({ type: AssistanceType } & Quoted)[];
+  water: ({ band: WaterBand } & Quoted) | null;
+  place: ({ text: string } & Quoted) | null;
+  dangerSigns: ({ text: string } & Quoted)[];
+  cantWalk: Quoted | null;
+  summary: string;
+}
+export interface ReviewRow {
+  reportId: string;
+  receivedAt: string;
+  text: string;
+  channel: string;
+  proposal: { source: string; note: string | null; facts: ProposedFacts; dropped: string[] };
+  suggestedSegment: { segmentId: string | null; zoneId?: string; label: string; why: string } | null;
+  prompts: { kind: "urgent_flag" | "stretcher" | "neighbour" | "field"; text: string }[];
+  /** The ADK triage agent's proposals (D29): possible duplicates and a rank reason. A person decides. */
+  triage: null | {
+    source: string;
+    at: string;
+    links: { caseId: string; place: string; people: number; reason: string; quote: string; newHazard: boolean }[];
+    rank: { reason: string; quote: string; danger: string[] } | null;
+  };
+  fromTeam?: string;
+}
+export interface ReviewQueueView {
+  generatedAt: string;
+  label: string;
+  triage: { source: string | null; at: string | null; note?: string | null } | null;
+  reports: ReviewRow[];
+  landmarks: { segmentId: string; label: string }[];
+}
+export interface ResidentStatusView {
+  reportId: string;
+  caseId?: string;
+  generatedAt: string;
+  label: string;
+  state: string;
+  lastConfirmedAt?: string;
+  lines: { family?: string; state: string; text: string }[];
 }

@@ -20,9 +20,17 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+from api.ai import briefing_text, triage
+from api.intake.extract import extract
 from api.server.memory import Clock, MemoryStore, NotFound, Refused
 from api.views.briefing import area_briefing
 from api.views.desk import rain_view, rising_water_view, zone_order_view
+from api.views.resident import resident_status
+from api.views.review import review_queue
 from api.views.team import team_missions
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +39,7 @@ DAY_START, STEPS = "2026-10-11T03:00:00Z", 15  # the replayed demo day: 10:00–
 
 app = FastAPI(title="ReachPoint", version="0.1", docs_url="/api/docs", openapi_url="/api/openapi.json")
 memory = MemoryStore(clock=Clock(os.environ.get("REACHPOINT_CLOCK", "demo")))
+USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"  # off: no Gemini calls (tests, offline demo)
 
 
 @app.exception_handler(Refused)
@@ -60,12 +69,49 @@ def health():
     return {"ok": True, "store": "memory", "seedVersion": memory.store.seed.get("version"), "clock": memory.clock.mode, "now": _now()}
 
 
+# Zone briefing text (C8): written in the background, once per set of facts, then kept. A view never waits for it.
+BRIEFINGS: dict[str, dict] = {}
+_pending: set[str] = set()
+_brief_lock = threading.Lock()
+_writer = ThreadPoolExecutor(max_workers=1)
+_triager = ThreadPoolExecutor(max_workers=1)  # triage never waits behind briefing writes
+
+
+def _write_briefing(key: str, facts: dict) -> None:
+    try:
+        result = briefing_text.write(facts)
+    except Exception as e:  # never let a briefing break the view
+        result = {"state": "unavailable", "text": None, "reason": type(e).__name__}
+    with _brief_lock:
+        BRIEFINGS[key] = result
+        _pending.discard(key)
+    time.sleep(1.0)  # stay well under the free tier's requests per minute
+
+
+def _with_briefings(view: dict) -> dict:
+    for z in view["zones"]:
+        facts = briefing_text.zone_facts(z)
+        key = briefing_text.facts_key(facts)
+        with _brief_lock:
+            done = BRIEFINGS.get(key)
+            if done is None and USE_AI and key not in _pending:
+                _pending.add(key)
+                _writer.submit(_write_briefing, key, facts)
+        if done is not None:
+            z["briefing"] = done
+        else:
+            z["briefing"] = {"state": "writing" if USE_AI else "unavailable", "text": None,
+                             "reason": None if USE_AI else "ai_off"}
+    return view
+
+
 @app.get("/api/views/areaBriefing/{area_id}")
 def view_briefing(area_id: str):
     if area_id not in {a["id"] for a in memory.store.catalogue["areas"]}:
         raise NotFound(area_id)
     with memory.lock:
-        return area_briefing(memory.store, area_id, _now())
+        view = area_briefing(memory.store, area_id, _now())
+    return _with_briefings(view)
 
 
 @app.get("/api/views/teamMissions/{team_id}")
@@ -199,6 +245,147 @@ def urgent_flag(listing_id: str, b: UrgentFlag):
 @app.post("/api/ask-teams")
 def ask_teams(b: AskTeams):
     return memory.ask_teams(b.suggestionId, b.teamIds)
+
+
+# --- intake, desk review, family status (T3, D6) ---
+
+
+class Intake(Write):
+    text: str = Field(min_length=1, max_length=2000)
+    channel: str = "text"
+    segmentId: str | None = None  # a field report from a team in its segment (D20)
+    teamId: str | None = None
+
+
+class Approve(Write):
+    segmentId: str
+    people: dict[str, int]
+    needs: list[str]
+    waterBand: str | None = None
+    urgentReason: str | None = None
+    deskNote: str | None = None
+
+
+class Reject(Write):
+    reason: str
+
+
+@app.post("/api/intake/text")
+def intake_text(b: Intake):
+    """A request typed by the caller or by a volunteer taking the call. The AI reads it outside the lock (it can take
+    seconds); the report is then stored as a proposal for the desk."""
+    if b.submissionId and b.submissionId in memory.done:
+        return memory.done[b.submissionId]
+    proposal = extract(b.text, use_model=USE_AI)
+    channel = "field" if b.segmentId else b.channel
+    r = memory.write(b.submissionId, lambda: memory.submit_report(b.text, channel, proposal, b.segmentId, b.teamId))
+    v = r["value"]
+    _triager.submit(_run_triage)  # the triage agent looks at the new request in the background
+    return {"ok": True, "value": {**v, "statusUrl": f"/status/{v['statusToken']}", "aiSource": proposal["source"]}}
+
+
+_triage_lock = threading.Lock()
+_triage_again = threading.Event()
+
+
+def _run_triage() -> None:
+    """One pass at a time; a request that arrives during a pass triggers one more pass after it."""
+    if not _triage_lock.acquire(blocking=False):
+        _triage_again.set()
+        return
+    try:
+        while True:
+            _triage_again.clear()
+            with memory.lock:
+                snapshot = memory.store.__class__(json.loads(json.dumps(memory.store.seed)), memory.store.catalogue,
+                                                  memory.store.exposure, memory.store.register)
+                now = _now()
+            result = triage.run_agent(snapshot, now) if USE_AI else triage.rule_proposals(snapshot, now)
+            with memory.lock:
+                memory.store.seed["triage"] = {**result, "at": now}
+            if not _triage_again.is_set():
+                break
+    finally:
+        _triage_lock.release()
+
+
+@app.get("/api/views/reviewQueue")
+def view_review():
+    with memory.lock:
+        return {**review_queue(memory.store), "generatedAt": _now()}
+
+
+@app.post("/api/reports/{report_id}/approve")
+def approve(report_id: str, b: Approve):
+    return memory.write(b.submissionId, lambda: memory.approve_report(report_id, b.segmentId, b.people, b.needs, b.waterBand, b.urgentReason, b.deskNote))
+
+
+@app.post("/api/reports/{report_id}/reject")
+def reject(report_id: str, b: Reject):
+    return memory.write(b.submissionId, lambda: memory.reject_report(report_id, b.reason))
+
+
+class LinkReport(Write):
+    caseId: str
+
+
+@app.post("/api/reports/{report_id}/link")
+def link_report(report_id: str, b: LinkReport):
+    return memory.write(b.submissionId, lambda: memory.link_report(report_id, b.caseId))
+
+
+@app.post("/api/reports/{report_id}/not-same")
+def not_same(report_id: str, b: LinkReport):
+    return memory.write(b.submissionId, lambda: memory.not_same(report_id, b.caseId))
+
+
+@app.get("/api/status/{token}")
+def status(token: str):
+    with memory.lock:
+        v = resident_status(memory.store, token, _now())
+    if v is None:
+        raise NotFound("status link")
+    return v
+
+
+class Publish(Write):
+    zoneId: str
+    reasons: list[str] = []
+
+
+class Dismiss(Write):
+    reason: str
+
+
+class TakeSegment(Write):
+    teamId: str
+
+
+class MarkSegment(Write):
+    state: str
+    householdsFound: int | None = None
+    pickupsNeeded: int | None = None
+    reason: str | None = None
+
+
+@app.post("/api/zone-missions")
+def publish_mission(b: Publish):
+    return memory.write(b.submissionId, lambda: memory.publish_zone_mission(b.zoneId, b.reasons))
+
+
+@app.post("/api/suggested-checks/{zone_id}/dismiss")
+def dismiss_check(zone_id: str, b: Dismiss):
+    return memory.write(b.submissionId, lambda: memory.dismiss_check(zone_id, b.reason))
+
+
+@app.post("/api/segments/{segment_id}/take")
+def take_segment(segment_id: str, b: TakeSegment):
+    return memory.write(b.submissionId, lambda: memory.take_segment(segment_id, b.teamId))
+
+
+@app.post("/api/segment-claims/{claim_id}/mark")
+def mark_segment(claim_id: str, b: MarkSegment):
+    return memory.write(b.submissionId, lambda: memory.mark_segment(claim_id, b.state, b.householdsFound, b.pickupsNeeded, b.reason))
 
 
 @app.post("/api/demo/reset")

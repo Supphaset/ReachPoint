@@ -18,3 +18,4 @@
 .rising-flag input { font: inherit; padding: var(--space-2); border: 1px solid var(--color-line-strong); border-radius: 6px; }
 .rising-done { margin: 0; font-weight: 600; }
 .field-error { margin: 0; color: var(--color-error); font-size: var(--text-sm); }
+.desk-page { display: grid; gap: var(--space-5, 24px); }
