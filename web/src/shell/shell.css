@@ -1,0 +1,123 @@
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 56px;
+  padding: 0 var(--space-4);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-brand);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lg);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.topnav {
+  display: flex;
+  gap: var(--space-1);
+}
+.topnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-2);
+  text-decoration: none;
+  font-weight: var(--weight-medium);
+}
+.topnav-link.active {
+  color: var(--color-brand);
+  background: var(--color-waiting-bg);
+}
+
+.topbar-end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.demo-tag {
+  font-size: var(--text-xs);
+  color: var(--color-ink-3);
+  border: 1px dashed var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  padding: 0 6px;
+}
+.who {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.shell-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabbar {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .topnav,
+  .demo-tag {
+    display: none;
+  }
+  .has-tabs .shell-main {
+    padding-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
+  }
+  .tabbar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 30;
+    display: flex;
+    height: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-line);
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--color-ink-3);
+    text-decoration: none;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    line-height: 1.2;
+  }
+  .tab-en {
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-regular);
+  }
+  .tab.active {
+    color: var(--color-brand);
+  }
+}

@@ -20,6 +20,7 @@ Each package folder holds what the app shows for one past flood event:
 | `scripts/build_geography.py` | Builds the four files above, `districts.geojson`, and the C1 fixture `contract/fixtures/areas.<package>.json` |
 | `scripts/cut_city_zones.py` | Cuts the city (P-B) into zones and segments along OSM streets, grouped by the city's 4 districts (D30); writes the P-B zones into `geography-source.json` |
 | `<package>/osm-lines.geojson`, `osm-municipality.geojson` | Cached OpenStreetMap roads, railway, river, canals and the municipal boundary (ODbL) |
+| `scripts/build_briefing_fixtures.py` | Writes the C2 area briefing fixtures `contract/fixtures/areaBriefing.*.json` (synthetic records at 10:15 on top of the C1 geography and estimates) |
 | `<package>/run-summary.json` | Parameters, scenes used and flooded area for the run |
 | `SOURCES.md` | Record of every run and its comparison with published maps |
 

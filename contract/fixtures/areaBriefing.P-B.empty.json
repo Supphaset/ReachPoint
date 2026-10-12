@@ -1,0 +1,3001 @@
+{
+ "areaId": "P-B",
+ "label": "P-B · deep water, evacuation",
+ "need": "evacuation",
+ "description": "Dense city centre; reported chest-deep to over-head water; the satellite can't see it",
+ "dataMode": "synthetic",
+ "package": "hy-2025-11",
+ "generatedAt": "2026-10-11T03:15:00Z",
+ "inputVersions": {
+  "geography": 2,
+  "cases": 0
+ },
+ "dataLabel": "Synthetic demo records; geography and estimates from the C1 fixture",
+ "badge": {
+  "urgent": 0,
+  "unreviewed": 0
+ },
+ "facts": [
+  {
+   "key": "reviewedDemand",
+   "label": "People needing evacuation (reviewed)",
+   "value": 0,
+   "unit": "people",
+   "basis": "reviewed cases"
+  },
+  {
+   "key": "conditionalCapacity",
+   "label": "Seats offered, not yet confirmed",
+   "value": null,
+   "unit": "seats",
+   "basis": "T-S boat S1 (conditional)",
+   "valueReason": "no_team_available_yet"
+  },
+  {
+   "key": "knownGap",
+   "label": "Still without a confirmed seat",
+   "value": 0,
+   "unit": "people",
+   "basis": "reviewed demand minus confirmed seats"
+  },
+  {
+   "key": "medicalUnderReview",
+   "label": "Medical needs under qualified review",
+   "value": 0,
+   "unit": "cases",
+   "basis": "reviewed cases"
+  }
+ ],
+ "estimate": {
+  "label": "People living here (estimate). Not victims, not people needing rescue; never adds to reviewed counts.",
+  "modelLabel": "Likely flooded at the peak (model from reported depths and ground height)",
+  "everyone": [
+   84000,
+   130000
+  ],
+  "notYetChecked": [
+   84000,
+   130000
+  ]
+ },
+ "layers": {
+  "floodExtent": {
+   "state": "available",
+   "id": "s1-2025-11-24",
+   "label": "Flood extent on 24 Nov 2025 06:03 Bangkok (Sentinel-1) · urban areas may be under-detected"
+  },
+  "noSatelliteData": {
+   "state": "available",
+   "label": "No satellite data · never means dry"
+  },
+  "reportedFlooding": {
+   "state": "available",
+   "label": "Reported flooding (official and news reports)"
+  }
+ },
+ "zones": [
+  {
+   "zoneId": "B-1",
+   "areaId": "P-B",
+   "district": "เขต 1",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 3,
+     "of": 3,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 0,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 3 of 3 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     4400,
+     5800
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     590,
+     1900
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     4400,
+     5800
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     3.0,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-1-L1",
+     "label": "B-1 · L1 Shrine",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       590,
+       780
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       0
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       12.0,
+       14.9,
+       17.3
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.81,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-1-L2",
+     "label": "B-1 · L2 Temple",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       920,
+       1100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       0
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       11.3,
+       13.3,
+       16.9
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.71,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-1-L3",
+     "label": "B-1 · L3 Market",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       2700,
+       4100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       590,
+       1900
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.6,
+       8.1,
+       9.9
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.97,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-2",
+   "areaId": "P-B",
+   "district": "เขต 1",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 5,
+     "of": 5,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 4,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 5 of 5 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     5600,
+     8500
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     5500,
+     8500
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     5600,
+     8500
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     1.5,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-2-L1",
+     "label": "B-2 · L1 Temple",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       480,
+       840
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       480,
+       840
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.2,
+       6.9,
+       7.3
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.93,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-2-L2",
+     "label": "B-2 · L2 Market",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1100,
+       1600
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1100,
+       1600
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.0,
+       7.7,
+       8
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-2-L3",
+     "label": "B-2 · L3 Community building",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1500,
+       2500
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1500,
+       2500
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.8,
+       7.9,
+       8.4
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-2-L4",
+     "label": "B-2 · L4 Mosque",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       490,
+       980
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       490,
+       980
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.5,
+       8.9,
+       9.2
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-2-L5",
+     "label": "B-2 · L5 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1900,
+       2700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1800,
+       2700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.9,
+       9.8,
+       11.5
+      ],
+      "modelledM": [
+       1.5,
+       2.5
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-3",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 6,
+     "of": 6,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 6,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 6 of 6 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     7900,
+     13000
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     7700,
+     12000
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     7900,
+     13000
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     1.5,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-3-L1",
+     "label": "B-3 · L1 Temple",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1600,
+       2400
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1600,
+       2400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.1,
+       8.6,
+       10.0
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-3-L2",
+     "label": "B-3 · L2 Market",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1000,
+       1500
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1000,
+       1500
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.4,
+       10.3,
+       12.1
+      ],
+      "modelledM": [
+       1.5,
+       2.5
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-3-L3",
+     "label": "B-3 · L3 Community building",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1200,
+       2200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1200,
+       2200
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.6,
+       9.3,
+       9.7
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-3-L4",
+     "label": "B-3 · L4 Mosque",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1000,
+       1400
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1000,
+       1400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.1,
+       10.3,
+       11.6
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-3-L5",
+     "label": "B-3 · L5 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       2100,
+       3700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1900,
+       3400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.7,
+       9.5,
+       13.1
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-3-L6",
+     "label": "B-3 · L6 Health centre",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       740,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       740,
+       1300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.6,
+       9.9,
+       10.1
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-4",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 5,
+     "of": 5,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 0,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 5 of 5 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     8400,
+     13000
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     6200,
+     8900
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     8400,
+     13000
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     1.0,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-4-L1",
+     "label": "B-4 · L1 Health centre",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       740,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       740,
+       1300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.4,
+       8.9,
+       9.6
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-4-L2",
+     "label": "B-4 · L2 Shrine",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       4400,
+       6000
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       2900,
+       3400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.4,
+       10.1,
+       26.2
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.72,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-4-L3",
+     "label": "B-4 · L3 Temple",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1500,
+       2400
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1500,
+       2400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.0,
+       9.6,
+       10.2
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-4-L4",
+     "label": "B-4 · L4 Market",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       140,
+       630
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       10
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       17.8,
+       20.7,
+       24.2
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.58,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-4-L5",
+     "label": "B-4 · L5 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1500,
+       2500
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1000,
+       2000
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       10.2,
+       11.5,
+       16.1
+      ],
+      "modelledM": [
+       1.0,
+       1.5
+      ]
+     },
+     "noSatelliteDataShare": 0.95,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-5",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 2,
+     "of": 2,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 0,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 2 of 2 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     3600,
+     4700
+    ],
+    "inSatelliteExtent": [
+     0,
+     10
+    ],
+    "modelledFlooded": [
+     1900,
+     3400
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     3600,
+     4700
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     1.5,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-5-L1",
+     "label": "B-5 · L1 Health centre",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       210,
+       570
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       210,
+       570
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.7,
+       7.9,
+       9.1
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.62,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-5-L2",
+     "label": "B-5 · L2 Shrine",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       3400,
+       4100
+      ],
+      "inSatelliteExtent": [
+       0,
+       10
+      ],
+      "modelledFlooded": [
+       1700,
+       2800
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.3,
+       11.1,
+       17.9
+      ],
+      "modelledM": [
+       1.5,
+       2.5
+      ]
+     },
+     "noSatelliteDataShare": 0.89,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-6",
+   "areaId": "P-B",
+   "district": "เขต 1",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 7,
+     "of": 7,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 1,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 7 of 7 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     9100,
+     13000
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     9100,
+     13000
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     9100,
+     13000
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     2.0,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-6-L1",
+     "label": "B-6 · L1 Mosque",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       990,
+       1100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       990,
+       1100
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.6,
+       7.3,
+       8.0
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.85,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-6-L2",
+     "label": "B-6 · L2 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       760,
+       970
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       760,
+       970
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.8,
+       7.1,
+       7.4
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-6-L3",
+     "label": "B-6 · L3 Health centre",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       2000,
+       2600
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       2000,
+       2600
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.7,
+       8.1,
+       8.9
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-6-L4",
+     "label": "B-6 · L4 Shrine",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       950,
+       1100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       950,
+       1100
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.7,
+       7.8,
+       8.9
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-6-L5",
+     "label": "B-6 · L5 Temple",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       730,
+       1200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       730,
+       1200
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.6,
+       7.9,
+       8.1
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-6-L6",
+     "label": "B-6 · L6 Market",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       2900,
+       4700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       2900,
+       4700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.0,
+       7.5,
+       8.5
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.76,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-6-L7",
+     "label": "B-6 · L7 Community building",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       730,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       730,
+       1300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.4,
+       9.2,
+       9.8
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-7",
+   "areaId": "P-B",
+   "district": "เขต 4",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 7,
+     "of": 7,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 2,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 7 of 7 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     17000,
+     21000
+    ],
+    "inSatelliteExtent": [
+     0,
+     60
+    ],
+    "modelledFlooded": [
+     17000,
+     21000
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     17000,
+     21000
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     2.0,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-7-L1",
+     "label": "B-7 · L1 Market",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       390,
+       610
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       390,
+       610
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.6,
+       7.2,
+       7.7
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.55,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-7-L2",
+     "label": "B-7 · L2 Community building",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       670,
+       780
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       2,
+       7.8,
+       8.0
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.48,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-7-L3",
+     "label": "B-7 · L3 Mosque",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1200,
+       1500
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1200,
+       1500
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       6.2,
+       6.6,
+       7.6
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.95,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-7-L4",
+     "label": "B-7 · L4 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       9200,
+       11000
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       9200,
+       11000
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.2,
+       7.8,
+       8.2
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-7-L5",
+     "label": "B-7 · L5 Health centre",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       840,
+       2300
+      ],
+      "inSatelliteExtent": [
+       0,
+       60
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       2.5,
+       7.0,
+       8.2
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.31,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-7-L6",
+     "label": "B-7 · L6 Shrine",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       3500,
+       4700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       3500,
+       4700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.2,
+       8.1,
+       8.6
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.92,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-7-L7",
+     "label": "B-7 · L7 Temple",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       770,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       770,
+       1300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.4,
+       8.0,
+       9.0
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.66,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-8",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 4,
+     "of": 4,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 0,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 4 of 4 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     3900,
+     8600
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     3900,
+     8600
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     3900,
+     8600
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     1.5,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-8-L1",
+     "label": "B-8 · L1 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       550,
+       1200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       550,
+       1200
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.2,
+       9.7,
+       10.6
+      ],
+      "modelledM": [
+       1.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-8-L2",
+     "label": "B-8 · L2 Health centre",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1000,
+       2100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1000,
+       2100
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.6,
+       8.7,
+       9.8
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-8-L3",
+     "label": "B-8 · L3 Shrine",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       820,
+       1700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       820,
+       1700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.6,
+       8.7,
+       9.0
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-8-L4",
+     "label": "B-8 · L4 Temple",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1400,
+       3800
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1400,
+       3800
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.9,
+       9.2,
+       10.3
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.89,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-9",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 3,
+     "of": 3,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 0,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 3 of 3 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     2100,
+     5400
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     0,
+     360
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     2100,
+     5400
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     0.0,
+     0.5
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-9-L1",
+     "label": "B-9 · L1 Community building",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       650,
+       3100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       140
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       10.6,
+       15.6,
+       25.6
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.62,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-9-L2",
+     "label": "B-9 · L2 Mosque",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1000,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       190
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       12.4,
+       13.0,
+       16.2
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-9-L3",
+     "label": "B-9 · L3 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       500,
+       1100
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       0,
+       30
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       13.5,
+       19.0,
+       22.2
+      ],
+      "modelledM": [
+       0.0,
+       0.5
+      ]
+     },
+     "noSatelliteDataShare": 0.98,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-10",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 4,
+     "of": 4,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 3,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 4 of 4 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     7200,
+     9200
+    ],
+    "inSatelliteExtent": [
+     0,
+     30
+    ],
+    "modelledFlooded": [
+     7200,
+     9200
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     7200,
+     9200
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     2.0,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-10-L1",
+     "label": "B-10 · L1 Market",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       2100,
+       3700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       2100,
+       3700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.2,
+       8.5,
+       8.9
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-10-L2",
+     "label": "B-10 · L2 Community building",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1400,
+       1700
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1400,
+       1700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.1,
+       8.5,
+       9.5
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-10-L3",
+     "label": "B-10 · L3 Mosque",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       760,
+       1400
+      ],
+      "inSatelliteExtent": [
+       0,
+       30
+      ],
+      "modelledFlooded": [
+       760,
+       1300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       2.5,
+       8.6,
+       9.6
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.68,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-10-L4",
+     "label": "B-10 · L4 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       2500,
+       2900
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       2500,
+       2900
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       7.8,
+       8.7,
+       9.1
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-11",
+   "areaId": "P-B",
+   "district": "เขต 2",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 3,
+     "of": 3,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 0,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 3 of 3 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     3300,
+     5200
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     3100,
+     5200
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     3300,
+     5200
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     0.5,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-11-L1",
+     "label": "B-11 · L1 Community building",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       680,
+       1200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       680,
+       1200
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.0,
+       9.7,
+       10.2
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-11-L2",
+     "label": "B-11 · L2 Mosque",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1500,
+       2200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1300,
+       2200
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       10.1,
+       11.6,
+       11.9
+      ],
+      "modelledM": [
+       0.5,
+       1.5
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-11-L3",
+     "label": "B-11 · L3 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1100,
+       1900
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1100,
+       1900
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       9.4,
+       10.1,
+       11.1
+      ],
+      "modelledM": [
+       2.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-12",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 3,
+     "of": 3,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 0,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 3 of 3 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     3600,
+     4900
+    ],
+    "inSatelliteExtent": [
+     0,
+     10
+    ],
+    "modelledFlooded": [
+     3600,
+     4900
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     3600,
+     4900
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     2.5,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-12-L1",
+     "label": "B-12 · L1 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1500,
+       2300
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1500,
+       2300
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.7,
+       9.0,
+       9.5
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.5,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-12-L2",
+     "label": "B-12 · L2 Health centre",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       1100,
+       1400
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1100,
+       1400
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.6,
+       8.8,
+       9.2
+      ],
+      "modelledM": [
+       3.0,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 0.58,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-12-L3",
+     "label": "B-12 · L3 Shrine",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       850,
+       1300
+      ],
+      "inSatelliteExtent": [
+       0,
+       10
+      ],
+      "modelledFlooded": null,
+      "basis": "satellite"
+     },
+     "depth": {
+      "groundM": [
+       2.5,
+       8.5,
+       9.0
+      ],
+      "modelledM": null
+     },
+     "noSatelliteDataShare": 0.48,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  },
+  {
+   "zoneId": "B-13",
+   "areaId": "P-B",
+   "district": "เขต 3",
+   "badge": {
+    "urgent": 0,
+    "unreviewed": 0
+   },
+   "status": "no_reports",
+   "facts": [
+    {
+     "key": "reviewedEvacuation",
+     "label": "Reported needing evacuation (reviewed)",
+     "value": 0,
+     "unit": "people"
+    },
+    {
+     "key": "cases",
+     "label": "Reviewed cases",
+     "value": 0,
+     "unit": "cases"
+    },
+    {
+     "key": "segmentsNotChecked",
+     "label": "Segments not checked",
+     "value": 2,
+     "of": 2,
+     "unit": "segments"
+    },
+    {
+     "key": "reportedFloodingPoints",
+     "label": "Cited flood reports in this zone",
+     "value": 0,
+     "unit": "reports"
+    }
+   ],
+   "unknown": [
+    {
+     "key": "peopleNotChecked",
+     "text": "Who needs help: 2 of 2 segments not checked"
+    },
+    {
+     "key": "depthMeasured",
+     "text": "Water depth: no team measurement yet"
+    }
+   ],
+   "estimate": {
+    "everyone": [
+     7400,
+     11000
+    ],
+    "inSatelliteExtent": [
+     0,
+     0
+    ],
+    "modelledFlooded": [
+     5400,
+     7700
+    ],
+    "basis": "model",
+    "notYetChecked": [
+     7400,
+     11000
+    ]
+   },
+   "depth": {
+    "modelledM": [
+     1.0,
+     3.0
+    ],
+    "source": "model",
+    "label": "Modelled from reported depths and ground height (D31), not measured"
+   },
+   "cases": [],
+   "segments": [
+    {
+     "segmentId": "B-13-L1",
+     "label": "B-13 · L1 Mosque",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       4100,
+       5000
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       3700,
+       4700
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       8.9,
+       9.8,
+       11.9
+      ],
+      "modelledM": [
+       2.5,
+       3.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    },
+    {
+     "segmentId": "B-13-L2",
+     "label": "B-13 · L2 School",
+     "check": {
+      "state": "not_checked"
+     },
+     "estimate": {
+      "everyone": [
+       3200,
+       5200
+      ],
+      "inSatelliteExtent": [
+       0,
+       0
+      ],
+      "modelledFlooded": [
+       1700,
+       3100
+      ],
+      "basis": "model"
+     },
+     "depth": {
+      "groundM": [
+       10.0,
+       12.2,
+       17.5
+      ],
+      "modelledM": [
+       1.0,
+       2.0
+      ]
+     },
+     "noSatelliteDataShare": 1.0,
+     "cases": 0
+    }
+   ],
+   "briefing": {
+    "state": "unavailable",
+    "text": null,
+    "reason": "briefing_text_not_built_yet"
+   }
+  }
+ ]
+}
