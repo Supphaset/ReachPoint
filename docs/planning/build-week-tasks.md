@@ -49,7 +49,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [x] Exposure estimate **per segment** (D27): two ranges each, everyone living there and people inside the satellite extent (Open Buildings + WorldPop, cross-checked with DOPA)
 - [x] Sanity check: the district total against GISTDA's 25 Nov figure (52,731 rai, ~150,000 people affected); record it in `data/SOURCES.md`
 - [ ] Area and zone briefing screen on live views
-- [ ] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15)
+- [x] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15). Done: `tier()`, `colour()`, `sort_key()` and Hypothesis tests (RED first, nearest first, waiting breaks ties, colour = view of tier); the solver half of T15 is added when `allocation.py` calls `tier()`
 - [ ] Solver notebook run on the fixture
 
 **Friend**
