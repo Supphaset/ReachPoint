@@ -47,7 +47,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] Exposure estimate per zone: Open Buildings + WorldPop, cross-checked with DOPA, shown as a range
 - [ ] Area and zone briefing screen on live views
 - [x] `api/rules/tiers.py`: red/yellow/green tiers, then distance, then waiting time; property test that the sort and the solver share tiers (T15). Done: `tier()`, `colour()`, `sort_key()` and Hypothesis tests (RED first, nearest first, waiting breaks ties, colour = view of tier); the solver half of T15 is added when `allocation.py` calls `tier()`
-- [ ] Solver notebook run on the fixture
+- [x] Solver notebook run on the fixture (`api/notebooks/split-solver.ipynb` on `contract/fixtures/allocationInput.cp3.json`: checks (a)–(d) pass; finding: keep each weight ≥ 0.1, or a zero weight can leave a seat empty)
 
 **Friend**
 - [ ] Text intake → Gemini structured output → proposed facts with transcript quotes
