@@ -48,11 +48,11 @@ describe("team actions (C6 rules, fixture mode)", () => {
   });
 
   it("not enough seats says how many", async () => {
-    for (const [id, rev] of [["L-C02-EVAC", 1], ["L-C04-EVAC", 1], ["L-C06-EVAC", 1]] as const)
+    for (const [id, rev] of [["L-C02-EVAC", 1], ["L-C03-EVAC", 1], ["L-C06-EVAC", 1]] as const)
       await claimListing(id, listing(id).groups.map((g) => g.groupId), rev);
-    expect(read().team.resource.seatUnitsLeft).toBe(2);
+    expect(read().team.resource.seatUnitsLeft).toBe(3);
     const r = await claimListing("L-C05-EVAC", ["L-C05-EVAC-G1"], 1);
-    expect(r).toMatchObject({ ok: false, code: "NOT_ENOUGH_CAPACITY", message: "Needs 5 seats, you have 2" });
+    expect(r).toMatchObject({ ok: false, code: "NOT_ENOUGH_CAPACITY", message: "Needs 5 seats, you have 3" });
   });
 
   it("a busy team can't take", async () => {
@@ -111,6 +111,14 @@ describe("team actions (C6 rules, fixture mode)", () => {
   });
 });
 
+describe("a family another team already took", () => {
+  it("C-04 is taken by T-R: not on T-S's open list, and a claim says who has it", async () => {
+    const l = listing("L-C04-EVAC");
+    expect(l.groups.every((g) => g.state === "taken" && g.takenBy === "T-R")).toBe(true);
+    expect(await claimListing("L-C04-EVAC", ["L-C04-EVAC-G1"], 1)).toMatchObject({ code: "ALREADY_TAKEN", message: "Already taken by T-R" });
+  });
+});
+
 describe("coordinator urgent flag (D42)", () => {
   it("needs a reason, then turns the listing RED and puts it with the other RED ones at the top", async () => {
     expect((await flagUrgent("L-C08-EVAC", "  ")).ok).toBe(false);
@@ -122,7 +130,7 @@ describe("coordinator urgent flag (D42)", () => {
     expect(l.urgency.summary).toBe("Coordinator flagged urgent: Callback: water at the 2nd floor, 2 children");
     expect(read().open.slice(0, 2).map((x) => x.listingId)).toEqual(["L-C01-EVAC", "L-C08-EVAC"]);
     expect(l.lastConfirmedAt).toBe("2026-10-11T01:30:00Z"); // not confirmed by this flag
-    await flagUrgent("L-C04-EVAC", "Callback: chest deep and rising", true);
-    expect(listing("L-C04-EVAC").lastConfirmedAt).not.toBe("2026-10-11T02:10:00Z");
+    await flagUrgent("L-C03-EVAC", "Callback: chest deep and rising", true);
+    expect(listing("L-C03-EVAC").lastConfirmedAt).not.toBe("2026-10-11T01:05:00Z");
   });
 });

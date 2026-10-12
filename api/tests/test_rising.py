@@ -121,7 +121,8 @@ def test_demo_day():
     assert snaps["03:00"]["prompt"] is None  # 10:00: the reading only
     p = snaps["03:30"]["prompt"]  # 10:30: the DDPM forecast is out
     assert [s["kind"] for s in p["signals"]] == ["gauge_forecast"]
-    assert [r["caseId"] for r in p["reconfirm"]][:2] == ["C-08", "C-04"]
+    assert [r["caseId"] for r in p["reconfirm"]][:2] == ["C-08", "C-05"]
+    assert "C-04" not in {r["caseId"] for s in snaps.values() if s["prompt"] for r in s["prompt"]["reconfirm"]}  # taken by T-R
     assert [s["kind"] for s in snaps["07:00"]["prompt"]["signals"]] == ["gauge_forecast", "heavy_rain"]  # 14:00
     assert len({s["prompt"]["promptId"] for s in snaps.values() if s["prompt"]}) == 1  # one prompt all day
 

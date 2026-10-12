@@ -13,23 +13,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from api.rules.rain import rain_status, series_from_file  # noqa: E402
-from api.rules.tiers import ZoneInput  # noqa: E402
+from api.views import store as views_store  # noqa: E402
+from api.views.desk import rain_view  # noqa: E402
 
 FIXTURES = ROOT / "contract" / "fixtures"
 START = datetime(2026, 10, 11, 3, 0, tzinfo=timezone.utc)  # 10:00 Bangkok
 STEPS = 15  # to 17:00
+BRIEFING_AT = "2026-10-11T03:15:00Z"
 
 
 def build():
-    rain = json.loads((ROOT / "data/hy-2025-11/rain-imerg.json").read_text())
-    pkg = json.loads((FIXTURES / "areas.hy-2025-11.json").read_text())
-    ground = {s["id"]: s["depth"]["groundM"][1] for z in pkg["zones"] for s in z["segments"]}
-    out = {}
-    for area in ("P-A", "P-B", "P-C"):
-        zones = [ZoneInput.from_briefing(z) for z in json.loads((FIXTURES / f"areaBriefing.{area}.json").read_text())["zones"]]
-        series = series_from_file(rain, area)
-        out[area] = [rain_status(area, series, START + timedelta(minutes=30 * i), zones, ground) for i in range(STEPS)]
+    st = views_store.load()
+    out = {a: [rain_view(st, a, START + timedelta(minutes=30 * i), BRIEFING_AT) for i in range(STEPS)] for a in ("P-A", "P-B", "P-C")}
     return {"dataMode": "replay", "label": "Satellite rain replayed from 24 Nov 2025 on the demo clock (D41). Not water depth",
             "snapshots": out}
 

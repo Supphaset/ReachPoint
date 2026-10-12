@@ -291,7 +291,8 @@
       "stretcher": 0
      },
      "seatUnits": 3.0,
-     "state": "open"
+     "state": "taken",
+     "takenBy": "T-R"
     }
    ]
   },
