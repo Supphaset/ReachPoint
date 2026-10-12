@@ -82,7 +82,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 **You**
 - [x] OR-Tools split solver: staged, reasons, cache key, 5 s limit (T4) (`api/rules/allocation.py`: `solve_split`, `compare_scenarios`; `suggestionId` from the input is the cache key; seat units and safe splits D33–D35; solver half of T15 in `api/tests/test_allocation.py`; fixture `allocationSuggestion.cp3.json`)
 - [x] Split panel: team rows, "Still unmet", "Ask these N teams", What-if tab (`web/src/features/split/`, `/desk/split`; real solver output in `splitPanel.cp3.json` with precomputed What-ifs until the API serves `compare_scenarios`; stale ask shows the diff; `askTeams.*.json`)
-- [ ] Gemini zone briefing text, from computed fields only; prose validator (T7, shared)
+- [x] Gemini zone briefing text, from computed fields only; prose validator (T7, shared) (`api/ai/briefing_text.py`: numbers and places must be in the facts; no route, safety, dryness or priority claims; written in the background once per set of facts)
 
 **Friend**
 - [ ] S1 failure review: hold, relist unfinished groups, withdraw the old window
@@ -99,7 +99,7 @@ Based on the [delivery agreement](../collaboration/two-person-delivery-agreement
 - [ ] `api/rules/exposure.py` (C15): segment basis (satellite → callers → checked), zone "not yet checked" range, call rate per 1,000 residents + "quiet: phones may be down" flag; property tests
 - [ ] Depth tool for the triage agent (C17, D32): segment band, sources, trend, conflicts, kit; area-depth raise with its own reason; tests
 - [x] Synthetic vulnerable-residents register fixture (`register.hy-2025-11.json`, landmark-level)
-- [ ] Team screen: take a segment, pickup list, mark Checked / Partly checked / Couldn't reach, field report button
+- [x] Team screen: take a segment, pickup list, mark Checked / Partly checked / Couldn't reach, field report button (starter server + `web/src/features/team/Segments.tsx`; B-4 scene in `api/tests/test_b4_scene.py`)
 - [ ] Copilot instructions for `propose_zone_priority_change`
 
 **Friend**

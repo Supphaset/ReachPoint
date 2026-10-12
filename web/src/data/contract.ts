@@ -86,9 +86,11 @@ export interface SegmentView {
 }
 
 export interface Briefing {
-  state: "ready" | "unavailable";
+  /** writing: the server is asking Gemini; the facts are complete without it (C8). */
+  state: "ready" | "writing" | "unavailable";
   text: string | null;
-  reason?: string;
+  reason?: string | null;
+  source?: string;
 }
 
 /** Water reported by callers (D26, D32): reviewed requests only, at the segment's landmark (D25). */

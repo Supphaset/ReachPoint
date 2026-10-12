@@ -20,6 +20,11 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+from api.ai import briefing_text
 from api.intake.extract import extract
 from api.server.memory import Clock, MemoryStore, NotFound, Refused
 from api.views.briefing import area_briefing
@@ -34,6 +39,7 @@ DAY_START, STEPS = "2026-10-11T03:00:00Z", 15  # the replayed demo day: 10:00–
 
 app = FastAPI(title="ReachPoint", version="0.1", docs_url="/api/docs", openapi_url="/api/openapi.json")
 memory = MemoryStore(clock=Clock(os.environ.get("REACHPOINT_CLOCK", "demo")))
+USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"  # off: no Gemini calls (tests, offline demo)
 
 
 @app.exception_handler(Refused)
@@ -63,12 +69,48 @@ def health():
     return {"ok": True, "store": "memory", "seedVersion": memory.store.seed.get("version"), "clock": memory.clock.mode, "now": _now()}
 
 
+# Zone briefing text (C8): written in the background, once per set of facts, then kept. A view never waits for it.
+BRIEFINGS: dict[str, dict] = {}
+_pending: set[str] = set()
+_brief_lock = threading.Lock()
+_writer = ThreadPoolExecutor(max_workers=1)
+
+
+def _write_briefing(key: str, facts: dict) -> None:
+    try:
+        result = briefing_text.write(facts)
+    except Exception as e:  # never let a briefing break the view
+        result = {"state": "unavailable", "text": None, "reason": type(e).__name__}
+    with _brief_lock:
+        BRIEFINGS[key] = result
+        _pending.discard(key)
+    time.sleep(1.0)  # stay well under the free tier's requests per minute
+
+
+def _with_briefings(view: dict) -> dict:
+    for z in view["zones"]:
+        facts = briefing_text.zone_facts(z)
+        key = briefing_text.facts_key(facts)
+        with _brief_lock:
+            done = BRIEFINGS.get(key)
+            if done is None and USE_AI and key not in _pending:
+                _pending.add(key)
+                _writer.submit(_write_briefing, key, facts)
+        if done is not None:
+            z["briefing"] = done
+        else:
+            z["briefing"] = {"state": "writing" if USE_AI else "unavailable", "text": None,
+                             "reason": None if USE_AI else "ai_off"}
+    return view
+
+
 @app.get("/api/views/areaBriefing/{area_id}")
 def view_briefing(area_id: str):
     if area_id not in {a["id"] for a in memory.store.catalogue["areas"]}:
         raise NotFound(area_id)
     with memory.lock:
-        return area_briefing(memory.store, area_id, _now())
+        view = area_briefing(memory.store, area_id, _now())
+    return _with_briefings(view)
 
 
 @app.get("/api/views/teamMissions/{team_id}")
@@ -205,8 +247,6 @@ def ask_teams(b: AskTeams):
 
 
 # --- intake, desk review, family status (T3, D6) ---
-
-USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"
 
 
 class Intake(Write):

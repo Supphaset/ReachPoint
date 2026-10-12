@@ -195,7 +195,12 @@ export function ZoneBriefing({ zone, area, onClose }: { zone: ZoneBriefingView; 
           <Icon name="sparkle" size={16} /> Briefing
         </h3>
         {zone.briefing.state === "ready" && zone.briefing.text ? (
-          <p>{zone.briefing.text}</p>
+          <div className="zb-ai">
+            <p>{zone.briefing.text}</p>
+            <p className="fine-print">Written by AI from the facts above only. Every number and place was checked against them before it was shown.</p>
+          </div>
+        ) : zone.briefing.state === "writing" ? (
+          <p className="muted">Writing the briefing… The facts above are complete without it.</p>
         ) : (
           <p className="muted">Briefing unavailable. The facts above are complete.</p>
         )}
