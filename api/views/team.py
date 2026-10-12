@@ -82,17 +82,59 @@ def destination(need: dict) -> dict:
     return {"id": d["id"], "label": DESTINATIONS[d["id"]], "reason": d["reason"]}
 
 
-def groups(need: dict) -> list[dict]:
-    """Household groups, each taken whole. A taken listing's groups show who took them."""
+ACTIVE = ("taken", "on_the_way", "on_scene")
+
+
+def allocations_for(store: Store, listing_id: str) -> list[dict]:
+    return [a for a in store.seed.get("allocations", []) if a["listingId"] == listing_id]
+
+
+def group_owner(store: Store, need: dict, group_id: str) -> str | None:
+    """The team holding this group: an allocation record covering it (open, or closed with the family moved), or
+    the need's stored allocation for records that predate group-level claims (C-04 in the demo seed). A summary the
+    server wrote from allocation records (`fromAllocations`) is never read back as an owner."""
+    for a in allocations_for(store, need["listingId"]):
+        if group_id in a["groupIds"] and (a["state"] in ACTIVE or a.get("outcome") in ("done", "already_left", "not_found")):
+            return a["teamId"]
     alloc = need["allocation"]
-    state = "open" if alloc["state"] == "open" else "taken"
+    if alloc["state"] != "open" and not alloc.get("fromAllocations"):
+        return alloc.get("teamId") or "another team"
+    return None
+
+
+def groups(need: dict, store: Store | None = None) -> list[dict]:
+    """Household groups, each taken whole. A taken group shows who took it."""
     out = []
     for i, g in enumerate(need["groups"]):
-        row = {"groupId": f"{need['listingId']}-G{i + 1}", "label": g["label"], "people": sum(g["party"].values()),
-               "party": g["party"], "seatUnits": seats(g["party"]), "state": state}
-        if state == "taken" and alloc.get("teamId"):
-            row["takenBy"] = alloc["teamId"]
+        gid = f"{need['listingId']}-G{i + 1}"
+        owner = group_owner(store, need, gid) if store else (need["allocation"].get("teamId") if need["allocation"]["state"] != "open" else None)
+        row = {"groupId": gid, "label": g["label"], "people": sum(g["party"].values()), "party": g["party"],
+               "seatUnits": seats(g["party"]), "state": "taken" if owner else "open"}
+        if owner:
+            row["takenBy"] = owner
         out.append(row)
+    return out
+
+
+def seats_used(store: Store, team_id: str) -> float:
+    """Seats held by a team's jobs: open jobs, and closed ones whose family was moved (the trip used the seats)."""
+    return sum(a["seatUnits"] for a in store.seed.get("allocations", [])
+               if a["teamId"] == team_id and (a["state"] in ACTIVE or a.get("outcome") == "done"))
+
+
+def job(store: Store, a: dict, row: dict, need: dict) -> dict:
+    """The team's own job: the only place the exact point and medical notes appear (D25, D38)."""
+    exact = need.get("exactPickup") or {"at": [0, 0], "precision": "landmark", "source": "unknown"}
+    out = {"allocationId": a["allocationId"], "listingId": a["listingId"], "caseId": row["caseId"], "colour": row["colour"],
+           "landmarkLabel": row["landmarkLabel"], "urgency": row["urgency"], "destination": row["destination"],
+           "medical": need.get("medicalNotes") if a["state"] in ACTIVE else None,
+           "groups": [g for g in row["groups"] if g["groupId"] in a["groupIds"]],
+           "seatUnits": a["seatUnits"], "state": "closed" if a["state"] == "closed" else a["state"],
+           "window": a.get("window"), "acceptedAt": a["acceptedAt"],
+           "pickup": {"landmarkLabel": row["landmarkLabel"], **exact}}
+    for k in ("outcome", "closedAt", "medicalRemovedAt"):
+        if a.get(k):
+            out[k] = a[k]
     return out
 
 
@@ -123,15 +165,22 @@ def team_missions(store: Store, team_id: str, at: str, water_at: str | None = No
             "distanceM": nice_distance(distance_m(team_at, tuple(doc["pickup"]["at"]))),
             "distanceBasis": "straight line from your landmark, not a route",
             "waitingSince": need["waitingSince"], "lastConfirmedAt": case["lastConfirmedAt"],
-            "reasons": [f"Urgent: {flag}"] if flag else [],
+            "reasons": ([f"Urgent: {flag}"] if flag else []) + list(need.get("reasons", [])),
             "urgency": urgency(case, need, water, c),
             "destination": destination(need),
             "people": need["units"],
-            "groups": groups(need),
+            "groups": groups(need, store),
         }))
     rows.sort(key=lambda r: r[0])
     res = team["resource"]
-    taken = sum(g["seatUnits"] for _, r in rows for g in r["groups"] if g.get("takenBy") == team_id)
+    taken = seats_used(store, team_id)
+    by_listing = {r["listingId"]: r for _, r in rows}
+    needs = {n["listingId"]: n for _, n in store.needs()}
+    for lid, r in by_listing.items():
+        if needs[lid].get("reconfirmRequestedAt"):
+            r["reconfirmRequestedAt"] = needs[lid]["reconfirmRequestedAt"]
+    jobs = [job(store, a, by_listing[a["listingId"]], needs[a["listingId"]])
+            for a in store.seed.get("allocations", []) if a["teamId"] == team_id and a["listingId"] in by_listing]
     return {
         "teamId": team_id, "label": team["label"], "dataMode": store.seed["dataMode"], "generatedAt": at,
         "dataLabel": "Synthetic demo records at 10:16; order from api/rules/tiers.py (colour, distance, waiting)",
@@ -143,7 +192,7 @@ def team_missions(store: Store, team_id: str, at: str, water_at: str | None = No
                               "seatUnitsLeft": res["seatUnits"] - taken, "basis": res["basis"]}},
         "seatUnits": {**SEAT, "label": SEAT_LABEL},
         "open": [r for _, r in rows],
-        "jobs": [],
+        "jobs": jobs,
     }
 
 
