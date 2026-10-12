@@ -7,6 +7,7 @@ import { useView } from "../../data/useView";
 import { Banner, CountBadge, EstimateRange, LastUpdated, Skeleton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 import { FactList, ZoneBriefing } from "./ZoneBriefing";
+import { RainLine } from "./Rain";
 import { ZoneMap } from "./ZoneMap";
 import "./briefing.css";
 
@@ -163,6 +164,7 @@ function AreaHeader({ area, offline, stale }: { area: AreaBriefingView; offline:
       <CountBadge urgent={area.badge.urgent} unreviewed={area.badge.unreviewed} />
       <FactList facts={area.facts} />
       <EstimateRange range={fmtRange(area.estimate.notYetChecked)}>in segments not yet checked</EstimateRange>
+      <RainLine areaId={area.areaId} labels={Object.fromEntries(area.zones.flatMap((z) => z.segments.map((s) => [s.segmentId, s.label])))} />
     </header>
   );
 }

@@ -326,3 +326,27 @@ export interface SplitPanelView {
 export type AskResult =
   | { ok: true; askedAt: string; asks: { askId: string; teamId: string; listingIds: string[] }[]; note: string }
   | { ok: false; code: "VERSION_CONFLICT"; message: string; detail: { why: string; current: Suggestion } };
+
+/** D41: satellite rain replayed on the demo clock. Never water depth; never changes counts or order. */
+export interface RainPrompt {
+  promptId: string;
+  state: "proposed";
+  title: string;
+  reasons: string[];
+  recheck: { segmentId: string; zoneId: string; checkedAt: string; groundM: number | null; reason: string }[];
+  note: string;
+}
+
+export interface RainStatus {
+  areaId: string;
+  asOf: string;
+  label: string;
+  source: string;
+  last1h: number | null;
+  last3h: number | null;
+  last24h: number | null;
+  complete: boolean;
+  class24h: string | null;
+  line: string;
+  prompt: RainPrompt | null;
+}

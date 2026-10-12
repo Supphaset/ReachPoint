@@ -19,6 +19,7 @@ Every published layer must trace back to an entry here. See pack §5.1b–c for 
 | Google Open Buildings v3 polygons (`GOOGLE/Research/open-buildings/v3/polygons`), confidence ≥ 0.75 | People per segment, count 2: buildings × people per building (D27) | CC BY 4.0 and ODbL |
 | DOPA registered population, อำเภอหาดใหญ่, 2567 (2024): 406,374 ([Wikipedia infobox](https://th.wikipedia.org/wiki/อำเภอหาดใหญ่), which links DOPA's district statistics; **to confirm** on stat.bora.dopa.go.th) | People per building for count 2: 406,374 / 149,430 buildings = 2.72 | Public statistics, กรมการปกครอง |
 | FABDEM v1.2 bare-earth 30 m (`projects/sat-io/open-datasets/FABDEM`, community catalogue) | Ground height for the city flood model (D31) | CC BY-NC-SA 4.0 (noncommercial; fine for this prototype) |
+| NASA GPM IMERG V07 Final Run, half-hourly (`NASA/GPM_L3/IMERG_V07`), 18–30 Nov 2025 | `rain-imerg.json`: satellite rain per area, replayed for the D41 rain line and re-check prompt. About 10 km cells; under-reads heavy storms; never water depth | NASA GES DISC, Huffman et al., GPM IMERG Final Precipitation L3 Half Hourly V07; NASA data, free to use with citation |
 | FAO GAUL 2025 level 2 (`FAO/GAUL/2025/level2`) | Hat Yai district outline for the GISTDA sanity check | FAO, non-commercial use |
 
 ## Runs
