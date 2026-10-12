@@ -33,22 +33,25 @@ AT = "2026-10-11T03:15:00Z"  # 10:15 Bangkok, after the coordinator approved C-0
 STALE_AT = "2026-10-11T00:35:00Z"  # 07:35 Bangkok
 
 # Reviewed cases, as a team leader may see them: landmark-level location only (D25), no names or phones.
+# Priorities follow the shared tiers (api/rules/tiers.py, C3): RED = tier 1 (C-01's medical need, and its
+# transport through the coordinator's urgent flag), YELLOW = other evacuation or medical, GREEN = supplies.
 # P-B evacuation people add up to the scenario's reviewed demand of 24 (C-01's 3 included once).
 CASES = [
     {"caseId": "C-01", "segmentId": "B-3-L3", "people": 3, "lastConfirmedAt": "2026-10-11T03:15:00Z",
      "assistance": [
-         {"type": "evacuation_transport", "priority": "yellow", "review": "validated", "allocation": "open"},
+         {"type": "evacuation_transport", "priority": "red", "review": "validated", "allocation": "open",
+          "note": "Linked to the medical need"},
          {"type": "medical", "priority": "red", "review": "validated", "allocation": "open",
           "note": "Needs qualified review"}]},
     {"caseId": "C-02", "segmentId": "B-3-L5", "people": 4, "lastConfirmedAt": "2026-10-11T02:40:00Z",
      "assistance": [{"type": "evacuation_transport", "priority": "yellow", "review": "validated", "allocation": "open"}]},
     {"caseId": "C-03", "segmentId": "B-3-L1", "people": 2, "lastConfirmedAt": "2026-10-11T01:05:00Z",
-     "assistance": [{"type": "evacuation_transport", "priority": "green", "review": "validated", "allocation": "open"}]},
+     "assistance": [{"type": "evacuation_transport", "priority": "yellow", "review": "validated", "allocation": "open"}]},
     {"caseId": "C-04", "segmentId": "B-2-L3", "people": 5, "lastConfirmedAt": "2026-10-11T02:10:00Z",
      "assistance": [{"type": "evacuation_transport", "priority": "yellow", "review": "validated", "allocation": "taken",
                      "teamId": "T-R"}]},
     {"caseId": "C-05", "segmentId": "B-1-L2", "people": 3, "lastConfirmedAt": "2026-10-11T00:50:00Z",
-     "assistance": [{"type": "evacuation_transport", "priority": "green", "review": "validated", "allocation": "open"},
+     "assistance": [{"type": "evacuation_transport", "priority": "yellow", "review": "validated", "allocation": "open"},
                     {"type": "supplies", "priority": "green", "review": "validated", "allocation": "open"}]},
     {"caseId": "C-06", "segmentId": "B-5-L1", "people": 4, "lastConfirmedAt": "2026-10-11T02:55:00Z",
      "assistance": [{"type": "evacuation_transport", "priority": "yellow", "review": "validated", "allocation": "open"}]},

@@ -46,3 +46,4 @@ data/**/reference/
 web/node_modules/
 web/dist/
 web/*.tsbuildinfo
+web/.vite/

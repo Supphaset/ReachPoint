@@ -12,7 +12,7 @@
  },
  "dataLabel": "Synthetic demo records; geography and estimates from the C1 fixture",
  "badge": {
-  "urgent": 1,
+  "urgent": 2,
   "unreviewed": 1
  },
  "facts": [
@@ -155,7 +155,7 @@
      "assistance": [
       {
        "type": "evacuation_transport",
-       "priority": "green",
+       "priority": "yellow",
        "review": "validated",
        "allocation": "open"
       },
@@ -557,7 +557,7 @@
    "areaId": "P-B",
    "district": "เขต 2",
    "badge": {
-    "urgent": 1,
+    "urgent": 2,
     "unreviewed": 1
    },
    "status": "has_reports",
@@ -639,9 +639,10 @@
      "assistance": [
       {
        "type": "evacuation_transport",
-       "priority": "yellow",
+       "priority": "red",
        "review": "validated",
-       "allocation": "open"
+       "allocation": "open",
+       "note": "Linked to the medical need"
       },
       {
        "type": "medical",
@@ -674,7 +675,7 @@
      "assistance": [
       {
        "type": "evacuation_transport",
-       "priority": "green",
+       "priority": "yellow",
        "review": "validated",
        "allocation": "open"
       }
