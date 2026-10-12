@@ -25,3 +25,12 @@ Implementation details and evaluation thresholds remain proposed until implement
 ## Later user clarification — 12 Oct 2026
 
 The user requested using the flood map for rescue planning, estimating water levels from multiple intake reports, and then instructed “Now plan all for me.” These requested capabilities are accepted. The consolidated [implementation plan](../planning/surge-demo.md) records dependencies, proposed records, uncertainty treatment, demonstration acceptance and cuts. Numerical algorithms, thresholds, interpolation and UI details remain proposed and require validation. This documentation update does not claim implementation or authorize new services/spend.
+
+## Implementation authorization and boundary — 12 Oct 2026
+
+The user instructed: “Now I want you to work on our part and if finish create PR for me I'll let you work until it is done.”
+This authorizes the user-owned contracts, synthetic generator/replay, local estimation, map and live transport-planning
+handoff described in the plan, plus feature-branch push and PR creation. It does not authorize new services, spend or
+merging this implementation PR. The implementation uses deterministic simulation and the existing in-memory server;
+automatic authoritative filing, voice and durable storage remain the friend's integration stream. Numerical prototype
+rules are versioned and tested for invariants; this is not acceptance of real-world flood accuracy.

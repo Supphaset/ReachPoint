@@ -243,6 +243,13 @@ export function WaitingPage() {
             </header>
             {offline && <Banner kind="offline">Offline. You can look, but taking a case needs a connection.</Banner>}
             <StatusCard v={v} />
+            {!!v.asks?.length && <section aria-label="Coordinator asks"><h2>Coordinator asks</h2>
+              <ul>{v.asks.slice(-10).reverse().map((a) => <li key={a.askId}>Asked at {fmtTime(a.askedAt)}: {a.groups.filter((g) => open.some((l) => l.listingId === g.listingId && l.groups.some((x) => x.groupId === g.groupId && x.state === "open"))).map((g) => {
+                const listing = open.find((l) => l.listingId === g.listingId)!;
+                return `${listing.landmarkLabel} · ${listing.groups.find((x) => x.groupId === g.groupId)!.label}`;
+              }).join(", ") || "These groups are no longer open"}.</li>)}</ul>
+              <p>Check current needs and take a whole group below. An ask reserves no capacity and makes no arrival promise.</p>
+            </section>}
             {v.team.status !== "available" && (
               <Banner kind="stale">You're {TEAM_STATUS[v.team.status].en.toLowerCase()}. Set yourself Available to take cases.</Banner>
             )}

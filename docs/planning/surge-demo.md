@@ -8,16 +8,29 @@ Demonstrate 1,200 synthetic requests becoming an evolving flood-observation map,
 
 Production throughput proof, a real phone line, new paid services and autonomous routing are outside this demonstration. Keep the existing FastAPI, React/Vite/TS, deterministic rules and tokens. Begin with the existing MemoryStore behind a storage interface; clearly disclose restart resets. Firestore/Auth remain planned platform work and must not silently become a dependency for the local replay. Public deployment requires appropriate access controls or a clearly isolated synthetic sandbox.
 
+## Implementation checkpoint — 13 Oct, user-owned PR
+
+The user authorized implementation and a PR after scope review on 12 Oct. The local implementation now supplies the
+shared water/replay contract, 12 samples, reproducible 1,200-report generator, versioned local envelope estimator,
+three-mode flood workspace, isolated replay and current whole-family transport planning with recorded team asks.
+See [implementation and friend handoff](flood-map-handoff.md) for exact behavior and demo steps. These deliver the
+user-owned pieces; they do **not** implement automatic authoritative assistance filing, live voice, durable storage
+or production flood accuracy. The simulator parses constrained visible text only, never evaluation truth.
+
+The detailed design below remains a proposal where it goes beyond that checkpoint: continuous depth surfaces,
+time scrubbing, automatic population inference, full scenario comparison and extraction accuracy evaluations are
+not claimed by this PR. Replay reports remain separate from operational jobs until the friend's filing adapter is integrated.
+
 ## Existing versus missing
 
 | Capability | Current evidence | Remaining work |
 |---|---|---|
 | Intake | Text extraction, status token, background triage | Save before extraction, common voice adapter, processing state |
 | Automatic organization | Ranking/link suggestions | Explicit AI-read routine filing and exception workflow |
-| Map | Historical extent, geography, blind spots, reviewed caller markers | AI-read observations, conflicts, evidence drawer, three modes |
-| Water estimation | Precomputed package depths; newest reviewed band per segment | Comparable multi-report estimates with evidence and uncertainty |
-| Rescue operations | Solver, team claims/progress/outcomes, resident status, S1 failure | Live solver inputs, real direct asks, map planning integration |
-| Demonstration | Small fixtures and scene tests | 1,200-report dataset, replay controls and measured outcomes |
+| Map | Historical extent, geography, blind spots, reviewed caller markers | Delivered: AI-read observations, conflicts, evidence drawer, city/zone summaries, three modes; time scrubbing proposed |
+| Water estimation | Precomputed package depths; newest reviewed band per segment | Delivered: local envelope estimates; field validation and terrain surface deferred |
+| Rescue operations | Solver, team claims/progress/outcomes, resident status, S1 failure | Delivered: live whole-family transport solver, recorded direct asks, map planning link |
+| Demonstration | Small fixtures and scene tests | Delivered: 1,200-report isolated deterministic replay; integrated automatic filing/voice still needed |
 | Durability/access | In-memory records, demo roles | Firestore/Auth/rules and deployment verification, separate platform stream |
 
 ## End-to-end flow

@@ -9,11 +9,13 @@ import { get, post, submissionId } from "./api";
 import { apiMode } from "./mode";
 import { devSwitch } from "./source";
 
+const selectedArea = () => typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("area");
+
 const panel = import.meta.glob("../../../contract/fixtures/splitPanel.cp3.json", { import: "default" });
 const asks = import.meta.glob("../../../contract/fixtures/askTeams.*.json", { import: "default" });
 
 export async function loadSplitPanel(): Promise<SplitPanelView> {
-  if (apiMode()) return get<SplitPanelView>("/api/views/splitPanel");
+  if (apiMode()) return get<SplitPanelView>(`/api/views/splitPanel${selectedArea() ? `?areaId=${encodeURIComponent(selectedArea()!)}` : ""}`);
   await new Promise((r) => setTimeout(r, 300));
   if (devSwitch("fail") === "split") throw new Error("Split unavailable");
   const view = (await panel["../../../contract/fixtures/splitPanel.cp3.json"]()) as SplitPanelView;
@@ -29,7 +31,7 @@ export async function loadSplitPanel(): Promise<SplitPanelView> {
 type AskFixture = { request: { suggestionId: string }; response: AskResult };
 
 export async function askTeams(suggestionId: string, teamIds: string[], snapshotAt?: string): Promise<AskResult> {
-  if (apiMode()) return post<AskResult>("/api/ask-teams", { suggestionId, teamIds, submissionId: submissionId() });
+  if (apiMode()) return post<AskResult>("/api/plans/ask", { suggestionId, teamIds, areaId: selectedArea(), submissionId: submissionId() });
   await new Promise((r) => setTimeout(r, 300));
   const stale = (await asks["../../../contract/fixtures/askTeams.stale.json"]()) as AskFixture;
   const ok = (await asks["../../../contract/fixtures/askTeams.ok.json"]()) as AskFixture;

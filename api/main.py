@@ -32,6 +32,10 @@ from api.views.desk import rain_view, rising_water_view, zone_order_view
 from api.views.resident import resident_status
 from api.views.review import review_queue
 from api.views.team import team_missions
+from api.contract.flood import ReplayReset, ReplayStep, WaterInput
+from api.server.flood_replay import FloodReplay
+from api.views.flood import flood_map
+from api.views.planning import panel as live_panel
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = Path(os.environ.get("REACHPOINT_WEB_DIST", ROOT / "web" / "dist"))
@@ -39,6 +43,7 @@ DAY_START, STEPS = "2026-10-11T03:00:00Z", 15  # the replayed demo day: 10:00–
 
 app = FastAPI(title="ReachPoint", version="0.1", docs_url="/api/docs", openapi_url="/api/openapi.json")
 memory = MemoryStore(clock=Clock(os.environ.get("REACHPOINT_CLOCK", "demo")))
+flood_replay = FloodReplay(memory.store.catalogue)
 USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"  # off: no Gemini calls (tests, offline demo)
 
 
@@ -144,8 +149,9 @@ def view_rising(area_id: str):
 
 
 @app.get("/api/views/splitPanel")
-def view_split():
-    return json.loads((ROOT / "contract" / "fixtures" / "splitPanel.cp3.json").read_text())
+def view_split(areaId: str | None = None):
+    with memory.lock:
+        return live_panel(memory.store, _now(), areaId)
 
 
 # --- team actions (C6) ---
@@ -405,6 +411,108 @@ def reset():
     global memory
     memory = MemoryStore(clock=Clock(os.environ.get("REACHPOINT_CLOCK", "demo")))
     return {"ok": True, "now": _now()}
+
+
+# --- user-owned map and isolated replay ---
+
+@app.get("/api/views/floodMap")
+def view_flood_map(source: str = "operations"):
+    if source not in ("operations", "replay"):
+        raise HTTPException(status_code=422, detail="Unknown map source")
+    replay = flood_replay.snapshot() if source == "replay" else None
+    with memory.lock:
+        return flood_map(memory.store, _now(), replay)
+
+
+@app.post("/api/demo/flood-replay/step")
+def replay_step(b: ReplayStep):
+    return flood_replay.write(b.submissionId, b.expectedCursor, b.expectedRevision, b.count)
+
+
+@app.post("/api/demo/flood-replay/reset")
+def replay_reset(b: ReplayReset):
+    return flood_replay.write(b.submissionId, b.expectedCursor, b.expectedRevision)
+
+
+@app.post("/api/water-observations")
+def water_observation(b: WaterInput):
+    from api.intake.extract import quoted
+    from api.rules.water import timestamp
+
+    def apply():
+        report = next((r for r in memory.store.seed.get("reports", []) if r["reportId"] == b.reportId), None)
+        if report is None:
+            raise HTTPException(404, detail="Unknown intake report")
+        if report.get("status") == "rejected":
+            raise Refused("INVALID", "Rejected intake cannot supply current water evidence")
+        if b.segmentId not in memory.store.landmarks or b.siteId != b.segmentId:
+            raise Refused("INVALID", "Use the reported segment landmark; exact household sites are not shared")
+        if b.segmentId not in b.quote:
+            raise Refused("INVALID", "Location must be explicitly present in the report")
+        if b.source != report["channel"]:
+            raise Refused("INVALID", "Observation source must match the intake channel")
+        if b.evidenceRef and b.evidenceRef != b.reportId and b.evidenceRef not in report["text"]:
+            raise Refused("INVALID", "Source reference must be present in the report")
+        if not quoted(report["text"], b.quote):
+            raise Refused("INVALID", "Observation needs words from the original report")
+        if b.depthM is not None:
+            import re
+            measurements = re.findall(r"(\d+(?:\.\d+)?)\s*(?:m\b|metres?\b|meters?\b|เมตร)", b.quote)
+            if not any(abs(float(x) - b.depthM) < 0.001 for x in measurements):
+                raise Refused("INVALID", "Numeric depth needs a metre measurement in the quoted words")
+        references = {"street_ground": ("street ground", "พื้นถนน"), "indoor_floor": ("indoor floor", "พื้นบ้าน"),
+                      "upper_floor": ("upper floor", "ชั้นสอง")}
+        if b.reference != "unknown" and not any(word in b.quote.lower() for word in references[b.reference]):
+            raise Refused("INVALID", "Measurement reference must be present in the quoted words")
+        if b.observedAt and b.observedAt.isoformat().replace("+00:00", "Z") not in b.quote:
+            raise Refused("INVALID", "Explicit observation timestamp must be present in the quoted words; otherwise leave it unknown")
+        if b.trend != "unknown" and not any(word in b.quote.lower() for word in {
+                "rising": ("rising", "สูงขึ้น"), "steady": ("steady", "คงที่"), "falling": ("falling", "ลดลง")}[b.trend]):
+            raise Refused("INVALID", "Trend must be supported by the quoted words")
+        if b.band:
+            from api.intake.extract import standin_extract
+            if (standin_extract(b.quote).get("water") or {}).get("band") != b.band:
+                raise Refused("INVALID", "The water band must be supported by the quoted words")
+        row = b.model_dump(mode="json", exclude={"submissionId"})
+        row["evidenceRef"] = b.evidenceRef or b.reportId
+        row.update(observationId="W-" + b.submissionId, receivedAt=_now(), review="ai_read")
+        if row["observedAt"] and timestamp(row["observedAt"]) > memory.clock.now():
+            raise Refused("INVALID", "Observation time is in the future")
+        memory.store.seed.setdefault("waterObservations", []).append(row)
+        return {"observationId": row["observationId"], "review": "ai_read"}
+
+    return memory.write(b.submissionId, apply)
+
+
+class PlanAsk(BaseModel):
+    submissionId: str = Field(min_length=1)
+    suggestionId: str
+    teamIds: list[str] = Field(min_length=1)
+    areaId: str | None = None
+
+
+@app.post("/api/plans/ask")
+def plan_ask(b: PlanAsk):
+    def apply():
+        current = live_panel(memory.store, _now(), b.areaId)
+        s = current["suggestion"]
+        if b.suggestionId != s["suggestionId"]:
+            return {"ok": False, "code": "VERSION_CONFLICT", "message": "Needs or resources changed",
+                    "detail": {"why": "Refresh the current whole-family plan", "current": s}}
+        allowed = {a["teamId"] for a in s["assignments"]}
+        if not s["solver"]["optimal"] or len(set(b.teamIds)) != len(b.teamIds) or not set(b.teamIds) <= allowed:
+            raise Refused("INVALID", "Ask only teams in the current optimal plan")
+        asks = []
+        for team in b.teamIds:
+            links = [current["groupLinks"][a["listingId"]] for a in s["assignments"] if a["teamId"] == team]
+            ask = {"askId": f"ASK-{b.submissionId}-{team}", "teamId": team, "suggestionId": s["suggestionId"],
+                   "listingIds": sorted({l["listingId"] for l in links}), "groups": links, "askedAt": _now()}
+            memory.store.seed.setdefault("teamAsks", []).append(ask)
+            asks.append(ask)
+        return {"ok": True, "askedAt": _now(), "asks": asks, "note": "Teams still take whole groups; no assignment or arrival promise was made"}
+
+    # Atomic retry-safe wrapper; flatten its value to the split panel's AskResult contract.
+    return memory.write(b.submissionId, apply)["value"]
 
 
 # --- the web app ---
