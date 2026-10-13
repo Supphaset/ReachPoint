@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { Job, OpenListing } from "../../data/contract";
 import { LangProvider } from "../../i18n/lang";
-import { JobCard } from "./TeamPages";
+import { JobCard, UrgencyBox } from "./TeamPages";
 import fixture from "../../../../contract/fixtures/teamMissions.T-S.json";
 
 const row = fixture.open[0] as unknown as OpenListing;
@@ -37,5 +37,19 @@ describe("job next action", () => {
     expect(html).toContain('class="medical"');
     expect(html).toContain("เฉพาะทีมของคุณ");
     expect(html).not.toContain("Set window");
+  });
+});
+
+
+describe("urgency evidence", () => {
+  it("shows an expandable chevron and quotes the coordinator note with its Thai twin", () => {
+    const u = { ...base.urgency, summary: "Coordinator flagged urgent: Synthetic transport note", facts: [{ kind: "flag" as const, text: "Coordinator flagged urgent: Synthetic transport note", th: "ผู้ประสานงานระบุว่าด่วน: หมายเหตุการขนส่งจำลอง", basis: "coordinator" }] };
+    const html = renderToStaticMarkup(<LangProvider lang="th"><UrgencyBox u={u} colour="red" /></LangProvider>);
+    expect(html).toContain('class="urgency-chevron"');
+    expect(html).toContain("คำพูดของผู้ประสานงาน:");
+    expect(html).toContain("<q>หมายเหตุการขนส่งจำลอง</q>");
+    expect(html).not.toContain("Synthetic transport note");
+    const original = renderToStaticMarkup(<LangProvider lang="th"><UrgencyBox u={{ ...u, facts: [{ ...u.facts[0], th: undefined }] }} colour="red" /></LangProvider>);
+    expect(original).toContain("<q>Synthetic transport note</q>");
   });
 });

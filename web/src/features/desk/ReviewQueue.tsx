@@ -135,10 +135,10 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
         <span className="muted">{new Date(r.receivedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bangkok" })}</span>
         <span className="muted">· {r.channel === "text" ? t(S.desk.textChannel) : r.channel === "voice" ? t(S.desk.voiceChannel) : r.channel}</span>
       </div>
+      <blockquote className="review-text">{r.text}</blockquote>
       <DeskLocation location={resolvedLocation} disabled={busy} onApply={(input, resolved) => {
         setLocation(input); setResolvedLocation(resolved); setSegment(resolved.segmentId ?? "");
       }} />
-      <blockquote className="review-text">{r.text}</blockquote>
       <ProposalCard title={f.summary || t(S.desk.facts)} label={t(S.desk.proposal)}>
         <table className="desk-facts"><thead><tr><th>{t(S.desk.fact)}</th><th>{t(S.desk.value)}</th><th>{t(S.desk.quote)}</th></tr></thead>
           <tbody>

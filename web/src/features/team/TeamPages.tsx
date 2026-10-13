@@ -180,6 +180,19 @@ function StatusSheet({ v, onClose }: { v: TeamMissionsView; onClose: () => void 
   );
 }
 
+/* Server flag fields may include a translated UI prefix around an untranslated human note. */
+export function coordinatorNote(text: string): string {
+  return text.replace(/^(?:Coordinator flagged urgent|ผู้ประสานงานระบุว่าด่วน):\s*/, "");
+}
+
+function UrgencySummary({ u }: { u: Urgency }) {
+  const { t, pick } = useLang();
+  const flag = u.facts.find(f => f.kind === "flag" && (u.summary === f.text || (!!f.th && u.th?.summary === f.th)));
+  return flag
+    ? <>{t(S.team.coordinatorWords)} <q>{coordinatorNote(pick(flag.text, flag.th))}</q></>
+    : <>{pick(u.summary, u.th?.summary)}</>;
+}
+
 /* ---------------- Why it's urgent ---------------- */
 
 export function UrgencyBox({ u, colour, open = false, inJob = false, children }: { u: Urgency; colour: string; open?: boolean; inJob?: boolean; children?: ReactNode }) {
@@ -190,15 +203,16 @@ export function UrgencyBox({ u, colour, open = false, inJob = false, children }:
   return (
     <details className={`urgency tone-${colour}`} open={open}>
       <summary>
+        <span className="urgency-chevron"><Icon name="chevron" /></span>
         <span className="urgency-title">{th?.title ?? u.title}</span>
-        <span className="urgency-summary">{th?.summary || u.summary}</span>
+        <span className="urgency-summary"><UrgencySummary u={u} /></span>
       </summary>
       {children}
       <ul className="urgency-facts">
         {u.facts.map((f) => (
           <li key={f.kind + f.text}>
             <span>
-              {pick(f.text, f.th)}
+              {f.kind === "flag" ? <>{t(S.team.coordinatorWords)} <q>{coordinatorNote(pick(f.text, f.th))}</q></> : pick(f.text, f.th)}
               {f.at && (
                 <span className={f.stale ? "is-stale" : ""}>
                   {t(S.team.reported(fmtTime(f.at), f.callers ?? 0))}
@@ -284,7 +298,7 @@ function WaitingBody({ v, offline }: { v: TeamMissionsView; offline: boolean }) 
 
 function ListingRow({ l, v, offline }: { l: OpenListing; v: TeamMissionsView; offline: boolean }) {
   const [taking, setTaking] = useState(false);
-  const { t, lang, pick } = useLang();
+  const { t, lang } = useLang();
   const confirmedMin = (now() - Date.parse(l.lastConfirmedAt)) / 60000;
   const old = confirmedMin > STALE_CONFIRM_MIN;
   const openGroups = l.groups.filter((g) => g.state === "open");
@@ -297,7 +311,7 @@ function ListingRow({ l, v, offline }: { l: OpenListing; v: TeamMissionsView; of
         <span className="listing-dist num">{fmtDistance(l.distanceM, lang)}</span>
       </div>
       <p className="listing-place">{seedText(l.landmarkLabel, lang)}</p>
-      <p className="listing-summary">{pick(l.urgency.summary, l.urgency.th?.summary)}</p>
+      <p className="listing-summary"><UrgencySummary u={l.urgency} /></p>
       <ul className="group-list">
         {l.groups.map((g) => (
           <li key={g.groupId} className={g.state === "taken" ? "is-taken" : ""}>
