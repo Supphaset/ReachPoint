@@ -350,8 +350,8 @@ def intake_text(b: Intake):
 
 @app.get("/api/call/config")
 def call_config():
-    return {"chat": USE_AI and bool(conversation.api_key()),
-            "voice": USE_AI and bool(conversation.api_key()) and os.environ.get("REACHPOINT_VOICE", "off") == "on"}
+    available = USE_AI and conversation.configured()
+    return {"chat": available, "voice": available and os.environ.get("REACHPOINT_VOICE", "off") == "on"}
 
 
 @app.post("/api/call/sessions")

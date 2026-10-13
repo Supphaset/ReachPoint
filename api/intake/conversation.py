@@ -12,6 +12,8 @@ from threading import Lock
 from uuid import uuid4
 
 import httpx
+import google.auth
+from google.auth.transport.requests import Request
 from fastapi import HTTPException
 from google import genai
 from google.genai import types
@@ -90,12 +92,33 @@ def get(session_id: str) -> Conversation:
         return session
 
 
-def _extract(words: list[str]) -> FloodCase:
-    key = api_key()
-    if not key:
-        raise HTTPException(503, "Gemini is not configured. Use the text request form instead.")
+def configured() -> bool:
+    if api_key():
+        return True
     try:
-        with genai.Client(api_key=key) as client:
+        credentials, project = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+        return bool(credentials and (os.environ.get("GOOGLE_CLOUD_PROJECT") or project or credentials.quota_project_id))
+    except google.auth.exceptions.DefaultCredentialsError:
+        return False
+
+
+def _client() -> genai.Client:
+    key = api_key()
+    if key:
+        return genai.Client(api_key=key)
+    credentials, detected_project = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+    if not credentials.valid:
+        credentials.refresh(Request())
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT") or detected_project or credentials.quota_project_id
+    if not project:
+        raise RuntimeError("Google Cloud project not configured")
+    return genai.Client(enterprise=True, credentials=credentials, project=project,
+                        location=os.environ.get("GEMINI_CONVERSATION_LOCATION", "us-central1"))
+
+
+def _extract(words: list[str]) -> FloodCase:
+    try:
+        with _client() as client:
             result = client.models.generate_content(
                 model=MODEL, contents=json.dumps(words, ensure_ascii=False),
                 config=types.GenerateContentConfig(system_instruction=EXTRACT_INSTRUCTION,
@@ -108,11 +131,8 @@ def _extract(words: list[str]) -> FloodCase:
 
 
 def _reply(case: FloodCase, topic: str, words: list[str]) -> str:
-    key = api_key()
-    if not key:
-        return topic
     try:
-        with genai.Client(api_key=key) as client:
+        with _client() as client:
             result = client.models.generate_content(
                 model=MODEL,
                 contents=json.dumps({"callerMessages": words, "facts": case.model_dump(), "nextTopic": topic}, ensure_ascii=False),
