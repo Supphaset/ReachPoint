@@ -75,7 +75,7 @@ function StatusFooter() {
   const { t } = useLang();
   return <footer className="status-footer">
     <p className="fine-print">{t(S.status.footer)}</p>
-    <a className="btn btn-secondary btn-md" href="tel:1669">{t(S.status.call1669)}</a>
+    <a className="btn btn-secondary btn-md status-call" href="tel:1669">{t(S.status.call1669)}</a>
   </footer>;
 }
 

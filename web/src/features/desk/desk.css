@@ -87,7 +87,8 @@
   .desk-facts thead { display: none; }
   .desk-facts tr { display: grid; grid-template-columns: minmax(0, 1fr); padding: var(--space-2) 0; border-bottom: var(--border-thin) solid var(--color-line); }
   .desk-facts th, .desk-facts td { border: 0; padding: 0; width: auto; }
-  .desk-facts th:first-child { color: var(--color-ink-3); font-size: var(--text-xs); }
+  .desk-facts, .desk-facts tbody { display: block; }
+  .desk-facts th:first-child { width: auto; color: var(--color-ink-3); font-size: var(--text-xs); }
 }
 
 @container (max-width: 420px) {
