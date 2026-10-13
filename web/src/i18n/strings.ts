@@ -458,6 +458,13 @@ export const S = {
     copy: p("Copy", "คัดลอก"),
     copied: p("Copied", "คัดลอกแล้ว"),
     needsServer: p("The demo needs the server: open it with ?data=api.", "เดโมต้องใช้เซิร์ฟเวอร์ เปิดด้วย ?data=api"),
+    room: (code: string): Pair => p(`Your demo room: ${code}`, `ห้องเดโมของคุณ: ${code}`),
+    roomNote: p(
+      "Only you see this room, and Reset only resets it. Open the link on another phone to use the same room.",
+      "ห้องนี้เห็นเฉพาะคุณ และปุ่มเริ่มใหม่จะรีเซ็ตเฉพาะห้องนี้ เปิดลิงก์บนโทรศัพท์อีกเครื่องเพื่อใช้ห้องเดียวกัน",
+    ),
+    copyLink: p("Copy link", "คัดลอกลิงก์"),
+    newRoom: p("New room", "ห้องใหม่"),
   },
   briefing: {
     areas: p("Areas", "พื้นที่"),

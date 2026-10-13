@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { post, submissionId } from "../../data/api";
 import { apiMode } from "../../data/mode";
+import { demoRoom, newRoomCode, roomLink } from "../../data/room";
 import { LangSwitch, useLang, type Pair } from "../../i18n/lang";
 import { S } from "../../i18n/strings";
 import { Wordmark } from "../../shell/AppShell";
@@ -20,7 +21,8 @@ function Screen({ name, src, wide, k }: { name: Pair; src: string; wide?: boolea
   );
 }
 
-const q = (path: string, lang: "th" | "en", as: string) => `${path}?data=api&refresh=2&lang=${lang}&as=${encodeURIComponent(as)}`;
+const q = (path: string, lang: "th" | "en", as: string, room: string) =>
+  `${path}?data=api&refresh=2&lang=${lang}&as=${encodeURIComponent(as)}&room=${encodeURIComponent(room)}`;
 
 /** /demo: victim and volunteer phones side by side, with the coordinator's approval between them. */
 export function DemoPage() {
@@ -29,6 +31,25 @@ export function DemoPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [room, setRoom] = useState(() => demoRoom());
+  const [linkCopied, setLinkCopied] = useState(false);
+  const fresh = () => {
+    const code = newRoomCode();
+    const url = new URL(window.location.href);
+    url.searchParams.set("room", code);
+    window.history.replaceState(null, "", url);
+    setRoom(demoRoom(url.search));
+    setK((n) => n + 1);
+  };
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(roomLink("/demo", room));
+      setLinkCopied(true);
+      window.setTimeout(() => setLinkCopied(false), 1500);
+    } catch {
+      /* clipboard refused: the code is on screen */
+    }
+  };
   const reset = async () => {
     setBusy(true);
     setError(false);
@@ -68,6 +89,20 @@ export function DemoPage() {
       {!apiMode() && <Banner kind="info">{t(S.demo.needsServer)}</Banner>}
       {error && <Banner kind="error">{t(S.demo.resetFailed)}</Banner>}
       <p className="demo-lead">{t(S.demo.lead)}</p>
+      {apiMode() && (
+        <div className="demo-room">
+          <strong>{t(S.demo.room(room))}</strong>
+          <span className="muted">{t(S.demo.roomNote)}</span>
+          <span className="demo-room-actions">
+            <button type="button" className="btn btn-quiet btn-md" onClick={copyLink}>
+              {linkCopied ? t(S.demo.copied) : t(S.demo.copyLink)}
+            </button>
+            <button type="button" className="btn btn-quiet btn-md" onClick={fresh}>
+              {t(S.demo.newRoom)}
+            </button>
+          </span>
+        </div>
+      )}
       <ol className="demo-steps">
         {S.demo.steps.map((s, i) => (
           <li key={i}><span className="demo-step-number" aria-hidden="true">{i + 1}</span><span>{t(s)}</span></li>
@@ -82,9 +117,9 @@ export function DemoPage() {
       </div>
       {apiMode() && (
         <div className="demo-stage">
-          <Screen k={k} name={S.demo.victim} src={q("/call", "th", "resident:demo")} />
-          <Screen k={k} name={S.demo.desk} src={q("/desk", "en", "coordinator:demo-1")} wide />
-          <Screen k={k} name={S.demo.volunteer} src={q("/team/list", "th", "team:T-S")} />
+          <Screen k={k} name={S.demo.victim} src={q("/call", "th", "resident:demo", room)} />
+          <Screen k={k} name={S.demo.desk} src={q("/desk", "en", "coordinator:demo-1", room)} wide />
+          <Screen k={k} name={S.demo.volunteer} src={q("/team/list", "th", "team:T-S", room)} />
         </div>
       )}
     </div>
