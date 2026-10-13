@@ -132,33 +132,59 @@
 .call-case-confirm .btn { width: 100%; white-space: normal; text-align: center; }
 .call-page > .fine-print { align-self: end; }
 @media (max-width: 800px) {
-  .call-page { min-height: calc(100dvh - 56px); height: auto; padding: var(--space-2); }
+  /* The phone gets one job: the conversation. Composer and location button are always on screen (UX review). */
+  .call-page { height: calc(100dvh - 56px); min-height: 0; padding: var(--space-2); gap: var(--space-2); }
+  .call-page-heading h1, .call-mode, .call-intro, .call-privacy { display: none; }
   .call-page-heading { align-items: stretch; flex-direction: column; gap: var(--space-2); }
-  .call-workspace { display: flex; flex-direction: column; }
+  .call-workspace { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: var(--space-2); }
   .call-case { order: -1; flex: none; }
-  .call-case-head { padding: var(--space-3); }
+  .call-case-head { padding: var(--space-2) var(--space-3); align-items: center; }
+  .call-case-head h2 { font-size: var(--text-md); margin: 0; }
+  .call-case-head .fine-print { display: none; }
   .call-case-toggle { display: grid; place-items: center; flex: none; width: var(--tap-min); height: var(--tap-min); border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-surface); cursor: pointer; }
   .call-case-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
   .call-case-content:not(.is-open) { display: none; }
   .call-case-content { max-height: 45dvh; }
-  .call-chat-panel { min-height: 440px; height: min(70dvh, 650px); }
+  .call-chat-panel { flex: 1; min-height: 0; height: auto; }
   .call-chat-head { padding: var(--space-2) var(--space-3); }
+  .call-chat-head:not(:has(.call-voice-status)) { display: none; }
   .call-chat-scroll { padding: var(--space-3); }
   .call-composer { padding: var(--space-2) var(--space-3); }
+  .call-composer-foot .fine-print { display: none; }
+}
 }
 
-/* The location card inside the chat: pin your spot instead of describing it */
-.call-chat-location { border-top: var(--border-thin) solid var(--color-line); padding: 0 var(--space-3); }
-.call-location-open {
-  display: flex; align-items: center; gap: var(--space-2); width: 100%; min-height: 48px; padding: 0;
-  border: 0; background: none; color: var(--color-brand); font: inherit; font-weight: 600; text-align: left; cursor: pointer;
-}
-.call-location-open:focus-visible { outline: var(--space-1) solid var(--color-focus); outline-offset: var(--space-1); }
-/* Full-height sheet on phones so the map has room; a centred panel on wider screens */
+/* The location button inside the chat: prominent until a spot is set, then a compact row with Change */
+.call-chat-location { border-top: var(--border-thin) solid var(--color-line); padding: var(--space-2) var(--space-3); }
+.call-location-cta { width: 100%; justify-content: center; border: var(--border-thin) solid var(--color-brand); color: var(--color-brand); background: var(--color-waiting-bg); }
+.call-location-set { display: flex; align-items: center; gap: var(--space-2); min-height: var(--tap-min); color: var(--color-brand); font-weight: var(--weight-bold); }
+.call-location-set .btn { margin-left: auto; }
+
+/* 1669 is one tap (red stays reserved for RED priority) */
+a.call-danger { display: flex; align-items: center; gap: var(--space-2); min-height: var(--tap-min); color: var(--color-ink); text-decoration: none; }
+a.call-danger span { flex: 1; }
+.call-danger-cta { padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill); background: var(--color-ink); color: var(--color-on-ink); }
+
+/* Voice: a 48 px mic beside the reply box, never a wrapping full-width button */
+.call-reply.has-voice { grid-template-columns: auto minmax(0, 1fr) auto; }
+.call-voice-btn { width: var(--tap-min); min-height: var(--tap-min); padding: 0; justify-content: center; }
+.call-voice-btn.is-on { background: var(--color-brand); color: var(--color-brand-ink); border-color: var(--color-brand); }
+.call-voice-status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0; font-weight: var(--weight-medium); }
+.call-voice-dot { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-pill); background: var(--color-brand); animation: call-pulse 1.2s ease-in-out infinite; }
+@keyframes call-pulse { 50% { opacity: .3; } }
+.call-composer-links { display: flex; gap: var(--space-3); margin-left: auto; }
+
+/* Location sheet: bottom sheet on phones (the chat peeks above), centred panel on wider screens */
 .call-location-sheet {
-  width: min(100% - 2 * var(--space-3), 640px); max-height: calc(100dvh - 2 * var(--space-3));
-  padding: var(--space-4); border: var(--border-thin) solid var(--color-line); border-radius: var(--radius-md);
-  background: var(--color-surface); color: var(--color-ink);
+  width: min(100% - 2 * var(--space-3), 560px); height: min(760px, calc(100dvh - 2 * var(--space-6))); max-height: none;
+  padding: 0; border: 0; border-radius: var(--radius-lg); overflow: hidden;
+  background: var(--color-surface); color: var(--color-ink); box-shadow: var(--shadow-sheet);
 }
-.call-location-sheet[open] { display: flex; flex-direction: column; gap: var(--space-3); }
+.call-location-sheet[open] { display: flex; flex-direction: column; }
 .call-location-sheet::backdrop { background: var(--color-scrim); }
+@media (max-width: 800px) {
+  .call-location-sheet {
+    width: 100%; max-width: 100%; margin: auto 0 0; height: calc(100dvh - var(--space-7));
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding-bottom: env(safe-area-inset-bottom);
+  }
+}

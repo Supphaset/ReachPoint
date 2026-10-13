@@ -66,7 +66,7 @@ export function LocationMap({ at, zoneId, segmentId, onConfirm }: { at?: At | nu
       <p className="fine-print" id={`${id}-help`}>{overview ? `${t(S.location.cityHelp)} ` : ""}{t(S.location.mapHelp)}</p>
       {!overview && <button type="button" className="btn btn-quiet location-back" onClick={() => setZone("city")}>{t(S.location.backToCity)}</button>}
     </>}
-    <svg ref={svg} viewBox={`0 0 ${W} ${height}`} role={interactive ? "group" : "img"}
+    <svg ref={svg} className="location-map-svg" viewBox={`0 0 ${W} ${height}`} role={interactive ? "group" : "img"}
       aria-label={t(interactive ? S.location.mapLabel : S.location.miniLabel)}
       aria-describedby={interactive ? `${id}-help` : undefined} tabIndex={interactive ? 0 : undefined}
       onClick={interactive ? e => {

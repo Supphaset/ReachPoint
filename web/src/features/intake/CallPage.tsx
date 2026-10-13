@@ -189,14 +189,14 @@ export function CallPage() {
       <p className="fine-print">{t(S.call.keepLink)}</p>
       <Link className="status-link" to={result.statusUrl + window.location.search}>{window.location.origin}{result.statusUrl}</Link>
       <BigButton variant="secondary" onClick={() => { setLocation(undefined); void newConversation(); }}>{t(S.call.another)}</BigButton>
-      <p className="fine-print">{t(S.call.emergency)}</p>
+      <a className="call-danger" href="tel:1669"><Icon name="alert" size={20} /><span>{t(S.call.emergency)}</span><strong className="call-danger-cta">1669</strong></a>
     </div>
   );
 
   return (
     <div className={mode === "conversation" ? "call-page" : "page narrow intake"}>
       <div className="call-page-heading"><h1>{t(S.call.title)}</h1>
-      <p className="call-danger" role="note"><Icon name="alert" size={20} /><span>{t(S.call.danger)}</span></p>
+      <a className="call-danger" href="tel:1669"><Icon name="alert" size={20} /><span>{t(S.call.danger)}</span><strong className="call-danger-cta">1669</strong></a>
       </div>
       {!apiMode() && <Banner kind="info">{t(S.common.needsServer)}</Banner>}
       <div className="call-mode" role="tablist" aria-label={t(S.call.title)}>
@@ -208,15 +208,12 @@ export function CallPage() {
       {mode === "conversation" && session ? <div className="call-workspace">
         <section className="call-chat-panel" aria-label={t(S.call.conversation.tab)}>
           <div className="call-chat-head">
-            <p>{t(S.call.conversation.intro)}</p>
-            <div className="call-voice-bar">
-              <BigButton variant={voiceState === "off" ? "secondary" : "quiet"} onClick={voiceState === "off" ? startVoice : stopVoice} disabled={!config?.voice} icon="mic">
-                {voiceState === "off" ? t(S.call.conversation.voiceStart) : t(S.call.conversation.voiceStop)}
-              </BigButton>
-              <span role="status">{voiceState === "connecting" ? t(S.call.conversation.voiceConnecting) : voiceState === "active" ? t(S.call.conversation.voiceActive) : ""}</span>
-            </div>
-            {!config?.voice && <p className="fine-print">{t(S.call.conversation.voiceUnavailable)}</p>}
-            {heard && <p className="fine-print">{t(S.call.conversation.lastHeard)}: {heard}</p>}
+            <p className="call-intro">{t(S.call.conversation.intro)}</p>
+            {voiceState !== "off" && <p className="call-voice-status" role="status">
+              <span className="call-voice-dot" aria-hidden="true" />
+              {voiceState === "connecting" ? t(S.call.conversation.voiceConnecting) : t(S.call.conversation.voiceActive)}
+              {heard && <span className="fine-print"> · {t(S.call.conversation.lastHeard)}: {heard}</span>}
+            </p>}
           </div>
           <div className="call-chat-scroll">
             <div className="call-messages" role="log" aria-live="polite" aria-label={t(S.call.conversation.tab)}>
@@ -234,23 +231,26 @@ export function CallPage() {
             <div ref={messagesEnd} />
           </div>
           {!session.sent && <div className="call-chat-location">
-            <button type="button" className="call-location-open" onClick={openSheet} aria-haspopup="dialog">
-              <Icon name="pin" size={18} />
-              <span>{session.pinned?.status === "located" && session.pinned.landmarkLabel
-                ? t(S.call.conversation.pinnedAt(session.pinned.landmarkLabel)) : t(S.call.conversation.shareLocation)}</span>
-            </button>
-            <dialog ref={sheet} className="call-location-sheet" aria-label={t(S.call.conversation.shareLocation)}>
-              <CallerLocation key={session.sessionId} onChange={pinLocation} onBusy={setLocating} />
-              <BigButton variant="secondary" onClick={closeSheet}>{t(S.call.conversation.done)}</BigButton>
+            {session.pinned?.status === "located" && session.pinned.landmarkLabel
+              ? <div className="call-location-set"><Icon name="pin" size={18} /><span>{session.pinned.landmarkLabel}</span>
+                  <button type="button" className="btn btn-quiet btn-md" onClick={openSheet} aria-haspopup="dialog">{t(S.location.change)}</button></div>
+              : <button type="button" className="btn btn-md call-location-cta" onClick={openSheet} aria-haspopup="dialog"><Icon name="pin" />{t(S.call.conversation.shareLocation)}</button>}
+            <dialog ref={sheet} className="call-location-sheet" aria-labelledby="caller-location-title"
+              onClick={(event) => { if (event.target === event.currentTarget) closeSheet(); }}>
+              <CallerLocation key={session.sessionId} variant="sheet" onClose={closeSheet} onChange={pinLocation} onBusy={setLocating} />
             </dialog>
           </div>}
           <div className="call-composer">
-            <form className="call-reply" onSubmit={sendMessage}>
+            <form className={`call-reply ${config?.voice ? "has-voice" : ""}`} onSubmit={sendMessage}>
+              {config?.voice && <button type="button" className={`btn btn-secondary call-voice-btn ${voiceState !== "off" ? "is-on" : ""}`}
+                aria-pressed={voiceState !== "off"} onClick={voiceState === "off" ? startVoice : stopVoice}
+                aria-label={voiceState === "off" ? t(S.call.conversation.voiceStart) : t(S.call.conversation.voiceStop)}
+                title={voiceState === "off" ? t(S.call.conversation.voiceStart) : t(S.call.conversation.voiceStop)}><Icon name="mic" /></button>}
               <label className="visually-hidden" htmlFor="call-reply">{t(S.call.conversation.type)}</label>
               <textarea id="call-reply" rows={2} value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={onMessageKeyDown} maxLength={500} placeholder={t(S.call.conversation.placeholder)} />
               <BigButton type="submit" disabled={busy || locating || !message.trim()}>{busy ? t(S.call.sending) : t(S.call.conversation.send)}</BigButton>
             </form>
-            <div className="call-composer-foot"><span className="fine-print">{t(S.call.conversation.enterHint)}</span><button className="call-restart" type="button" onClick={newConversation} disabled={busy}>{t(S.call.conversation.restart)}</button></div>
+            <div className="call-composer-foot"><span className="fine-print">{t(S.call.conversation.enterHint)}</span><span className="call-composer-links"><button className="call-restart" type="button" onClick={() => setMode("form")}>{t(S.call.conversation.formLink)}</button><button className="call-restart" type="button" onClick={newConversation} disabled={busy}>{t(S.call.conversation.restart)}</button></span></div>
           </div>
         </section>
         <CallCaseSidebar session={session} busy={busy} onConfirm={confirm} />
@@ -272,7 +272,7 @@ export function CallPage() {
           {sent && !sent.ok && <Banner kind="error">{sent.message}</Banner>}
           <div className="call-send"><BigButton type="submit" disabled={busy || locating || !text.trim()}>{busy ? t(S.call.sending) : t(S.call.send)}</BigButton></div>
         </form>}
-      <p className="fine-print">{t(S.call.privacy)}</p>
+      <p className={`fine-print ${mode === "conversation" ? "call-privacy" : ""}`}>{t(S.call.privacy)}</p>
     </div>
   );
 }

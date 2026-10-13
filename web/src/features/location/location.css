@@ -11,9 +11,9 @@
 .location-chip.is-located { color: var(--color-brand); background: var(--color-waiting-bg); }
 .location-chip.is-unknown { color: var(--color-unknown); background: var(--color-unknown-bg); }
 .location-map { display: grid; gap: var(--space-2); min-width: 0; }
-.location-map svg { display: block; width: 100%; height: var(--location-map-height); border: var(--border-thin) solid var(--color-line-strong); border-radius: var(--radius-md); background: var(--map-land); }
-.location-map.is-mini svg { height: var(--location-mini-height); }
-.location-map.is-picker svg { cursor: crosshair; }
+.location-map .location-map-svg { display: block; width: 100%; height: var(--location-map-height); border: var(--border-thin) solid var(--color-line-strong); border-radius: var(--radius-md); background: var(--map-land); }
+.location-map.is-mini .location-map-svg { height: var(--location-mini-height); }
+.location-map.is-picker .location-map-svg { cursor: crosshair; }
 .location-map-land { fill: var(--map-land); }
 .location-map-zone { fill: var(--map-zone-fill); stroke: var(--map-zone-line); stroke-width: var(--border-thin); }
 .location-map-segment { fill: none; stroke: var(--map-zone-selected); stroke-width: var(--border-thin); stroke-dasharray: 4 3; }
@@ -34,3 +34,36 @@
 .location-gmap-frame { position: relative; }
 .location-gmap { width: 100%; height: var(--location-map-height); border: var(--border-thin) solid var(--color-line-strong); border-radius: var(--radius-md); overflow: hidden; background: var(--map-land); }
 .location-gmap-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--color-ink-3); }
+
+/* Chooser: one button system, primary first (UX review 13 Oct) */
+.location-choices { display: grid; gap: var(--space-2); }
+.location-choices .btn { width: 100%; justify-content: center; }
+.location-or { display: flex; align-items: center; gap: var(--space-2); color: var(--color-ink-3); font-size: var(--text-sm); }
+.location-or::before, .location-or::after { content: ""; flex: 1; border-top: var(--border-thin) solid var(--color-line); }
+.location-block .location-address .btn { min-width: calc(var(--tap-min) * 1.75); justify-content: center; }
+.location-message { padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--color-held-bg); color: var(--color-ink); font-size: var(--text-sm); }
+.location-privacy { display: flex; gap: var(--space-1); align-items: flex-start; color: var(--color-ink-3); }
+
+/* The map step: fixed centre pin, help chip on the map, primary always visible */
+.location-gmap-pin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); color: var(--color-brand); pointer-events: none; filter: drop-shadow(var(--shadow-card)); }
+.location-gmap-pin svg { fill: var(--color-surface); }
+.location-gmap-help { position: absolute; top: var(--space-2); left: var(--space-2); right: var(--space-2); margin: 0; padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill); background: var(--color-surface); box-shadow: var(--shadow-card); font-size: var(--text-sm); text-align: center; pointer-events: none; }
+.location-gmap-foot .btn { width: 100%; justify-content: center; }
+.location-map.is-fill { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0; }
+.location-map.is-fill .location-gmap-frame { flex: 1; min-height: 0; }
+.location-map.is-fill .location-gmap { height: 100%; min-height: var(--location-mini-height); border: 0; border-radius: 0; }
+.location-map.is-fill .location-gmap-foot { padding: var(--space-3) var(--space-4); border-top: var(--border-thin) solid var(--color-line); background: var(--color-surface); }
+
+/* The chat's location sheet: header (back / title / close), scrolling body, sticky footer */
+.location-block.is-sheet { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0; padding: 0; border: 0; }
+.sheet-head { display: grid; grid-template-columns: var(--tap-min) 1fr var(--tap-min); align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3); border-bottom: var(--border-thin) solid var(--color-line); }
+.sheet-head h2 { text-align: center; font-size: var(--text-lg); }
+.sheet-head .icon-btn { display: grid; place-items: center; width: var(--tap-min); height: var(--tap-min); padding: 0; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--color-ink); cursor: pointer; }
+.sheet-head .icon-btn:hover { background: var(--color-surface-sunken); }
+.sheet-body { flex: 1; min-height: 0; overflow-y: auto; display: grid; align-content: start; gap: var(--space-3); padding: var(--space-4); }
+.sheet-body.is-map { display: flex; flex-direction: column; gap: 0; padding: 0; overflow: hidden; }
+.location-map-note { margin: 0; padding: var(--space-2) var(--space-4); background: var(--color-held-bg); font-size: var(--text-sm); }
+.sheet-foot { display: grid; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-top: var(--border-thin) solid var(--color-line); background: var(--color-surface); }
+.sheet-foot .btn { width: 100%; justify-content: center; }
