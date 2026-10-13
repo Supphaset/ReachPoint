@@ -19,7 +19,7 @@ const TABS: Record<Role, Tab[]> = {
   coordinator: [
     { to: "/desk", label: "Desk", th: "โต๊ะประสานงาน", icon: "list" },
     { to: "/desk/split", label: "Split", th: "แบ่งงาน", icon: "people" },
-    { to: "/team/map", label: "Area map", th: "แผนที่", icon: "map" },
+    { to: "/desk/map", label: "Flood map", th: "แผนที่", icon: "map" },
   ],
   resident: [],
 };

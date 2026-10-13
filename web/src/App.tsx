@@ -7,6 +7,7 @@ import { DeskPage } from "./features/desk/RisingWater";
 import { CallPage } from "./features/intake/CallPage";
 import { StatusPage } from "./features/resident/StatusPage";
 import { DevUi } from "./pages/DevUi";
+import { FloodPage } from "./features/flood/FloodPage";
 import { Home } from "./pages/Home";
 
 /** Role routes. Team: /team/*; coordinator: /desk; resident: /status/:token; shared parts: /dev/ui. */
@@ -18,6 +19,7 @@ export function App() {
         <Route path="team/map/:areaId?/:zoneId?" element={<BriefingPage />} />
         <Route path="team/list" element={<WaitingPage />} />
         <Route path="team/mission" element={<JobsPage />} />
+        <Route path="desk/map" element={<FloodPage />} />
         <Route path="desk/split" element={<SplitPanel />} />
         <Route path="desk" element={<DeskPage />} />
         <Route path="call" element={<CallPage />} />
