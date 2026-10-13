@@ -27,6 +27,7 @@ export interface CallCase {
 
 export interface CallSession {
   sessionId: string;
+  revision: number;
   messages: { role: "user" | "assistant"; text: string }[];
   case: CallCase;
   locationLookup: {
@@ -49,5 +50,5 @@ export const sendCallTurn = (id: string, text: string, turnId = submissionId()) 
   post<CallSession>(`/api/call/sessions/${id}/turn`, { text, turnId });
 export const chooseCallLocation = (id: string, query: string, action: "select" | "reject", locationId?: string) =>
   post<CallSession>(`/api/call/sessions/${id}/location`, { query, action, locationId });
-export const confirmCall = (id: string, idempotencyKey = submissionId()) =>
-  post<CallSession>(`/api/call/sessions/${id}/confirm`, { submissionId: idempotencyKey });
+export const confirmCall = (id: string, expectedRevision: number, idempotencyKey = submissionId()) =>
+  post<CallSession>(`/api/call/sessions/${id}/confirm`, { submissionId: idempotencyKey, expectedRevision });

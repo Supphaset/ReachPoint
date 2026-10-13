@@ -112,8 +112,13 @@ export function CallPage() {
   const confirm = async () => {
     if (!session?.canConfirm || busy) return;
     setBusy(true); setError("");
-    try { setSession(await confirmCall(session.sessionId)); stopVoice(); }
-    catch (cause) { setError(errorMessage(cause)); }
+    try { setSession(await confirmCall(session.sessionId, session.revision)); stopVoice(); }
+    catch (cause) {
+      if (cause instanceof ApiError && cause.status === 409) {
+        try { setSession(await readCall(session.sessionId)); } catch { /* Keep the visible error. */ }
+      }
+      setError(errorMessage(cause));
+    }
     finally { setBusy(false); }
   };
 
