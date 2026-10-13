@@ -119,6 +119,8 @@ can replace the in-memory store without changing them.
 - **Planned, not built:** a database (Firestore) and sign-in for coordinators and teams. The demo rooms stand in
   for sign-in. Phone-line calls aren't connected; voice works in the browser.
 
+More on these limits: [honest judge Q&A](docs/submission/judge-qa.md).
+
 ## Run it locally
 
 ```bash
@@ -137,3 +139,6 @@ after `gcloud auth application-default login`. With neither, the keyword stand-i
 
 Project documents start at [docs/START-HERE.md](docs/START-HERE.md). The plan for the rest of the week is the
 [finish plan](docs/planning/finish-plan.md); how it all fits together is in the [overview](docs/OVERVIEW.md).
+
+The proposed [operator and business case](docs/product/business-case.md) covers a first drill and cost assumptions;
+[how we differ](docs/research/competitors.md#how-reachpoint-differs) compares documented capabilities and unknowns.
