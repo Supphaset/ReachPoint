@@ -21,8 +21,11 @@ function Screen({ name, src, wide, k }: { name: Pair; src: string; wide?: boolea
   );
 }
 
-const q = (path: string, lang: "th" | "en", as: string, room: string) =>
-  `${path}?data=api&refresh=2&lang=${lang}&as=${encodeURIComponent(as)}&room=${encodeURIComponent(room)}`;
+const q = (path: string, lang: "th" | "en", as: string, room: string, extra = "") =>
+  `${path}?data=api&refresh=2&lang=${lang}&as=${encodeURIComponent(as)}&room=${encodeURIComponent(room)}${extra}`;
+
+type Moment = "request" | "boat" | "quiet";
+const MOMENTS: { id: Moment; tab: string }[] = [{ id: "request", tab: "review" }, { id: "boat", tab: "boat" }, { id: "quiet", tab: "quiet" }];
 
 /** /demo: victim and volunteer phones side by side, with the coordinator's approval between them. */
 export function DemoPage() {
@@ -33,6 +36,8 @@ export function DemoPage() {
   const [copied, setCopied] = useState(false);
   const [room, setRoom] = useState(() => demoRoom());
   const [linkCopied, setLinkCopied] = useState(false);
+  const [moment, setMoment] = useState<Moment>("request");
+  const deskTab = MOMENTS.find((m) => m.id === moment)!.tab;
   const fresh = () => {
     const code = newRoomCode();
     const url = new URL(window.location.href);
@@ -104,6 +109,15 @@ export function DemoPage() {
           </span>
         </div>
       )}
+      {apiMode() && <section className="demo-moments" aria-label={t(S.demo.momentsTitle)}>
+        <h2>{t(S.demo.momentsTitle)}</h2>
+        <div className="demo-moment-row" role="group">
+          {MOMENTS.map((m) => <button key={m.id} type="button" className={`demo-moment ${moment === m.id ? "is-on" : ""}`}
+            aria-pressed={moment === m.id} onClick={() => { setMoment(m.id); setK((n) => n + 1); }}>
+            <strong>{t(S.demo.moments[m.id].title)}</strong><span>{t(S.demo.moments[m.id].body)}</span>
+          </button>)}
+        </div>
+      </section>}
       <ol className="demo-steps">
         {S.demo.steps.map((s, i) => (
           <li key={i}><span className="demo-step-number" aria-hidden="true">{i + 1}</span><span>{t(s)}</span></li>
@@ -119,7 +133,7 @@ export function DemoPage() {
       {apiMode() && (
         <div className="demo-stage">
           <Screen k={k} name={S.demo.victim} src={q("/call", lang, "resident:demo", room)} />
-          <Screen k={k} name={S.demo.desk} src={q("/desk", lang, "coordinator:demo-1", room)} wide />
+          <Screen k={k} name={S.demo.desk} src={q("/desk", lang, "coordinator:demo-1", room, `&tab=${deskTab}`)} wide />
           <Screen k={k} name={S.demo.volunteer} src={q("/team/list", lang, "team:T-S", room)} />
         </div>
       )}

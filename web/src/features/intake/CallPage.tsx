@@ -63,6 +63,8 @@ export function CallPage() {
         let current: CallSession;
         try { current = saved ? await readCall(saved) : await startCall(lang); }
         catch { current = await startCall(lang); }
+        // A saved, untouched conversation in the other language (e.g. the page was switched): greet again in this one.
+        if (current.lang !== lang && !current.sent && !current.messages.some((m) => m.role === "user")) current = await startCall(lang);
         if (cancelled) return;
         sessionStorage.setItem(SESSION_KEY, current.sessionId);
         setSession(current);
