@@ -1,0 +1,36 @@
+.location-block { display: grid; gap: var(--space-3); min-width: 0; padding-block: var(--space-4); border-block: var(--border-thin) solid var(--color-line); }
+.location-block h2, .location-block h3, .location-block p { margin: 0; }
+.location-block h2, .location-block h3 { font-size: var(--text-lg); }
+.location-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.location-block button, .location-block input, .location-block select, .location-map select { min-height: var(--tap-min); }
+.location-address { display: flex; gap: var(--space-2); min-width: 0; }
+.location-address input { flex: 1; width: 0; min-width: 0; }
+.location-block label { font-weight: var(--weight-medium); }
+.location-block input, .location-map select { font: inherit; color: var(--color-ink); background: var(--color-surface); border: var(--border-thin) solid var(--color-line-strong); border-radius: var(--radius-sm); padding: var(--space-2); max-width: 100%; }
+.location-chip { display: inline-flex; align-items: flex-start; gap: var(--space-2); padding: var(--space-3); border-radius: var(--radius-md); overflow-wrap: anywhere; font-size: var(--text-sm); }
+.location-chip.is-located { color: var(--color-brand); background: var(--color-waiting-bg); }
+.location-chip.is-unknown { color: var(--color-unknown); background: var(--color-unknown-bg); }
+.location-map { display: grid; gap: var(--space-2); min-width: 0; }
+.location-map svg { display: block; width: 100%; height: var(--location-map-height); border: var(--border-thin) solid var(--color-line-strong); border-radius: var(--radius-md); background: var(--map-land); }
+.location-map.is-mini svg { height: var(--location-mini-height); }
+.location-map.is-picker svg { cursor: crosshair; }
+.location-map-land { fill: var(--map-land); }
+.location-map-zone { fill: var(--map-zone-fill); stroke: var(--map-zone-line); stroke-width: var(--border-thin); }
+.location-map-segment { fill: none; stroke: var(--map-zone-selected); stroke-width: var(--border-thin); stroke-dasharray: 4 3; }
+.location-map-landmark circle { fill: var(--color-surface); stroke: var(--map-landmark); stroke-width: var(--border-thin); }
+.location-map-landmark text, .location-map-label { font-size: var(--location-map-label-size); font-weight: var(--weight-bold); fill: var(--color-ink); paint-order: stroke; stroke: var(--color-surface); stroke-width: var(--space-1); }
+.location-map-pin circle { fill: var(--color-brand); stroke: var(--color-surface); stroke-width: var(--space-1); }
+.location-map-pin path { stroke: var(--color-on-ink); stroke-width: var(--border-thin); }
+.location-block :focus-visible { outline: var(--space-1) solid var(--color-focus); outline-offset: var(--space-1); }
+.location-block button { white-space: normal; padding-inline: var(--space-3); }
+.location-map-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.location-map-line.is-water { stroke: var(--map-water); stroke-width: 3; opacity: 0.7; }
+.location-map-line.is-trunk, .location-map-line.is-primary { stroke: var(--color-line-strong); stroke-width: 3; }
+.location-map-line.is-secondary { stroke: var(--color-line-strong); stroke-width: 2; }
+.location-map-line.is-tertiary { stroke: var(--color-line); stroke-width: 1.5; }
+.location-map-line.is-rail { stroke: var(--color-ink-3); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.location-map-pin .location-map-pin-dot { fill: var(--color-surface); stroke: none; }
+.location-back { justify-self: start; }
+.location-gmap-frame { position: relative; }
+.location-gmap { width: 100%; height: var(--location-map-height); border: var(--border-thin) solid var(--color-line-strong); border-radius: var(--radius-md); overflow: hidden; background: var(--map-land); }
+.location-gmap-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--color-ink-3); }

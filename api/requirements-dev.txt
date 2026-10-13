@@ -1,8 +1,7 @@
 # Test and notebook tools for api/ (T11). The FastAPI runtime requirements come with the API skeleton.
 pytest==8.3.3
 hypothesis==6.112.2
-ortools==9.15.6755
-protobuf==6.33.6
+-r requirements.txt
 nbformat==5.10.4
 nbclient==0.10.0
 ipykernel==6.29.5

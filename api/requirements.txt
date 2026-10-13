@@ -7,3 +7,5 @@ google-adk==2.11.0          # triage agent (api/ai/triage.py)
 opentelemetry-api==1.42.1
 opentelemetry-sdk==1.42.1
 google-api-core==2.34.0
+ortools==9.15.6755         # split solver (api/rules/allocation.py), imported by the planning panel
+protobuf==6.33.6           # ortools and google-adk both need it; this version satisfies both

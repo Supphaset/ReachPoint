@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { AssistanceType, ReviewQueueView, ReviewRow, WaterBand } from "../../data/contract";
+import type { LocationInput, Location, AssistanceType, ReviewQueueView, ReviewRow, WaterBand } from "../../data/contract";
 import { approveReport, linkReport, notSame, rejectReport, type Approval } from "../../data/intake";
 import { apiMode } from "../../data/mode";
 import { useView } from "../../data/useView";
@@ -7,6 +7,7 @@ import { Banner, BigButton, ProposalCard, Skeleton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 import { useLang } from "../../i18n/lang";
 import { S } from "../../i18n/strings";
+import { DeskLocation } from "../location/DeskLocation";
 import "../intake/intake.css";
 
 const NEED_LABEL = { evacuation_transport: true, medical: true, supplies: true };
@@ -87,7 +88,9 @@ export function ReviewQueue({ onCount }: { onCount?: (n: number) => void }) {
 function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueView["landmarks"]; onDone: (message?: string, remove?: boolean) => void }) {
   const { t } = useLang();
   const f = r.proposal.facts;
-  const [segmentId, setSegment] = useState(r.suggestedSegment?.segmentId ?? "");
+  const [segmentId, setSegment] = useState((r.location?.status === "located" ? r.location.segmentId : undefined) ?? r.suggestedSegment?.segmentId ?? "");
+  const [location, setLocation] = useState<LocationInput>();
+  const [resolvedLocation, setResolvedLocation] = useState<Location | undefined>(r.location);
   const [people, setPeople] = useState(() => {
     const p = f.people;
     return { adults: p?.adults ?? 0, children: p?.children ?? 0, infants: p?.infants ?? 0, stretcher: p?.stretcher ?? 0 };
@@ -103,7 +106,7 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
 
   const approve = async () => {
     setBusy(true);
-    const a: Approval = { segmentId, people, needs, waterBand: band || null, urgentReason: urgent.trim() || null, deskNote: null };
+    const a: Approval = { segmentId, people, needs, waterBand: band || null, urgentReason: urgent.trim() || null, deskNote: null, ...(location ? { location } : {}) };
     const res = await approveReport(r.reportId, a);
     setBusy(false);
     if (!res.ok) return setMsg(res.message);
@@ -132,6 +135,9 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
         <span className="muted">{new Date(r.receivedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bangkok" })}</span>
         <span className="muted">· {r.channel === "text" ? t(S.desk.textChannel) : r.channel === "voice" ? t(S.desk.voiceChannel) : r.channel}</span>
       </div>
+      <DeskLocation location={resolvedLocation} disabled={busy} onApply={(input, resolved) => {
+        setLocation(input); setResolvedLocation(resolved); setSegment(resolved.segmentId ?? "");
+      }} />
       <blockquote className="review-text">{r.text}</blockquote>
       <ProposalCard title={f.summary || t(S.desk.facts)} label={t(S.desk.proposal)}>
         <table className="desk-facts"><thead><tr><th>{t(S.desk.fact)}</th><th>{t(S.desk.value)}</th><th>{t(S.desk.quote)}</th></tr></thead>
@@ -141,15 +147,20 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
             {f.needs.map(x => <tr key={x.type}><th>{t(S.desk.help)}</th><td>{t(S.desk[x.type])}</td><td><q>{x.quote}</q></td></tr>)}
             {f.water && <tr><th>{t(S.desk.water)}</th><td>{t(S.desk[f.water.band])}</td><td><q>{f.water.quote}</q></td></tr>}
             {f.place && <tr><th>{t(S.desk.place)}</th><td>{f.place.text}</td><td><q>{f.place.quote}</q></td></tr>}
-            {f.dangerSigns.map(d => <tr key={d.quote}><th>{t(S.desk.danger)}</th><td>{d.text}</td><td><q>{d.quote}</q></td></tr>)}
+            {f.dangerSigns.map(d => <tr key={d.quote}><th>{t(S.desk.danger)}</th><td>{d.text}{d.by && <span className="fine-print"> · {t(S.desk.keywordCheck)}</span>}</td><td><q>{d.quote}</q></td></tr>)}
             {f.cantWalk && <tr><th>{t(S.desk.stretcher)}</th><td>{t(S.desk.stretcher)}</td><td><q>{f.cantWalk.quote}</q></td></tr>}
           </tbody>
         </table>
         <p className="fine-print">{t(S.desk.readBy)} {r.proposal.source.replace("gemini:", "Gemini ")}{r.proposal.note ? ` · ${r.proposal.note}` : ""}{r.proposal.dropped.length ? ` · ${t(S.desk.dropped(r.proposal.dropped.length))}` : ""}</p>
       </ProposalCard>
-      {r.triage && (r.triage.links.length > 0 || r.triage.rank) && (
+      {r.triage && (r.triage.links.length > 0 || r.triage.rank || r.triage.question) && (
         <ProposalCard title={t(S.desk.triage)} label={t(S.desk.proposal)}>
           {r.triage.rank && <p className="fine-print">{r.triage.rank.reason}</p>}
+          {r.triage.question && (
+            <div className="triage-link">
+              <p>{t(S.desk.askCaller(r.triage.question.caseId))} <q>{r.triage.question.text}</q></p>
+            </div>
+          )}
           {r.triage.links.map((l) => (
             <div key={l.caseId} className="triage-link">
               <p>
@@ -171,6 +182,11 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
               )}
             </div>
           ))}
+          {!!r.triage.steps?.length && (
+            <p className="fine-print">
+              {t(S.desk.agentSteps)} ({r.triage.source.replace("agent:", "Gemini ")}): {r.triage.steps.map((s) => (S.desk.tools[s] ? t(S.desk.tools[s]) : s)).join(" → ")}
+            </p>
+          )}
         </ProposalCard>
       )}
       {r.prompts.length > 0 && (

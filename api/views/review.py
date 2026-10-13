@@ -69,7 +69,9 @@ def review_queue(store: Store) -> dict:
         if t:
             links = [{**l, "place": store.landmarks[cases[l["caseId"]]["segmentId"]]["label"], "people": cases[l["caseId"]]["people"]}
                      for l in t["links"] if l["caseId"] in cases and l["caseId"] not in r.get("notSameAs", [])]
-            tri = {"source": triage.get("source"), "at": triage.get("at"), "links": links, "rank": t.get("rank")}
+            steps = [s["tool"] for s in triage.get("trace", []) if s["args"].get("report_id") == r["reportId"]]
+            tri = {"source": triage.get("source"), "at": triage.get("at"), "links": links, "rank": t.get("rank"),
+                   "question": t.get("question"), "steps": steps}
         rows.append({"reportId": r["reportId"], "receivedAt": r["receivedAt"], "text": r["text"], "channel": r["channel"],
                      "proposal": r["proposal"], "suggestedSegment": sugg, "prompts": prompts, "triage": tri,
                      **({"fromTeam": r["teamId"]} if r.get("teamId") else {}),

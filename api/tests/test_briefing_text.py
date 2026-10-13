@@ -30,6 +30,7 @@ def test_facts_are_the_zone_view_only():
     ("Teams should go to B-6 first.", "priority"),
     ("About two thousand people live here.", "number word"),
     ("Water at L2 is high.", "landmark code"),
+    ("There are 6 reviewed evacuation requests.", "number with the wrong label"),  # 6 is unchecked segments
 ])
 def test_blocked(text, why):
     assert B.validate(text, F), why
