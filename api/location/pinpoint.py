@@ -1,16 +1,9 @@
-"""Pinpoint (pin-point.co) Thai geocoding, server side only (D25, decision 0009).
-
-The key lives in PINPOINT_API_KEY (env, or ~/.config/reachpoint/env), never in Git or the browser, and only
-synthetic demo addresses are ever sent (docs/collaboration/data-handling.md).
-
-FRIEND: `_request` below is the one place to match the call you tested (URL, parameter names, auth header, and
-which fields of the reply hold lat/lon and precision). Everything else (snapping, privacy, fallbacks, tests) is
-independent of it. PINPOINT_URL overrides the endpoint without a code change.
-"""
+"""Server-side Pinpoint geocoding, using the verified autocomplete/details flow."""
 
 from __future__ import annotations
 
 import os
+import math
 from pathlib import Path
 
 import httpx
@@ -34,21 +27,41 @@ def configured() -> bool:
 
 
 def _request(text: str, key: str) -> list[dict]:
-    """ASSUMED request shape until the friend confirms it: GET {url}?keyword=…&key=… → JSON with a list of results."""
-    url = _config("PINPOINT_URL") or "https://api.pin-point.co/v1/geocode"
-    r = httpx.get(url, params={"keyword": text, "key": key}, timeout=TIMEOUT_S)
+    """Search returns labels and IDs; details resolves the selected ID to a coordinate."""
+    base = _config("PINPOINT_URL") or "https://pin-point.co/g/search"
+    headers = {"Referer": _config("PINPOINT_REFERER") or "https://pin-point.co"}
+    r = httpx.post(f"{base}/autocomplete", data={"keyword": text, "maxResult": "3", "key": key},
+                   headers=headers, timeout=TIMEOUT_S)
     r.raise_for_status()
     body = r.json()
-    items = body if isinstance(body, list) else body.get("data") or body.get("results") or body.get("result") or []
-    return items if isinstance(items, list) else [items]
+    items = body.get("data") if isinstance(body, dict) and body.get("success") is not False else []
+    if not isinstance(items, list):
+        return []
+    details = []
+    for item in items:
+        identifier = item.get("LocationID") if isinstance(item, dict) else None
+        if not isinstance(identifier, str) or not identifier:
+            continue
+        r = httpx.post(f"{base}/details", data={"locationid": identifier, "key": key},
+                       headers=headers, timeout=TIMEOUT_S)
+        r.raise_for_status()
+        payload = r.json()
+        point = payload.get("data") if isinstance(payload, dict) and payload.get("success") is not False else None
+        if isinstance(point, dict) and point.get("LocationID") == identifier:
+            details.append(point)
+    return details
 
 
 def _point(item: dict) -> tuple[float, float] | None:
     """Accept the usual spellings of a coordinate pair in a geocoder reply."""
+    if isinstance(item.get("LAT_LON"), str):
+        lat, lon = [float(v.strip()) for v in item["LAT_LON"].split(",")]
+        return (lon, lat) if math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180 else None
     for la, lo in (("lat", "lng"), ("lat", "lon"), ("latitude", "longitude")):
         src = item.get("location") if isinstance(item.get("location"), dict) else item
         if la in src and lo in src:
-            return float(src[lo]), float(src[la])
+            lon, lat = float(src[lo]), float(src[la])
+            return (lon, lat) if math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180 else None
     return None
 
 
@@ -63,7 +76,7 @@ def geocode(text: str) -> dict | None:
             if p:
                 level = str(item.get("level") or item.get("precision") or item.get("type") or "").lower()
                 precision = "house" if level in ("house", "address", "building", "rooftop") else "street" if "street" in level or "road" in level else "area"
-                return {"at": [p[0], p[1]], "precision": precision, "label": item.get("name") or item.get("address") or text}
+                return {"at": [p[0], p[1]], "precision": precision, "label": item.get("FormattedAddress") or item.get("name") or text}
     except (httpx.HTTPError, ValueError, KeyError, TypeError):
         return None  # never the key or the address in a log line
     return None

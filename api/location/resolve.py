@@ -64,11 +64,11 @@ def resolve(loc: dict | None) -> dict | None:
         return None
     if loc.get("kind") == "pin":
         lat, lon = float(loc["lat"]), float(loc["lon"])
-        method = "gps" if loc.get("method") == "gps" else "map"
+        method = loc.get("method") if loc.get("method") in {"gps", "pinpoint"} else "map"
         acc = loc.get("accuracyM")
-        base = {"kind": "pin", "method": method, "provider": "device",
+        base = {"kind": "pin", "method": method, "provider": "pinpoint" if method == "pinpoint" else "device",
                 "precision": "house" if method == "gps" and acc is not None and acc <= 30 else "street" if method == "gps" else "street",
-                "source": "caller pin (GPS)" if method == "gps" else "caller pin (map)",
+                "source": "caller-selected Pinpoint match" if method == "pinpoint" else "caller pin (GPS)" if method == "gps" else "caller pin (map)",
                 **({"accuracyM": round(float(acc))} if acc is not None else {})}
         if not (-90 <= lat <= 90 and -180 <= lon <= 180):
             return {**base, "status": "unlocated", "at": None, "precision": None}
