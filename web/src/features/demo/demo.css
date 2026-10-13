@@ -33,9 +33,11 @@
 }
 .demo-steps {
   margin: 0;
-  padding-left: var(--space-5);
-  display: grid;
-  gap: var(--space-1);
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
   color: var(--color-ink-2);
   font-size: var(--text-sm);
 }
@@ -58,7 +60,7 @@
 }
 .demo-stage {
   display: grid;
-  grid-template-columns: minmax(0, 390px) minmax(0, 1fr) minmax(0, 390px);
+  grid-template-columns: minmax(0, var(--phone-width)) minmax(0, 1fr) minmax(0, var(--phone-width));
   gap: var(--space-5);
   align-items: start;
   justify-content: center;
@@ -76,20 +78,20 @@
 }
 .demo-frame {
   background: var(--color-ink);
-  padding: 10px;
-  border-radius: 40px;
+  padding: var(--radius-md);
+  border-radius: var(--demo-frame-radius);
   box-shadow: var(--shadow-card);
 }
 .demo-screen.is-wide .demo-frame {
   border-radius: var(--radius-lg);
-  padding: 8px;
+  padding: var(--space-2);
 }
 .demo-frame iframe {
   display: block;
   width: 100%;
-  height: 760px;
+  height: var(--demo-frame-height);
   border: 0;
-  border-radius: 30px;
+  border-radius: var(--demo-screen-radius);
   background: var(--color-surface);
 }
 .demo-screen.is-wide .demo-frame iframe {
@@ -97,6 +99,12 @@
 }
 @media (max-width: 1100px) {
   .demo-stage {
-    grid-template-columns: minmax(0, 390px);
+    grid-template-columns: minmax(0, var(--phone-width));
   }
 }
+
+.demo-head { padding-bottom: var(--space-3); border-bottom: var(--border-thin) solid var(--color-line); }
+.demo-steps li { display: flex; align-items: flex-start; gap: var(--space-2); flex: 1 1 var(--demo-step-width); min-width: 0; }
+.demo-step-number { display: grid; place-items: center; flex: none; width: var(--space-6); height: var(--space-6); border-radius: var(--radius-pill); background: var(--color-waiting-bg); color: var(--color-waiting); font-weight: var(--weight-bold); }
+.demo-sample { padding: var(--space-3); border: var(--border-thin) solid var(--color-line); border-radius: var(--radius-md); background: var(--color-surface); }
+.demo-sample code { flex: 1 1 var(--demo-step-width); }

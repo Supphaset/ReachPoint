@@ -153,7 +153,7 @@
 @media (max-width: 480px) {
   /* Phone width: the role name stays on one line so the language switch keeps its room. */
   .who {
-    max-width: 8.5rem;
+    max-width: 7rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

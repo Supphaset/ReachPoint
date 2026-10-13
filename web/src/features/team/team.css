@@ -1,4 +1,4 @@
-.team-page { max-width: 720px; }
+.team-page { max-width: var(--team-page-width); }
 
 .status-card, .listing-row, .job-card {
   display: grid;
@@ -14,13 +14,13 @@
 .seats-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); font-weight: var(--weight-medium); }
 
 .listing-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
-.listing-row.tone-red, .job-card.tone-red { border-left: 6px solid var(--color-red); }
-.listing-row.tone-yellow, .job-card.tone-yellow { border-left: 6px solid var(--color-yellow-line); }
-.listing-row.tone-green, .job-card.tone-green { border-left: 6px solid var(--color-green-line); }
+.listing-row.tone-red, .job-card.tone-red { border-color: var(--color-red); }
+.listing-row.tone-yellow, .job-card.tone-yellow { border-color: var(--color-yellow-line); }
+.listing-row.tone-green, .job-card.tone-green { border-color: var(--color-green-line); }
 .listing-top, .job-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .listing-dist { margin-left: auto; font-weight: var(--weight-bold); }
 .job-state { margin-left: auto; }
-.listing-reason { font-size: var(--text-sm); color: var(--color-red); font-weight: var(--weight-medium); }
+.listing-reason { font-size: var(--text-sm); color: var(--color-ink-2); font-weight: var(--weight-medium); }
 
 .group-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
 .group-list li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
@@ -112,3 +112,24 @@
 .dest-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); font-size: var(--text-sm); font-weight: var(--weight-medium); }
 .medical { border: 2px solid var(--color-ink); border-radius: var(--radius-sm); padding: var(--space-3) !important; background: var(--color-surface); }
 .medical ul { margin: 0; padding-left: var(--space-5); display: grid; gap: var(--space-1); }
+
+/* The next action is the visual anchor; supporting evidence stays available below. */
+.status-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--text-xs); }
+.status-bar .btn { margin-left: auto; }
+.status-bar .seats-line { flex: 1; min-width: 0; font-size: var(--text-xs); }
+.listing-place { font-weight: var(--weight-bold); }
+.listing-summary { font-size: var(--text-sm); color: var(--color-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.listing-row .group-list .num { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
+.listing-actions { display: grid; }
+.listing-actions .btn-primary, .job-actions .btn-primary, .window .btn-primary { width: 100%; }
+.listing-actions .btn-quiet { font-size: var(--text-sm); text-decoration: underline; justify-self: start; padding-inline: 0; }
+.listing-row .urgency summary { min-height: var(--tap-min); align-content: center; }
+.listing-row .urgency-summary { display: none; }
+.listing-row .urgency { background: var(--color-canvas); }
+.job-actions { display: grid; }
+.job-actions .btn-secondary { justify-self: start; }
+.pickup-row { display: grid; gap: var(--space-1); font-size: var(--text-sm); }
+.window-pick { flex-wrap: wrap; }
+.window-pick .field { min-width: 0; flex: 1; }
+.window-pick select { width: 100%; }
+.job-card, .listing-row { min-width: 0; overflow-wrap: anywhere; }

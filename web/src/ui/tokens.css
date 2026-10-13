@@ -27,6 +27,14 @@
   --weight-medium: 500;
   --weight-bold: 600;
 
+  --border-thin: 1px;
+  --team-page-width: 720px;
+  --phone-width: 390px;
+  --demo-frame-height: 760px;
+  --demo-frame-radius: 40px;
+  --demo-screen-radius: 30px;
+  --demo-step-width: 240px;
+
   /* Space: 4 px steps */
   --space-1: 4px;
   --space-2: 8px;

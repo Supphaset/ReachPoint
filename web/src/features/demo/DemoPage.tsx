@@ -70,7 +70,7 @@ export function DemoPage() {
       <p className="demo-lead">{t(S.demo.lead)}</p>
       <ol className="demo-steps">
         {S.demo.steps.map((s, i) => (
-          <li key={i}>{t(s)}</li>
+          <li key={i}><span className="demo-step-number" aria-hidden="true">{i + 1}</span><span>{t(s)}</span></li>
         ))}
       </ol>
       <div className="demo-sample">

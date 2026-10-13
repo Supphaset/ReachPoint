@@ -5,6 +5,7 @@ import { apiMode } from "../../data/mode";
 import { useLang } from "../../i18n/lang";
 import { S } from "../../i18n/strings";
 import { Banner, BigButton } from "../../ui/components";
+import { ProgressTracker } from "../../ui/ProgressTracker";
 import "./intake.css";
 
 /**
@@ -28,15 +29,19 @@ export function CallPage() {
       <div className="page narrow intake">
         <h1>{t(S.call.received)}</h1>
         <p>{t(S.call.receivedBody(sent.reportId))}</p>
-        <p>{t(S.call.keepLink)}</p>
+        <ProgressTracker steps={S.progress.family} current={0} label={S.progress.familyLabel} />
+        <Link className="btn btn-primary btn-lg status-open" to={sent.statusUrl + window.location.search}>
+          {t(S.call.openStatus)}
+        </Link>
+        <p className="fine-print">{t(S.call.keepLink)}</p>
         <Link className="status-link" to={sent.statusUrl + window.location.search}>
           {window.location.origin}
           {sent.statusUrl}
         </Link>
-        <p className="fine-print">{t(S.call.emergency)}</p>
         <BigButton variant="secondary" onClick={() => (setSent(null), setText(""))}>
           {t(S.call.another)}
         </BigButton>
+        <p className="fine-print">{t(S.call.emergency)}</p>
       </div>
     );
   return (
