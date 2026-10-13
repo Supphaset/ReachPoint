@@ -148,4 +148,17 @@
 }
 
 /* The location card inside the chat: pin your spot instead of describing it */
-.call-chat-location { padding: var(--space-3) var(--space-3) 0; border-top: var(--border-thin) solid var(--color-line); }
+.call-chat-location { border-top: var(--border-thin) solid var(--color-line); padding: 0 var(--space-3); }
+.call-location-open {
+  display: flex; align-items: center; gap: var(--space-2); width: 100%; min-height: 48px; padding: 0;
+  border: 0; background: none; color: var(--color-brand); font: inherit; font-weight: 600; text-align: left; cursor: pointer;
+}
+.call-location-open:focus-visible { outline: var(--space-1) solid var(--color-focus); outline-offset: var(--space-1); }
+/* Full-height sheet on phones so the map has room; a centred panel on wider screens */
+.call-location-sheet {
+  width: min(100% - 2 * var(--space-3), 640px); max-height: calc(100dvh - 2 * var(--space-3));
+  padding: var(--space-4); border: var(--border-thin) solid var(--color-line); border-radius: var(--radius-md);
+  background: var(--color-surface); color: var(--color-ink);
+}
+.call-location-sheet[open] { display: flex; flex-direction: column; gap: var(--space-3); }
+.call-location-sheet::backdrop { background: var(--color-scrim); }

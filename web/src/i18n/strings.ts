@@ -246,6 +246,9 @@ export const S = {
     conversation: {
       tab: p("Chat or voice", "แชตหรือพูดคุย"),
       formTab: p("Write one message", "พิมพ์ครั้งเดียว"),
+      done: p("Done", "เสร็จ"),
+      shareLocation: p("Share your location (GPS, map or address)", "แชร์ตำแหน่งของคุณ (GPS แผนที่ หรือที่อยู่)"),
+      pinnedAt: (label: string): Pair => p(`Your location: ${label} · change`, `ตำแหน่งของคุณ: ${label} · เปลี่ยน`),
       intro: p("Tell the assistant what is happening. It will ask for missing details and read back a summary before anything is sent.", "บอกผู้ช่วยว่าเกิดอะไรขึ้น ระบบจะถามข้อมูลที่ยังขาดและสรุปให้ตรวจทานก่อนส่งคำขอ"),
       type: p("Type your reply or a correction", "พิมพ์คำตอบหรือแก้ไขข้อมูล"),
       placeholder: p("Tell me what happened…", "เล่าว่าเกิดอะไรขึ้น…"),

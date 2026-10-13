@@ -39,6 +39,9 @@ export function CallPage() {
   const [sent, setSent] = useState<Sent | null>(null);
   const [location, setLocation] = useState<LocationInput>();
   const [locating, setLocating] = useState(false);
+  const sheet = useRef<HTMLDialogElement>(null);
+  const openSheet = () => sheet.current?.showModal();
+  const closeSheet = () => sheet.current?.close();
   const [voiceState, setVoiceState] = useState<"off" | "connecting" | "active">("off");
   const [heard, setHeard] = useState("");
   const [focusEnd, setFocusEnd] = useState(0);
@@ -129,7 +132,11 @@ export function CallPage() {
   const pinLocation = async (input?: LocationInput) => {
     if (!session) return;
     setError("");
-    try { setSession(await pinCall(session.sessionId, input ?? null)); }
+    try {
+      const next = await pinCall(session.sessionId, input ?? null);
+      setSession(next);
+      if (next.pinned?.status === "located") closeSheet(); // back to the chat once the spot is set
+    }
     catch (cause) { setError(errorMessage(cause)); }
   };
 
@@ -227,7 +234,15 @@ export function CallPage() {
             <div ref={messagesEnd} />
           </div>
           {!session.sent && <div className="call-chat-location">
-            <CallerLocation key={session.sessionId} onChange={pinLocation} onBusy={setLocating} />
+            <button type="button" className="call-location-open" onClick={openSheet} aria-haspopup="dialog">
+              <Icon name="pin" size={18} />
+              <span>{session.pinned?.status === "located" && session.pinned.landmarkLabel
+                ? t(S.call.conversation.pinnedAt(session.pinned.landmarkLabel)) : t(S.call.conversation.shareLocation)}</span>
+            </button>
+            <dialog ref={sheet} className="call-location-sheet" aria-label={t(S.call.conversation.shareLocation)}>
+              <CallerLocation key={session.sessionId} onChange={pinLocation} onBusy={setLocating} />
+              <BigButton variant="secondary" onClick={closeSheet}>{t(S.call.conversation.done)}</BigButton>
+            </dialog>
           </div>}
           <div className="call-composer">
             <form className="call-reply" onSubmit={sendMessage}>
