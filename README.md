@@ -63,7 +63,7 @@ from Sentinel-1 radar (Google Earth Engine), and the **rain** from NASA IMERG sa
 
 ## Measured, not claimed
 
-[`docs/eval/results.md`](docs/eval/results.md) holds a labelled evaluation: 36 Thai/English intake cases and 12 triage
+[`docs/eval/results.md`](docs/eval/results.md) holds a labelled evaluation: 36 Thai/English intake cases and 14 triage
 cases, Gemini run 3 times against the keyword baseline, with every failure listed.
 Reproduce it with `python api/scripts/eval.py --mode gemini --runs 3 --triage`.
 
@@ -115,7 +115,7 @@ can replace the in-memory store without changing them.
   Never enter real personal data.
 - **Not validated with responders yet.** The design draws on published accounts of the Hat Yai response and other
   volunteer rescue groups. It hasn't been tried in a drill with a rescue team.
-- **The evaluation is small** (48 synthetic cases, written by the team): a development check, not a benchmark.
+- **The evaluation is small** (50 synthetic cases, written by the team): a development check, not a benchmark.
 - **Planned, not built:** a database (Firestore) and sign-in for coordinators and teams. The demo rooms stand in
   for sign-in. Phone-line calls aren't connected; voice works in the browser.
 
