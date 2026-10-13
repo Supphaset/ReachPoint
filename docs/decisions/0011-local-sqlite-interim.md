@@ -9,6 +9,8 @@ An explicit `REACHPOINT_DB_PATH` enables a local SQLite file. The API saves the 
 
 After reviewing the schema, the user chose a structured `help_requests` table. One row per caller-confirmed chat or voice request is inserted in the same SQLite transaction as its operational report. Its 14 columns are `report_id`, `channel`, `reporter_name`, `people_details`, `n_children`, `n_elders`, `n_pets`, `location`, `coordinates`, `location_details`, `water_level`, `situation_details`, `emergency_detail` and `other_details`. Unknown counts remain null. `reporter_name` names the person making the report, who may be reporting for other people. The row is a caller-confirmed account awaiting coordinator review, not a verified household identity or a medical assessment. The conversation and sidebar use the same field names.
 
+The user then requested a shared chat/voice question flow and a reviewable manual conversation script. The server asks for missing fields in a fixed order and handles immediate danger before optional fields. It provides the full summary for review and requires explicit confirmation to save; Gemini Live is instructed to read that summary aloud. Voice uses the same session and can select or reject numbered location candidates by speech. The review script is [call-conversation-test.md](../planning/call-conversation-test.md).
+
 This is a single-process local bridge, not a change to the selected shared deployment database in [0009](0009-implementation-start-and-technical-direction.md). The file stays outside Git and contains synthetic demo information only. The demo reset clears it. Raw audio is streamed to Gemini Live but not saved by this adapter.
 
 ## Why and limits

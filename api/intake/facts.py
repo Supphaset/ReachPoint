@@ -26,33 +26,40 @@ class FloodCase(BaseModel):
     contradictions: list[str] = Field(default_factory=list)
 
 
-def next_topic(case: FloodCase) -> str:
-    """Ask only for missing facts; prioritize location for explicit danger."""
+def next_question(case: FloodCase) -> str | None:
+    """One question at a time; an urgent caller can submit without completing optional fields."""
     def missing(field: str) -> bool:
         return getattr(case, field) is None and field not in case.unavailable_fields
 
     if case.immediate_danger and missing("location"):
-        return "ฉุกเฉิน: ถามตำแหน่ง/จังหวัด/จุดสังเกตก่อน และแนะนำช่องทางฉุกเฉินตามอาการที่แจ้ง ไม่ถามชื่อก่อน"
+        return "ตอนนี้อยู่ที่ไหนคะ? หากมีผู้บาดเจ็บฉุกเฉิน โทร 1669 หรือแจ้งเหตุสาธารณภัย โทร 1784 ได้เลยค่ะ"
     if case.contradictions:
-        return "ขอให้ยืนยันข้อมูลที่ขัดกัน: " + "; ".join(case.contradictions)
+        return "ขอให้ช่วยยืนยันข้อมูลที่ขัดกันนี้ค่ะ: " + "; ".join(case.contradictions)
+    if case.immediate_danger:
+        if missing("emergency_detail"):
+            return "เกิดอันตรายอะไรขึ้นตอนนี้ และต้องการความช่วยเหลือเร่งด่วนอย่างไรคะ?"
+        if missing("people_details"):
+            return "มีใครต้องการความช่วยเหลือบ้าง และประมาณกี่คนคะ?"
+        return None
     if missing("reporter_name") and not case.immediate_danger:
-        return "ถามชื่อผู้แจ้ง พร้อมบอกว่าไม่สะดวกแจ้งก็ข้ามได้"
+        return "ขอทราบชื่อผู้แจ้งได้ไหมคะ? ถ้าไม่สะดวกบอก สามารถข้ามได้ค่ะ"
     if missing("people_details"):
-        return "ถามรายละเอียดคนที่ต้องการความช่วยเหลือ รวมจำนวนคน ถ้ามีเด็ก ผู้สูงอายุ หรือสัตว์เลี้ยงให้แจ้งด้วย"
+        return "มีใครต้องการความช่วยเหลือบ้าง และทั้งหมดประมาณกี่คนคะ?"
     if any(missing(field) for field in ("n_children", "n_elders", "n_pets")):
-        return "ถามจำนวนเด็ก ผู้สูงอายุ และสัตว์เลี้ยงที่ยังไม่ทราบ บอกว่า 0 หรือไม่ทราบได้"
+        return "ในกลุ่มนี้มีเด็ก ผู้สูงอายุ และสัตว์เลี้ยงอย่างละกี่คนหรือกี่ตัวคะ? ถ้าไม่มีบอกศูนย์ หรือถ้าไม่ทราบบอกได้ค่ะ"
     if missing("location"):
-        return "ถามที่อยู่ จังหวัด จุดสังเกต และรายละเอียดตำแหน่งเพิ่มเติม พิกัดเป็นทางเลือก"
-    fields = {
-        "water_level": "ระดับน้ำ",
-        "situation_details": "สถานการณ์ตอนนี้ น้ำยังเพิ่มหรือไม่ ทุกคนอยู่ตรงไหน",
-        "emergency_detail": "มีอันตรายเฉียบพลันหรือผู้บาดเจ็บหรือไม่ ต้องการความช่วยเหลืออะไรเร่งด่วน",
-        "other_details": "ข้อมูลอื่นที่ต้องการแจ้ง (ถ้าไม่มีให้บอกว่าไม่มี)",
-    }
-    needed = [label for field, label in fields.items() if missing(field)]
-    if needed:
-        return "ถามสถานการณ์เฉพาะข้อมูลที่ยังขาด: " + ", ".join(needed)
-    return "สรุปคำขอจากข้อมูลทั้งหมดให้ตรวจแก้ ระบุข้อมูลที่ยังไม่ทราบ และขอการยืนยันก่อนบันทึกให้ผู้ประสานงานตรวจสอบ"
+        return "ตอนนี้อยู่ที่ไหนคะ? บอกจังหวัด อำเภอ หรือจุดสังเกตใกล้เคียงได้ค่ะ"
+    if missing("location_details"):
+        return "มีรายละเอียดตำแหน่งเพิ่มเติม เช่น อาคาร ชั้น หรือทางเข้าที่ทีมควรรู้ไหมคะ? ถ้าไม่มีบอกได้ค่ะ"
+    if missing("water_level"):
+        return "น้ำสูงประมาณไหนแล้วคะ? ถ้าไม่ทราบระดับน้ำ บอกว่าไม่ทราบได้ค่ะ"
+    if missing("situation_details"):
+        return "ตอนนี้สถานการณ์เป็นอย่างไร น้ำยังเพิ่มอยู่ไหม และทุกคนอยู่ตรงไหนคะ?"
+    if missing("emergency_detail"):
+        return "มีผู้บาดเจ็บหรืออันตรายเร่งด่วนไหม และต้องการความช่วยเหลืออะไรคะ? ถ้าไม่มีเหตุฉุกเฉินบอกได้ค่ะ"
+    if missing("other_details"):
+        return "มีข้อมูลอื่นที่อยากแจ้งผู้ประสานงานไหมคะ? ถ้าไม่มีบอกว่าไม่มีได้ค่ะ"
+    return None
 
 
 def render_summary(case: FloodCase) -> str:

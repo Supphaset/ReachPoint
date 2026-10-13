@@ -31,6 +31,8 @@ REACHPOINT_DB_PATH=local/reachpoint.sqlite3 REACHPOINT_VOICE=on uvicorn api.main
 
 The ignored SQLite file is local to one server process; `/api/demo/reset` clears it. A confirmed chat or voice request adds one row to `help_requests` with the caller-reviewed fields; unfinished chats remain in `call_sessions`. Do not put real household information in this demo. A local Cloud Run filesystem does not provide durable shared storage, so the selected Firestore deployment work remains separate. See [decision 0011](docs/decisions/0011-local-sqlite-interim.md).
 
+Use the [call conversation review script](docs/planning/call-conversation-test.md) to check chat, hands-free voice, corrections and confirmation with synthetic examples.
+
 The public [ReachPoint repository](https://github.com/Supphaset/ReachPoint) has a minimal README on `main`. The project documentation and static review artifacts are published on `codex/project-foundation` in [draft PR #1](https://github.com/Supphaset/ReachPoint/pull/1); a human reviews and merges them. See [decision 0008](docs/decisions/0008-reachpoint-name-and-public-repository.md) for the approved name and publication boundary.
 
 Application code and its setup instructions arrive from 12 Oct under `web/`, `api/`, `contract/` and `data/` ([0009](docs/decisions/0009-implementation-start-and-technical-direction.md)). Until then, review documentation links and run `git diff --check` before committing. See [contributing](CONTRIBUTING.md) for task ownership and review.
