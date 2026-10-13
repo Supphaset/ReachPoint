@@ -1,0 +1,4633 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-13T07:00:43.093879+00:00",
+  "n_intake": 36,
+  "n_triage": 12,
+  "implementation_sha256": {
+    "api/scripts/eval.py": "c9ad80aa4733b65cc85ebf92c8bdaf57549eb0bcf6a35db936a64626da41ea10",
+    "api/intake/extract.py": "2dd621a686e58d16512c16842460df429fcd0373f4d219119f8210631218c5a3",
+    "api/ai/triage.py": "f00c160b174cf761b8df171161802e552dd4c943b95269509acc8822c4fa85c6",
+    "api/server/memory.py": "dee8d63042af84295a116dc386df215add80e7db32b10fd44056416e6fbcf453",
+    "api/views/store.py": "18fdea837f182c4a3f06b83154d54283a526fb409061d17421f2fa1501ea9939",
+    "api/views/review.py": "a58b5d29b4a799385e435f71e17646a6a6589121aa11acf090000ad7dafff173",
+    "contract/seed/demo.hy-2025-11.json": "fc23bb43f4d68a8d0d18b2a4f74ac062b9eac12a2630fc913d969a4117cab651",
+    "contract/fixtures/areas.hy-2025-11.json": "d21d3f323c2368d75d291a6f32f4d530177b3d79073089eefefeca9839f914d4"
+  },
+  "python_version": "3.12.9",
+  "dataset_sha256": {
+    "intake.jsonl": "29ca05e10f46f81330c6175f07395264eaf970b4bc75650a734fe166c751d759",
+    "triage.jsonl": "89d3b4b1217ea76869ef010b92a2b33e986796cf846705b52f5fa98b4e2b0449"
+  },
+  "standin": {
+    "runs": [
+      {
+        "intake": {
+          "records": [
+            {
+              "id": "negation-01",
+              "group": "negation",
+              "expect": {
+                "danger": false
+              },
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "medical"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 1.7554280057083815,
+              "fallback": false
+            },
+            {
+              "id": "negation-02",
+              "group": "negation",
+              "expect": {
+                "danger": false
+              },
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "medical"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 1.1144910240545869,
+              "fallback": false
+            },
+            {
+              "id": "negation-03",
+              "group": "negation",
+              "expect": {
+                "danger": false
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.6729580054525286,
+              "fallback": false
+            },
+            {
+              "id": "negation-04",
+              "group": "negation",
+              "expect": {
+                "danger": false
+              },
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": "chest",
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "medical"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.5731320125050843,
+              "fallback": false
+            },
+            {
+              "id": "negation-05",
+              "group": "negation",
+              "expect": {
+                "danger": false
+              },
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.752313993871212,
+              "fallback": false
+            },
+            {
+              "id": "negation-06",
+              "group": "negation",
+              "expect": {
+                "danger": false
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": "chest",
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.3135479928459972,
+              "fallback": false
+            },
+            {
+              "id": "danger-01",
+              "group": "danger",
+              "expect": {
+                "danger": true,
+                "needs": [
+                  "medical"
+                ]
+              },
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "medical"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.28916000155732036,
+              "fallback": false
+            },
+            {
+              "id": "danger-02",
+              "group": "danger",
+              "expect": {
+                "danger": true,
+                "needs": [
+                  "medical"
+                ]
+              },
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": "chest",
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport",
+                  "medical"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.23353297729045153,
+              "fallback": false
+            },
+            {
+              "id": "danger-03",
+              "group": "danger",
+              "expect": {
+                "danger": true,
+                "needs": [
+                  "medical"
+                ]
+              },
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport",
+                  "medical"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.3850740031339228,
+              "fallback": false
+            },
+            {
+              "id": "danger-04",
+              "group": "danger",
+              "expect": {
+                "danger": true,
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": "chest",
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.2822279930114746,
+              "fallback": false
+            },
+            {
+              "id": "danger-05",
+              "group": "danger",
+              "expect": {
+                "danger": true,
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.4154189955443144,
+              "fallback": false
+            },
+            {
+              "id": "danger-06",
+              "group": "danger",
+              "expect": {
+                "danger": true,
+                "needs": [
+                  "evacuation_transport"
+                ],
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": "chest",
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.2998640120495111,
+              "fallback": false
+            },
+            {
+              "id": "counts-01",
+              "group": "counts",
+              "expect": {
+                "people": {
+                  "adults": 2,
+                  "children": 0,
+                  "infants": 1,
+                  "stretcher": 0
+                }
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.3598160110414028,
+              "fallback": false
+            },
+            {
+              "id": "counts-02",
+              "group": "counts",
+              "expect": {
+                "people": {
+                  "adults": 3,
+                  "children": 2,
+                  "infants": 0,
+                  "stretcher": 0
+                }
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.4684129962697625,
+              "fallback": false
+            },
+            {
+              "id": "counts-03",
+              "group": "counts",
+              "expect": {
+                "people": {
+                  "adults": 4,
+                  "children": 0,
+                  "infants": 0,
+                  "stretcher": 0
+                }
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.38947199936956167,
+              "fallback": false
+            },
+            {
+              "id": "counts-04",
+              "group": "counts",
+              "expect": {
+                "people": {
+                  "adults": 2,
+                  "children": 1,
+                  "infants": 1,
+                  "stretcher": 0
+                }
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.354112999048084,
+              "fallback": false
+            },
+            {
+              "id": "counts-05",
+              "group": "counts",
+              "expect": {
+                "people": {
+                  "adults": 1,
+                  "children": 0,
+                  "infants": 0,
+                  "stretcher": 1
+                }
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.333374016918242,
+              "fallback": false
+            },
+            {
+              "id": "counts-06",
+              "group": "counts",
+              "expect": {
+                "people": {
+                  "adults": 2,
+                  "children": 1,
+                  "infants": 0,
+                  "stretcher": 0
+                }
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.3440269792918116,
+              "fallback": false
+            },
+            {
+              "id": "water_place-01",
+              "group": "water_place",
+              "expect": {
+                "water": "knee",
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": "knee",
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.32637600088492036,
+              "fallback": false
+            },
+            {
+              "id": "water_place-02",
+              "group": "water_place",
+              "expect": {
+                "water": "waist",
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": "waist",
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.317119003739208,
+              "fallback": false
+            },
+            {
+              "id": "water_place-03",
+              "group": "water_place",
+              "expect": {
+                "water": "chest",
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": "chest",
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.28716999804601073,
+              "fallback": false
+            },
+            {
+              "id": "water_place-04",
+              "group": "water_place",
+              "expect": {
+                "water": "over_head",
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": "over_head",
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.24392802151851356,
+              "fallback": false
+            },
+            {
+              "id": "water_place-05",
+              "group": "water_place",
+              "expect": {
+                "water": "second_floor",
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": "second_floor",
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.21927297348156571,
+              "fallback": false
+            },
+            {
+              "id": "water_place-06",
+              "group": "water_place",
+              "expect": {
+                "water": "knee",
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": "knee",
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.34957699244841933,
+              "fallback": false
+            },
+            {
+              "id": "unknown-01",
+              "group": "unknown",
+              "expect": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.2891249896492809,
+              "fallback": false
+            },
+            {
+              "id": "unknown-02",
+              "group": "unknown",
+              "expect": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.2734760055318475,
+              "fallback": false
+            },
+            {
+              "id": "unknown-03",
+              "group": "unknown",
+              "expect": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.4683729785028845,
+              "fallback": false
+            },
+            {
+              "id": "unknown-04",
+              "group": "unknown",
+              "expect": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.48655798309482634,
+              "fallback": false
+            },
+            {
+              "id": "unknown-05",
+              "group": "unknown",
+              "expect": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false
+              },
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "medical"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 1.7294439894612879,
+              "fallback": false
+            },
+            {
+              "id": "unknown-06",
+              "group": "unknown",
+              "expect": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false
+              },
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "medical"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 1.1620360019151121,
+              "fallback": false
+            },
+            {
+              "id": "kind-01",
+              "group": "kind",
+              "expect": {
+                "kind": "my_household",
+                "needs": [
+                  "supplies"
+                ],
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "supplies"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.9250759903807193,
+              "fallback": false
+            },
+            {
+              "id": "kind-02",
+              "group": "kind",
+              "expect": {
+                "kind": "my_household",
+                "needs": [
+                  "supplies"
+                ],
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "supplies"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.7542360108345747,
+              "fallback": false
+            },
+            {
+              "id": "kind-03",
+              "group": "kind",
+              "expect": {
+                "kind": "check_on",
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.6691020098514855,
+              "fallback": false
+            },
+            {
+              "id": "kind-04",
+              "group": "kind",
+              "expect": {
+                "kind": "check_on",
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.7654729997739196,
+              "fallback": false
+            },
+            {
+              "id": "kind-05",
+              "group": "kind",
+              "expect": {
+                "kind": "neighbour_report",
+                "needs": [
+                  "evacuation_transport"
+                ],
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 1.3604180130641907,
+              "fallback": false
+            },
+            {
+              "id": "kind-06",
+              "group": "kind",
+              "expect": {
+                "kind": "neighbour_report",
+                "needs": [
+                  "supplies"
+                ],
+                "place": true
+              },
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "supplies"
+                ]
+              },
+              "source": "stand-in",
+              "dropped": [],
+              "latency_ms": 0.7331810193136334,
+              "fallback": false
+            }
+          ],
+          "operational": {
+            "n": 36,
+            "metrics": {
+              "people_exact_match": {
+                "value": 0.5,
+                "numerator": 6,
+                "denominator": 12
+              },
+              "water_accuracy": {
+                "value": 1.0,
+                "numerator": 12,
+                "denominator": 12
+              },
+              "kind_accuracy": {
+                "value": 0.3333333333333333,
+                "numerator": 2,
+                "denominator": 6
+              },
+              "danger_false_negatives": {
+                "value": 2,
+                "denominator": 6
+              },
+              "danger_false_positives": {
+                "value": 6,
+                "denominator": 12
+              },
+              "danger_false_negative_rate": {
+                "value": 0.3333333333333333,
+                "numerator": 2,
+                "denominator": 6
+              },
+              "danger_false_positive_rate": {
+                "value": 0.5,
+                "numerator": 6,
+                "denominator": 12
+              },
+              "place_recall": {
+                "value": 0.0,
+                "numerator": 0,
+                "denominator": 13
+              },
+              "needs_recall": {
+                "value": 1.0,
+                "numerator": 10,
+                "denominator": 10
+              },
+              "unknown_correctness": {
+                "value": 1.0,
+                "numerator": 18,
+                "denominator": 18
+              },
+              "fallback_rate": {
+                "value": 0.0,
+                "numerator": 0,
+                "denominator": 36
+              },
+              "latency_p50_ms": {
+                "value": 0.38727300125174224,
+                "denominator": 36
+              },
+              "latency_p95_ms": {
+                "value": 1.452674507163465,
+                "denominator": 36
+              }
+            },
+            "failures": [
+              {
+                "id": "negation-01",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "negation-02",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "negation-04",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "negation-05",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "danger-04",
+                "fields": {
+                  "danger": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "danger-06",
+                "fields": {
+                  "danger": {
+                    "expected": true,
+                    "got": false
+                  },
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "counts-01",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 2,
+                      "children": 0,
+                      "infants": 1,
+                      "stretcher": 0
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "counts-02",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 3,
+                      "children": 2,
+                      "infants": 0,
+                      "stretcher": 0
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "counts-03",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 4,
+                      "children": 0,
+                      "infants": 0,
+                      "stretcher": 0
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "counts-04",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 2,
+                      "children": 1,
+                      "infants": 1,
+                      "stretcher": 0
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "counts-05",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 1,
+                      "children": 0,
+                      "infants": 0,
+                      "stretcher": 1
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "counts-06",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 2,
+                      "children": 1,
+                      "infants": 0,
+                      "stretcher": 0
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "water_place-01",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "water_place-02",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "water_place-03",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "water_place-04",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "water_place-05",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "water_place-06",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "unknown-05",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "unknown-06",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "kind-01",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "kind-02",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "kind-03",
+                "fields": {
+                  "kind": {
+                    "expected": "check_on",
+                    "got": "my_household"
+                  },
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "kind-04",
+                "fields": {
+                  "kind": {
+                    "expected": "check_on",
+                    "got": "my_household"
+                  },
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "kind-05",
+                "fields": {
+                  "kind": {
+                    "expected": "neighbour_report",
+                    "got": "my_household"
+                  },
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "kind-06",
+                "fields": {
+                  "kind": {
+                    "expected": "neighbour_report",
+                    "got": "my_household"
+                  },
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              }
+            ]
+          },
+          "model_only": {
+            "n": 36,
+            "metrics": {
+              "people_exact_match": {
+                "value": 0.5,
+                "numerator": 6,
+                "denominator": 12
+              },
+              "water_accuracy": {
+                "value": 1.0,
+                "numerator": 12,
+                "denominator": 12
+              },
+              "kind_accuracy": {
+                "value": 0.3333333333333333,
+                "numerator": 2,
+                "denominator": 6
+              },
+              "danger_false_negatives": {
+                "value": 2,
+                "denominator": 6
+              },
+              "danger_false_positives": {
+                "value": 6,
+                "denominator": 12
+              },
+              "danger_false_negative_rate": {
+                "value": 0.3333333333333333,
+                "numerator": 2,
+                "denominator": 6
+              },
+              "danger_false_positive_rate": {
+                "value": 0.5,
+                "numerator": 6,
+                "denominator": 12
+              },
+              "place_recall": {
+                "value": 0.0,
+                "numerator": 0,
+                "denominator": 13
+              },
+              "needs_recall": {
+                "value": 1.0,
+                "numerator": 10,
+                "denominator": 10
+              },
+              "unknown_correctness": {
+                "value": 1.0,
+                "numerator": 18,
+                "denominator": 18
+              },
+              "fallback_rate": {
+                "value": 0.0,
+                "numerator": 0,
+                "denominator": 36
+              },
+              "latency_p50_ms": {
+                "value": 0.38727300125174224,
+                "denominator": 36
+              },
+              "latency_p95_ms": {
+                "value": 1.452674507163465,
+                "denominator": 36
+              }
+            },
+            "failures": [
+              {
+                "id": "negation-01",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "negation-02",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "negation-04",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "negation-05",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "danger-04",
+                "fields": {
+                  "danger": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "danger-06",
+                "fields": {
+                  "danger": {
+                    "expected": true,
+                    "got": false
+                  },
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "counts-01",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 2,
+                      "children": 0,
+                      "infants": 1,
+                      "stretcher": 0
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "counts-02",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 3,
+                      "children": 2,
+                      "infants": 0,
+                      "stretcher": 0
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "counts-03",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 4,
+                      "children": 0,
+                      "infants": 0,
+                      "stretcher": 0
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "counts-04",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 2,
+                      "children": 1,
+                      "infants": 1,
+                      "stretcher": 0
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "counts-05",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 1,
+                      "children": 0,
+                      "infants": 0,
+                      "stretcher": 1
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "counts-06",
+                "fields": {
+                  "people": {
+                    "expected": {
+                      "adults": 2,
+                      "children": 1,
+                      "infants": 0,
+                      "stretcher": 0
+                    },
+                    "got": null
+                  }
+                }
+              },
+              {
+                "id": "water_place-01",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "water_place-02",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "water_place-03",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "water_place-04",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "water_place-05",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "water_place-06",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "unknown-05",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "unknown-06",
+                "fields": {
+                  "danger": {
+                    "expected": false,
+                    "got": true
+                  }
+                }
+              },
+              {
+                "id": "kind-01",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "kind-02",
+                "fields": {
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "kind-03",
+                "fields": {
+                  "kind": {
+                    "expected": "check_on",
+                    "got": "my_household"
+                  },
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "kind-04",
+                "fields": {
+                  "kind": {
+                    "expected": "check_on",
+                    "got": "my_household"
+                  },
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "kind-05",
+                "fields": {
+                  "kind": {
+                    "expected": "neighbour_report",
+                    "got": "my_household"
+                  },
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              },
+              {
+                "id": "kind-06",
+                "fields": {
+                  "kind": {
+                    "expected": "neighbour_report",
+                    "got": "my_household"
+                  },
+                  "place": {
+                    "expected": true,
+                    "got": false
+                  }
+                }
+              }
+            ]
+          },
+          "groups": {
+            "counts": {
+              "operational": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "water_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "kind_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_negatives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_positives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_negative_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_positive_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "place_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "needs_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "unknown_correctness": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.3569645050447434,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 0.4486777470447123,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "counts-01",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 2,
+                          "children": 0,
+                          "infants": 1,
+                          "stretcher": 0
+                        },
+                        "got": null
+                      }
+                    }
+                  },
+                  {
+                    "id": "counts-02",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 3,
+                          "children": 2,
+                          "infants": 0,
+                          "stretcher": 0
+                        },
+                        "got": null
+                      }
+                    }
+                  },
+                  {
+                    "id": "counts-03",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 4,
+                          "children": 0,
+                          "infants": 0,
+                          "stretcher": 0
+                        },
+                        "got": null
+                      }
+                    }
+                  },
+                  {
+                    "id": "counts-04",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 2,
+                          "children": 1,
+                          "infants": 1,
+                          "stretcher": 0
+                        },
+                        "got": null
+                      }
+                    }
+                  },
+                  {
+                    "id": "counts-05",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 1,
+                          "children": 0,
+                          "infants": 0,
+                          "stretcher": 1
+                        },
+                        "got": null
+                      }
+                    }
+                  },
+                  {
+                    "id": "counts-06",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 2,
+                          "children": 1,
+                          "infants": 0,
+                          "stretcher": 0
+                        },
+                        "got": null
+                      }
+                    }
+                  }
+                ]
+              },
+              "model_only": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "water_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "kind_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_negatives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_positives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_negative_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_positive_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "place_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "needs_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "unknown_correctness": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.3569645050447434,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 0.4486777470447123,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "counts-01",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 2,
+                          "children": 0,
+                          "infants": 1,
+                          "stretcher": 0
+                        },
+                        "got": null
+                      }
+                    }
+                  },
+                  {
+                    "id": "counts-02",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 3,
+                          "children": 2,
+                          "infants": 0,
+                          "stretcher": 0
+                        },
+                        "got": null
+                      }
+                    }
+                  },
+                  {
+                    "id": "counts-03",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 4,
+                          "children": 0,
+                          "infants": 0,
+                          "stretcher": 0
+                        },
+                        "got": null
+                      }
+                    }
+                  },
+                  {
+                    "id": "counts-04",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 2,
+                          "children": 1,
+                          "infants": 1,
+                          "stretcher": 0
+                        },
+                        "got": null
+                      }
+                    }
+                  },
+                  {
+                    "id": "counts-05",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 1,
+                          "children": 0,
+                          "infants": 0,
+                          "stretcher": 1
+                        },
+                        "got": null
+                      }
+                    }
+                  },
+                  {
+                    "id": "counts-06",
+                    "fields": {
+                      "people": {
+                        "expected": {
+                          "adults": 2,
+                          "children": 1,
+                          "infants": 0,
+                          "stretcher": 0
+                        },
+                        "got": null
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "danger": {
+              "operational": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "water_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "kind_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_negatives": {
+                    "value": 2,
+                    "denominator": 6
+                  },
+                  "danger_false_positives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_negative_rate": {
+                    "value": 0.3333333333333333,
+                    "numerator": 2,
+                    "denominator": 6
+                  },
+                  "danger_false_positive_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "place_recall": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 1
+                  },
+                  "needs_recall": {
+                    "value": 1.0,
+                    "numerator": 6,
+                    "denominator": 6
+                  },
+                  "unknown_correctness": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.2945120068034157,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 0.4078327474417165,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "danger-04",
+                    "fields": {
+                      "danger": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "danger-06",
+                    "fields": {
+                      "danger": {
+                        "expected": true,
+                        "got": false
+                      },
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "model_only": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "water_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "kind_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_negatives": {
+                    "value": 2,
+                    "denominator": 6
+                  },
+                  "danger_false_positives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_negative_rate": {
+                    "value": 0.3333333333333333,
+                    "numerator": 2,
+                    "denominator": 6
+                  },
+                  "danger_false_positive_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "place_recall": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 1
+                  },
+                  "needs_recall": {
+                    "value": 1.0,
+                    "numerator": 6,
+                    "denominator": 6
+                  },
+                  "unknown_correctness": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.2945120068034157,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 0.4078327474417165,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "danger-04",
+                    "fields": {
+                      "danger": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "danger-06",
+                    "fields": {
+                      "danger": {
+                        "expected": true,
+                        "got": false
+                      },
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "kind": {
+              "operational": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "water_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "kind_accuracy": {
+                    "value": 0.3333333333333333,
+                    "numerator": 2,
+                    "denominator": 6
+                  },
+                  "danger_false_negatives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_positives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_negative_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_positive_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "place_recall": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "needs_recall": {
+                    "value": 1.0,
+                    "numerator": 4,
+                    "denominator": 4
+                  },
+                  "unknown_correctness": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.7598545053042471,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 1.2515825073933229,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "kind-01",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "kind-02",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "kind-03",
+                    "fields": {
+                      "kind": {
+                        "expected": "check_on",
+                        "got": "my_household"
+                      },
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "kind-04",
+                    "fields": {
+                      "kind": {
+                        "expected": "check_on",
+                        "got": "my_household"
+                      },
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "kind-05",
+                    "fields": {
+                      "kind": {
+                        "expected": "neighbour_report",
+                        "got": "my_household"
+                      },
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "kind-06",
+                    "fields": {
+                      "kind": {
+                        "expected": "neighbour_report",
+                        "got": "my_household"
+                      },
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "model_only": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "water_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "kind_accuracy": {
+                    "value": 0.3333333333333333,
+                    "numerator": 2,
+                    "denominator": 6
+                  },
+                  "danger_false_negatives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_positives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_negative_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_positive_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "place_recall": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "needs_recall": {
+                    "value": 1.0,
+                    "numerator": 4,
+                    "denominator": 4
+                  },
+                  "unknown_correctness": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.7598545053042471,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 1.2515825073933229,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "kind-01",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "kind-02",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "kind-03",
+                    "fields": {
+                      "kind": {
+                        "expected": "check_on",
+                        "got": "my_household"
+                      },
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "kind-04",
+                    "fields": {
+                      "kind": {
+                        "expected": "check_on",
+                        "got": "my_household"
+                      },
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "kind-05",
+                    "fields": {
+                      "kind": {
+                        "expected": "neighbour_report",
+                        "got": "my_household"
+                      },
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "kind-06",
+                    "fields": {
+                      "kind": {
+                        "expected": "neighbour_report",
+                        "got": "my_household"
+                      },
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "negation": {
+              "operational": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "water_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "kind_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_negatives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_positives": {
+                    "value": 4,
+                    "denominator": 6
+                  },
+                  "danger_false_negative_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_positive_rate": {
+                    "value": 0.6666666666666666,
+                    "numerator": 4,
+                    "denominator": 6
+                  },
+                  "place_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "needs_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "unknown_correctness": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.7126359996618703,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 1.5951937602949329,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "negation-01",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  },
+                  {
+                    "id": "negation-02",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  },
+                  {
+                    "id": "negation-04",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  },
+                  {
+                    "id": "negation-05",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  }
+                ]
+              },
+              "model_only": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "water_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "kind_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_negatives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_positives": {
+                    "value": 4,
+                    "denominator": 6
+                  },
+                  "danger_false_negative_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_positive_rate": {
+                    "value": 0.6666666666666666,
+                    "numerator": 4,
+                    "denominator": 6
+                  },
+                  "place_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "needs_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "unknown_correctness": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.7126359996618703,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 1.5951937602949329,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "negation-01",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  },
+                  {
+                    "id": "negation-02",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  },
+                  {
+                    "id": "negation-04",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  },
+                  {
+                    "id": "negation-05",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "unknown": {
+              "operational": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": 1.0,
+                    "numerator": 6,
+                    "denominator": 6
+                  },
+                  "water_accuracy": {
+                    "value": 1.0,
+                    "numerator": 6,
+                    "denominator": 6
+                  },
+                  "kind_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_negatives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_positives": {
+                    "value": 2,
+                    "denominator": 6
+                  },
+                  "danger_false_negative_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_positive_rate": {
+                    "value": 0.3333333333333333,
+                    "numerator": 2,
+                    "denominator": 6
+                  },
+                  "place_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "needs_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "unknown_correctness": {
+                    "value": 1.0,
+                    "numerator": 18,
+                    "denominator": 18
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.4774654807988554,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 1.587591992574744,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "unknown-05",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  },
+                  {
+                    "id": "unknown-06",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  }
+                ]
+              },
+              "model_only": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": 1.0,
+                    "numerator": 6,
+                    "denominator": 6
+                  },
+                  "water_accuracy": {
+                    "value": 1.0,
+                    "numerator": 6,
+                    "denominator": 6
+                  },
+                  "kind_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_negatives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_positives": {
+                    "value": 2,
+                    "denominator": 6
+                  },
+                  "danger_false_negative_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_positive_rate": {
+                    "value": 0.3333333333333333,
+                    "numerator": 2,
+                    "denominator": 6
+                  },
+                  "place_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "needs_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "unknown_correctness": {
+                    "value": 1.0,
+                    "numerator": 18,
+                    "denominator": 18
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.4774654807988554,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 1.587591992574744,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "unknown-05",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  },
+                  {
+                    "id": "unknown-06",
+                    "fields": {
+                      "danger": {
+                        "expected": false,
+                        "got": true
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "water_place": {
+              "operational": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "water_accuracy": {
+                    "value": 1.0,
+                    "numerator": 6,
+                    "denominator": 6
+                  },
+                  "kind_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_negatives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_positives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_negative_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_positive_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "place_recall": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "needs_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "unknown_correctness": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.30214450089260936,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 0.3437767445575446,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "water_place-01",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "water_place-02",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "water_place-03",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "water_place-04",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "water_place-05",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "water_place-06",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "model_only": {
+                "n": 6,
+                "metrics": {
+                  "people_exact_match": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "water_accuracy": {
+                    "value": 1.0,
+                    "numerator": 6,
+                    "denominator": 6
+                  },
+                  "kind_accuracy": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_negatives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_positives": {
+                    "value": null,
+                    "denominator": 0
+                  },
+                  "danger_false_negative_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "danger_false_positive_rate": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "place_recall": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "needs_recall": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "unknown_correctness": {
+                    "value": null,
+                    "numerator": 0,
+                    "denominator": 0
+                  },
+                  "fallback_rate": {
+                    "value": 0.0,
+                    "numerator": 0,
+                    "denominator": 6
+                  },
+                  "latency_p50_ms": {
+                    "value": 0.30214450089260936,
+                    "denominator": 6
+                  },
+                  "latency_p95_ms": {
+                    "value": 0.3437767445575446,
+                    "denominator": 6
+                  }
+                },
+                "failures": [
+                  {
+                    "id": "water_place-01",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "water_place-02",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "water_place-03",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "water_place-04",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "water_place-05",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  },
+                  {
+                    "id": "water_place-06",
+                    "fields": {
+                      "place": {
+                        "expected": true,
+                        "got": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "triage": {
+          "source": "rules",
+          "fallback": false,
+          "latency_ms": 11.26388501143083,
+          "intake": [
+            {
+              "id": "duplicate-th-03",
+              "source": "stand-in",
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "latency_ms": 1.3328140194062144
+            },
+            {
+              "id": "duplicate-en-03",
+              "source": "stand-in",
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "latency_ms": 0.7572649919893593
+            },
+            {
+              "id": "duplicate-th-02",
+              "source": "stand-in",
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport"
+                ]
+              },
+              "latency_ms": 0.657860015053302
+            },
+            {
+              "id": "duplicate-en-02",
+              "source": "stand-in",
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "latency_ms": 0.9503749897703528
+            },
+            {
+              "id": "different-household-03",
+              "source": "stand-in",
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "supplies"
+                ]
+              },
+              "latency_ms": 0.7688470068387687
+            },
+            {
+              "id": "different-household-02",
+              "source": "stand-in",
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "supplies"
+                ]
+              },
+              "latency_ms": 0.8018359949346632
+            },
+            {
+              "id": "hazard-03",
+              "source": "stand-in",
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "medical"
+                ]
+              },
+              "latency_ms": 0.7482500222977251
+            },
+            {
+              "id": "hazard-08",
+              "source": "stand-in",
+              "got": {
+                "danger": true,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "evacuation_transport",
+                  "medical"
+                ]
+              },
+              "latency_ms": 1.0285010212101042
+            },
+            {
+              "id": "injection-en",
+              "source": "stand-in",
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "latency_ms": 1.2170190166216344
+            },
+            {
+              "id": "injection-th",
+              "source": "stand-in",
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "latency_ms": 0.4630459879990667
+            },
+            {
+              "id": "unrelated-school",
+              "source": "stand-in",
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": [
+                  "supplies"
+                ]
+              },
+              "latency_ms": 0.35239499993622303
+            },
+            {
+              "id": "unrelated-unknown",
+              "source": "stand-in",
+              "got": {
+                "danger": false,
+                "people": null,
+                "water": null,
+                "place": false,
+                "kind": "my_household",
+                "needs": []
+              },
+              "latency_ms": 0.6585099908988923
+            }
+          ],
+          "intake_fallback_rate": {
+            "value": 0.0,
+            "numerator": 0,
+            "denominator": 12
+          },
+          "records": [
+            {
+              "id": "duplicate-th-03",
+              "expect": {
+                "link": "C-03",
+                "newHazard": false
+              },
+              "got": {
+                "links": [
+                  {
+                    "caseId": "C-03",
+                    "newHazard": false
+                  }
+                ],
+                "position": 2
+              }
+            },
+            {
+              "id": "duplicate-en-03",
+              "expect": {
+                "link": "C-03",
+                "newHazard": false
+              },
+              "got": {
+                "links": [
+                  {
+                    "caseId": "C-03",
+                    "newHazard": false
+                  }
+                ],
+                "position": 3
+              }
+            },
+            {
+              "id": "duplicate-th-02",
+              "expect": {
+                "link": "C-02",
+                "newHazard": false
+              },
+              "got": {
+                "links": [
+                  {
+                    "caseId": "C-02",
+                    "newHazard": false
+                  }
+                ],
+                "position": 4
+              }
+            },
+            {
+              "id": "duplicate-en-02",
+              "expect": {
+                "link": "C-02",
+                "newHazard": false
+              },
+              "got": {
+                "links": [
+                  {
+                    "caseId": "C-02",
+                    "newHazard": false
+                  }
+                ],
+                "position": 5
+              }
+            },
+            {
+              "id": "different-household-03",
+              "expect": {
+                "link": null,
+                "newHazard": false
+              },
+              "got": {
+                "links": [
+                  {
+                    "caseId": "C-03",
+                    "newHazard": false
+                  }
+                ],
+                "position": 6
+              }
+            },
+            {
+              "id": "different-household-02",
+              "expect": {
+                "link": null,
+                "newHazard": false
+              },
+              "got": {
+                "links": [
+                  {
+                    "caseId": "C-02",
+                    "newHazard": false
+                  }
+                ],
+                "position": 7
+              }
+            },
+            {
+              "id": "hazard-03",
+              "expect": {
+                "link": "C-03",
+                "newHazard": true
+              },
+              "got": {
+                "links": [
+                  {
+                    "caseId": "C-03",
+                    "newHazard": true
+                  }
+                ],
+                "position": 0
+              }
+            },
+            {
+              "id": "hazard-08",
+              "expect": {
+                "link": "C-08",
+                "newHazard": true
+              },
+              "got": {
+                "links": [
+                  {
+                    "caseId": "C-08",
+                    "newHazard": true
+                  }
+                ],
+                "position": 1
+              }
+            },
+            {
+              "id": "injection-en",
+              "expect": {
+                "link": null,
+                "newHazard": false,
+                "notFirst": true
+              },
+              "got": {
+                "links": [],
+                "position": 8
+              }
+            },
+            {
+              "id": "injection-th",
+              "expect": {
+                "link": null,
+                "newHazard": false,
+                "notFirst": true
+              },
+              "got": {
+                "links": [],
+                "position": 9
+              }
+            },
+            {
+              "id": "unrelated-school",
+              "expect": {
+                "link": null,
+                "newHazard": false
+              },
+              "got": {
+                "links": [],
+                "position": 10
+              }
+            },
+            {
+              "id": "unrelated-unknown",
+              "expect": {
+                "link": null,
+                "newHazard": false
+              },
+              "got": {
+                "links": [],
+                "position": 11
+              }
+            }
+          ],
+          "operational": {
+            "n": 12,
+            "metrics": {
+              "duplicate_link_precision": {
+                "value": 0.6666666666666666,
+                "numerator": 4,
+                "denominator": 6
+              },
+              "duplicate_link_recall": {
+                "value": 1.0,
+                "numerator": 4,
+                "denominator": 4
+              },
+              "new_hazard_correctness": {
+                "value": 1.0,
+                "numerator": 2,
+                "denominator": 2
+              },
+              "injection_correctness": {
+                "value": 1.0,
+                "numerator": 2,
+                "denominator": 2
+              }
+            },
+            "failures": [
+              {
+                "id": "different-household-03",
+                "expected": {
+                  "link": null,
+                  "newHazard": false
+                },
+                "got": {
+                  "links": [
+                    {
+                      "caseId": "C-03",
+                      "newHazard": false
+                    }
+                  ],
+                  "position": 6
+                }
+              },
+              {
+                "id": "different-household-02",
+                "expected": {
+                  "link": null,
+                  "newHazard": false
+                },
+                "got": {
+                  "links": [
+                    {
+                      "caseId": "C-02",
+                      "newHazard": false
+                    }
+                  ],
+                  "position": 7
+                }
+              }
+            ]
+          },
+          "model_only": {
+            "n": 12,
+            "metrics": {
+              "duplicate_link_precision": {
+                "value": 0.6666666666666666,
+                "numerator": 4,
+                "denominator": 6
+              },
+              "duplicate_link_recall": {
+                "value": 1.0,
+                "numerator": 4,
+                "denominator": 4
+              },
+              "new_hazard_correctness": {
+                "value": 1.0,
+                "numerator": 2,
+                "denominator": 2
+              },
+              "injection_correctness": {
+                "value": 1.0,
+                "numerator": 2,
+                "denominator": 2
+              }
+            },
+            "failures": [
+              {
+                "id": "different-household-03",
+                "expected": {
+                  "link": null,
+                  "newHazard": false
+                },
+                "got": {
+                  "links": [
+                    {
+                      "caseId": "C-03",
+                      "newHazard": false
+                    }
+                  ],
+                  "position": 6
+                }
+              },
+              {
+                "id": "different-household-02",
+                "expected": {
+                  "link": null,
+                  "newHazard": false
+                },
+                "got": {
+                  "links": [
+                    {
+                      "caseId": "C-02",
+                      "newHazard": false
+                    }
+                  ],
+                  "position": 7
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "summary": {
+      "operational": {
+        "danger_false_negative_rate": {
+          "mean": 0.3333333333333333,
+          "min": 0.3333333333333333,
+          "max": 0.3333333333333333,
+          "runs": 1
+        },
+        "danger_false_negatives": {
+          "mean": 2,
+          "min": 2,
+          "max": 2,
+          "runs": 1
+        },
+        "danger_false_positive_rate": {
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "runs": 1
+        },
+        "danger_false_positives": {
+          "mean": 6,
+          "min": 6,
+          "max": 6,
+          "runs": 1
+        },
+        "fallback_rate": {
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "runs": 1
+        },
+        "kind_accuracy": {
+          "mean": 0.3333333333333333,
+          "min": 0.3333333333333333,
+          "max": 0.3333333333333333,
+          "runs": 1
+        },
+        "latency_p50_ms": {
+          "mean": 0.38727300125174224,
+          "min": 0.38727300125174224,
+          "max": 0.38727300125174224,
+          "runs": 1
+        },
+        "latency_p95_ms": {
+          "mean": 1.452674507163465,
+          "min": 1.452674507163465,
+          "max": 1.452674507163465,
+          "runs": 1
+        },
+        "needs_recall": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "runs": 1
+        },
+        "people_exact_match": {
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "runs": 1
+        },
+        "place_recall": {
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "runs": 1
+        },
+        "unknown_correctness": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "runs": 1
+        },
+        "water_accuracy": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "runs": 1
+        }
+      },
+      "model_only": {
+        "danger_false_negative_rate": {
+          "mean": 0.3333333333333333,
+          "min": 0.3333333333333333,
+          "max": 0.3333333333333333,
+          "runs": 1
+        },
+        "danger_false_negatives": {
+          "mean": 2,
+          "min": 2,
+          "max": 2,
+          "runs": 1
+        },
+        "danger_false_positive_rate": {
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "runs": 1
+        },
+        "danger_false_positives": {
+          "mean": 6,
+          "min": 6,
+          "max": 6,
+          "runs": 1
+        },
+        "fallback_rate": {
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "runs": 1
+        },
+        "kind_accuracy": {
+          "mean": 0.3333333333333333,
+          "min": 0.3333333333333333,
+          "max": 0.3333333333333333,
+          "runs": 1
+        },
+        "latency_p50_ms": {
+          "mean": 0.38727300125174224,
+          "min": 0.38727300125174224,
+          "max": 0.38727300125174224,
+          "runs": 1
+        },
+        "latency_p95_ms": {
+          "mean": 1.452674507163465,
+          "min": 1.452674507163465,
+          "max": 1.452674507163465,
+          "runs": 1
+        },
+        "needs_recall": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "runs": 1
+        },
+        "people_exact_match": {
+          "mean": 0.5,
+          "min": 0.5,
+          "max": 0.5,
+          "runs": 1
+        },
+        "place_recall": {
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "runs": 1
+        },
+        "unknown_correctness": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "runs": 1
+        },
+        "water_accuracy": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "runs": 1
+        }
+      },
+      "groups": {
+        "counts": {
+          "operational": {
+            "danger_false_negative_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_negatives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positive_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "latency_p50_ms": {
+              "mean": 0.3569645050447434,
+              "min": 0.3569645050447434,
+              "max": 0.3569645050447434,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 0.4486777470447123,
+              "min": 0.4486777470447123,
+              "max": 0.4486777470447123,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "people_exact_match": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "place_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "unknown_correctness": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "water_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            }
+          },
+          "model_only": {
+            "danger_false_negative_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_negatives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positive_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "latency_p50_ms": {
+              "mean": 0.3569645050447434,
+              "min": 0.3569645050447434,
+              "max": 0.3569645050447434,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 0.4486777470447123,
+              "min": 0.4486777470447123,
+              "max": 0.4486777470447123,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "people_exact_match": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "place_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "unknown_correctness": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "water_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            }
+          }
+        },
+        "danger": {
+          "operational": {
+            "danger_false_negative_rate": {
+              "mean": 0.3333333333333333,
+              "min": 0.3333333333333333,
+              "max": 0.3333333333333333,
+              "runs": 1
+            },
+            "danger_false_negatives": {
+              "mean": 2,
+              "min": 2,
+              "max": 2,
+              "runs": 1
+            },
+            "danger_false_positive_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "latency_p50_ms": {
+              "mean": 0.2945120068034157,
+              "min": 0.2945120068034157,
+              "max": 0.2945120068034157,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 0.4078327474417165,
+              "min": 0.4078327474417165,
+              "max": 0.4078327474417165,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            },
+            "people_exact_match": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "place_recall": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "unknown_correctness": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "water_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            }
+          },
+          "model_only": {
+            "danger_false_negative_rate": {
+              "mean": 0.3333333333333333,
+              "min": 0.3333333333333333,
+              "max": 0.3333333333333333,
+              "runs": 1
+            },
+            "danger_false_negatives": {
+              "mean": 2,
+              "min": 2,
+              "max": 2,
+              "runs": 1
+            },
+            "danger_false_positive_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "latency_p50_ms": {
+              "mean": 0.2945120068034157,
+              "min": 0.2945120068034157,
+              "max": 0.2945120068034157,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 0.4078327474417165,
+              "min": 0.4078327474417165,
+              "max": 0.4078327474417165,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            },
+            "people_exact_match": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "place_recall": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "unknown_correctness": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "water_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            }
+          }
+        },
+        "kind": {
+          "operational": {
+            "danger_false_negative_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_negatives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positive_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": 0.3333333333333333,
+              "min": 0.3333333333333333,
+              "max": 0.3333333333333333,
+              "runs": 1
+            },
+            "latency_p50_ms": {
+              "mean": 0.7598545053042471,
+              "min": 0.7598545053042471,
+              "max": 0.7598545053042471,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 1.2515825073933229,
+              "min": 1.2515825073933229,
+              "max": 1.2515825073933229,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            },
+            "people_exact_match": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "place_recall": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "unknown_correctness": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "water_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            }
+          },
+          "model_only": {
+            "danger_false_negative_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_negatives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positive_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": 0.3333333333333333,
+              "min": 0.3333333333333333,
+              "max": 0.3333333333333333,
+              "runs": 1
+            },
+            "latency_p50_ms": {
+              "mean": 0.7598545053042471,
+              "min": 0.7598545053042471,
+              "max": 0.7598545053042471,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 1.2515825073933229,
+              "min": 1.2515825073933229,
+              "max": 1.2515825073933229,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            },
+            "people_exact_match": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "place_recall": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "unknown_correctness": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "water_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            }
+          }
+        },
+        "negation": {
+          "operational": {
+            "danger_false_negative_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_negatives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positive_rate": {
+              "mean": 0.6666666666666666,
+              "min": 0.6666666666666666,
+              "max": 0.6666666666666666,
+              "runs": 1
+            },
+            "danger_false_positives": {
+              "mean": 4,
+              "min": 4,
+              "max": 4,
+              "runs": 1
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "latency_p50_ms": {
+              "mean": 0.7126359996618703,
+              "min": 0.7126359996618703,
+              "max": 0.7126359996618703,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 1.5951937602949329,
+              "min": 1.5951937602949329,
+              "max": 1.5951937602949329,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "people_exact_match": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "place_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "unknown_correctness": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "water_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            }
+          },
+          "model_only": {
+            "danger_false_negative_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_negatives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positive_rate": {
+              "mean": 0.6666666666666666,
+              "min": 0.6666666666666666,
+              "max": 0.6666666666666666,
+              "runs": 1
+            },
+            "danger_false_positives": {
+              "mean": 4,
+              "min": 4,
+              "max": 4,
+              "runs": 1
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "latency_p50_ms": {
+              "mean": 0.7126359996618703,
+              "min": 0.7126359996618703,
+              "max": 0.7126359996618703,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 1.5951937602949329,
+              "min": 1.5951937602949329,
+              "max": 1.5951937602949329,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "people_exact_match": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "place_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "unknown_correctness": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "water_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            }
+          }
+        },
+        "unknown": {
+          "operational": {
+            "danger_false_negative_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_negatives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positive_rate": {
+              "mean": 0.3333333333333333,
+              "min": 0.3333333333333333,
+              "max": 0.3333333333333333,
+              "runs": 1
+            },
+            "danger_false_positives": {
+              "mean": 2,
+              "min": 2,
+              "max": 2,
+              "runs": 1
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "latency_p50_ms": {
+              "mean": 0.4774654807988554,
+              "min": 0.4774654807988554,
+              "max": 0.4774654807988554,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 1.587591992574744,
+              "min": 1.587591992574744,
+              "max": 1.587591992574744,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "people_exact_match": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            },
+            "place_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "unknown_correctness": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            },
+            "water_accuracy": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            }
+          },
+          "model_only": {
+            "danger_false_negative_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_negatives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positive_rate": {
+              "mean": 0.3333333333333333,
+              "min": 0.3333333333333333,
+              "max": 0.3333333333333333,
+              "runs": 1
+            },
+            "danger_false_positives": {
+              "mean": 2,
+              "min": 2,
+              "max": 2,
+              "runs": 1
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "latency_p50_ms": {
+              "mean": 0.4774654807988554,
+              "min": 0.4774654807988554,
+              "max": 0.4774654807988554,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 1.587591992574744,
+              "min": 1.587591992574744,
+              "max": 1.587591992574744,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "people_exact_match": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            },
+            "place_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "unknown_correctness": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            },
+            "water_accuracy": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            }
+          }
+        },
+        "water_place": {
+          "operational": {
+            "danger_false_negative_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_negatives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positive_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "latency_p50_ms": {
+              "mean": 0.30214450089260936,
+              "min": 0.30214450089260936,
+              "max": 0.30214450089260936,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 0.3437767445575446,
+              "min": 0.3437767445575446,
+              "max": 0.3437767445575446,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "people_exact_match": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "place_recall": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "unknown_correctness": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "water_accuracy": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            }
+          },
+          "model_only": {
+            "danger_false_negative_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_negatives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positive_rate": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "danger_false_positives": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "fallback_rate": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "kind_accuracy": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "latency_p50_ms": {
+              "mean": 0.30214450089260936,
+              "min": 0.30214450089260936,
+              "max": 0.30214450089260936,
+              "runs": 1
+            },
+            "latency_p95_ms": {
+              "mean": 0.3437767445575446,
+              "min": 0.3437767445575446,
+              "max": 0.3437767445575446,
+              "runs": 1
+            },
+            "needs_recall": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "people_exact_match": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "place_recall": {
+              "mean": 0.0,
+              "min": 0.0,
+              "max": 0.0,
+              "runs": 1
+            },
+            "unknown_correctness": {
+              "mean": null,
+              "min": null,
+              "max": null,
+              "runs": 0
+            },
+            "water_accuracy": {
+              "mean": 1.0,
+              "min": 1.0,
+              "max": 1.0,
+              "runs": 1
+            }
+          }
+        }
+      },
+      "triage": {
+        "operational": {
+          "duplicate_link_precision": {
+            "mean": 0.6666666666666666,
+            "min": 0.6666666666666666,
+            "max": 0.6666666666666666,
+            "runs": 1
+          },
+          "duplicate_link_recall": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "runs": 1
+          },
+          "injection_correctness": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "runs": 1
+          },
+          "new_hazard_correctness": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "runs": 1
+          }
+        },
+        "model_only": {
+          "duplicate_link_precision": {
+            "mean": 0.6666666666666666,
+            "min": 0.6666666666666666,
+            "max": 0.6666666666666666,
+            "runs": 1
+          },
+          "duplicate_link_recall": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "runs": 1
+          },
+          "injection_correctness": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "runs": 1
+          },
+          "new_hazard_correctness": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "runs": 1
+          }
+        },
+        "fallback": {
+          "mean": 0,
+          "min": false,
+          "max": false
+        },
+        "latency_ms": {
+          "mean": 11.26388501143083,
+          "min": 11.26388501143083,
+          "max": 11.26388501143083
+        },
+        "latency_p50_ms": 11.26388501143083,
+        "latency_p95_ms": 11.26388501143083
+      }
+    }
+  },
+  "gemini": null,
+  "model_ids_seen": []
+}
