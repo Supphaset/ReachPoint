@@ -79,14 +79,14 @@ This starter retains the existing demo-role model; production coordinator author
 | `GET /api/call/sessions/{id}` | — | resume an unexpired session | conversation snapshot |
 | `POST /api/call/sessions/{id}/turn` | `text` (1–500 chars), `turnId` | Gemini extracts caller-only facts and asks the next missing topic; repeated `turnId` does not record another turn; up to 16 caller turns | latest conversation snapshot |
 | `POST /api/call/sessions/{id}/location` | `query`, `action: select \| reject`, `locationId` for selection | the current Pinpoint candidate must match the current location query; no coordinate is accepted before caller selection | conversation snapshot |
-| `POST /api/call/sessions/{id}/confirm` | `submissionId` | only after a complete review summary and location choice; stores the caller's original words, quote-validated proposal and selected location as one report for human review; repeated calls return the same report | conversation snapshot with `sent` |
+| `POST /api/call/sessions/{id}/confirm` | `submissionId`, `expectedRevision` | only after a complete review summary and location choice; rejects an older summary revision; stores the caller's original words, quote-validated proposal and selected location as one report for human review; repeated calls return the same report | conversation snapshot with `sent` |
 | `WS /api/call/sessions/{id}/live` | 16 kHz PCM audio frames | server-side Gemini Live turn tool updates the same session; exact spoken phrase `ยืนยันส่งคำขอ` after summary triggers confirmation; server streams 24 kHz PCM and session snapshots | `ready`, `transcript`, `snapshot`, `interrupted`, `turn_complete`, `error` |
 | `GET /api/views/reviewQueue` | — | coordinator only: the caller's words, the proposal, a landmark suggestion, urgent / stretcher / neighbour prompts | `ReviewQueueView` |
 | `POST /api/reports/{reportId}/approve` | `segmentId`, `people{adults,children,infants,stretcher}`, `needs[]`, `waterBand`, `urgentReason`, `deskNote` | the coordinator's values, not the AI's, become a validated case with one listing per need; an urgent reason makes the evacuation listing tier 1b (RED) | `caseId`, `listingIds` |
 | `POST /api/reports/{reportId}/reject` | `reason` | reason required; the family's link shows it | — |
 | `GET /api/status/{token}` | — | that request only, honest per-family lines; a random 128-bit token, 404 if unknown | `ResidentStatusView` |
 
-Conversation snapshots contain `sessionId`, `messages`, `case`, `locationLookup`, `canConfirm`, `summary`, and
+Conversation snapshots contain `sessionId`, `revision`, `messages`, `case`, `locationLookup`, `canConfirm`, `summary`, and
 `sent`. Sessions and reports are in memory in the starter server and reset on restart. The conversation is for the
 synthetic demo; do not enter real personal details. `REACHPOINT_AI=off` disables conversational text and voice,
 and `REACHPOINT_VOICE=on` explicitly enables the Gemini Live WebSocket. Live requires Google Cloud Application

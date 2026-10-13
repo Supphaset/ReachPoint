@@ -313,6 +313,7 @@ class CallLocation(BaseModel):
 
 class CallConfirm(BaseModel):
     submissionId: str = Field(min_length=1, max_length=100)
+    expectedRevision: int = Field(ge=0)
 
 
 class Locate(BaseModel):
@@ -376,10 +377,13 @@ async def call_location(session_id: str, b: CallLocation):
     return await conversation.choose_location(conversation.get(session_id), b.query, b.action, b.locationId)
 
 
-async def submit_call_session(session: conversation.Conversation, submission_id: str) -> dict:
+async def submit_call_session(session: conversation.Conversation, submission_id: str,
+                              expected_revision: int | None = None) -> dict:
     async with session.lock:
         if session.sent:
             return session.snapshot()
+        if expected_revision is not None and expected_revision != session.revision:
+            raise HTTPException(409, "The summary changed. Review the latest details before confirming.")
         text, location_input = conversation.submission(session)
         if len(text) > conversation.MAX_REPORT_CHARS:
             raise HTTPException(409, "Conversation too long. Please use the text form.")
@@ -395,7 +399,7 @@ async def submit_call_session(session: conversation.Conversation, submission_id:
 
 @app.post("/api/call/sessions/{session_id}/confirm")
 async def confirm_call(session_id: str, b: CallConfirm):
-    return await submit_call_session(conversation.get(session_id), b.submissionId)
+    return await submit_call_session(conversation.get(session_id), b.submissionId, b.expectedRevision)
 
 
 _triage_lock = threading.Lock()

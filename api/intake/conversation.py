@@ -53,6 +53,7 @@ class Conversation:
     lookup: dict = field(default_factory=lambda: {"status": "idle"})
     turn_ids: set[str] = field(default_factory=set)
     channel: str = "chat"
+    revision: int = 0
     sent: dict | None = None
 
     def caller_words(self) -> str:
@@ -62,7 +63,7 @@ class Conversation:
         return bool(self.caller_words()) and next_topic(self.case).startswith("สรุป") and self.lookup.get("status") != "candidates"
 
     def snapshot(self) -> dict:
-        return {"sessionId": self.id, "messages": self.messages, "case": self.case.model_dump(),
+        return {"sessionId": self.id, "revision": self.revision, "messages": self.messages, "case": self.case.model_dump(),
                 "locationLookup": self.lookup, "canConfirm": self.ready() and not self.sent,
                 "summary": render_summary(self.case) if self.ready() else None, "sent": self.sent}
 
@@ -220,6 +221,7 @@ async def turn(session: Conversation, text: str, turn_id: str) -> dict:
         session.case, session.lookup = case, lookup
         session.messages.extend([{"role": "user", "text": text}, {"role": "assistant", "text": reply}])
         session.turn_ids.add(turn_id)
+        session.revision += 1
         return session.snapshot()
 
 
@@ -245,6 +247,7 @@ async def choose_location(session: Conversation, query: str, action: str, locati
             if session.ready():
                 reply += "\n\n" + render_summary(session.case)
         session.messages.append({"role": "assistant", "text": reply})
+        session.revision += 1
         return session.snapshot()
 
 
