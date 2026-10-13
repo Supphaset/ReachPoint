@@ -75,10 +75,11 @@ This starter retains the existing demo-role model; production coordinator author
 |---|---|---|---|
 | `POST /api/intake/text` | `text` (1–2,000 chars), `channel` | Gemini proposes facts; each must quote the caller's text or it is dropped (`api/intake/extract.py`); stored as a proposal, never a case | `reportId`, `statusToken`, `statusUrl`, `aiSource` |
 | `GET /api/call/config` | — | reports whether conversational text and Gemini Live voice are enabled; no credentials returned | `chat`, `voice` |
-| `POST /api/call/sessions` | — | creates an opaque, two-hour in-memory conversation; no report is created | conversation snapshot |
+| `POST /api/call/sessions` | `lang: th \| en` (optional) | creates an opaque, two-hour in-memory conversation in the caller's demo room, greeting in `lang`; no report is created | conversation snapshot |
 | `GET /api/call/sessions/{id}` | — | resume an unexpired session | conversation snapshot |
 | `POST /api/call/sessions/{id}/turn` | `text` (1–500 chars), `turnId` | Gemini extracts caller-only facts and asks the next missing topic; repeated `turnId` does not record another turn; up to 16 caller turns | latest conversation snapshot |
 | `POST /api/call/sessions/{id}/location` | `query`, `action: select \| reject`, `locationId` for selection | the current Pinpoint candidate must match the current location query; no coordinate is accepted before caller selection | conversation snapshot |
+| `POST /api/call/sessions/{id}/pin` | `location`: a `LocationInput` or `null` to clear | the caller's own spot from the chat's location card (GPS, map tap or address), resolved as in D25; a located pin fills the location and the assistant stops asking where | conversation snapshot with `pinned` |
 | `POST /api/call/sessions/{id}/confirm` | `submissionId`, `expectedRevision` | only after a complete review summary and location choice; rejects an older summary revision; stores the caller's original words, quote-validated proposal and selected location as one report for human review; repeated calls return the same report | conversation snapshot with `sent` |
 | `WS /api/call/sessions/{id}/live` | 16 kHz PCM audio frames | server-side Gemini Live turn tool updates the same session; exact spoken phrase `ยืนยันส่งคำขอ` after summary triggers confirmation; server streams 24 kHz PCM and session snapshots | `ready`, `transcript`, `snapshot`, `interrupted`, `turn_complete`, `error` |
 | `GET /api/views/reviewQueue` | — | coordinator only: the caller's words, the proposal, a landmark suggestion, urgent / stretcher / neighbour prompts | `ReviewQueueView` |
@@ -86,8 +87,12 @@ This starter retains the existing demo-role model; production coordinator author
 | `POST /api/reports/{reportId}/reject` | `reason` | reason required; the family's link shows it | — |
 | `GET /api/status/{token}` | — | that request only, honest per-family lines; a random 128-bit token, 404 if unknown | `ResidentStatusView` |
 
-Conversation snapshots contain `sessionId`, `revision`, `messages`, `case`, `locationLookup`, `canConfirm`, `summary`, and
-`sent`. Sessions and reports are in memory in the starter server and reset on restart. The conversation is for the
+Conversation snapshots contain `sessionId`, `revision`, `lang`, `messages`, `case`, `locationLookup`, `pinned`,
+`canConfirm`, `summary`, and `sent`. The assistant replies in the caller's language (Thai script → Thai, Latin
+letters → English, from their latest message). It asks for an optional callback number and, last, an optional
+name for the team to call out; it never asks for age. The report lands in the room the conversation started in,
+also when confirmed by voice. Gemini runs on Vertex AI or with the key (`REACHPOINT_GEMINI`, `api/ai/gemini.py`),
+lite models first. Sessions and reports are in memory in the starter server and reset on restart. The conversation is for the
 synthetic demo; do not enter real personal details. `REACHPOINT_AI=off` disables conversational text and voice,
 and `REACHPOINT_VOICE=on` explicitly enables the Gemini Live WebSocket. Live requires Google Cloud Application
 Default Credentials, `GOOGLE_CLOUD_PROJECT`, and access to `GEMINI_LIVE_MODEL` (default `gemini-3.8-live`) in

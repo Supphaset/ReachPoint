@@ -1,6 +1,7 @@
 """Zone briefing text (T7, C8): 2–3 plain sentences for a team leader, written by Gemini from computed facts only.
 
-The validator is the contract: the text is shown only if every number in it is one of the input facts, it makes no
+The validator is the contract: the text is shown only if every number in it is one of the input facts, next to
+words of the fact it counts, it makes no
 route, safety, dryness or priority claim, and it is short. Otherwise the zone shows "Briefing unavailable" and the
 facts, which are complete on their own. Teams never see AI text that adds a number.
 """
@@ -12,7 +13,8 @@ import json
 import re
 from typing import Any
 
-from api.intake.extract import ENDPOINT, MODELS, api_key
+from api.ai import gemini
+from api.intake.extract import MODELS, api_key
 
 MAX_CHARS, MAX_SENTENCES = 420, 3
 THAI_DIGITS = str.maketrans("๐๑๒๓๔๕๖๗๘๙", "0123456789")
@@ -78,6 +80,34 @@ def _numbers_in_facts(obj: Any, acc: set[float]) -> set[float]:
     return acc
 
 
+_STOP = {"about", "from", "with", "that", "this", "than", "have", "been", "only", "more", "there", "their", "they",
+         "were", "also", "some", "zone", "estimated", "estimate", "report", "reports", "reported", "callers", "calls",
+         "reviewed", "review"}  # in many labels, so they can't tell one count from another
+
+
+def _stems(s: str) -> set[str]:
+    return {w[:4] for w in re.findall(r"[a-z]+", s.lower()) if len(w) >= 4 and w not in _STOP}
+
+
+def _number_labels(facts: dict) -> dict[float, list[set[str]]]:
+    """For each number in the facts, the words of the fact it belongs to (its key, and any words in its value)."""
+    out: dict[float, list[set[str]]] = {}
+    for key, value in facts.items():
+        words = _stems(key) | _stems(json.dumps(value, ensure_ascii=False))
+        for n in _numbers_in_facts(value, set()):
+            out.setdefault(n, []).append(words)
+    return out
+
+
+def _wrong_label(t: str, start: int, end: int, labels: list[set[str]]) -> bool:
+    """A number must sit next to words of a fact that has that number: "2 reviewed evacuation requests" is blocked
+    when 2 is only the count of unchecked segments. Looks 3 words back and 5 forward, within the clause."""
+    before = re.split(r"[;,.:]", t[:start])[-1].split()[-3:]
+    after = re.split(r"[;,.:]", t[end:])[0].split()[:5]
+    near = _stems(" ".join(before + after))
+    return bool(near) and not any(near & words for words in labels)
+
+
 def validate(text: str, facts: dict) -> list[str]:
     """Problems that block the text; empty means it can be shown."""
     problems = []
@@ -97,10 +127,14 @@ def validate(text: str, facts: dict) -> list[str]:
         problems.append(f"landmark code '{code}' without its zone")
     allowed = _numbers_in_facts(facts, set())
     scrubbed = re.sub(r"\b[ABC]-\d{1,2}\b|\bL\d\b|\b6\s?h(ours)?\b", " ", t.translate(THAI_DIGITS))  # IDs and the 6 h label
-    for n in re.findall(r"\d[\d,]*(?:\.\d+)?", scrubbed):
+    labels = _number_labels(facts)
+    for m in re.finditer(r"\d[\d,]*(?:\.\d+)?", scrubbed):
+        n = m.group()
         v = float(n.replace(",", ""))
         if v not in allowed:
             problems.append(f"number {n} is not in the facts")
+        elif _wrong_label(scrubbed, m.start(), m.end(), labels.get(v, [])):
+            problems.append(f"number {n} is not what the facts say it counts")
     for word in ("two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "dozen", "hundred", "thousand", "million"):
         if re.search(rf"\b{word}\b", t, re.I):  # numbers must be digits so they can be checked against the facts
             problems.append(f"number word '{word}'")
@@ -112,17 +146,16 @@ def validate(text: str, facts: dict) -> list[str]:
 
 def write(facts: dict, timeout: float = 12.0) -> dict:
     """Ask Gemini, then validate. Returns the briefing field for the zone view."""
-    import httpx
     key = api_key()
-    if not key:
+    if not key and not gemini.use_vertex():
         return {"state": "unavailable", "text": None, "reason": "no_ai_key"}
     last = "model_unavailable"
-    for model in MODELS:
+    for model in (MODELS if key else gemini.models(MODELS)):
         try:
             body = {"systemInstruction": {"parts": [{"text": INSTRUCTIONS}]},
                     "contents": [{"role": "user", "parts": [{"text": "Facts (JSON):\n" + json.dumps(facts, ensure_ascii=False)}]}],
                     "generationConfig": {"temperature": 0.2, "maxOutputTokens": 200}}
-            r = httpx.post(ENDPOINT.format(model=model), headers={"x-goog-api-key": key}, json=body, timeout=timeout)
+            r = gemini.post(model, body, timeout, key=key)
             if r.status_code != 200:
                 last = f"http_{r.status_code}"
                 continue

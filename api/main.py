@@ -4,7 +4,8 @@
     VITE_DATA=api npm --prefix web run build # then the same server serves the app at /
 
 It serves the built web app and the API from one Cloud Run service. Records live in memory, starting from
-`contract/seed/demo.hy-2025-11.json`, so a restart resets the demo; the friend's version swaps `MemoryStore` for
+`contract/seed/demo.hy-2025-11.json`, so a restart resets the demo. Each visitor gets their own room
+(api/server/rooms.py). The friend's version swaps `MemoryStore` for
 Firestore and keeps the routes, rules and views. No secrets here: Cloud Run's own identity calls Google APIs.
 """
 
@@ -32,14 +33,14 @@ from api.intake.extract import extract
 from api.intake import conversation
 from api.intake.live_voice import router as live_voice_router
 from api.location.resolve import resolve as resolve_location
-from api.server.memory import Clock, MemoryStore, NotFound, Refused
+from api.server.memory import NotFound, Refused
+from api.server.rooms import Room, RoomAttr, Rooms
 from api.views.briefing import area_briefing
 from api.views.desk import rain_view, rising_water_view, zone_order_view
 from api.views.resident import resident_status
 from api.views.review import review_queue
 from api.views.team import team_missions
 from api.contract.flood import ReplayReset, ReplayStep, WaterInput
-from api.server.flood_replay import FloodReplay
 from api.views.flood import flood_map
 from api.views.planning import panel as live_panel
 
@@ -49,9 +50,20 @@ DAY_START, STEPS = "2026-10-11T03:00:00Z", 15  # the replayed demo day: 10:00–
 
 app = FastAPI(title="ReachPoint", version="0.1", docs_url="/api/docs", openapi_url="/api/openapi.json")
 app.include_router(live_voice_router)
-memory = MemoryStore(clock=Clock(os.environ.get("REACHPOINT_CLOCK", "demo")))
-flood_replay = FloodReplay(memory.store.catalogue)
+# Each visitor has their own demo room (api/server/rooms.py); `memory` and `flood_replay` are the current room's.
+rooms = Rooms()
+memory = RoomAttr(rooms, "memory")
+flood_replay = RoomAttr(rooms, "flood_replay")
 USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"  # off: no Gemini calls (tests, offline demo)
+
+
+@app.middleware("http")
+async def demo_room(request: Request, call_next):
+    token = rooms.current_id.set(rooms.clean(request.headers.get("x-demo-room") or request.query_params.get("room")))
+    try:
+        return await call_next(request)
+    finally:
+        rooms.current_id.reset(token)
 
 
 @app.exception_handler(Refused)
@@ -78,7 +90,7 @@ def _replay_times():
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "store": "memory", "seedVersion": memory.store.seed.get("version"), "clock": memory.clock.mode, "now": _now()}
+    return {"ok": True, "store": "memory", "rooms": len(rooms), "room": rooms.current_id.get(), "seedVersion": memory.store.seed.get("version"), "clock": memory.clock.mode, "now": _now()}
 
 
 # Zone briefing text (C8): written in the background, once per set of facts, then kept. A view never waits for it.
@@ -311,6 +323,14 @@ class CallLocation(BaseModel):
     locationId: str | None = None
 
 
+class CallStart(BaseModel):
+    lang: Literal["th", "en"] = "th"
+
+
+class CallPin(BaseModel):
+    location: LocationInput | None = None
+
+
 class CallConfirm(BaseModel):
     submissionId: str = Field(min_length=1, max_length=100)
     expectedRevision: int = Field(ge=0)
@@ -345,7 +365,7 @@ def intake_text(b: Intake):
     location = resolve_location(b.location.model_dump(exclude_none=True)) if b.location else None  # outside the lock (Pinpoint)
     r = memory.write(b.submissionId, lambda: memory.submit_report(b.text, channel, proposal, b.segmentId, b.teamId, location))
     v = r["value"]
-    _triager.submit(_run_triage)  # the triage agent looks at the new request in the background
+    _triager.submit(_run_triage, rooms.current())  # the triage agent looks at the new request in the background
     return {"ok": True, "value": {**v, "statusUrl": f"/status/{v['statusToken']}", "aiSource": proposal["source"]}}
 
 
@@ -356,8 +376,9 @@ def call_config():
 
 
 @app.post("/api/call/sessions")
-def start_call():
-    return conversation.create().snapshot()
+def start_call(b: CallStart | None = None):
+    """A new conversation in the visitor's demo room, greeting in the page's language."""
+    return conversation.create(room_id=rooms.current_id.get(), lang=b.lang if b else "th").snapshot()
 
 
 @app.get("/api/call/sessions/{session_id}")
@@ -377,8 +398,21 @@ async def call_location(session_id: str, b: CallLocation):
     return await conversation.choose_location(conversation.get(session_id), b.query, b.action, b.locationId)
 
 
+@app.post("/api/call/sessions/{session_id}/pin")
+async def call_pin(session_id: str, b: CallPin):
+    """The caller's own spot from the chat's location card (GPS, a tap on the map, or an address), or null to clear it.
+    Resolved like any request location (D25); a located pin means the assistant stops asking where they are."""
+    loc = b.location.model_dump(exclude_none=True) if b.location else None
+    resolved = await asyncio.to_thread(resolve_location, loc) if loc else None
+    return await conversation.pin(conversation.get(session_id), loc, resolved)
+
+
 async def submit_call_session(session: conversation.Conversation, submission_id: str,
                               expected_revision: int | None = None) -> dict:
+    """One report from a confirmed conversation, in the room the conversation started in (voice arrives over a
+    WebSocket, which carries no room header)."""
+    room = rooms.get(session.room_id)
+    m = room.memory
     async with session.lock:
         if session.sent:
             return session.snapshot()
@@ -389,11 +423,10 @@ async def submit_call_session(session: conversation.Conversation, submission_id:
             raise HTTPException(409, "Conversation too long. Please use the text form.")
         proposal = await asyncio.to_thread(extract, text, USE_AI)
         location = await asyncio.to_thread(resolve_location, location_input) if location_input else None
-        result = memory.write(submission_id, lambda: memory.submit_report(text, session.channel, proposal,
-                                                                           location=location))
+        result = m.write(submission_id, lambda: m.submit_report(text, session.channel, proposal, location=location))
         value = result["value"]
         session.sent = {**value, "statusUrl": f"/status/{value['statusToken']}", "aiSource": proposal["source"]}
-        _triager.submit(_run_triage)
+        _triager.submit(_run_triage, room)
         return session.snapshot()
 
 
@@ -402,35 +435,40 @@ async def confirm_call(session_id: str, b: CallConfirm):
     return await submit_call_session(conversation.get(session_id), b.submissionId, b.expectedRevision)
 
 
-_triage_lock = threading.Lock()
-_triage_again = threading.Event()
-
-
-def _run_triage() -> None:
-    """One pass at a time; a request that arrives during a pass triggers one more pass after it."""
-    if not _triage_lock.acquire(blocking=False):
-        _triage_again.set()
+def _run_triage(room: Room) -> None:
+    """One pass at a time per room; a request that arrives during a pass triggers one more pass after it."""
+    if not room.triage_lock.acquire(blocking=False):
+        room.triage_again.set()
         return
+    m = room.memory
     try:
         while True:
-            _triage_again.clear()
-            with memory.lock:
-                snapshot = memory.store.__class__(json.loads(json.dumps(memory.store.seed)), memory.store.catalogue,
-                                                  memory.store.exposure, memory.store.register)
-                now = _now()
+            room.triage_again.clear()
+            with m.lock:
+                snapshot = m.store.__class__(json.loads(json.dumps(m.store.seed)), m.store.catalogue,
+                                             m.store.exposure, m.store.register)
+                now = m.clock.iso()
             result = triage.run_agent(snapshot, now) if USE_AI else triage.rule_proposals(snapshot, now)
-            with memory.lock:
-                memory.store.seed["triage"] = {**result, "at": now}
-            if not _triage_again.is_set():
+            with m.lock:
+                m.store.seed["triage"] = {**result, "at": now}
+            if not room.triage_again.is_set():
                 break
     finally:
-        _triage_lock.release()
+        room.triage_lock.release()
 
 
 @app.get("/api/views/reviewQueue")
 def view_review():
     with memory.lock:
         return {**review_queue(memory.store), "generatedAt": _now()}
+
+
+@app.get("/api/config")
+def client_config():
+    """Browser settings. The Maps key is a browser key, locked to our web addresses in Google Cloud; it is served here
+    so it is never baked into the build or committed. No key → the web app uses its drawn map instead."""
+    from api.location.pinpoint import _config
+    return {"mapsKey": _config("GOOGLE_MAPS_BROWSER_KEY") or _config("VITE_GOOGLE_MAPS_KEY")}
 
 
 @app.post("/api/locate")
@@ -467,8 +505,14 @@ def not_same(report_id: str, b: LinkReport):
 
 @app.get("/api/status/{token}")
 def status(token: str):
+    """The family's link works on any device: it is looked up in the current room first, then in every room."""
     with memory.lock:
         v = resident_status(memory.store, token, _now())
+    for room in rooms.all() if v is None else []:
+        with room.memory.lock:
+            v = resident_status(room.memory.store, token, room.memory.clock.iso())
+        if v is not None:
+            break
     if v is None:
         raise NotFound("status link")
     return v
@@ -516,11 +560,9 @@ def mark_segment(claim_id: str, b: MarkSegment):
 
 @app.post("/api/demo/reset")
 def reset():
-    """Start the demo again from the seed (coordinator only once sign-in exists)."""
-    global memory, flood_replay
-    memory = MemoryStore(clock=Clock(os.environ.get("REACHPOINT_CLOCK", "demo")))
-    flood_replay = FloodReplay(memory.store.catalogue)  # the 1,200-report replay starts again too
-    return {"ok": True, "now": _now()}
+    """Start this room's demo again from the seed, including the 1,200-report replay. Other rooms are untouched."""
+    rooms.reset(rooms.current_id.get())
+    return {"ok": True, "room": rooms.current_id.get(), "now": _now()}
 
 
 # --- user-owned map and isolated replay ---

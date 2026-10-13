@@ -1,25 +1,52 @@
 #!/usr/bin/env bash
 # Deploy ReachPoint to Cloud Run (one service: web + API). Run from the repo root after:
 #   gcloud auth login && gcloud config set project YOUR_PROJECT_ID
-# Needs on the project: Cloud Run, Cloud Build and Artifact Registry APIs, and a billing account (the free trial works).
+#   scripts/put-secrets.sh   # once: copies the keys from ~/.config/reachpoint/env into Secret Manager
+# Needs on the project: Cloud Run, Cloud Build, Artifact Registry, Secret Manager and Vertex AI APIs, and billing.
+# Gemini runs on Vertex AI with the service's own identity (no Gemini key, no free-tier caps, billed to the project).
+# Voice (Gemini Live) is gemini-3.8-live in us-central1, the only single region that serves it; VOICE=off skips it.
 set -euo pipefail
 
 PROJECT="${PROJECT:-$(gcloud config get-value project)}"
 REGION="${REGION:-asia-southeast1}"   # Singapore, closest to Hat Yai
 SERVICE="${SERVICE:-reachpoint}"
+VOICE="${VOICE:-on}"
 REPO="${REPO:-reachpoint}"
 IMAGE="$REGION-docker.pkg.dev/$PROJECT/$REPO/app:$(git rev-parse --short HEAD)"
 
 echo "Project $PROJECT · region $REGION · image $IMAGE"
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com --project "$PROJECT"
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com \
+  secretmanager.googleapis.com aiplatform.googleapis.com --project "$PROJECT"
 gcloud artifacts repositories describe "$REPO" --location "$REGION" --project "$PROJECT" >/dev/null 2>&1 ||
   gcloud artifacts repositories create "$REPO" --repository-format docker --location "$REGION" --project "$PROJECT"
 
+# The service runs as the default compute identity: it may call Vertex AI and read the keys, nothing else.
+RUNNER="$(gcloud projects describe "$PROJECT" --format 'value(projectNumber)')-compute@developer.gserviceaccount.com"
+gcloud projects add-iam-policy-binding "$PROJECT" --member "serviceAccount:$RUNNER" \
+  --role roles/aiplatform.user --condition None >/dev/null
+SECRETS=""
+for pair in "PINPOINT_API_KEY=pinpoint-api-key" "GOOGLE_MAPS_BROWSER_KEY=maps-browser-key"; do
+  name="${pair#*=}"
+  gcloud secrets describe "$name" --project "$PROJECT" >/dev/null 2>&1 && SECRETS="${SECRETS:+$SECRETS,}${pair}:latest"
+done
+for name in gemini-api-key pinpoint-api-key maps-browser-key; do
+  gcloud secrets describe "$name" --project "$PROJECT" >/dev/null 2>&1 &&
+    gcloud secrets add-iam-policy-binding "$name" --project "$PROJECT" --member "serviceAccount:$RUNNER" \
+      --role roles/secretmanager.secretAccessor >/dev/null
+done
+
 gcloud builds submit --tag "$IMAGE" --project "$PROJECT" .
 
-# One instance keeps the in-memory demo consistent (every request sees the same records). Scale to zero when idle.
+# One instance keeps the in-memory demo rooms and conversations consistent; min 1 keeps it warm for judges (a restart
+# still resets the demo). No CPU throttling: the triage agent and zone briefings finish after the reply is sent.
+# A voice call is a WebSocket, which Cloud Run closes at the request timeout (default 5 min): 15 min covers the
+# 10-minute voice cap. Session affinity keeps a reconnecting caller on the same instance.
+ENV="REACHPOINT_CLOCK=demo,REACHPOINT_GEMINI=vertex,GOOGLE_CLOUD_PROJECT=$PROJECT,REACHPOINT_VOICE=$VOICE"
+ENV="$ENV,GEMINI_LIVE_LOCATION=us-central1,GEMINI_LIVE_MODEL=gemini-3.8-live"
 gcloud run deploy "$SERVICE" --image "$IMAGE" --region "$REGION" --project "$PROJECT" \
-  --allow-unauthenticated --max-instances 1 --min-instances 0 --memory 512Mi --cpu 1 \
-  --set-env-vars REACHPOINT_CLOCK=demo
+  --allow-unauthenticated --max-instances 1 --min-instances 1 --no-cpu-throttling --memory 1Gi --cpu 1 \
+  --timeout 900 --session-affinity --set-env-vars "$ENV" ${SECRETS:+--set-secrets "$SECRETS"}
 
-gcloud run services describe "$SERVICE" --region "$REGION" --project "$PROJECT" --format 'value(status.url)'
+URL="$(gcloud run services describe "$SERVICE" --region "$REGION" --project "$PROJECT" --format 'value(status.url)')"
+echo "$URL"
+echo "Add $URL/* to the allowed websites of the Maps browser key (APIs & Services > Credentials) if the map stays blank."

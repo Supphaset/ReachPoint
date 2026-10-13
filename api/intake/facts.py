@@ -1,15 +1,23 @@
-"""Caller-reported flood facts and the next intake topic."""
+"""Caller-reported flood facts and the next intake topic.
+
+Order of questions: what is happening and where, who is there, the situation, then an optional callback number
+and last an optional name for the team to call out on arrival. A name is not needed to verify a request (teams
+verify by calling back), so it never delays help; age is not asked (children, elderly and mobility cover it).
+"""
 
 from pydantic import BaseModel, Field
 
-DISPATCH_NOTICE = "ยังไม่ได้บันทึกคำขอ กรุณายืนยันสรุปก่อนส่งให้ผู้ประสานงานตรวจสอบ ยังไม่มีทีมเข้าช่วยเหลือหรือเวลาถึงพื้นที่ที่ยืนยันแล้ว"
+DISPATCH_NOTICE = {
+    "th": "ยังไม่ได้บันทึกคำขอ กรุณายืนยันสรุปก่อนส่งให้ผู้ประสานงานตรวจสอบ ยังไม่มีทีมเข้าช่วยเหลือหรือเวลาถึงพื้นที่ที่ยืนยันแล้ว",
+    "en": "Your request is not saved yet. Confirm the summary to send it to a coordinator for review. No team or arrival time is confirmed yet.",
+}
+SUMMARY_TOPIC = "SUMMARY"
 
 
 class FloodCase(BaseModel):
     """Facts reported by the user, with unknown values kept explicit."""
 
     reporter_name: str | None = None
-    reporter_age: int | None = Field(default=None, ge=0, le=130)
     people_count: int | None = Field(default=None, ge=1)
     people_details: str | None = None
     children_count: int | None = Field(default=None, ge=0)
@@ -39,8 +47,6 @@ def next_topic(case: FloodCase) -> str:
         return "ฉุกเฉิน: ถามตำแหน่ง/จังหวัด/จุดสังเกตก่อน และแนะนำช่องทางฉุกเฉินตามอาการที่แจ้ง ไม่ถามชื่อก่อน"
     if case.contradictions:
         return "ขอให้ยืนยันข้อมูลที่ขัดกัน: " + "; ".join(case.contradictions)
-    if missing("reporter_name") and not case.immediate_danger:
-        return "ถามชื่อและอายุ พร้อมบอกว่าไม่สะดวกแจ้งก็ข้ามได้"
     if missing("people_count") or missing("people_details"):
         return "ถามเฉพาะข้อมูลที่ขาดเรื่องจำนวนคนรวมผู้แจ้ง และเด็ก/ผู้สูงอายุ/ผู้ที่ต้องการความช่วยเหลือพิเศษ"
     if missing("location"):
@@ -55,33 +61,45 @@ def next_topic(case: FloodCase) -> str:
     needed = [label for field, label in fields.items() if missing(field)]
     if needed:
         return "ถามสถานการณ์เฉพาะข้อมูลที่ยังขาด: " + ", ".join(needed)
-    return "สรุปคำขอจากข้อมูลทั้งหมดให้ตรวจแก้ ระบุข้อมูลที่ยังไม่ทราบ และขอการยืนยันก่อนบันทึกให้ผู้ประสานงานตรวจสอบ"
+    if missing("callback_contact"):
+        return "ถามเบอร์โทรติดต่อกลับ (ไม่บังคับ ข้ามได้) เพื่อให้ทีมโทรยืนยันก่อนออกไป"
+    if missing("reporter_name"):
+        return "ถามชื่อที่ให้ทีมเรียกเมื่อไปถึง (ไม่บังคับ ข้ามได้)"
+    return SUMMARY_TOPIC
 
 
-def render_summary(case: FloodCase) -> str:
-    """Render reported fields directly, without model-generated count breakdowns."""
+LABELS = {
+    "reporter_name": ("ชื่อที่ให้ทีมเรียก", "Name for the team to call out"),
+    "people_count": ("จำนวนคนรวม", "People in total"), "people_details": ("รายละเอียดผู้ประสบภัย", "Who is there"),
+    "children_count": ("เด็ก", "Children"), "elderly_count": ("ผู้สูงอายุ", "Elderly"),
+    "mobility_needs": ("การเคลื่อนไหว / ความช่วยเหลือพิเศษ", "Mobility / special help"),
+    "location": ("ตำแหน่ง", "Location"), "landmark": ("จุดสังเกต", "Landmark"), "coordinates": ("พิกัด", "Coordinates"),
+    "water_level": ("ระดับน้ำ", "Water level"), "water_trend": ("แนวโน้มน้ำ", "Water rising?"),
+    "current_shelter": ("จุดที่พักอยู่", "Where everyone is now"), "injuries": ("การบาดเจ็บ", "Injuries"),
+    "urgent_needs": ("ความช่วยเหลือที่ต้องการ", "Help needed"), "callback_contact": ("ติดต่อกลับ (ไม่บังคับ)", "Callback (optional)"),
+}
+UNIT = {"people_count": ("คน", "people"), "children_count": ("คน", ""), "elderly_count": ("คน", "")}
+
+
+def render_summary(case: FloodCase, lang: str = "th") -> str:
+    """Render reported fields directly, without model-generated count breakdowns, in the caller's language."""
+    i = 0 if lang == "th" else 1
+    unknown = ("ยังไม่ทราบ / ยังไม่ได้แจ้ง", "not known / not given")[i]
+
     def value(field: str) -> str:
         content = getattr(case, field)
-        return "ยังไม่ทราบ / ยังไม่ได้แจ้ง" if content is None else str(content)
+        if content is None:
+            return unknown
+        unit = UNIT.get(field, ("", ""))[i]
+        return f"{content} {unit}".strip()
 
-    rows = [
-        ("ผู้แจ้ง", value("reporter_name")),
-        ("อายุ", value("reporter_age") + (" ปี" if case.reporter_age is not None else "")),
-        ("จำนวนคนรวม", value("people_count") + (" คน" if case.people_count is not None else "")),
-        ("รายละเอียดผู้ประสบภัย", value("people_details")),
-        ("เด็ก", value("children_count") + (" คน" if case.children_count is not None else "")),
-        ("ผู้สูงอายุ", value("elderly_count") + (" คน" if case.elderly_count is not None else "")),
-        ("การเคลื่อนไหว / ความช่วยเหลือพิเศษ", value("mobility_needs")),
-        ("ตำแหน่ง", value("location")), ("จุดสังเกต", value("landmark")),
-        ("พิกัด", value("coordinates")), ("ระดับน้ำ", value("water_level")),
-        ("แนวโน้มน้ำ", value("water_trend")), ("จุดที่พักอยู่", value("current_shelter")),
-        ("การบาดเจ็บ", value("injuries")), ("ความช่วยเหลือที่ต้องการ", value("urgent_needs")),
-        ("ติดต่อกลับ (ไม่บังคับ)", value("callback_contact")),
-    ]
-    summary = "สรุปคำขอความช่วยเหลือ กรุณาตรวจทานข้อมูลค่ะ\n\n"
-    summary += "\n\n".join(f"{label}: {content}" for label, content in rows)
-    summary += "\n\n" + DISPATCH_NOTICE
-    summary += "\n\nหากต้องแก้ไขข้อมูลหรือสถานการณ์เปลี่ยนไป แจ้งได้เลยค่ะ หากถูกต้อง กรุณากดยืนยันส่งคำขอค่ะ"
+    head = ("สรุปคำขอความช่วยเหลือ กรุณาตรวจทานข้อมูลค่ะ", "Summary of your request. Please check it.")[i]
+    summary = head + "\n\n" + "\n\n".join(f"{LABELS[f][i]}: {value(f)}" for f in LABELS)
+    summary += "\n\n" + DISPATCH_NOTICE["th" if i == 0 else "en"]
+    summary += "\n\n" + ("หากต้องแก้ไขข้อมูลหรือสถานการณ์เปลี่ยนไป แจ้งได้เลยค่ะ หากถูกต้อง กรุณากดยืนยันส่งคำขอค่ะ",
+                          "If anything is wrong or changes, just tell me. If it is right, press Confirm and send.")[i]
     if case.immediate_danger:
-        summary = "ผู้แจ้งระบุอันตรายเฉียบพลัน หากโทรได้ให้ติดต่อ 1784 หรือ 1669 เมื่อมีเหตุเจ็บป่วยฉุกเฉิน โดยไม่ต้องรอกรอกข้อมูลครบค่ะ\n\n" + summary
+        summary = ("ผู้แจ้งระบุอันตรายเฉียบพลัน หากโทรได้ให้ติดต่อ 1784 หรือ 1669 เมื่อมีเหตุเจ็บป่วยฉุกเฉิน โดยไม่ต้องรอกรอกข้อมูลครบค่ะ",
+                   "You reported immediate danger. If you can call, phone 1784 (disaster) or 1669 (medical) now; don't wait to finish this.")[i] \
+            + "\n\n" + summary
     return summary

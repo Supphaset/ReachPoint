@@ -122,7 +122,7 @@
 .listing-row .group-list .num { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
 .listing-actions { display: grid; }
 .listing-actions .btn-primary, .job-actions .btn-primary, .window .btn-primary { width: 100%; }
-.listing-actions .btn-quiet { font-size: var(--text-sm); text-decoration: underline; justify-self: start; padding-inline: 0; }
+.listing-actions .btn-quiet { font-size: var(--text-sm); text-decoration: none; justify-self: start; padding-inline: var(--space-3); }
 .listing-row .urgency summary { min-height: var(--tap-min); align-content: center; }
 .listing-row .urgency-summary { display: none; }
 .listing-row .urgency { background: var(--color-canvas); }
@@ -133,3 +133,10 @@
 .window-pick .field { min-width: 0; flex: 1; }
 .window-pick select { width: 100%; }
 .job-card, .listing-row { min-width: 0; overflow-wrap: anywhere; }
+
+.urgency summary { grid-template-columns: auto minmax(0, 1fr); column-gap: var(--space-2); min-height: var(--tap-min); align-items: center; list-style: none; }
+.urgency summary::-webkit-details-marker { display: none; }
+.urgency-chevron { grid-column: 1; grid-row: 1 / span 2; display: flex; }
+.urgency[open] .urgency-chevron { transform: rotate(90deg); }
+.urgency-title, .urgency-summary { grid-column: 2; }
+.urgency summary:focus-visible { outline: var(--border-thin) solid var(--color-focus); outline-offset: var(--space-1); }

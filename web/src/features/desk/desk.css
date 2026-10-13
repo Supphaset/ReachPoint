@@ -65,16 +65,34 @@
 .desk-page .rising label { display: grid; gap: var(--space-2); }
 .desk-page .rising .rising-check { display: flex; min-height: var(--tap-min); }
 .desk-page .rising input { font: inherit; padding: var(--space-2); border: var(--border-thin) solid var(--color-line-strong); border-radius: var(--radius-sm); }
-@container (min-width: 992px) {
-  .desk-inbox { grid-template-columns: var(--desk-inbox-width) minmax(0, 1fr); align-items: start; }
+@container (min-width: 720px) {
+  .desk-inbox { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: start; }
   .desk-list, .desk-reading { max-height: var(--desk-pane-height); overflow-y: auto; padding: var(--space-1); }
   .desk-back { display: none; }
 }
-@container (max-width: 420px) {
-  .desk-form .desk-people { grid-template-columns: minmax(0, 1fr); }
-  .desk-tabs button { flex: 1 1 40%; }
+@container (max-width: 560px) {
+  .desk-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .desk-tabs button { min-height: var(--button-big); padding-inline: var(--space-2); white-space: nowrap; font-size: var(--text-sm); }
 }
 
 @media (max-width: 767px) {
   .has-tabs .desk-footer { bottom: var(--tabbar-height); }
+}
+
+/* Facts respond to the detail pane, including the half-width desktop desk. */
+.desk-detail { container-type: inline-size; }
+.desk-location-search { display: grid; gap: var(--space-2); }
+.desk-location-search[hidden] { display: none; }
+@container (max-width: 560px) {
+  .desk-facts thead { display: none; }
+  .desk-facts tr { display: grid; grid-template-columns: minmax(0, 1fr); padding: var(--space-2) 0; border-bottom: var(--border-thin) solid var(--color-line); }
+  .desk-facts th, .desk-facts td { border: 0; padding: 0; width: auto; }
+  .desk-facts, .desk-facts tbody { display: block; }
+  .desk-facts th:first-child { width: auto; color: var(--color-ink-3); font-size: var(--text-xs); }
+}
+
+@container (max-width: 420px) {
+  .desk-form .desk-people { grid-template-columns: minmax(0, 1fr); }
+  .desk-people > label { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); }
+  .desk-form .desk-stepper input { width: var(--tap-min); min-width: 0; }
 }

@@ -25,6 +25,30 @@ describe("desk inbox", () => {
     expect(out).toContain("Decrease Adults");
     expect(out).toContain("Reject");
   });
+  it("preselects the located landmark ahead of an older suggestion", () => {
+    const r = report("R-location", "Synthetic request");
+    r.location = { status: "located", kind: "pin", method: "map", at: [100.4705, 7.0089], precision: "house", source: "caller pin (map)", provider: "device", segmentId: "B-3-L2", zoneId: "B-3", landmarkLabel: "B-3 · L2 Market" };
+    setup([r]);
+    state.queue.landmarks.push({ segmentId: "B-3-L2", label: "B-3 · L2 Market" });
+    const out = renderToStaticMarkup(<ReviewQueue />);
+    expect(out).toContain('<option value="B-3-L2" selected="">');
+    expect(out).toContain("Fix location");
+    expect(out).toContain('class="desk-location-search" hidden=""');
+    expect(out).toContain("from the caller&#x27;s map pin");
+  });
+  it("puts the caller message before the location and uses the caller’s GPS copy", () => {
+    const r = report("R-001", "Synthetic family needs help");
+    r.location = { status: "located", kind: "pin", method: "gps", at: [100.4705, 7.0089], precision: "house", source: "synthetic", provider: "device" };
+    setup([r]);
+    const out = renderToStaticMarkup(<ReviewQueue />);
+    expect(out.indexOf('<blockquote class="review-text">')).toBeLessThan(out.indexOf('class="location-block"'));
+    expect(out).toContain("from the caller&#x27;s phone GPS");
+    expect(out).not.toContain("from your phone");
+    expect(out).toContain('aria-expanded="false"');
+    const thai = renderToStaticMarkup(<LangProvider lang="th"><ReviewQueue /></LangProvider>);
+    expect(thai).toContain("จาก GPS โทรศัพท์ของผู้แจ้ง");
+    expect(thai).toContain("แก้ตำแหน่ง");
+  });
   it("explains the empty queue without an approval form", () => {
     setup([]);
     const out = renderToStaticMarkup(<ReviewQueue />);
@@ -42,6 +66,24 @@ describe("desk inbox", () => {
     expect(out).toContain("ข้อเสนอจาก AI ต้องให้คุณอนุมัติ");
     expect(out).toContain("Please help our family");
     expect(out).not.toContain("Coordinator desk");
+  });
+  it("shows AI summary, place and rank in the desk language with an English fallback", () => {
+    const r = report("R-language", "Synthetic caller quote");
+    r.proposal.facts.summary = "Family needs a boat";
+    r.proposal.facts.summaryTh = "ครอบครัวต้องการเรือ";
+    r.proposal.facts.place = { text: "School", textTh: "โรงเรียน", quote: "Synthetic caller quote" };
+    r.triage = { source: "fixture", at: "", links: [], rank: { reason: "No danger sign read", reasonTh: "ไม่พบสัญญาณอันตราย", quote: "", danger: [] } };
+    setup([r]);
+    const thai = renderToStaticMarkup(<LangProvider lang="th"><ReviewQueue /></LangProvider>);
+    for (const text of ["ครอบครัวต้องการเรือ", "โรงเรียน", "ไม่พบสัญญาณอันตราย", "Synthetic caller quote"]) expect(thai).toContain(text);
+    for (const text of ["Family needs a boat", "School", "No danger sign read"]) expect(thai).not.toContain(text);
+    const english = renderToStaticMarkup(<LangProvider lang="en"><ReviewQueue /></LangProvider>);
+    for (const text of ["Family needs a boat", "School", "No danger sign read"]) expect(english).toContain(text);
+    r.proposal.facts.summaryTh = "";
+    delete r.proposal.facts.place.textTh;
+    delete r.triage.rank!.reasonTh;
+    const fallback = renderToStaticMarkup(<LangProvider lang="th"><ReviewQueue /></LangProvider>);
+    for (const text of ["Family needs a boat", "School", "No danger sign read"]) expect(fallback).toContain(text);
   });
   it("retains duplicate controls and refuses to link a new danger away", () => {
     const r = report("R-3", "Help");

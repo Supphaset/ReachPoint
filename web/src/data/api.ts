@@ -3,6 +3,8 @@
  * directly. Each write carries a `submissionId` so a retry is safe, and the revision it saw where it matters.
  * Routes: contract/api.md. Rule failures come back as HTTP 409 with `{ code, message, detail }`.
  */
+import { demoRoom } from "./room";
+
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "";
 
 export class ApiError extends Error {
@@ -24,7 +26,11 @@ async function call<T>(method: "GET" | "POST", path: string, body?: object, toke
   try {
     res = await fetch(`${BASE}${path}`, {
       method,
-      headers: { ...(body ? { "Content-Type": "application/json" } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      headers: {
+        "X-Demo-Room": demoRoom(),
+        ...(body ? { "Content-Type": "application/json" } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch {

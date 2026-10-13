@@ -16,7 +16,7 @@
 .home-hero h1 { font-size: var(--text-2xl); line-height: 1.25; text-wrap: balance; }
 .home-lead { font-size: var(--text-lg); color: var(--color-ink-2); max-width: 40rem; }
 .home-cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); margin-top: var(--space-2); }
-.home-watch { min-height: var(--button-big); padding: 0 var(--space-5); font-size: var(--text-lg); text-decoration: none; }
+.home-watch { min-height: var(--button-big); padding: 0 var(--space-5); font-size: var(--text-lg); }
 .home-how, .home-roles { display: grid; gap: var(--space-4); }
 .home-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); grid-template-columns: 1fr; }
 .home-steps li {
@@ -63,3 +63,7 @@
   .home-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .home-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+.home-compound { white-space: nowrap; }
+
+@media (max-width: 480px) { .home-cta .btn { flex: 1 1 100%; } }

@@ -76,7 +76,7 @@ def c():
     main.USE_AI = False
     main.reset()
     main.memory.clock.now = lambda: datetime(2026, 10, 11, 3, 32, tzinfo=timezone.utc)
-    main.flood_replay = FloodReplay(main.memory.store.catalogue)
+    main.rooms.current().flood_replay = FloodReplay(main.memory.store.catalogue)
     return TestClient(main.app)
 
 

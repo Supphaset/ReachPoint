@@ -15,7 +15,7 @@ from api.views.store import Store
 
 SEAT = {"adults": 1.0, "children": 0.5, "infants": 0.0, "stretcher": 3.0}
 SEAT_LABEL = "Seats: adult 1, child under 12 half, baby on a lap 0, stretcher or wheelchair 3 (D33)"
-BOAT_DEPTH_M = 1.2  # D32: "boat needed" at 1.2 m or more (or a fast current); otherwise wading may be possible
+BOAT_DEPTH_M = 1.2  # D32: "boat needed" at 1.2 m or more (or a fast current). Below it we say only what callers report, never that wading is safe
 TITLE = {"red": "Why this is an emergency", "yellow": "Why it's urgent", "green": "Why it can wait"}
 WITHHELD = "Medical details come with the job, for the team that takes it"
 MEDICAL_CATEGORY = "Medical need: affects how to move them"
@@ -81,7 +81,7 @@ def urgency(case: dict, need: dict, water: dict, colour_: str) -> dict:
                       "th": f"{thai.BANDS[w['band']]} (ประมาณ {w['approxM']:g} ม.) ที่จุดสังเกต",
                       "basis": "callers", "at": w["latestAt"], "callers": w["callers"], "stale": w["stale"]})
         boat = w["approxM"] >= BOAT_DEPTH_M
-        kit.insert(0, "Boat needed (water 1.2 m or more)" if boat else "Wading may be possible; check on arrival")
+        kit.insert(0, "Boat needed (water 1.2 m or more)" if boat else "Callers report water under 1.2 m; check the depth on arrival")
         kit_th.insert(0, thai.BOAT_KIT if boat else thai.WADE_KIT)
     else:
         facts.append({"kind": "water", "text": "Water depth here: unknown (no reviewed report)", "th": thai.WATER_UNKNOWN, "basis": "none"})

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { post, submissionId } from "../../data/api";
 import { apiMode } from "../../data/mode";
+import { demoRoom, newRoomCode, roomLink } from "../../data/room";
 import { LangSwitch, useLang, type Pair } from "../../i18n/lang";
 import { S } from "../../i18n/strings";
 import { Wordmark } from "../../shell/AppShell";
@@ -20,16 +21,42 @@ function Screen({ name, src, wide, k }: { name: Pair; src: string; wide?: boolea
   );
 }
 
-const q = (path: string, lang: "th" | "en", as: string) => `${path}?data=api&refresh=2&lang=${lang}&as=${encodeURIComponent(as)}`;
+const q = (path: string, lang: "th" | "en", as: string, room: string, extra = "") =>
+  `${path}?data=api&refresh=2&lang=${lang}&as=${encodeURIComponent(as)}&room=${encodeURIComponent(room)}${extra}`;
+
+type Moment = "request" | "boat" | "quiet";
+const MOMENTS: { id: Moment; tab: string }[] = [{ id: "request", tab: "review" }, { id: "boat", tab: "boat" }, { id: "quiet", tab: "quiet" }];
 
 /** /demo: victim and volunteer phones side by side, with the coordinator's approval between them. */
 export function DemoPage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [k, setK] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [room, setRoom] = useState(() => demoRoom());
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [moment, setMoment] = useState<Moment>("request");
+  const deskTab = MOMENTS.find((m) => m.id === moment)!.tab;
+  const fresh = () => {
+    const code = newRoomCode();
+    const url = new URL(window.location.href);
+    url.searchParams.set("room", code);
+    window.history.replaceState(null, "", url);
+    setRoom(demoRoom(url.search));
+    setK((n) => n + 1);
+  };
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(roomLink("/demo", room));
+      setLinkCopied(true);
+      window.setTimeout(() => setLinkCopied(false), 1500);
+    } catch {
+      /* clipboard refused: the code is on screen */
+    }
+  };
   const reset = async () => {
+    if (!window.confirm(t(S.demo.resetConfirm))) return;
     setBusy(true);
     setError(false);
     try {
@@ -57,10 +84,10 @@ export function DemoPage() {
         <h1>{t(S.demo.title)}</h1>
         <div className="demo-actions">
           <LangSwitch />
-          <button type="button" className="btn btn-secondary btn-md" onClick={() => setK((n) => n + 1)}>
+          <button type="button" className="btn btn-quiet btn-md" onClick={() => setK((n) => n + 1)}>
             {t(S.demo.reload)}
           </button>
-          <button type="button" className="btn btn-primary btn-md" onClick={reset} disabled={busy || !apiMode()}>
+          <button type="button" className="btn btn-secondary btn-md" onClick={reset} disabled={busy || !apiMode()}>
             {busy ? t(S.demo.resetting) : t(S.demo.reset)}
           </button>
         </div>
@@ -68,6 +95,29 @@ export function DemoPage() {
       {!apiMode() && <Banner kind="info">{t(S.demo.needsServer)}</Banner>}
       {error && <Banner kind="error">{t(S.demo.resetFailed)}</Banner>}
       <p className="demo-lead">{t(S.demo.lead)}</p>
+      {apiMode() && (
+        <div className="demo-room">
+          <strong>{t(S.demo.room(room))}</strong>
+          <span className="muted">{t(S.demo.roomNote)}</span>
+          <span className="demo-room-actions">
+            <button type="button" className="btn btn-quiet btn-md" onClick={copyLink}>
+              {linkCopied ? t(S.demo.copied) : t(S.demo.copyLink)}
+            </button>
+            <button type="button" className="btn btn-quiet btn-md" onClick={fresh}>
+              {t(S.demo.newRoom)}
+            </button>
+          </span>
+        </div>
+      )}
+      {apiMode() && <section className="demo-moments" aria-label={t(S.demo.momentsTitle)}>
+        <h2>{t(S.demo.momentsTitle)}</h2>
+        <div className="demo-moment-row" role="group">
+          {MOMENTS.map((m) => <button key={m.id} type="button" className={`demo-moment ${moment === m.id ? "is-on" : ""}`}
+            aria-pressed={moment === m.id} onClick={() => { setMoment(m.id); setK((n) => n + 1); }}>
+            <strong>{t(S.demo.moments[m.id].title)}</strong><span>{t(S.demo.moments[m.id].body)}</span>
+          </button>)}
+        </div>
+      </section>}
       <ol className="demo-steps">
         {S.demo.steps.map((s, i) => (
           <li key={i}><span className="demo-step-number" aria-hidden="true">{i + 1}</span><span>{t(s)}</span></li>
@@ -82,9 +132,9 @@ export function DemoPage() {
       </div>
       {apiMode() && (
         <div className="demo-stage">
-          <Screen k={k} name={S.demo.victim} src={q("/call", "th", "resident:demo")} />
-          <Screen k={k} name={S.demo.desk} src={q("/desk", "en", "coordinator:demo-1")} wide />
-          <Screen k={k} name={S.demo.volunteer} src={q("/team/list", "th", "team:T-S")} />
+          <Screen k={k} name={S.demo.victim} src={q("/call", lang, "resident:demo", room)} />
+          <Screen k={k} name={S.demo.desk} src={q("/desk", lang, "coordinator:demo-1", room, `&tab=${deskTab}`)} wide />
+          <Screen k={k} name={S.demo.volunteer} src={q("/team/list", lang, "team:T-S", room)} />
         </div>
       )}
     </div>

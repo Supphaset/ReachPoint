@@ -132,7 +132,11 @@ function Row({ r, decision, isRed, onDecide }: { r: ReconfirmRow; decision?: Dec
 /** Coordinator desk, until the friend's desk lands: the water-rising panel first. */
 export function DeskPage() {
   const { t } = useLang();
-  const [tab, setTab] = useState("review");
+  // ?tab=boat or ?tab=quiet opens that tab (the /demo "moments" link straight to them)
+  const [tab, setTab] = useState(() => {
+    const wanted = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("tab");
+    return wanted && ["review", "water", "boat", "quiet"].includes(wanted) ? wanted : "review";
+  });
   const [reviewCount, setReviewCount] = useState<number>();
   const [waterCount, setWaterCount] = useState<number>();
   const [quietCount, setQuietCount] = useState<number>();

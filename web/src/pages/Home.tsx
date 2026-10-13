@@ -28,13 +28,14 @@ export function Home() {
     <div className="page home">
       <section className="home-hero">
         <p className="home-context">{t(S.home.context)}</p>
-        <h1>{t(S.home.tagline)}</h1>
+        <h1>{t(S.home.tagline).split(t(S.home.helpCompound)).map((part, i) => <span key={i}>{i > 0 && <span className="home-compound">{t(S.home.helpCompound)}</span>}{part}</span>)}</h1>
         <p className="home-lead">{t(S.home.lead)}</p>
         <div className="home-cta">
           <Link className="btn btn-primary btn-md home-watch" to={demo}>
             <Icon name="people" size={20} />
             <span>{t(S.home.watch)}</span>
           </Link>
+          <Link className="btn btn-secondary btn-md" to={`/call${search}`}>{t(S.home.askHelp)}</Link>
           <span className="muted">{t(S.home.watchNote)}</span>
         </div>
       </section>

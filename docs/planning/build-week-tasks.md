@@ -1,5 +1,7 @@
 # Build-week task list (12–17 Oct 2026)
 
+> **13 Oct update:** two mock judges scored us 64.75 and 63.5. The [finish plan](finish-plan.md) is now the plan for the rest of the week; where it disagrees with this list, the finish plan wins.
+
 Based on the [delivery agreement](../collaboration/two-person-delivery-agreement.md) and the eng review tasks (T-numbers). For the whole flow, see the [overview](../OVERVIEW.md). Times are Bangkok.
 
 The consolidated intake, map, water-estimation and rescue-demo implementation order is in [the connected demonstration plan](surge-demo.md). Its W1–W8 tasks clarify the surge work below; current completion status and proposed algorithms are explicitly separated.

@@ -1,10 +1,10 @@
 /** ReachPoint conversation API. The server owns facts, location choices and report submission. */
 
 import { get, post, submissionId } from "./api";
+import type { Location, LocationInput } from "./contract";
 
 export interface CallCase {
   reporter_name: string | null;
-  reporter_age: number | null;
   people_count: number | null;
   people_details: string | null;
   children_count: number | null;
@@ -28,6 +28,10 @@ export interface CallCase {
 export interface CallSession {
   sessionId: string;
   revision: number;
+  /** The caller's language (Thai or English), from their latest message. */
+  lang: "th" | "en";
+  /** Where the caller's pin from the location card landed, if they set one. */
+  pinned: Location | null;
   messages: { role: "user" | "assistant"; text: string }[];
   case: CallCase;
   locationLookup: {
@@ -44,11 +48,13 @@ export interface CallSession {
 export interface CallConfig { chat: boolean; voice: boolean }
 
 export const callConfig = () => get<CallConfig>("/api/call/config");
-export const startCall = () => post<CallSession>("/api/call/sessions", {});
+export const startCall = (lang: "th" | "en" = "th") => post<CallSession>("/api/call/sessions", { lang });
 export const readCall = (id: string) => get<CallSession>(`/api/call/sessions/${id}`);
 export const sendCallTurn = (id: string, text: string, turnId = submissionId()) =>
   post<CallSession>(`/api/call/sessions/${id}/turn`, { text, turnId });
 export const chooseCallLocation = (id: string, query: string, action: "select" | "reject", locationId?: string) =>
   post<CallSession>(`/api/call/sessions/${id}/location`, { query, action, locationId });
+export const pinCall = (id: string, location: LocationInput | null) =>
+  post<CallSession>(`/api/call/sessions/${id}/pin`, { location });
 export const confirmCall = (id: string, expectedRevision: number, idempotencyKey = submissionId()) =>
   post<CallSession>(`/api/call/sessions/${id}/confirm`, { submissionId: idempotencyKey, expectedRevision });

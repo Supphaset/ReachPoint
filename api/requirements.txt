@@ -8,3 +8,5 @@ google-genai==2.30.0       # conversation extraction and Gemini Live voice
 opentelemetry-api==1.42.1
 opentelemetry-sdk==1.42.1
 google-api-core==2.34.0
+ortools==9.15.6755         # split solver (api/rules/allocation.py), imported by the planning panel
+protobuf==6.33.6           # ortools and google-adk both need it; this version satisfies both
