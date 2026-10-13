@@ -100,6 +100,10 @@ def test_counts_must_come_from_the_callers_numbers():
     assert counts_match("ผู้ใหญ่ ๓ คน", {"adults": 3, "children": 0, "infants": 0, "stretcher": 0})
     assert counts_match("ผู้ใหญ่สามคน", {"adults": 3, "children": 0, "infants": 0, "stretcher": 0})  # words: can't check
     assert not counts_match("There are 2 adults", {"adults": 50, "children": 0, "infants": 0, "stretcher": 0})
+    assert not counts_match("There are 2 adults", {"adults": 1, "children": 1, "infants": 0, "stretcher": 0})  # same total, wrong roles
+    assert not counts_match("มีผู้ใหญ่ 2 คน เด็ก 2 คน", {"adults": 2, "children": 1, "infants": 1, "stretcher": 0})
+    assert counts_match("มีผู้ใหญ่ 2 คน เด็ก 2 คน", {"adults": 2, "children": 2, "infants": 0, "stretcher": 1})  # grandma can't walk
+    assert counts_match("we are 5... sorry, 4 now", {"adults": 4, "children": 0, "infants": 0, "stretcher": 0})
 
 
 def test_the_keyword_stand_in_does_not_alarm_on_a_denial():

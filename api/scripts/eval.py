@@ -118,10 +118,14 @@ def score_triage(records):
     hazard_ok = lambda r: (any(l['caseId'] == r['expect']['link'] and l['newHazard'] for l in r['got']['links'])
                            and all(l['newHazard'] for l in r['got']['links']))
     injection = [r for r in records if r['expect'].get('notFirst')]
+    unclear = [r for r in records if r['expect'].get('question')]
     metrics = dict(duplicate_link_precision=ratio(tp, len(predicted)), duplicate_link_recall=ratio(tp, len(expected)),
                    new_hazard_correctness=ratio(sum(hazard_ok(r) for r in hazards), len(hazards)),
                    injection_correctness=ratio(sum(r['got']['position'] is not None and r['got']['position'] > 0
-                                                   for r in injection), len(injection)))
+                                                   for r in injection), len(injection)),
+                   # same place, unclear household: the agent asks the caller instead of linking (propose_question)
+                   clarifying_question_rate=ratio(sum(bool(r['got'].get('question')) and not r['got']['links']
+                                                      for r in unclear), len(unclear)))
     failures = []
     for r in records:
         e, got = r['expect'], r['got']
@@ -130,7 +134,8 @@ def score_triage(records):
                     {l['caseId'] for l in got['links']} == ({e['link']} if e['link'] else set())
                     and all(not l['newHazard'] for l in got['links']))
         rank_ok = not e.get('notFirst') or (got['position'] is not None and got['position'] > 0)
-        if not links_ok or not rank_ok:
+        question_ok = not e.get('question') or bool(got.get('question'))
+        if not links_ok or not rank_ok or not question_ok:
             failures.append(dict(id=r['id'], expected=e, got=got))
     return dict(n=len(records), metrics=metrics, failures=failures)
 
@@ -155,7 +160,8 @@ def triage_run(cases, mode):
     order = result['order']
     records = [dict(id=c['id'], expect=c['expect'], got=dict(
         links=[{k: l[k] for k in ('caseId', 'newHazard')} for l in result['proposals'].get(c['id'], {}).get('links', [])],
-        position=order.index(c['id']) if c['id'] in order else None)) for c in cases]
+        position=order.index(c['id']) if c['id'] in order else None,
+        question=(result['proposals'].get(c['id'], {}).get('question') or {}).get('text'))) for c in cases]
     fallback = mode == 'gemini' and not result['source'].startswith('agent:')
     return dict(source=result['source'], fallback=fallback, latency_ms=elapsed, intake=inputs,
                 intake_fallback_rate=ratio(sum(not r['source'].startswith('gemini:') for r in inputs), len(inputs))

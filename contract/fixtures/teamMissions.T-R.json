@@ -397,7 +397,7 @@
      }
     ],
     "kit": [
-     "Wading may be possible; check on arrival",
+     "Callers report water under 1.2 m; check the depth on arrival",
      "Life jackets for 2 children"
     ],
     "withheld": null,
@@ -405,7 +405,7 @@
      "title": "ทำไมจึงด่วน",
      "summary": "น้ำถึงเอว (ประมาณ 1 ม.) ที่จุดสังเกต",
      "kit": [
-      "อาจเดินลุยน้ำได้ ตรวจดูอีกครั้งเมื่อไปถึง",
+      "ผู้แจ้งบอกว่าน้ำต่ำกว่า 1.2 ม. ตรวจความลึกเมื่อไปถึง",
       "เสื้อชูชีพสำหรับเด็ก 2 คน"
      ],
      "withheld": null
@@ -474,14 +474,14 @@
      }
     ],
     "kit": [
-     "Wading may be possible; check on arrival"
+     "Callers report water under 1.2 m; check the depth on arrival"
     ],
     "withheld": null,
     "th": {
      "title": "ทำไมจึงด่วน",
      "summary": "น้ำถึงเข่า (ประมาณ 0.5 ม.) ที่จุดสังเกต",
      "kit": [
-      "อาจเดินลุยน้ำได้ ตรวจดูอีกครั้งเมื่อไปถึง"
+      "ผู้แจ้งบอกว่าน้ำต่ำกว่า 1.2 ม. ตรวจความลึกเมื่อไปถึง"
      ],
      "withheld": null
     }

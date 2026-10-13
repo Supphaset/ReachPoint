@@ -139,12 +139,32 @@ def _numbers(quote: str) -> set[int]:
     return {int(n) for n in re.findall(r"\d+", quote.translate(str.maketrans("๐๑๒๓๔๕๖๗๘๙", "0123456789")))}
 
 
+_ROLE_NUMBERS = [  # a number written right next to a role word: "2 adults", "ผู้ใหญ่ 2 คน", "เด็ก ๒"
+    ("adults", re.compile(r"(\d+)\s*(?:adults?|grown[- ]?ups?)\b|ผู้ใหญ่\s*(\d+)", re.I)),
+    ("children", re.compile(r"(\d+)\s*(?:kids?|child(?:ren)?)\b|เด็ก(?!เล็ก|ทารก)\s*(\d+)", re.I)),
+    ("infants", re.compile(r"(\d+)\s*(?:bab(?:y|ies)|infants?)\b|ทารก\s*(\d+)", re.I)),
+]
+
+
+def _role_numbers(quote: str) -> dict[str, int]:
+    q = quote.translate(str.maketrans("๐๑๒๓๔๕๖๗๘๙", "0123456789"))
+    out: dict[str, int] = {}
+    for role, rx in _ROLE_NUMBERS:
+        found = [int(a or b) for a, b in rx.findall(q)]
+        if len(found) == 1:  # one clear mention; a correction ("5... sorry, 4") is left to the total check
+            out[role] = found[0]
+    return out
+
+
 def counts_match(quote: str, counts: dict) -> bool:
-    """If the quote has digits, the counts must come from them: the total is one of them, or every count above 1 is.
-    "2 adults" can't become 50 adults. Counts in words ("ผู้ใหญ่สามคน") can't be checked this way and pass."""
+    """If the quote has digits, the counts must come from them: the total is one of them, or every count above 1 is,
+    and a number written next to a role word must be that role's count. "2 adults" can't become 50 adults, nor
+    1 adult and 1 child. Counts in words ("ผู้ใหญ่สามคน") can't be checked this way and pass."""
     nums = _numbers(quote)
     if not nums:
         return True
+    if any(counts.get(role) != n for role, n in _role_numbers(quote).items()):
+        return False
     big = [c for c in counts.values() if c > 1]
     return sum(counts.values()) in nums or all(c in nums for c in big)
 

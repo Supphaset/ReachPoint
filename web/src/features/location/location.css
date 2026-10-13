@@ -70,3 +70,6 @@
 
 .location-block .btn-lg { min-height: var(--button-big); }
 .sheet-body.is-map:has(.location-map-note) .location-gmap-help { display: none; }
+
+.location-gmap-where { display: flex; align-items: center; gap: var(--space-1); min-height: var(--space-5); margin: 0 0 var(--space-2); color: var(--color-brand); font-weight: var(--weight-medium); }
+.location-gmap-pin::after { content: ""; position: absolute; left: 50%; bottom: calc(-1 * var(--space-1)); width: var(--space-2); height: var(--space-2); transform: translateX(-50%); border-radius: var(--radius-pill); background: var(--color-brand); box-shadow: 0 0 0 var(--space-1) var(--color-waiting-bg); }

@@ -10,7 +10,7 @@ from api.scripts import eval as evaluation
 def test_datasets_are_labelled_and_synthetic():
     intake = evaluation.load_cases('intake.jsonl')
     triage = evaluation.load_cases('triage.jsonl')
-    assert len(intake) == 36 and len(triage) == 12
+    assert len(intake) == 36 and len(triage) == 14
     assert Counter(c['group'] for c in intake) == dict.fromkeys(
         ('negation', 'danger', 'counts', 'water_place', 'unknown', 'kind'), 6)
     assert sum(c['lang'] == 'th' for c in intake) >= 18
@@ -90,7 +90,7 @@ def test_standin_end_to_end_without_key_or_network(tmp_path, monkeypatch):
     assert evaluation.main(['--mode', 'standin', '--triage', '--out', str(tmp_path)]) == 0
     result = json.loads((tmp_path / 'results.json').read_text())
     assert result['gemini'] is None and result['model_ids_seen'] == []
-    assert result['n_intake'] == 36 and result['n_triage'] == 12
+    assert result['n_intake'] == 36 and result['n_triage'] == 14
     assert result['standin']['runs'][0]['triage']['source'] == 'rules'
     assert result['standin']['summary']['operational']['fallback_rate']['mean'] == 0
     assert 'Gemini runs: not yet run' in (tmp_path / 'results.md').read_text()

@@ -65,7 +65,7 @@ def test_urgency_details_are_operational_only():
 
 def test_kit_follows_depth_and_people():
     by = {r["caseId"]: r["urgency"] for r in view["open"]}
-    assert by["C-06"]["kit"][0].startswith("Wading may be possible")  # knee deep
+    assert by["C-06"]["kit"][0].startswith("Callers report water under 1.2 m")  # knee deep: no safety claim
     assert "Stretcher, and at least 2 people to carry" in by["C-05"]["kit"]
     assert by["C-05"]["summary"] == "Can't walk: must be carried"
 

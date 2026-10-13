@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import type { Location } from "../../data/contract";
 import { loadGoogleMaps, type Maps } from "../../data/googleMaps";
+import { locate } from "../../data/intake";
 import { demoBounds } from "../../data/locationMap";
 import { useLang } from "../../i18n/lang";
-import { S } from "../../i18n/strings";
+import { S, seedText } from "../../i18n/strings";
 import { Icon } from "../../ui/Icon";
+import { callerPlace } from "./LocationChip";
 import { LocationMap } from "./LocationMap";
 import "./location.css";
 
@@ -21,13 +24,27 @@ export function GoogleLocationPicker({ start, onConfirm, fill = false }: { start
   const box = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<"loading" | "ready" | "fallback">("loading");
   const [pin, setPin] = useState<At>(start ?? [HAT_YAI.lng, HAT_YAI.lat]);
+  // What is under the pin, from the server's read-only snap (no AI): "Near Kim Yong market", or outside the area.
+  const [under, setUnder] = useState<Location | null>(null);
+  const asked = useRef(0);
+  useEffect(() => {
+    if (state !== "ready") return;
+    const n = ++asked.current;
+    const timer = window.setTimeout(() => {
+      void locate({ kind: "pin", lon: pin[0], lat: pin[1], method: "map" }).then((r) => {
+        if (n === asked.current) setUnder(r.ok ? r.value : null);
+      });
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [pin, state]);
+  const outside = under?.status === "outside_area";
   useEffect(() => {
     let alive = true;
     Promise.all([loadGoogleMaps(lang), demoBounds()])
       .then(([maps, [west, south, east, north]]) => {
         if (!alive || !box.current) return;
         const map = new maps.Map(box.current, {
-          center: start ? { lat: start[1], lng: start[0] } : HAT_YAI, zoom: start ? 17 : 15, clickableIcons: false,
+          center: start ? { lat: start[1], lng: start[0] } : HAT_YAI, zoom: start ? 17 : 16, clickableIcons: false,
           // "cooperative" in the inline form, so one finger still scrolls the page; the sheet scrolls nothing else.
           gestureHandling: fill ? "greedy" : "cooperative",
           streetViewControl: false, mapTypeControl: false, fullscreenControl: false,
@@ -54,7 +71,11 @@ export function GoogleLocationPicker({ start, onConfirm, fill = false }: { start
         {state === "loading" && <p role="status" className="location-gmap-loading">{t(S.briefing.mapLoading)}</p>}
       </div>
       <div className="location-gmap-foot">
-        <button type="button" className="btn btn-primary btn-lg" disabled={state !== "ready"} onClick={() => onConfirm(pin)}>
+        <p className="location-gmap-where" aria-live="polite">
+          {under && <><Icon name="pin" size={16} />{outside ? t(S.location.outside_area)
+            : under.landmarkLabel ? t(S.location.near(callerPlace(seedText(under.landmarkLabel, lang)))) : ""}</>}
+        </p>
+        <button type="button" className="btn btn-primary btn-lg" disabled={state !== "ready" || outside} onClick={() => onConfirm(pin)}>
           <Icon name="check" />{t(S.location.useSpot)}
         </button>
       </div>
