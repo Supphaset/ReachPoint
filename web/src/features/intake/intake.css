@@ -199,3 +199,4 @@ a.call-danger span { flex: 1; }
 .call-first-replies { display: flex; flex-wrap: nowrap; gap: var(--space-2); min-width: 0; overflow-x: auto; padding: var(--space-1); }
 .call-first-replies .call-hint { flex: none; white-space: nowrap; }
 .call-first-replies .call-hint:focus-visible { outline: var(--border-thin) solid var(--color-focus); outline-offset: var(--space-1); }
+.call-first-replies { scrollbar-width: none; } .call-first-replies::-webkit-scrollbar { display: none; }
