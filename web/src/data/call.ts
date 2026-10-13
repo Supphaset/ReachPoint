@@ -2,8 +2,9 @@
 
 import { get, post, submissionId } from "./api";
 
-export interface CallCase {
-  reporter_name: string | null;
+export interface HelpRequestDetails {
+  phone_number: string | null;
+  type: "food" | "evacuation" | null;
   people_details: string | null;
   n_children: number | null;
   n_elders: number | null;
@@ -15,6 +16,29 @@ export interface CallCase {
   situation_details: string | null;
   emergency_detail: string | null;
   other_details: string | null;
+}
+
+export interface HelpRequest extends HelpRequestDetails {
+  phone_number: string;
+  type: "food" | "evacuation";
+  report_id: string;
+  channel: "chat" | "voice" | "form";
+}
+
+export const REQUEST_DETAIL_FIELDS = [
+  "phone_number", "type",
+  "people_details", "n_children", "n_elders", "n_pets", "location", "coordinates",
+  "location_details", "water_level", "situation_details", "emergency_detail", "other_details",
+] as const satisfies readonly (keyof HelpRequestDetails)[];
+
+export const EMPTY_REQUEST_DETAILS: HelpRequestDetails = {
+  phone_number: null, type: null,
+  people_details: null, n_children: null, n_elders: null, n_pets: null, location: null,
+  coordinates: null, location_details: null, water_level: null, situation_details: null,
+  emergency_detail: null, other_details: null,
+};
+
+export interface CallCase extends HelpRequestDetails {
   immediate_danger: boolean | null;
   unavailable_fields: string[];
   contradictions: string[];

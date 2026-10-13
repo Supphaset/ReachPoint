@@ -4,6 +4,7 @@ import { BriefingPage } from "./features/briefing/BriefingPage";
 import { JobsPage, WaitingPage } from "./features/team/TeamPages";
 import { SplitPanel } from "./features/split/SplitPanel";
 import { DeskPage } from "./features/desk/RisingWater";
+import { CallersPage } from "./features/callers/CallersPage";
 import { CallPage } from "./features/intake/CallPage";
 import { StatusPage } from "./features/resident/StatusPage";
 import { DevUi } from "./pages/DevUi";
@@ -25,6 +26,7 @@ export function App() {
         <Route path="desk/split" element={<SplitPanel />} />
         <Route path="desk" element={<DeskPage />} />
         <Route path="call" element={<CallPage />} />
+        <Route path="callers" element={<CallersPage />} />
         <Route path="status/:token" element={<StatusPage />} />
         <Route path="dev/ui" element={<DevUi />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -6,10 +6,10 @@ import { BigButton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 
 const groups = [
-  { title: "casePeople", fields: ["reporter_name", "people_details", "n_children", "n_elders", "n_pets"] },
+  { title: "casePeople", fields: ["phone_number", "people_details", "n_children", "n_elders", "n_pets"] },
   { title: "casePlace", fields: ["location", "coordinates", "location_details"] },
   { title: "caseSituation", fields: ["water_level", "situation_details"] },
-  { title: "caseNeeds", fields: ["emergency_detail", "other_details"] },
+  { title: "caseNeeds", fields: ["type", "emergency_detail", "other_details"] },
 ] as const satisfies readonly { title: "casePeople" | "casePlace" | "caseSituation" | "caseNeeds"; fields: readonly (keyof CallCase)[] }[];
 
 export function CallCaseSidebar({ session, busy, onConfirm }: { session: CallSession; busy: boolean; onConfirm: () => void }) {
@@ -42,7 +42,7 @@ export function CallCaseSidebar({ session, busy, onConfirm }: { session: CallSes
           const declined = unknown && session.case.unavailable_fields.includes(field);
           return <div className="call-case-row" key={field}>
             <dt>{t(S.call.conversation.caseFields[field])}</dt>
-            <dd className={unknown ? "is-unknown" : ""}>{declined ? t(S.call.conversation.caseDeclined) : unknown ? t(S.call.conversation.caseUnknown) : String(value)}</dd>
+            <dd className={unknown ? "is-unknown" : ""}>{declined ? t(S.call.conversation.caseDeclined) : unknown ? t(S.call.conversation.caseUnknown) : field === "type" ? (value === "food" ? t(S.call.conversation.food) : t(S.call.conversation.evacuation)) : String(value)}</dd>
           </div>;
         })}</dl>
       </section>)}

@@ -29,3 +29,6 @@
 .progress-tracker[data-tone="done"] .is-current .progress-marker { background: var(--color-done-bg); }
 .family-status-card.is-taken { color: var(--color-taken); background: var(--color-taken-bg); }
 .family-status-card.is-moving { color: var(--color-moving); background: var(--color-moving-bg); }
+
+.progress-step-label { display: grid; gap: var(--space-1); }
+.progress-step-label small { font-size: var(--text-xs); font-weight: var(--weight-regular); color: var(--color-ink-2); }

@@ -111,7 +111,7 @@ async def _to_browser(websocket: WebSocket, live, session: conversation.Conversa
                             snapshot = await conversation.choose_location(session, lookup["query"], action, location_id)
                             reply = snapshot["messages"][-1]["text"]
                         elif call.name == "process_flood_turn":
-                            snapshot = await conversation.turn(session, spoken, uuid4().hex)
+                            snapshot = await conversation.turn(session, spoken, uuid4().hex, channel="voice")
                             reply = snapshot["messages"][-1]["text"]
                         else:
                             raise HTTPException(422, "Unknown voice action")
@@ -127,6 +127,7 @@ async def _to_browser(websocket: WebSocket, live, session: conversation.Conversa
                 await websocket.send_json({"type": "interrupted"})
 
 
+@router.websocket("/api/callers/sessions/{session_id}/live")
 @router.websocket("/api/call/sessions/{session_id}/live")
 async def live_voice(websocket: WebSocket, session_id: str) -> None:
     await websocket.accept()
