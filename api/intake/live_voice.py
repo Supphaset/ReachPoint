@@ -56,19 +56,23 @@ async def _from_browser(websocket: WebSocket, live) -> None:
 
 
 async def _to_browser(websocket: WebSocket, live, session: conversation.Conversation) -> None:
+    audio_open = False
     while True:
         async for message in live.receive():
-            if message.data:
+            if message.data and audio_open:
                 await websocket.send_bytes(message.data)
             content = message.server_content
             if content:
                 if content.input_transcription and content.input_transcription.text:
                     await websocket.send_json({"type": "transcript", "text": content.input_transcription.text})
                 if content.interrupted:
+                    audio_open = False
                     await websocket.send_json({"type": "interrupted"})
                 if content.turn_complete:
+                    audio_open = False
                     await websocket.send_json({"type": "turn_complete"})
             if message.tool_call:
+                audio_open = False
                 for call in message.tool_call.function_calls:
                     spoken = str((call.args or {}).get("spoken_text") or "").strip()
                     try:
@@ -89,6 +93,10 @@ async def _to_browser(websocket: WebSocket, live, session: conversation.Conversa
                         result = {"status": "error", "reply": str(exc.detail)}
                     await live.send_tool_response(function_responses=types.FunctionResponse(
                         id=call.id, name=call.name, response=result))
+                    audio_open = True
+            if message.tool_call_cancellation:
+                audio_open = False
+                await websocket.send_json({"type": "interrupted"})
 
 
 @router.websocket("/api/call/sessions/{session_id}/live")
@@ -112,12 +120,15 @@ async def live_voice(websocket: WebSocket, session_id: str) -> None:
             await websocket.send_json({"type": "ready"})
             browser_task = asyncio.create_task(_from_browser(websocket, live))
             model_task = asyncio.create_task(_to_browser(websocket, live, session))
-            done, pending = await asyncio.wait({browser_task, model_task}, return_when=asyncio.FIRST_COMPLETED)
+            done, pending = await asyncio.wait({browser_task, model_task}, timeout=600,
+                                               return_when=asyncio.FIRST_COMPLETED)
             for task in pending:
                 task.cancel()
             await asyncio.gather(*pending, return_exceptions=True)
             for task in done:
                 task.result()
+            if not done:
+                await websocket.send_json({"type": "error", "message": "Voice session ended after ten minutes. You can reconnect."})
     except WebSocketDisconnect:
         pass
     except Exception:

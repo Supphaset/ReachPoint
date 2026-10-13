@@ -113,7 +113,7 @@ def _client() -> genai.Client:
     if not project:
         raise RuntimeError("Google Cloud project not configured")
     return genai.Client(enterprise=True, credentials=credentials, project=project,
-                        location=os.environ.get("GEMINI_CONVERSATION_LOCATION", "us-central1"))
+                        location=os.environ.get("GEMINI_CONVERSATION_LOCATION", "global"))
 
 
 def _extract(words: list[str]) -> FloodCase:

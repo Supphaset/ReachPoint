@@ -93,7 +93,8 @@ and `REACHPOINT_VOICE=on` explicitly enables the Gemini Live WebSocket. Live req
 Default Credentials, `GOOGLE_CLOUD_PROJECT`, and access to `GEMINI_LIVE_MODEL` (default `gemini-3.8-live`) in
 `GEMINI_LIVE_LOCATION` (default `us-central1`). Text conversation uses `GEMINI_API_KEY` when set, otherwise
 Google Cloud Application Default Credentials, with `GEMINI_CONVERSATION_MODEL` (default `gemini-3.8-flash`) and
-`GEMINI_CONVERSATION_LOCATION` (default `us-central1`). The browser receives neither credential.
+`GEMINI_CONVERSATION_LOCATION` (default `global`). The browser receives neither credential. Live sessions close
+after ten minutes to bound demo usage.
 
 ## Locating a request (D25)
 
