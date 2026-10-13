@@ -216,6 +216,7 @@ def team_missions(store: Store, team_id: str, at: str, water_at: str | None = No
         "seatUnits": {**SEAT, "label": SEAT_LABEL},
         "open": [r for _, r in rows],
         "jobs": jobs,
+        **({"asks": [a for a in store.seed["teamAsks"] if a["teamId"] == team_id]} if "teamAsks" in store.seed else {}),
         **({"zoneMissions": zone_missions(store), "segmentJobs": segment_jobs(store, team_id)}
            if store.seed.get("zoneMissions") or store.seed.get("segmentClaims") else {}),
     }

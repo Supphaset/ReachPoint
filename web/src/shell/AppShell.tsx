@@ -20,7 +20,7 @@ const TABS: Record<Role, Tab[]> = {
   coordinator: [
     { to: "/desk", name: S.shell.tabs.desk, icon: "list" },
     { to: "/desk/split", name: S.shell.tabs.split, icon: "people" },
-    { to: "/team/map", name: S.shell.tabs.map, icon: "map" },
+    { to: "/desk/map", name: S.shell.tabs.floodMap, icon: "map" },
   ],
   resident: [],
 };

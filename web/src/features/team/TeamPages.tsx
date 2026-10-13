@@ -254,6 +254,13 @@ function WaitingBody({ v, offline }: { v: TeamMissionsView; offline: boolean }) 
             </header>
             {offline && <Banner kind="offline">{t(S.team.offline)}</Banner>}
             <StatusCard v={v} />
+            {!!v.asks?.length && <section aria-label="Coordinator asks"><h2>Coordinator asks</h2>
+              <ul>{v.asks.slice(-10).reverse().map((a) => <li key={a.askId}>Asked at {fmtTime(a.askedAt)}: {a.groups.filter((g) => open.some((l) => l.listingId === g.listingId && l.groups.some((x) => x.groupId === g.groupId && x.state === "open"))).map((g) => {
+                const listing = open.find((l) => l.listingId === g.listingId)!;
+                return `${listing.landmarkLabel} · ${listing.groups.find((x) => x.groupId === g.groupId)!.label}`;
+              }).join(", ") || "These groups are no longer open"}.</li>)}</ul>
+              <p>Check current needs and take a whole group below. An ask reserves no capacity and makes no arrival promise.</p>
+            </section>}
             {v.team.status !== "available" && (
               <Banner kind="stale">
                 {lang === "th" ? `สถานะของคุณคือ ${TEAM_STATUS[v.team.status].th} ` : `You're ${TEAM_STATUS[v.team.status].en.toLowerCase()}. `}

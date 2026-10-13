@@ -79,8 +79,13 @@ export function SplitPanel() {
 
   const send = async () => {
     setAsk({ state: "sending" });
-    const r = await askTeams(s.suggestionId, askTeamIds, s.snapshotAt);
-    setAsk(r.ok ? { state: "sent", result: r } : { state: "stale", result: r, old: s });
+    try {
+      const r = await askTeams(s.suggestionId, askTeamIds, s.snapshotAt);
+      setAsk(r.ok ? { state: "sent", result: r } : { state: "stale", result: r, old: s });
+    } catch (e) {
+      setAsk({ state: "idle" });
+      setError(e instanceof Error ? e.message : String(e));
+    }
   };
 
   return (
@@ -90,9 +95,10 @@ export function SplitPanel() {
           <p className="eyebrow">Suggested split · coordinator only</p>
           <h1>{headline(s)}</h1>
           <LastUpdated at={s.snapshotAt} label="Snapshot" />
+          <p className="muted">{view.label}</p>
         </div>
         <BigButton size="md" icon="hand" disabled={!canAsk} onClick={send}>
-          {ask.state === "sending" ? "Asking…" : `Ask these ${askTeamIds.length} teams`}
+          {ask.state === "sending" ? "Asking…" : `Ask ${askTeamIds.length === 1 ? "this team" : `these ${askTeamIds.length} teams`}`}
         </BigButton>
       </header>
 
@@ -108,8 +114,8 @@ export function SplitPanel() {
           ask={ask}
           view={view}
           onUse={() => {
-            setCurrent({ ...ask.result.detail.current });
-            setAsk({ state: "idle" });
+            void loadSplitPanel().then((v) => { setView(v); setCurrent(v.suggestion); setAsk({ state: "idle" }); })
+              .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
           }}
         />
       )}
@@ -118,7 +124,7 @@ export function SplitPanel() {
         <button role="tab" aria-selected={tab === "plan"} onClick={() => setTab("plan")}>
           <Icon name="list" size={18} /> Plan
         </button>
-        <button role="tab" aria-selected={tab === "whatif"} onClick={() => setTab("whatif")}>
+        <button role="tab" disabled={!view.scenarios.length} aria-selected={tab === "whatif"} onClick={() => setTab("whatif")}>
           <Icon name="sparkle" size={18} /> What if…
         </button>
       </div>
@@ -202,7 +208,7 @@ function Plan({ s, view, simulated }: { s: Suggestion; view: SplitPanelView; sim
         <button className="btn btn-quiet btn-md" onClick={() => setAllFacts((x) => !x)}>
           {allFacts ? "Show urgent only" : "Show full explanation"}
         </button>
-        <p className="fine-print">Facts from the solver. Gemini rewrites them as one sentence per team, using only these facts (C8).</p>
+        <p className="fine-print">Facts from the deterministic solver. A suggestion is not a team commitment or a safe route.</p>
       </section>
 
       <p className="quiet-line num">
@@ -251,6 +257,7 @@ function Row({ a, view }: { a: SplitAssignment | SplitUnassigned; view: SplitPan
 
 function WhatIf({ view, scenario, setScenario }: { view: SplitPanelView; scenario: string | null; setScenario: (id: string) => void }) {
   const sc = view.scenarios.find((x) => x.id === scenario) ?? view.scenarios[0];
+  if (!sc) return <p>No comparison scenarios in this live plan.</p>;
   const d = sc.diff.peopleCoveredDelta;
   return (
     <section className="whatif" aria-label="What if">

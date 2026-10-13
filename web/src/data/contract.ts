@@ -299,6 +299,7 @@ export interface TeamMissionsView {
   jobs: Job[];
   zoneMissions?: ZoneMissionView[];
   segmentJobs?: SegmentJob[];
+  asks?: { askId: string; askedAt: string; listingIds: string[]; groups: { listingId: string; groupId: string; expectedRevision: number }[] }[];
 }
 
 export type ClaimCode =

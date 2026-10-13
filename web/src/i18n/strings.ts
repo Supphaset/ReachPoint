@@ -124,6 +124,7 @@ export const S = {
       waiting: p("Waiting", "รอทีม"),
       jobs: p("My jobs", "งานของฉัน"),
       map: p("Area map", "แผนที่"),
+      floodMap: p("Flood map", "แผนที่น้ำท่วม"),
       desk: p("Desk", "โต๊ะประสานงาน"),
       split: p("Split", "แบ่งงาน"),
       demo: p("Demo", "เดโม"),
