@@ -408,8 +408,9 @@ def mark_segment(claim_id: str, b: MarkSegment):
 @app.post("/api/demo/reset")
 def reset():
     """Start the demo again from the seed (coordinator only once sign-in exists)."""
-    global memory
+    global memory, flood_replay
     memory = MemoryStore(clock=Clock(os.environ.get("REACHPOINT_CLOCK", "demo")))
+    flood_replay = FloodReplay(memory.store.catalogue)  # the 1,200-report replay starts again too
     return {"ok": True, "now": _now()}
 
 

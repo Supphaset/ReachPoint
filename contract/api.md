@@ -112,8 +112,8 @@ Shapes: `api/contract/flood.py` (validated write bodies), `web/src/data/flood.ts
 | Route | Body | Effect / response |
 |---|---|---|
 | `POST /api/water-observations` | required `submissionId`, `reportId`, `segmentId`, `siteId`, `quote`; band or measured `depthM`; optional `observedAt`, `evidenceRef`, `uncertaintyM`, `reference`, `source`, `trend` | atomic append to `waterObservations`, always `review: ai_read`; `{ok:true,value:{observationId,review}}`; no assistance, household merge or commitment |
-| `POST /api/demo/flood-replay/step` | required `submissionId`, `expectedCursor`, `expectedRevision`; `count` 1–200, default 20 | process the next batch; flat `{ok:true,cursor,revision,total}`; all-or-nothing |
-| `POST /api/demo/flood-replay/reset` | required `submissionId`, `expectedCursor`, `expectedRevision` | clear replay cursor/results only, increment revision; same flat response; operational seed unaffected |
+| `POST /api/demo/flood-replay/step` | required `submissionId`, `expectedCursor`, `expectedRevision`; `count` 1–200, default 20 | process the next batch with fixed rules (records are `review: simulator_read`, never `ai_read`); flat `{ok:true,cursor,revision,total}`; all-or-nothing |
+| `POST /api/demo/flood-replay/reset` | required `submissionId`, `expectedCursor`, `expectedRevision` | clear replay cursor/results only, increment revision; same flat response; operational seed unaffected. `POST /api/demo/reset` also starts the replay again |
 
 Observation location must be explicitly quoted and must be a known segment landmark; `siteId` must equal
 `segmentId`. Original report must exist and not be rejected; approved/linked reports can also contribute evidence.

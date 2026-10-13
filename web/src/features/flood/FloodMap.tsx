@@ -87,6 +87,6 @@ export function FloodMap({ segments, mode, selected, onSelect, zone, teams = [],
         })}
       </g>
     </svg>
-    <figcaption>Historical satellite extent: 24 Nov 2025 (Bangkok) · Dotted areas: no satellite data, never dry · City view: zone summaries · Focus view: segment landmarks, not houses · Numbers: water observations / people needing help / jobs, by mode · Response squares show team landmarks</figcaption>
+    <figcaption>Historical satellite extent: Hat Yai, 24 Nov 2025 · Dotted areas: no satellite data, never dry · City view: zone summaries · Focus view: segment landmarks, not houses · Numbers: water observations / people needing help / jobs, by mode · Response squares show team landmarks</figcaption>
   </figure>;
 }

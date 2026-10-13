@@ -1,5 +1,7 @@
 """Isolated map replay adapter: deterministic parsing, not Gemini, live calls or authoritative filing.
 
+Records are labelled `simulator_read`, never `ai_read`: no model read them.
+
 Only visible intake words are parsed. No generation truth, private household identity, clinical decisions,
 assignment or state changes in the operational MemoryStore. The friend's worker can replace this adapter.
 """
@@ -41,7 +43,7 @@ def process(report: dict, landmarks: dict) -> dict:
               "urgent": danger, "assistance": None, "observation": None, "processingMode": "deterministic_simulation"}
     if party and seg:
         result["assistance"] = {"type": "evacuation_transport" if party[3] == "transport" else "supplies",
-                                "people": int(party[1]) + int(party[2]), "review": "ai_read",
+                                "people": int(party[1]) + int(party[2]), "review": "simulator_read",
                                 "quote": party[0], "identity": "unknown"}
     if measurement and seg and observed:
         result["observation"] = {"observationId": f"W-{report['reportId']}", "reportId": report["reportId"],
@@ -49,13 +51,13 @@ def process(report: dict, landmarks: dict) -> dict:
                                                   if re.search(r"Observation reference (OBS-\d+)", text) else report["reportId"]),
                                   "observedAt": observed, "receivedAt": report["receivedAt"],
                                   "reference": "street_ground", "depthM": float(measurement[1]), "uncertaintyM": 0.15,
-                                  "band": None, "trend": "rising", "review": "ai_read", "source": report["channel"],
+                                  "band": None, "trend": "rising", "review": "simulator_read", "source": report["channel"],
                                   "quote": measurement[0]}
     elif seg and ("chest-level" in text or "ถึงอก" in text):
         result["observation"] = {"observationId": f"W-{report['reportId']}", "reportId": report["reportId"],
                                   "segmentId": seg, "siteId": seg, "evidenceRef": report["reportId"],
                                   "observedAt": None, "receivedAt": report["receivedAt"],
                                   "reference": "unknown", "depthM": None, "uncertaintyM": None,
-                                  "band": "chest", "trend": "unknown", "review": "ai_read", "source": report["channel"],
+                                  "band": "chest", "trend": "unknown", "review": "simulator_read", "source": report["channel"],
                                   "quote": "chest-level" if "chest-level" in text else "ถึงอก"}
     return result

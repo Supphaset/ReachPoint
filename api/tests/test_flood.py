@@ -102,6 +102,17 @@ def test_full_replay_retry_reset_and_all_operational_negative_controls(c):
     assert main.memory.store.seed == before
 
 
+def test_replay_records_are_labelled_simulator_read_and_demo_reset_clears_the_replay(c):
+    step = {"submissionId": "STEP-A", "expectedCursor": 0, "expectedRevision": 0, "count": 200}
+    assert c.post("/api/demo/flood-replay/step", json=step).json()["cursor"] == 200
+    reviews = {r["review"] for rec in main.flood_replay.snapshot()["records"]
+               for r in (rec["assistance"], rec["observation"]) if r}
+    assert reviews == {"simulator_read"}  # no model read these reports
+    c.post("/api/demo/reset")
+    snap = main.flood_replay.snapshot()
+    assert snap["cursor"] == 0 and snap["records"] == []
+
+
 def test_replay_failure_is_atomic_and_concurrent_tabs_cannot_double_advance(monkeypatch):
     import api.server.flood_replay as replay_module
     replay = FloodReplay(MemoryStore().store.catalogue)

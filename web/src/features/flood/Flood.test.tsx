@@ -12,7 +12,7 @@ const e: WaterEstimate = { siteId: "B-4-L5", status: "available", rangeM: [0.65,
 const segment: FloodSegment = { segmentId: "B-4-L5", zoneId: "B-4", areaId: "P-B", label: "B-4 · School", at: [100.47, 7],
   noSatelliteDataShare: 0.8, needs: { reportedPeople: 10, verifiedTransportUnassigned: 3, urgentReports: 2, urgentReviewedGroups: 1, supplyReports: 1, checkOnReports: 0 },
   coverage: { activeJobs: 1, heldJobs: 2, state: "not_checked" }, estimates: [e], observations: [{ observationId: "W-1", reportId: "SIM-1",
-    observedAt: null, receivedAt: "2026-10-11T03:20:00Z", reference: "unknown", source: "simulated_call", band: "chest", depthM: null, uncertaintyM: null, trend: "unknown", review: "ai_read" }] };
+    observedAt: null, receivedAt: "2026-10-11T03:20:00Z", reference: "unknown", source: "simulated_call", band: "chest", depthM: null, uncertaintyM: null, trend: "unknown", review: "simulator_read" }] };
 
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
@@ -35,7 +35,7 @@ describe("flood evidence workspace", () => {
     expect(out).toContain("Independent observers unknown");
     expect(out).toContain("not unique households");
     expect(out).toContain("chest");
-    expect(out).toContain("ai read · simulated call · unknown");
+    expect(out).toContain("simulator read · simulated call · unknown");
     expect(out).toContain("Observed time unknown");
     expect(out).not.toContain("1.3 m");
   });
