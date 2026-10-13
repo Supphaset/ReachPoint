@@ -70,6 +70,7 @@ export function CountBadge({ urgent, unreviewed, empty }: { urgent: number; unre
 
 /** Dashed "AI proposal" card: nothing in it counts until a person approves it. */
 export function ProposalCard({
+  label,
   title,
   quote,
   children,
@@ -77,6 +78,7 @@ export function ProposalCard({
   onReject,
   busy,
 }: {
+  label?: string;
   title: string;
   quote?: string;
   children?: ReactNode;
@@ -85,10 +87,10 @@ export function ProposalCard({
   busy?: boolean;
 }) {
   return (
-    <section className="proposal" aria-label={`AI proposal: ${title}`}>
+    <section className="proposal" aria-label={`${label ?? "AI proposal"}: ${title}`}>
       <header className="proposal-head">
         <Icon name="sparkle" size={16} />
-        <span>ข้อเสนอจาก AI · AI proposal, needs your approval</span>
+        <span>{label ?? "ข้อเสนอจาก AI · AI proposal, needs your approval"}</span>
       </header>
       <h3>{title}</h3>
       {quote && <blockquote className="proposal-quote">“{quote}”</blockquote>}

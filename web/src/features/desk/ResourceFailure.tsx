@@ -1,3 +1,5 @@
+import { useLang } from "../../i18n/lang";
+import { S } from "../../i18n/strings";
 import { useState } from "react";
 import { ApiError, post, submissionId } from "../../data/api";
 import { apiMode } from "../../data/mode";
@@ -7,6 +9,7 @@ import { Banner, BigButton } from "../../ui/components";
 
 /** Coordinator review, not a team report: one write holds jobs and withdraws their estimates. */
 export function ResourceFailure() {
+  const { t: tr } = useLang();
   const [reason, setReason] = useState("Boat engine trouble");
   const [next, setNext] = useState("2026-10-11T11:00");
   const [busy, setBusy] = useState(false);
@@ -27,29 +30,29 @@ export function ResourceFailure() {
       setDone(true);
       void loadTeam("T-S");
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Couldn't save the review. Try again.");
+      setError(e instanceof ApiError ? e.message : tr(S.desk.saveError));
       if (e instanceof ApiError && e.status > 0) setAttempt(null);
     } finally {
       setBusy(false);
     }
   };
   return (
-    <section className="rising" aria-label="S1 failure review">
-      <h2>S1 boat failure review</h2>
-      <p>Mark S1 unavailable, hold unfinished transport jobs with the coordinator, relist their family groups, and withdraw earlier arrival estimates.</p>
+    <section className="rising" aria-label={tr(S.desk.boatTitle)}>
+      <h2>{tr(S.desk.boatTitle)}</h2>
+      <p>{tr(S.desk.boatBody)}</p>
       {done ? (
         <Banner kind="info">
-          {alreadyUnavailable ? "S1 was already unavailable. This review changed nothing; the existing coordinator update still applies." :
-            <>S1 unavailable. Jobs held; unfinished groups relisted. Earlier estimates withdrawn; new time not known. Next status update {fmtTime(attempt!.nextStatusUpdate)} from the coordinator desk.</>}
+          {alreadyUnavailable ? tr(S.desk.boatAlready) :
+            tr(S.desk.boatDone(fmtTime(attempt!.nextStatusUpdate)))}
         </Banner>
       ) : (
         <>
-          <label>Reason<input value={reason} disabled={busy || !!attempt} onChange={(e) => setReason(e.target.value)} /></label>
-          <label>Next status update (Bangkok, not an arrival time)<input type="datetime-local" value={next} disabled={busy || !!attempt} onChange={(e) => setNext(e.target.value)} /></label>
+          <label>{tr(S.desk.reason)}<input value={reason} disabled={busy || !!attempt} onChange={(e) => setReason(e.target.value)} /></label>
+          <label>{tr(S.desk.nextUpdate)}<input type="datetime-local" value={next} disabled={busy || !!attempt} onChange={(e) => setNext(e.target.value)} /></label>
           {error && <Banner kind="error">{error}</Banner>}
-          {!apiMode() && <p className="fine-print">This review needs the server. Open the app with ?data=api.</p>}
+          {!apiMode() && <p className="fine-print">{tr(S.desk.boatServer)}</p>}
           <BigButton size="md" disabled={!apiMode() || busy || !reason.trim() || !next} onClick={review}>
-            {busy ? "Saving review…" : attempt ? "Retry S1 review" : "Mark S1 unavailable"}
+            {busy ? tr(S.desk.saving) : attempt ? tr(S.desk.retryBoat) : tr(S.desk.markBoat)}
           </BigButton>
         </>
       )}
