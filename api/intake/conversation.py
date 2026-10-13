@@ -36,6 +36,7 @@ is stated or the caller explicitly lists everyone. Vulnerable groups can overlap
 Preserve exact location wording. A new location correction clears old coordinates. Immediate danger is true only
 for a stated current life threat. List unresolved contradictions and do not guess their resolution."""
 REPLY_INSTRUCTION = """You are a concise, warm Thai flood-intake assistant. Reply in Thai, one short question at a time.
+Finish each sentence and question. Keep the reply to one or two complete sentences.
 Use only caller-reported facts. The supplied topic is the next question to ask. Do not repeat answered questions.
 If immediate life danger is stated, ask location first and mention 1669 for a medical emergency or 1784 for a
 disaster emergency. Do not promise safety, team assignment or arrival time. Explain that the caller must confirm
@@ -132,17 +133,23 @@ def _extract(words: list[str]) -> FloodCase:
 
 
 def _reply(case: FloodCase, topic: str, words: list[str]) -> str:
+    fallback = ("ตอนนี้คุณอยู่ที่ไหนคะ? หากมีผู้บาดเจ็บฉุกเฉิน โทร 1669 หรือแจ้งเหตุสาธารณภัย โทร 1784 ค่ะ"
+                if case.immediate_danger and not case.location else
+                "ช่วยบอกข้อมูลเพิ่มเติมเกี่ยวกับสถานการณ์และสิ่งที่ต้องการให้ช่วยได้ไหมคะ?")
     try:
         with _client() as client:
             result = client.models.generate_content(
                 model=MODEL,
                 contents=json.dumps({"callerMessages": words, "facts": case.model_dump(), "nextTopic": topic}, ensure_ascii=False),
-                config=types.GenerateContentConfig(system_instruction=REPLY_INSTRUCTION, temperature=0.2,
-                                                   max_output_tokens=180),
+                config=types.GenerateContentConfig(system_instruction=REPLY_INSTRUCTION,
+                                                   thinking_config=types.ThinkingConfig(thinking_level="LOW"),
+                                                   max_output_tokens=1024),
             )
-        return (result.text or topic).strip()
+        if not result.candidates or result.candidates[0].finish_reason != types.FinishReason.STOP:
+            return fallback
+        return (result.text or fallback).strip()
     except Exception:
-        return topic
+        return fallback
 
 
 async def _search(query: str) -> dict:
