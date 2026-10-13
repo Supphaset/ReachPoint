@@ -9,53 +9,57 @@ class FloodCase(BaseModel):
     """Facts reported by the user, with unknown values kept explicit."""
 
     reporter_name: str | None = None
-    reporter_age: int | None = Field(default=None, ge=0, le=130)
-    people_count: int | None = Field(default=None, ge=1)
     people_details: str | None = None
-    children_count: int | None = Field(default=None, ge=0)
-    elderly_count: int | None = Field(default=None, ge=0)
-    mobility_needs: str | None = None
+    n_children: int | None = Field(default=None, ge=0)
+    n_elders: int | None = Field(default=None, ge=0)
+    n_pets: int | None = Field(default=None, ge=0)
     location: str | None = None
-    landmark: str | None = None
     coordinates: str | None = None
+    location_details: str | None = None
     water_level: str | None = None
-    water_trend: str | None = None
-    current_shelter: str | None = None
-    injuries: str | None = None
-    urgent_needs: str | None = None
+    situation_details: str | None = None
+    emergency_detail: str | None = None
+    other_details: str | None = None
+    # Used for the emergency notice; the structured help_requests table has the 14 reviewed fields only.
     immediate_danger: bool | None = None
-    danger_details: str | None = None
-    callback_contact: str | None = None
     unavailable_fields: list[str] = Field(default_factory=list)
     contradictions: list[str] = Field(default_factory=list)
 
 
-def next_topic(case: FloodCase) -> str:
-    """Ask only for missing facts; prioritize location for explicit danger."""
+def next_question(case: FloodCase) -> str | None:
+    """One question at a time; an urgent caller can submit without completing optional fields."""
     def missing(field: str) -> bool:
         return getattr(case, field) is None and field not in case.unavailable_fields
 
     if case.immediate_danger and missing("location"):
-        return "ฉุกเฉิน: ถามตำแหน่ง/จังหวัด/จุดสังเกตก่อน และแนะนำช่องทางฉุกเฉินตามอาการที่แจ้ง ไม่ถามชื่อก่อน"
+        return "ตอนนี้อยู่ที่ไหนคะ? หากมีผู้บาดเจ็บฉุกเฉิน โทร 1669 หรือแจ้งเหตุสาธารณภัย โทร 1784 ได้เลยค่ะ"
     if case.contradictions:
-        return "ขอให้ยืนยันข้อมูลที่ขัดกัน: " + "; ".join(case.contradictions)
+        return "ขอให้ช่วยยืนยันข้อมูลที่ขัดกันนี้ค่ะ: " + "; ".join(case.contradictions)
+    if case.immediate_danger:
+        if missing("emergency_detail"):
+            return "เกิดอันตรายอะไรขึ้นตอนนี้ และต้องการความช่วยเหลือเร่งด่วนอย่างไรคะ?"
+        if missing("people_details"):
+            return "มีใครต้องการความช่วยเหลือบ้าง และประมาณกี่คนคะ?"
+        return None
     if missing("reporter_name") and not case.immediate_danger:
-        return "ถามชื่อและอายุ พร้อมบอกว่าไม่สะดวกแจ้งก็ข้ามได้"
-    if missing("people_count") or missing("people_details"):
-        return "ถามเฉพาะข้อมูลที่ขาดเรื่องจำนวนคนรวมผู้แจ้ง และเด็ก/ผู้สูงอายุ/ผู้ที่ต้องการความช่วยเหลือพิเศษ"
+        return "ขอทราบชื่อผู้แจ้งได้ไหมคะ? ถ้าไม่สะดวกบอก สามารถข้ามได้ค่ะ"
+    if missing("people_details"):
+        return "มีใครต้องการความช่วยเหลือบ้าง และทั้งหมดประมาณกี่คนคะ?"
+    if any(missing(field) for field in ("n_children", "n_elders", "n_pets")):
+        return "ในกลุ่มนี้มีเด็ก ผู้สูงอายุ และสัตว์เลี้ยงอย่างละกี่คนหรือกี่ตัวคะ? ถ้าไม่มีบอกศูนย์ หรือถ้าไม่ทราบบอกได้ค่ะ"
     if missing("location"):
-        return "ถามที่อยู่ จังหวัด จุดสังเกต และพิกัดถ้าสะดวก ไม่ต้องรอพิกัดถ้ามีที่อยู่แล้ว"
-    fields = {
-        "water_level": "ระดับน้ำ",
-        "water_trend": "น้ำยังเพิ่มขึ้นหรือไม่",
-        "current_shelter": "ตอนนี้ทุกคนอยู่ส่วนไหน",
-        "injuries": "มีผู้บาดเจ็บหรือไม่",
-        "urgent_needs": "ต้องการความช่วยเหลืออะไรเร่งด่วน",
-    }
-    needed = [label for field, label in fields.items() if missing(field)]
-    if needed:
-        return "ถามสถานการณ์เฉพาะข้อมูลที่ยังขาด: " + ", ".join(needed)
-    return "สรุปคำขอจากข้อมูลทั้งหมดให้ตรวจแก้ ระบุข้อมูลที่ยังไม่ทราบ และขอการยืนยันก่อนบันทึกให้ผู้ประสานงานตรวจสอบ"
+        return "ตอนนี้อยู่ที่ไหนคะ? บอกจังหวัด อำเภอ หรือจุดสังเกตใกล้เคียงได้ค่ะ"
+    if missing("location_details"):
+        return "มีรายละเอียดตำแหน่งเพิ่มเติม เช่น อาคาร ชั้น หรือทางเข้าที่ทีมควรรู้ไหมคะ? ถ้าไม่มีบอกได้ค่ะ"
+    if missing("water_level"):
+        return "น้ำสูงประมาณไหนแล้วคะ? ถ้าไม่ทราบระดับน้ำ บอกว่าไม่ทราบได้ค่ะ"
+    if missing("situation_details"):
+        return "ตอนนี้สถานการณ์เป็นอย่างไร น้ำยังเพิ่มอยู่ไหม และทุกคนอยู่ตรงไหนคะ?"
+    if missing("emergency_detail"):
+        return "มีผู้บาดเจ็บหรืออันตรายเร่งด่วนไหม และต้องการความช่วยเหลืออะไรคะ? ถ้าไม่มีเหตุฉุกเฉินบอกได้ค่ะ"
+    if missing("other_details"):
+        return "มีข้อมูลอื่นที่อยากแจ้งผู้ประสานงานไหมคะ? ถ้าไม่มีบอกว่าไม่มีได้ค่ะ"
+    return None
 
 
 def render_summary(case: FloodCase) -> str:
@@ -66,17 +70,16 @@ def render_summary(case: FloodCase) -> str:
 
     rows = [
         ("ผู้แจ้ง", value("reporter_name")),
-        ("อายุ", value("reporter_age") + (" ปี" if case.reporter_age is not None else "")),
-        ("จำนวนคนรวม", value("people_count") + (" คน" if case.people_count is not None else "")),
         ("รายละเอียดผู้ประสบภัย", value("people_details")),
-        ("เด็ก", value("children_count") + (" คน" if case.children_count is not None else "")),
-        ("ผู้สูงอายุ", value("elderly_count") + (" คน" if case.elderly_count is not None else "")),
-        ("การเคลื่อนไหว / ความช่วยเหลือพิเศษ", value("mobility_needs")),
-        ("ตำแหน่ง", value("location")), ("จุดสังเกต", value("landmark")),
+        ("เด็ก", value("n_children") + (" คน" if case.n_children is not None else "")),
+        ("ผู้สูงอายุ", value("n_elders") + (" คน" if case.n_elders is not None else "")),
+        ("สัตว์เลี้ยง", value("n_pets") + (" ตัว" if case.n_pets is not None else "")),
+        ("ตำแหน่ง", value("location")),
         ("พิกัด", value("coordinates")), ("ระดับน้ำ", value("water_level")),
-        ("แนวโน้มน้ำ", value("water_trend")), ("จุดที่พักอยู่", value("current_shelter")),
-        ("การบาดเจ็บ", value("injuries")), ("ความช่วยเหลือที่ต้องการ", value("urgent_needs")),
-        ("ติดต่อกลับ (ไม่บังคับ)", value("callback_contact")),
+        ("รายละเอียดตำแหน่ง", value("location_details")),
+        ("สถานการณ์", value("situation_details")),
+        ("เหตุฉุกเฉิน", value("emergency_detail")),
+        ("ข้อมูลอื่น", value("other_details")),
     ]
     summary = "สรุปคำขอความช่วยเหลือ กรุณาตรวจทานข้อมูลค่ะ\n\n"
     summary += "\n\n".join(f"{label}: {content}" for label, content in rows)

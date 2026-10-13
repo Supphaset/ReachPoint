@@ -21,6 +21,18 @@ We are two Data Scientists exploring how organized volunteer teams could plan wh
 
 ## Local setup
 
+### Temporary local persistence
+
+The API uses in-memory demo state unless `REACHPOINT_DB_PATH` is set. To keep synthetic caller conversations, confirmed reports, coordinator/team changes, status links and replay progress across local server restarts, start it from the repository root with:
+
+```bash
+REACHPOINT_DB_PATH=local/reachpoint.sqlite3 REACHPOINT_VOICE=on uvicorn api.main:app --port 8081
+```
+
+The ignored SQLite file is local to one server process; `/api/demo/reset` clears it. A confirmed chat or voice request adds one row to `help_requests` with the caller-reviewed fields; unfinished chats remain in `call_sessions`. Do not put real household information in this demo. A local Cloud Run filesystem does not provide durable shared storage, so the selected Firestore deployment work remains separate. See [decision 0011](docs/decisions/0011-local-sqlite-interim.md).
+
+Use the [call conversation review script](docs/planning/call-conversation-test.md) to check chat, hands-free voice, corrections and confirmation with synthetic examples.
+
 The public [ReachPoint repository](https://github.com/Supphaset/ReachPoint) has a minimal README on `main`. The project documentation and static review artifacts are published on `codex/project-foundation` in [draft PR #1](https://github.com/Supphaset/ReachPoint/pull/1); a human reviews and merges them. See [decision 0008](docs/decisions/0008-reachpoint-name-and-public-repository.md) for the approved name and publication boundary.
 
 Application code and its setup instructions arrive from 12 Oct under `web/`, `api/`, `contract/` and `data/` ([0009](docs/decisions/0009-implementation-start-and-technical-direction.md)). Until then, review documentation links and run `git diff --check` before committing. See [contributing](CONTRIBUTING.md) for task ownership and review.
@@ -33,6 +45,6 @@ Prototype v1 scope is approved; [0009](docs/decisions/0009-implementation-start-
 
 The [two-person delivery agreement](docs/collaboration/two-person-delivery-agreement.md) documents the assigned split: volunteer workspace/flood map for the user; resident/coordinator, chat/voice, reconciliation and database updates for the friend. It includes recommended responsibility boundaries, the shared handoff contract and joint acceptance checks.
 
-The data contract and state transitions are in the [joint decision pack](docs/planning/joint-decision-pack.md) §3–§4, updated by the design doc's pull-model rules (who reads what, who updates shared records, synthetic payloads and errors). No backend or database has been built yet.
+The data contract and state transitions are in the [joint decision pack](docs/planning/joint-decision-pack.md) §3–§4, updated by the design doc's pull-model rules (who reads what, who updates shared records, synthetic payloads and errors). The starter API is in `api/`; optional local SQLite persistence is described above. The shared deployment database is still future work.
 
 See the [proposed architecture diagrams](docs/planning/architecture-overview.md) for the whole-system connections, workstream ownership and emergency/status feedback sequence. Components/providers remain unselected.
