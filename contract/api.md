@@ -18,6 +18,11 @@ Views are built by `api/views`. Legacy fixture mode remains available; the flood
 - Unknown IDs are **404**. Bad input (missing field) is **422**.
 - A successful write returns `{ "ok": true, "value": … }`; the client then fetches the affected view again.
 - Sign-in is a demo role for now (`X-Demo-Actor: team:T-S`, `coordinator:demo-1`); Firebase Auth replaces it.
+- **Thai twins.** Lines the server writes for the victim and volunteer screens carry a Thai version next to the English
+  one (`api/views/thai.py`): status `lines[].th` and `familyTh`; team view `urgency.th {title, summary, kit, withheld}`,
+  `urgency.facts[].th`, `groups[].labelTh`, `destination.th {label, reason}`. The web app shows them when the viewer
+  picks ไทย. Words people typed (flag reasons, medical notes, caller quotes) are never translated. Rule-failure
+  `message`s are still English only.
 
 ## Views (GET)
 
@@ -73,6 +78,37 @@ This starter retains the existing demo-role model; production coordinator author
 | `POST /api/reports/{reportId}/approve` | `segmentId`, `people{adults,children,infants,stretcher}`, `needs[]`, `waterBand`, `urgentReason`, `deskNote` | the coordinator's values, not the AI's, become a validated case with one listing per need; an urgent reason makes the evacuation listing tier 1b (RED) | `caseId`, `listingIds` |
 | `POST /api/reports/{reportId}/reject` | `reason` | reason required; the family's link shows it | — |
 | `GET /api/status/{token}` | — | that request only, honest per-family lines; a random 128-bit token, 404 if unknown | `ResidentStatusView` |
+
+## Locating a request (D25)
+
+A request can carry a **location**: a pin from the caller's phone (GPS or a tap on the map) or an address
+(typed by the caller, or by the coordinator from a phone call). The server resolves it, snaps it to the segment and
+nearest landmark, and keeps the exact point for the coordinator and the team that takes the job only.
+
+`LocationInput` (client → server), one of:
+- `{ "kind": "pin", "lat": 7.0089, "lon": 100.4705, "method": "gps" | "map", "accuracyM": 25 }`
+- `{ "kind": "address", "text": "12/3 ถนนนิพัทธ์อุทิศ 2 หาดใหญ่" }`
+
+`Location` (server → client):
+`{ "status": "located" | "outside_area" | "unlocated", "kind", "method", "at": [lon, lat] | null,
+   "precision": "house" | "street" | "landmark" | "area" | null, "source": "caller pin (GPS)" | "caller pin (map)" |
+   "Pinpoint address match" | "address not found" …, "provider": "device" | "pinpoint" | "stand-in",
+   "accuracyM"?, "address"?, "segmentId"?, "landmarkId"?, "landmarkLabel"?, "zoneId"?, "areaId"? }`
+
+- A GPS pin is checked against the demo area **on the phone first**; outside it, nothing is sent.
+- An address goes to **Pinpoint** (server side, key in Secret Manager / `~/.config/reachpoint/env`, never in the
+  browser). With no key, a stand-in resolves only the synthetic demo addresses and landmark names.
+- `unlocated` is never dropped: the coordinator picks the landmark by hand, as today.
+
+| Route | Body | Rules | `value` |
+|---|---|---|---|
+| `POST /api/locate` | `location: LocationInput` | read-only preview (no write, no submissionId); used by the call page and the desk | `Location` |
+
+`POST /api/intake/text` also takes an optional `location: LocationInput`; the resolved `Location` is stored on the
+report, shown in `reviewQueue` (`reports[].location`) and preselects `suggestedSegment`. `POST /api/reports/{id}/approve`
+also takes an optional `location: LocationInput` (the coordinator's correction, e.g. the address heard on a phone call);
+the approved case's exact pickup point is that location (`exactPickup {at, precision, source}`), otherwise the
+report's own, otherwise the landmark. The family's status page never shows a point.
 
 ## Zone missions and segments (D17b, D18, D20)
 

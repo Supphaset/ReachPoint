@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from api.intake.extract import BANDS, NEEDS
+from api.location.resolve import exact_pickup
 from api.rules.failure import hold_transport
 from api.views import store as views_store
 from api.views.missions import MARKS, active_claim
@@ -241,7 +242,8 @@ class MemoryStore:
 
     # --- intake and desk review (T3) ---
 
-    def submit_report(self, text: str, channel: str, proposal: dict, segment_id: str | None = None, team_id: str | None = None) -> dict:
+    def submit_report(self, text: str, channel: str, proposal: dict, segment_id: str | None = None, team_id: str | None = None,
+                      location: dict | None = None) -> dict:
         """A request in the caller's words, with the AI's proposal. Returns its ID and the family's status link token."""
         if not (text or "").strip():
             raise Refused("INVALID", "Write what is happening and where")
@@ -250,7 +252,8 @@ class MemoryStore:
         token = secrets.token_urlsafe(16)  # 128 bits; carries no personal data
         reports.append({"reportId": rid, "receivedAt": self.clock.iso(), "channel": channel, "text": text.strip()[:2000],
                         "proposal": proposal, "status": "proposed", "statusToken": token,
-                        **({"segmentId": segment_id, "teamId": team_id} if segment_id else {})})
+                        **({"segmentId": segment_id, "teamId": team_id} if segment_id else {}),
+                        **({"location": location} if location else {})})  # exact point: coordinator only (D25)
         self.store.seed.setdefault("statusTokens", {})[token] = {"reportId": rid, "caseId": None}
         return {"reportId": rid, "statusToken": token}
 
@@ -263,7 +266,8 @@ class MemoryStore:
         return r
 
     def approve_report(self, report_id: str, segment_id: str, people: dict, needs: list[str],
-                       water_band: str | None, urgent_reason: str | None, desk_note: str | None) -> dict:
+                       water_band: str | None, urgent_reason: str | None, desk_note: str | None,
+                       location: dict | None = None) -> dict:
         """The coordinator's reviewed facts become a case with one listing per need (validated), shown at once on
         every capable team's list. Counts and needs are what the coordinator approved, not the AI's proposal."""
         r = self._report(report_id)
@@ -285,6 +289,8 @@ class MemoryStore:
         now = self.clock.iso()
         total = sum(party.values())
         suffix = {"evacuation_transport": "EVAC", "medical": "MED", "supplies": "SUP"}
+        # Exact pickup (D25): the coordinator's location, else the caller's own; the landmark when neither is located.
+        pickup = exact_pickup(location) or exact_pickup(r.get("location"))
         case_needs = []
         for n in needs:
             rec = {"listingId": f"L-{cid.replace('-', '')}-{suffix[n]}", "type": n,
@@ -297,11 +303,15 @@ class MemoryStore:
                 rec["destination"] = {"id": "D1", "reason": "Shelter"}
             if desk_note:
                 rec["deskNote"] = desk_note.strip()[:200]
+            if pickup:
+                rec["exactPickup"] = dict(pickup)
             case_needs.append(rec)
         self.store.seed["cases"].append({"caseId": cid, "areaId": area, "segmentId": segment_id, "people": total, "party": party,
                                          "note": None, "lastConfirmedAt": now, "needs": case_needs, "fromReport": report_id})
         if water_band:
             self.store.seed["waterReports"].append({"caseId": cid, "segmentId": segment_id, "band": water_band, "at": now, "review": "validated"})
+        if location:
+            r["deskLocation"] = location
         r.update(status="approved", caseId=cid, reviewedAt=now)
         self.store.seed["statusTokens"][r["statusToken"]]["caseId"] = cid
         return {"caseId": cid, "listingIds": [n["listingId"] for n in case_needs]}

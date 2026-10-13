@@ -1,0 +1,110 @@
+/* /demo: two phones and the desk between them, on the app's own tokens. Stacks to one column on narrow screens. */
+.demo {
+  min-height: 100%;
+  background: var(--color-canvas);
+  padding-block: var(--space-4) var(--space-7);
+  padding-inline: var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+.demo-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+}
+.demo-head h1 {
+  margin: 0;
+  font-size: var(--text-xl);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.demo-lead {
+  margin: 0;
+  color: var(--color-ink-2);
+  max-width: 70ch;
+}
+.demo-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+}
+.demo-sample {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+.demo-sample code {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-sans);
+  user-select: all;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.demo-stage {
+  display: grid;
+  grid-template-columns: minmax(0, var(--phone-width)) minmax(0, 1fr) minmax(0, var(--phone-width));
+  gap: var(--space-5);
+  align-items: start;
+  justify-content: center;
+}
+.demo-screen {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.demo-screen figcaption {
+  font-weight: var(--weight-bold);
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+.demo-frame {
+  background: var(--color-ink);
+  padding: var(--radius-md);
+  border-radius: var(--demo-frame-radius);
+  box-shadow: var(--shadow-card);
+}
+.demo-screen.is-wide .demo-frame {
+  border-radius: var(--radius-lg);
+  padding: var(--space-2);
+}
+.demo-frame iframe {
+  display: block;
+  width: 100%;
+  height: var(--demo-frame-height);
+  border: 0;
+  border-radius: var(--demo-screen-radius);
+  background: var(--color-surface);
+}
+.demo-screen.is-wide .demo-frame iframe {
+  border-radius: var(--radius-md);
+}
+@media (max-width: 1100px) {
+  .demo-stage {
+    grid-template-columns: minmax(0, var(--phone-width));
+  }
+}
+
+.demo-head { padding-bottom: var(--space-3); border-bottom: var(--border-thin) solid var(--color-line); }
+.demo-steps li { display: flex; align-items: flex-start; gap: var(--space-2); flex: 1 1 var(--demo-step-width); min-width: 0; }
+.demo-step-number { display: grid; place-items: center; flex: none; width: var(--space-6); height: var(--space-6); border-radius: var(--radius-pill); background: var(--color-waiting-bg); color: var(--color-waiting); font-weight: var(--weight-bold); }
+.demo-sample { padding: var(--space-3); border: var(--border-thin) solid var(--color-line); border-radius: var(--radius-md); background: var(--color-surface); }
+.demo-sample code { flex: 1 1 var(--demo-step-width); }

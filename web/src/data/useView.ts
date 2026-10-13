@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiMode } from "./mode";
+import { apiMode, refreshMs } from "./mode";
 import { readView } from "./source";
 
 export type Connection = "live" | "offline";
@@ -10,7 +10,7 @@ export type ViewState<T> =
   | { status: "missing" }
   | { status: "error"; message: string };
 
-/** How often a live view is fetched again in API mode, until the friend's Firestore listener replaces polling. */
+/** How often a live view is fetched again in API mode (default), until the friend's Firestore listener replaces polling. */
 export const REFRESH_MS = 15_000;
 
 /**
@@ -41,7 +41,7 @@ export function useView<T>(path: string | null): ViewState<T> {
         });
     load();
     if (!apiMode()) return () => void (alive = false);
-    const id = window.setInterval(load, REFRESH_MS);
+    const id = window.setInterval(load, refreshMs());
     const onShow = () => document.visibilityState === "visible" && load();
     document.addEventListener("visibilitychange", onShow);
     return () => {

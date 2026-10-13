@@ -18,7 +18,9 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from typing import Literal
+
+from pydantic import BaseModel, Field, model_validator
 
 import threading
 import time
@@ -26,6 +28,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from api.ai import briefing_text, triage
 from api.intake.extract import extract
+from api.location.resolve import resolve as resolve_location
 from api.server.memory import Clock, MemoryStore, NotFound, Refused
 from api.views.briefing import area_briefing
 from api.views.desk import rain_view, rising_water_view, zone_order_view
@@ -267,11 +270,34 @@ def ask_teams(b: AskTeams):
 # --- intake, desk review, family status (T3, D6) ---
 
 
+class LocationInput(BaseModel):
+    """A pin (GPS or map tap) or an address; see contract/api.md "Locating a request" (D25)."""
+    kind: Literal["pin", "address"]
+    lat: float | None = Field(default=None, ge=-90, le=90)
+    lon: float | None = Field(default=None, ge=-180, le=180)
+    method: Literal["gps", "map"] | None = None
+    accuracyM: float | None = Field(default=None, ge=0, le=100_000)
+    text: str | None = Field(default=None, max_length=300)
+
+    @model_validator(mode="after")
+    def _shape(self):
+        if self.kind == "pin" and (self.lat is None or self.lon is None):
+            raise ValueError("A pin needs lat and lon")
+        if self.kind == "address" and not (self.text or "").strip():
+            raise ValueError("An address needs text")
+        return self
+
+
 class Intake(Write):
     text: str = Field(min_length=1, max_length=2000)
     channel: str = "text"
     segmentId: str | None = None  # a field report from a team in its segment (D20)
     teamId: str | None = None
+    location: LocationInput | None = None
+
+
+class Locate(BaseModel):
+    location: LocationInput
 
 
 class Approve(Write):
@@ -281,6 +307,7 @@ class Approve(Write):
     waterBand: str | None = None
     urgentReason: str | None = None
     deskNote: str | None = None
+    location: LocationInput | None = None  # the coordinator's correction, e.g. an address heard on a phone call
 
 
 class Reject(Write):
@@ -295,7 +322,8 @@ def intake_text(b: Intake):
         return memory.done[b.submissionId]
     proposal = extract(b.text, use_model=USE_AI)
     channel = "field" if b.segmentId else b.channel
-    r = memory.write(b.submissionId, lambda: memory.submit_report(b.text, channel, proposal, b.segmentId, b.teamId))
+    location = resolve_location(b.location.model_dump(exclude_none=True)) if b.location else None  # outside the lock (Pinpoint)
+    r = memory.write(b.submissionId, lambda: memory.submit_report(b.text, channel, proposal, b.segmentId, b.teamId, location))
     v = r["value"]
     _triager.submit(_run_triage)  # the triage agent looks at the new request in the background
     return {"ok": True, "value": {**v, "statusUrl": f"/status/{v['statusToken']}", "aiSource": proposal["source"]}}
@@ -332,9 +360,17 @@ def view_review():
         return {**review_queue(memory.store), "generatedAt": _now()}
 
 
+@app.post("/api/locate")
+def locate(b: Locate):
+    """Read-only preview of where a pin or address lands (D25). Writes nothing."""
+    return {"ok": True, "value": resolve_location(b.location.model_dump(exclude_none=True))}
+
+
 @app.post("/api/reports/{report_id}/approve")
 def approve(report_id: str, b: Approve):
-    return memory.write(b.submissionId, lambda: memory.approve_report(report_id, b.segmentId, b.people, b.needs, b.waterBand, b.urgentReason, b.deskNote))
+    location = resolve_location(b.location.model_dump(exclude_none=True)) if b.location else None  # outside the lock
+    return memory.write(b.submissionId, lambda: memory.approve_report(report_id, b.segmentId, b.people, b.needs, b.waterBand,
+                                                                        b.urgentReason, b.deskNote, location))
 
 
 @app.post("/api/reports/{report_id}/reject")

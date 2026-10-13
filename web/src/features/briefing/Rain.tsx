@@ -4,6 +4,9 @@ import { now } from "../../data/clock";
 import { useView } from "../../data/useView";
 import { Banner } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
+import { useLang } from "../../i18n/lang";
+import { S } from "../../i18n/strings";
+import { bt } from "../../i18n/briefing";
 
 /** The newest snapshot at or before the clock; null before the first one. */
 export function pickSnapshot<S extends { asOf: string }>(snaps: S[], at: number): S | null {
@@ -28,11 +31,12 @@ export function useMinute() {
 export function RainLine({ areaId, labels = {} }: { areaId: string; labels?: Record<string, string> }) {
   const v = useView<RainStatus[]>(`views/rain/${areaId}`);
   const t = useMinute();
+  const { t: tr, lang } = useLang();
   if (v.status === "loading") return null;
   if (v.status !== "ready")
     return (
       <p className="rain-line fine-print">
-        <Icon name="water" size={14} /> Rain data unavailable
+        <Icon name="water" size={14} /> {tr(S.briefing.rainUnavailable)}
       </p>
     );
   const s = pickSnapshot(v.data, t);
@@ -40,7 +44,7 @@ export function RainLine({ areaId, labels = {} }: { areaId: string; labels?: Rec
   return (
     <div className="rain">
       <p className="rain-line fine-print" title={s.source}>
-        <Icon name="water" size={14} /> {s.line}
+        <Icon name="water" size={14} /> {bt(s.line, lang)}
       </p>
       {s.prompt && (
         <Banner kind="stale">
@@ -52,7 +56,7 @@ export function RainLine({ areaId, labels = {} }: { areaId: string; labels?: Rec
               </li>
             ))}
           </ul>
-          <span className="fine-print">Rain alone can't say where or how deep. The desk decides on re-checks.</span>
+          <span className="fine-print">{tr(S.briefing.rainAlone)}</span>
         </Banner>
       )}
     </div>
@@ -63,13 +67,14 @@ export function RainLine({ areaId, labels = {} }: { areaId: string; labels?: Rec
 export function GaugeLine({ areaId }: { areaId: string }) {
   const v = useView<RisingWaterView[]>(`views/risingWater/${areaId}`);
   const t = useMinute();
+  const { lang } = useLang();
   if (v.status !== "ready") return null;
   const s = pickSnapshot(v.data, t);
   if (!s?.gaugeLine) return null;
   return (
     <div className="rain">
       <p className="rain-line fine-print">
-        <Icon name="water" size={14} /> {s.gaugeLine}
+        <Icon name="water" size={14} /> {bt(s.gaugeLine, lang)}
       </p>
       {s.forecastLines.map((f) => (
         <p key={f} className="rain-line fine-print">

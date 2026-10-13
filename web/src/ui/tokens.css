@@ -22,10 +22,19 @@
   --text-lg: 1.25rem;    /* 20 */
   --text-xl: 1.5rem;     /* 24 */
   --text-2xl: 1.875rem;  /* 30 */
+  --text-3xl: 2.5rem;    /* 40: start page headline on wide screens */
   --leading: 1.5;        /* Thai needs room for marks above and below */
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-bold: 600;
+
+  --border-thin: 1px;
+  --team-page-width: 720px;
+  --phone-width: 390px;
+  --demo-frame-height: 760px;
+  --demo-frame-radius: 40px;
+  --demo-screen-radius: 30px;
+  --demo-step-width: 240px;
 
   /* Space: 4 px steps */
   --space-1: 4px;
@@ -111,4 +120,11 @@
   --map-zone-selected: #0f4c81;
   --map-report: #0b3d6e;
   --map-landmark: #161b22;
+}
+
+:root {
+  --desk-width: 1400px;
+  --desk-inbox-width: 360px;
+  --desk-count-width: 64px;
+  --desk-pane-height: 72dvh;
 }

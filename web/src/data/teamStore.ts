@@ -107,6 +107,11 @@ async function remote<T = undefined>(path: string, body: object): Promise<Result
 
 const teamPath = () => `/api/teams/${loadedFor}`;
 
+/** API mode: fetch the team view again without a loading state (the screens poll this). */
+export function refreshTeam() {
+  if (apiMode() && loadedFor && state.status !== "loading") void fetchTeam(loadedFor);
+}
+
 export function useTeam(): State {
   return useSyncExternalStore(
     (l) => {

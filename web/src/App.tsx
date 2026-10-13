@@ -9,11 +9,13 @@ import { StatusPage } from "./features/resident/StatusPage";
 import { DevUi } from "./pages/DevUi";
 import { FloodPage } from "./features/flood/FloodPage";
 import { Home } from "./pages/Home";
+import { DemoPage } from "./features/demo/DemoPage";
 
 /** Role routes. Team: /team/*; coordinator: /desk; resident: /status/:token; shared parts: /dev/ui. */
 export function App() {
   return (
     <Routes>
+      <Route path="demo" element={<DemoPage />} />
       <Route element={<AppShell />}>
         <Route index element={<Home />} />
         <Route path="team/map/:areaId?/:zoneId?" element={<BriefingPage />} />

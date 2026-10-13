@@ -10,18 +10,23 @@ export interface Session {
   role: Role;
   actor: string; // e.g. "team:T-S", "coordinator:demo-1"
   label: string;
+  labelTh?: string;
 }
 
 export const DEMO_SESSIONS: Session[] = [
-  { role: "team_leader", actor: "team:T-S", label: "Team T-S (boat)" },
-  { role: "team_leader", actor: "team:T-R", label: "Team T-R (truck)" },
-  { role: "coordinator", actor: "coordinator:demo-1", label: "Coordinator desk" },
-  { role: "resident", actor: "resident:demo", label: "Resident (ask for help)" },
+  { role: "team_leader", actor: "team:T-S", label: "Team T-S (boat)", labelTh: "ทีม T-S (เรือ)" },
+  { role: "team_leader", actor: "team:T-R", label: "Team T-R (truck)", labelTh: "ทีม T-R (รถบรรทุก)" },
+  { role: "coordinator", actor: "coordinator:demo-1", label: "Coordinator desk", labelTh: "โต๊ะประสานงาน" },
+  { role: "resident", actor: "resident:demo", label: "Resident (ask for help)", labelTh: "ผู้ประสบภัย (ขอความช่วยเหลือ)" },
 ];
 
 const KEY = "reachpoint.session";
 
 function load(): Session | null {
+  // ?as=team:T-S picks a demo role for this page only (the /demo phones), without touching the saved one.
+  const as = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("as");
+  const forced = DEMO_SESSIONS.find((s) => s.actor === as);
+  if (forced) return forced;
   try {
     const raw = sessionStorage.getItem(KEY);
     return raw ? (JSON.parse(raw) as Session) : null;

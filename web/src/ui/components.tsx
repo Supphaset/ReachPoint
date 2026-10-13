@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { fmtAgo, fmtTime } from "../data/format";
 import { now } from "../data/clock";
 import { Icon, type IconName } from "./Icon";
+import { useLang } from "../i18n/lang";
+import { S } from "../i18n/strings";
 import { JOB, OUTCOME, PRIORITY, REVIEW, SEGMENT, TEAM_STATUS, type StateStyle } from "./states";
 import "./components.css";
 
@@ -39,11 +41,12 @@ export function StatusChip({
 
 /** Count badge for an area or zone row, e.g. "1 urgent · 1 unreviewed". Nothing is shown as "safe". */
 export function CountBadge({ urgent, unreviewed, empty }: { urgent: number; unreviewed: number; empty?: boolean }) {
+  const { t } = useLang();
   if (empty) {
     return (
       <span className="chip chip-unknown chip-sm hatched">
         <Icon name="question" size={14} />
-        <span>No reports yet · not checked</span>
+        <span>{t(S.common.noReports)}</span>
       </span>
     );
   }
@@ -52,13 +55,13 @@ export function CountBadge({ urgent, unreviewed, empty }: { urgent: number; unre
       {urgent > 0 && (
         <span className="chip chip-red chip-sm">
           <Icon name="octagon" size={14} />
-          <span className="num">{urgent} urgent</span>
+          <span className="num">{t(S.common.urgentN(urgent))}</span>
         </span>
       )}
       {unreviewed > 0 && (
         <span className="chip chip-unknown chip-sm">
           <Icon name="question" size={14} />
-          <span className="num">{unreviewed} unreviewed</span>
+          <span className="num">{t(S.common.unreviewedN(unreviewed))}</span>
         </span>
       )}
     </span>
@@ -67,6 +70,7 @@ export function CountBadge({ urgent, unreviewed, empty }: { urgent: number; unre
 
 /** Dashed "AI proposal" card: nothing in it counts until a person approves it. */
 export function ProposalCard({
+  label,
   title,
   quote,
   children,
@@ -74,6 +78,7 @@ export function ProposalCard({
   onReject,
   busy,
 }: {
+  label?: string;
   title: string;
   quote?: string;
   children?: ReactNode;
@@ -82,10 +87,10 @@ export function ProposalCard({
   busy?: boolean;
 }) {
   return (
-    <section className="proposal" aria-label={`AI proposal: ${title}`}>
+    <section className="proposal" aria-label={`${label ?? "AI proposal"}: ${title}`}>
       <header className="proposal-head">
         <Icon name="sparkle" size={16} />
-        <span>ข้อเสนอจาก AI · AI proposal, needs your approval</span>
+        <span>{label ?? "ข้อเสนอจาก AI · AI proposal, needs your approval"}</span>
       </header>
       <h3>{title}</h3>
       {quote && <blockquote className="proposal-quote">“{quote}”</blockquote>}
@@ -141,13 +146,15 @@ export function Banner({
 }
 
 /** "Last updated 10:15 · 3 min ago"; offline adds "reconnecting". Times keep their own labels. */
-export function LastUpdated({ at, offline, label = "Last updated" }: { at: string; offline?: boolean; label?: string }) {
+export function LastUpdated({ at, offline, label }: { at: string; offline?: boolean; label?: string }) {
+  const { t, lang } = useLang();
+  const mins = Math.floor((now() - Date.parse(at)) / 60000);
   return (
     <p className="last-updated">
       <Icon name={offline ? "offline" : "refresh"} size={14} />
       <span>
-        {label} <time dateTime={at}>{fmtTime(at)}</time> · {fmtAgo(at, now())}
-        {offline && " · reconnecting"}
+        {label ?? t(S.common.lastUpdated)} <time dateTime={at}>{fmtTime(at)}</time> · {lang === "en" ? fmtAgo(at, now()) : t(S.units.ago(mins))}
+        {offline && ` · ${t(S.common.reconnecting)}`}
       </span>
     </p>
   );
@@ -180,11 +187,12 @@ export function BigButton({
 
 /** A labelled estimate. Always says "estimate", always a range, never added to counts. */
 export function EstimateRange({ range, children }: { range: string; children: ReactNode }) {
+  const { t } = useLang();
   return (
     <p className="estimate">
       <Icon name="people" size={16} />
       <span>
-        About <strong className="num">{range}</strong> {children} <span className="estimate-tag">estimate</span>
+        {t(S.common.about)} <strong className="num">{range}</strong> {children} <span className="estimate-tag">{t(S.common.estimate)}</span>
       </span>
     </p>
   );

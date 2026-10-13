@@ -64,21 +64,25 @@
      {
       "kind": "flag",
       "text": "Coordinator flagged urgent: Transport linked to urgent medical case C-01",
+      "th": "ผู้ประสานงานระบุว่าด่วน: Transport linked to urgent medical case C-01",
       "basis": "coordinator"
      },
      {
       "kind": "medical",
       "text": "1 person in this household needs urgent medical help; the medical team is asked separately",
+      "th": "มีสมาชิกในบ้าน 1 คนต้องการความช่วยเหลือทางการแพทย์ด่วน ทีมแพทย์ได้รับแจ้งแยกต่างหาก",
       "basis": "qualified review"
      },
      {
       "kind": "people",
       "text": "3 people: 2 adults, 1 child",
+      "th": "3 คน: ผู้ใหญ่ 2 คน เด็ก 1 คน",
       "basis": "reviewed call"
      },
      {
       "kind": "water",
       "text": "Chest deep (about 1.3 m) at the landmark",
+      "th": "น้ำถึงอก (ประมาณ 1.3 ม.) ที่จุดสังเกต",
       "basis": "callers",
       "at": "2026-10-11T03:15:00Z",
       "callers": 1,
@@ -89,18 +93,32 @@
      "Boat needed (water 1.2 m or more)",
      "Life jackets for 1 child"
     ],
-    "withheld": "Medical details come with the job, for the team that takes it"
+    "withheld": "Medical details come with the job, for the team that takes it",
+    "th": {
+     "title": "ทำไมจึงเป็นเหตุฉุกเฉิน",
+     "summary": "ผู้ประสานงานระบุว่าด่วน: Transport linked to urgent medical case C-01",
+     "kit": [
+      "ต้องใช้เรือ (น้ำลึก 1.2 ม. ขึ้นไป)",
+      "เสื้อชูชีพสำหรับเด็ก 1 คน"
+     ],
+     "withheld": "ข้อมูลทางการแพทย์จะแสดงในงาน เฉพาะทีมที่รับงานนี้"
+    }
    },
    "destination": {
     "id": "H1",
     "label": "H1 Hospital (synthetic)",
-    "reason": "One person needs urgent medical care; the medical team meets you at H1"
+    "reason": "One person needs urgent medical care; the medical team meets you at H1",
+    "th": {
+     "label": "H1 โรงพยาบาล (สมมติ)",
+     "reason": "มีผู้ต้องการการรักษาด่วน 1 คน ทีมแพทย์จะรอรับที่ H1"
+    }
    },
    "people": 3,
    "groups": [
     {
      "groupId": "L-C01-EVAC-G1",
      "label": "Family 1",
+     "labelTh": "ครอบครัว 1",
      "people": 3,
      "party": {
       "adults": 2,
@@ -135,11 +153,13 @@
      {
       "kind": "people",
       "text": "5 people: 2 adults, 2 children, 1 baby",
+      "th": "5 คน: ผู้ใหญ่ 2 คน เด็ก 2 คน ทารก 1 คน",
       "basis": "reviewed call"
      },
      {
       "kind": "water",
       "text": "Chest deep (about 1.3 m) at the landmark",
+      "th": "น้ำถึงอก (ประมาณ 1.3 ม.) ที่จุดสังเกต",
       "basis": "callers",
       "at": "2026-10-11T02:10:00Z",
       "callers": 1,
@@ -150,18 +170,32 @@
      "Boat needed (water 1.2 m or more)",
      "Life jackets for 3 children"
     ],
-    "withheld": null
+    "withheld": null,
+    "th": {
+     "title": "ทำไมจึงด่วน",
+     "summary": "น้ำถึงอก (ประมาณ 1.3 ม.) ที่จุดสังเกต",
+     "kit": [
+      "ต้องใช้เรือ (น้ำลึก 1.2 ม. ขึ้นไป)",
+      "เสื้อชูชีพสำหรับเด็ก 3 คน"
+     ],
+     "withheld": null
+    }
    },
    "destination": {
     "id": "D1",
     "label": "D1 Shelter (high ground)",
-    "reason": "Shelter"
+    "reason": "Shelter",
+    "th": {
+     "label": "D1 ศูนย์พักพิง (ที่สูง)",
+     "reason": "ศูนย์พักพิง"
+    }
    },
    "people": 5,
    "groups": [
     {
      "groupId": "L-C04-EVAC-G1",
      "label": "Family 1",
+     "labelTh": "ครอบครัว 1",
      "people": 5,
      "party": {
       "adults": 2,
@@ -197,11 +231,13 @@
      {
       "kind": "people",
       "text": "3 people: 1 adult, 2 children",
+      "th": "3 คน: ผู้ใหญ่ 1 คน เด็ก 2 คน",
       "basis": "reviewed call"
      },
      {
       "kind": "water",
       "text": "Up to the 2nd floor (about 3 m) at the landmark",
+      "th": "น้ำถึงชั้น 2 (ประมาณ 3 ม.) ที่จุดสังเกต",
       "basis": "callers",
       "at": "2026-10-11T01:30:00Z",
       "callers": 1,
@@ -212,18 +248,32 @@
      "Boat needed (water 1.2 m or more)",
      "Life jackets for 2 children"
     ],
-    "withheld": null
+    "withheld": null,
+    "th": {
+     "title": "ทำไมจึงด่วน",
+     "summary": "น้ำถึงชั้น 2 (ประมาณ 3 ม.) ที่จุดสังเกต",
+     "kit": [
+      "ต้องใช้เรือ (น้ำลึก 1.2 ม. ขึ้นไป)",
+      "เสื้อชูชีพสำหรับเด็ก 2 คน"
+     ],
+     "withheld": null
+    }
    },
    "destination": {
     "id": "D1",
     "label": "D1 Shelter (high ground)",
-    "reason": "Shelter"
+    "reason": "Shelter",
+    "th": {
+     "label": "D1 ศูนย์พักพิง (ที่สูง)",
+     "reason": "ศูนย์พักพิง"
+    }
    },
    "people": 3,
    "groups": [
     {
      "groupId": "L-C08-EVAC-G1",
      "label": "Family 1",
+     "labelTh": "ครอบครัว 1",
      "people": 3,
      "party": {
       "adults": 1,
@@ -258,11 +308,13 @@
      {
       "kind": "people",
       "text": "2 people: 2 adults",
+      "th": "2 คน: ผู้ใหญ่ 2 คน",
       "basis": "reviewed call"
      },
      {
       "kind": "water",
       "text": "Chest deep (about 1.3 m) at the landmark",
+      "th": "น้ำถึงอก (ประมาณ 1.3 ม.) ที่จุดสังเกต",
       "basis": "callers",
       "at": "2026-10-11T01:05:00Z",
       "callers": 1,
@@ -272,18 +324,31 @@
     "kit": [
      "Boat needed (water 1.2 m or more)"
     ],
-    "withheld": null
+    "withheld": null,
+    "th": {
+     "title": "ทำไมจึงด่วน",
+     "summary": "น้ำถึงอก (ประมาณ 1.3 ม.) ที่จุดสังเกต",
+     "kit": [
+      "ต้องใช้เรือ (น้ำลึก 1.2 ม. ขึ้นไป)"
+     ],
+     "withheld": null
+    }
    },
    "destination": {
     "id": "D1",
     "label": "D1 Shelter (high ground)",
-    "reason": "Shelter"
+    "reason": "Shelter",
+    "th": {
+     "label": "D1 ศูนย์พักพิง (ที่สูง)",
+     "reason": "ศูนย์พักพิง"
+    }
    },
    "people": 2,
    "groups": [
     {
      "groupId": "L-C03-EVAC-G1",
      "label": "Family 1",
+     "labelTh": "ครอบครัว 1",
      "people": 2,
      "party": {
       "adults": 2,
@@ -318,11 +383,13 @@
      {
       "kind": "people",
       "text": "4 people: 2 adults, 2 children",
+      "th": "4 คน: ผู้ใหญ่ 2 คน เด็ก 2 คน",
       "basis": "reviewed call"
      },
      {
       "kind": "water",
       "text": "Waist deep (about 1 m) at the landmark",
+      "th": "น้ำถึงเอว (ประมาณ 1 ม.) ที่จุดสังเกต",
       "basis": "callers",
       "at": "2026-10-11T02:40:00Z",
       "callers": 1,
@@ -333,18 +400,32 @@
      "Wading may be possible; check on arrival",
      "Life jackets for 2 children"
     ],
-    "withheld": null
+    "withheld": null,
+    "th": {
+     "title": "ทำไมจึงด่วน",
+     "summary": "น้ำถึงเอว (ประมาณ 1 ม.) ที่จุดสังเกต",
+     "kit": [
+      "อาจเดินลุยน้ำได้ ตรวจดูอีกครั้งเมื่อไปถึง",
+      "เสื้อชูชีพสำหรับเด็ก 2 คน"
+     ],
+     "withheld": null
+    }
    },
    "destination": {
     "id": "D1",
     "label": "D1 Shelter (high ground)",
-    "reason": "Shelter"
+    "reason": "Shelter",
+    "th": {
+     "label": "D1 ศูนย์พักพิง (ที่สูง)",
+     "reason": "ศูนย์พักพิง"
+    }
    },
    "people": 4,
    "groups": [
     {
      "groupId": "L-C02-EVAC-G1",
      "label": "Family 1",
+     "labelTh": "ครอบครัว 1",
      "people": 4,
      "party": {
       "adults": 2,
@@ -379,11 +460,13 @@
      {
       "kind": "people",
       "text": "4 people: 4 adults",
+      "th": "4 คน: ผู้ใหญ่ 4 คน",
       "basis": "reviewed call"
      },
      {
       "kind": "water",
       "text": "Knee deep (about 0.5 m) at the landmark",
+      "th": "น้ำถึงเข่า (ประมาณ 0.5 ม.) ที่จุดสังเกต",
       "basis": "callers",
       "at": "2026-10-11T02:55:00Z",
       "callers": 1,
@@ -393,18 +476,31 @@
     "kit": [
      "Wading may be possible; check on arrival"
     ],
-    "withheld": null
+    "withheld": null,
+    "th": {
+     "title": "ทำไมจึงด่วน",
+     "summary": "น้ำถึงเข่า (ประมาณ 0.5 ม.) ที่จุดสังเกต",
+     "kit": [
+      "อาจเดินลุยน้ำได้ ตรวจดูอีกครั้งเมื่อไปถึง"
+     ],
+     "withheld": null
+    }
    },
    "destination": {
     "id": "D1",
     "label": "D1 Shelter (high ground)",
-    "reason": "Shelter"
+    "reason": "Shelter",
+    "th": {
+     "label": "D1 ศูนย์พักพิง (ที่สูง)",
+     "reason": "ศูนย์พักพิง"
+    }
    },
    "people": 4,
    "groups": [
     {
      "groupId": "L-C06-EVAC-G1",
      "label": "Family 1",
+     "labelTh": "ครอบครัว 1",
      "people": 2,
      "party": {
       "adults": 2,
@@ -418,6 +514,7 @@
     {
      "groupId": "L-C06-EVAC-G2",
      "label": "Family 2",
+     "labelTh": "ครอบครัว 2",
      "people": 1,
      "party": {
       "adults": 1,
@@ -431,6 +528,7 @@
     {
      "groupId": "L-C06-EVAC-G3",
      "label": "Family 3",
+     "labelTh": "ครอบครัว 3",
      "people": 1,
      "party": {
       "adults": 1,
@@ -465,21 +563,25 @@
      {
       "kind": "medical_category",
       "text": "Medical need: affects how to move them",
+      "th": "มีความต้องการทางการแพทย์: มีผลต่อวิธีเคลื่อนย้าย",
       "basis": "coordinator"
      },
      {
       "kind": "people",
       "text": "3 people: 2 adults, 1 stretcher case",
+      "th": "3 คน: ผู้ใหญ่ 2 คน ผู้ป่วยที่ต้องใช้เปล 1 คน",
       "basis": "reviewed call"
      },
      {
       "kind": "mobility",
       "text": "Can't walk: must be carried",
+      "th": "เดินไม่ได้: ต้องหามหรืออุ้ม",
       "basis": "reviewed call"
      },
      {
       "kind": "water",
       "text": "Over head height (about 2 m) at the landmark",
+      "th": "น้ำท่วมหัว (ประมาณ 2 ม.) ที่จุดสังเกต",
       "basis": "callers",
       "at": "2026-10-10T21:00:00Z",
       "callers": 1,
@@ -490,18 +592,32 @@
      "Boat needed (water 1.2 m or more)",
      "Stretcher, and at least 2 people to carry"
     ],
-    "withheld": "Medical details come with the job, for the team that takes it"
+    "withheld": "Medical details come with the job, for the team that takes it",
+    "th": {
+     "title": "ทำไมจึงด่วน",
+     "summary": "เดินไม่ได้: ต้องหามหรืออุ้ม",
+     "kit": [
+      "ต้องใช้เรือ (น้ำลึก 1.2 ม. ขึ้นไป)",
+      "เปลหาม และคนช่วยหามอย่างน้อย 2 คน"
+     ],
+     "withheld": "ข้อมูลทางการแพทย์จะแสดงในงาน เฉพาะทีมที่รับงานนี้"
+    }
    },
    "destination": {
     "id": "H1",
     "label": "H1 Hospital (synthetic)",
-    "reason": "Needs oxygen and power"
+    "reason": "Needs oxygen and power",
+    "th": {
+     "label": "H1 โรงพยาบาล (สมมติ)",
+     "reason": "ต้องใช้ออกซิเจนและไฟฟ้า"
+    }
    },
    "people": 3,
    "groups": [
     {
      "groupId": "L-C05-EVAC-G1",
      "label": "Family 1",
+     "labelTh": "ครอบครัว 1",
      "people": 3,
      "party": {
       "adults": 2,
@@ -529,11 +645,13 @@
      {
       "kind": "people",
       "text": "5 people: 2 adults, 2 children, 1 baby",
+      "th": "5 คน: ผู้ใหญ่ 2 คน เด็ก 2 คน ทารก 1 คน",
       "basis": "reviewed call"
      },
      {
       "kind": "water",
       "text": "Chest deep (about 1.3 m) at the landmark",
+      "th": "น้ำถึงอก (ประมาณ 1.3 ม.) ที่จุดสังเกต",
       "basis": "callers",
       "at": "2026-10-11T02:10:00Z",
       "callers": 1,
@@ -544,18 +662,32 @@
      "Boat needed (water 1.2 m or more)",
      "Life jackets for 3 children"
     ],
-    "withheld": null
+    "withheld": null,
+    "th": {
+     "title": "ทำไมจึงด่วน",
+     "summary": "น้ำถึงอก (ประมาณ 1.3 ม.) ที่จุดสังเกต",
+     "kit": [
+      "ต้องใช้เรือ (น้ำลึก 1.2 ม. ขึ้นไป)",
+      "เสื้อชูชีพสำหรับเด็ก 3 คน"
+     ],
+     "withheld": null
+    }
    },
    "destination": {
     "id": "D1",
     "label": "D1 Shelter (high ground)",
-    "reason": "Shelter"
+    "reason": "Shelter",
+    "th": {
+     "label": "D1 ศูนย์พักพิง (ที่สูง)",
+     "reason": "ศูนย์พักพิง"
+    }
    },
    "medical": null,
    "groups": [
     {
      "groupId": "L-C04-EVAC-G1",
      "label": "Family 1",
+     "labelTh": "ครอบครัว 1",
      "people": 5,
      "party": {
       "adults": 2,

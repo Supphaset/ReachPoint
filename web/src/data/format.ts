@@ -36,7 +36,12 @@ function metres(x: number): string {
  * Modelled depth band. The model is capped at the deepest report (3 m), so [3, 3] reads "over 3 m";
  * a band starting at 0 reads "up to …".
  */
-export function fmtDepth([lo, hi]: Range, cap = 3): string {
+export function fmtDepth([lo, hi]: Range, cap = 3, lang: "en" | "th" = "en"): string {
+  if (lang === "th") {
+    if (lo >= cap) return `มากกว่า ${metres(cap)} ม.`;
+    if (lo <= 0) return `ไม่เกิน ${metres(hi)} ม.`;
+    return `ประมาณ ${metres(lo)}–${metres(hi)} ม.`;
+  }
   if (lo >= cap) return `over ${metres(cap)} m`;
   if (lo <= 0) return `up to ${metres(hi)} m`;
   return `about ${metres(lo)}–${metres(hi)} m`;

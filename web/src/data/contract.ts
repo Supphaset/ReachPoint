@@ -159,6 +159,7 @@ export interface Party {
 export interface Group {
   groupId: string;
   label: string; // "Family 1"
+  labelTh?: string; // "ครอบครัว 1"
   people: number;
   party: Party;
   seatUnits: number;
@@ -170,15 +171,18 @@ export interface Group {
 export interface Urgency {
   title: string;
   summary: string;
-  facts: { kind: "medical" | "medical_category" | "flag" | "people" | "mobility" | "water"; text: string; basis: string; at?: string; callers?: number; stale?: boolean }[];
+  facts: { kind: "medical" | "medical_category" | "flag" | "people" | "mobility" | "water"; text: string; th?: string; basis: string; at?: string; callers?: number; stale?: boolean }[];
   kit: string[];
   withheld: string | null;
+  /** The same lines in Thai, written by the server (api/views/thai.py). */
+  th?: { title: string; summary: string; kit: string[]; withheld: string | null };
 }
 
 export interface Destination {
   id: string; // D1 shelter, H1 hospital (synthetic)
   label: string;
   reason: string;
+  th?: { label: string; reason: string | null };
 }
 
 /** Medical notes for the team that took the job only (D38): functional first, then the condition, with the legal basis. */
@@ -468,5 +472,5 @@ export interface ResidentStatusView {
   label: string;
   state: string;
   lastConfirmedAt?: string;
-  lines: { family?: string; state: string; text: string }[];
+  lines: { family?: string; familyTh?: string; state: string; text: string; th?: string }[];
 }

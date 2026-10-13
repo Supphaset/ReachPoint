@@ -58,6 +58,10 @@ def review_queue(store: Store) -> dict:
             lm = store.landmarks[r["segmentId"]]
             sugg = {"segmentId": r["segmentId"], "label": lm["label"], "why": f"field report from {r['teamId']} in this segment"}
             prompts.insert(0, {"kind": "field", "text": f"Field report from team {r['teamId']}: people found who hadn't called (D20)."})
+        elif (r.get("location") or {}).get("status") == "located":
+            loc = r["location"]
+            sugg = {"segmentId": loc["segmentId"], "label": loc["landmarkLabel"],
+                    "why": f"the caller's location ({loc['source']})"}
         else:
             sugg = suggest_segment(store, r["text"])
         t = proposals.get(r["reportId"])
@@ -68,7 +72,8 @@ def review_queue(store: Store) -> dict:
             tri = {"source": triage.get("source"), "at": triage.get("at"), "links": links, "rank": t.get("rank")}
         rows.append({"reportId": r["reportId"], "receivedAt": r["receivedAt"], "text": r["text"], "channel": r["channel"],
                      "proposal": r["proposal"], "suggestedSegment": sugg, "prompts": prompts, "triage": tri,
-                     **({"fromTeam": r["teamId"]} if r.get("teamId") else {})})
+                     **({"fromTeam": r["teamId"]} if r.get("teamId") else {}),
+                     **({"location": r["location"]} if r.get("location") else {})})
     order = {rid: i for i, rid in enumerate(triage.get("order", []))}
     danger = lambda row: 0 if row["proposal"]["facts"]["dangerSigns"] else 1
     rows.sort(key=lambda row: (danger(row), order.get(row["reportId"], len(order)), row["receivedAt"], row["reportId"]))

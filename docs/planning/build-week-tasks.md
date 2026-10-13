@@ -18,7 +18,7 @@ The consolidated intake, map, water-estimation and rescue-demo implementation or
 | 0.3 | Agree the spend cap and payer | Both |
 | 0.4 | Check you're both registered; read the deadline time on the dashboard | Both |
 | 0.5 | Mark PR #1 ready and merge | Both |
-| 0.6 | Pinpoint API: check its terms and cost for a noncommercial demo, then put the key in Secret Manager (never in Git). Google Places is the fallback | You |
+| 0.6 | Pinpoint API: check its terms and cost for a noncommercial demo, then put the key in Secret Manager (never in Git). Google Places is the fallback. **13 Oct: the friend has a tested key; the server adapter is built. Remaining steps: [Pinpoint handoff](pinpoint-handoff.md)** | Friend |
 
 ## Mon 12 — CP0: both apps deployed, contract frozen
 
@@ -75,7 +75,7 @@ The consolidated intake, map, water-estimation and rescue-demo implementation or
 - [ ] `claimListing`, hand back, close: one transaction; `NEED_CHANGED`, `ALLOCATION_CLOSED` (T13)
 - [ ] Shared open lists per assistance type; one-time urgent prompt on becoming Available (T14)
 - [ ] Resident status page per family, using the token link
-- [ ] Location resolver (D25, C16): Pinpoint for Thai addresses, Google Places for building names, caller pin or Maps link; snap to zone/segment/landmark with source + precision; failures → unlocated list on the desk
+- [ ] Location resolver (D25, C16): Pinpoint for Thai addresses, Google Places for building names, caller pin or Maps link; snap to zone/segment/landmark with source + precision; failures → unlocated list on the desk (13 Oct: built in `api/location/` with caller GPS/map pin, Pinpoint adapter and stand-in; the friend matches the Pinpoint request, see [Pinpoint handoff](pinpoint-handoff.md). Google Places not built)
 - [ ] Places and report kinds (D29): my household / check-on / neighbour report; one place per building; "at least N" = largest single neighbour report, never a sum; exact point readable only by the coordinator and the taking team (Firestore rules test)
 - [ ] Browser call screen on ADK Live (T6). **12:00 decision:** if 3 Thai test calls aren't clean, switch to push-to-talk
 
