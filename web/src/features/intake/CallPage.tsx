@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import type { LocationInput } from "../../data/contract";
+import { CallerLocation } from "../location/CallerLocation";
 import { sendRequest, type Sent } from "../../data/intake";
 import { apiMode } from "../../data/mode";
 import { useLang } from "../../i18n/lang";
@@ -16,6 +18,8 @@ import "./intake.css";
  */
 export function CallPage() {
   const { t } = useLang();
+  const [location, setLocation] = useState<LocationInput>();
+  const [locating, setLocating] = useState(false);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState<Sent | null>(null);
@@ -31,7 +35,7 @@ export function CallPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    setSent(await sendRequest(text));
+    setSent(await sendRequest(text, location));
     setBusy(false);
   };
   const add = (line: string) => {
@@ -52,7 +56,7 @@ export function CallPage() {
           {window.location.origin}
           {sent.statusUrl}
         </Link>
-        <BigButton variant="secondary" onClick={() => (setSent(null), setText(""))}>
+        <BigButton variant="secondary" onClick={() => (setSent(null), setText(""), setLocation(undefined))}>
           {t(S.call.another)}
         </BigButton>
         <p className="fine-print">{t(S.call.emergency)}</p>
@@ -66,6 +70,7 @@ export function CallPage() {
         <span>{t(S.call.danger)}</span>
       </p>
       {!apiMode() && <Banner kind="info">{t(S.common.needsServer)}</Banner>}
+      <CallerLocation onChange={setLocation} onBusy={setLocating} />
       <label htmlFor="intake-text">{t(S.call.prompt)}</label>
       <div className="call-hints" role="group" aria-label={t(S.call.helpTitle)}>
         <span className="fine-print">{t(S.call.helpTitle)}</span>
@@ -93,7 +98,7 @@ export function CallPage() {
       />
       {sent && !sent.ok && <Banner kind="error">{sent.message}</Banner>}
       <div className="call-send">
-        <BigButton type="submit" disabled={busy || !text.trim()}>
+        <BigButton type="submit" disabled={busy || locating || !text.trim()}>
           {busy ? t(S.call.sending) : t(S.call.send)}
         </BigButton>
       </div>

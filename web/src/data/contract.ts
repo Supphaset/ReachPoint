@@ -441,7 +441,30 @@ export interface ProposedFacts {
   cantWalk: Quoted | null;
   summary: string;
 }
+/** D25: caller input, resolved by the server; exact points are restricted. */
+export type LocationInput =
+  | { kind: "pin"; lat: number; lon: number; method: "gps" | "map"; accuracyM?: number }
+  | { kind: "address"; text: string };
+
+export interface Location {
+  status: "located" | "outside_area" | "unlocated";
+  kind: LocationInput["kind"];
+  method: string | null;
+  at: [number, number] | null;
+  precision: "house" | "street" | "landmark" | "area" | null;
+  source: string;
+  provider: "device" | "pinpoint" | "stand-in";
+  accuracyM?: number;
+  address?: string;
+  segmentId?: string;
+  landmarkId?: string;
+  landmarkLabel?: string;
+  zoneId?: string;
+  areaId?: string;
+}
+
 export interface ReviewRow {
+  location?: Location;
   reportId: string;
   receivedAt: string;
   text: string;

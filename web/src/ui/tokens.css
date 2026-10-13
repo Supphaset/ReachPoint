@@ -128,3 +128,9 @@
   --desk-count-width: 64px;
   --desk-pane-height: 72dvh;
 }
+
+:root {
+  --location-map-height: 320px;
+  --location-mini-height: 180px;
+  --location-map-label-size: 38px;
+}

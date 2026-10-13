@@ -25,6 +25,16 @@ describe("desk inbox", () => {
     expect(out).toContain("Decrease Adults");
     expect(out).toContain("Reject");
   });
+  it("preselects the located landmark ahead of an older suggestion", () => {
+    const r = report("R-location", "Synthetic request");
+    r.location = { status: "located", kind: "pin", method: "map", at: [100.4705, 7.0089], precision: "house", source: "caller pin (map)", provider: "device", segmentId: "B-3-L2", zoneId: "B-3", landmarkLabel: "B-3 · L2 Market" };
+    setup([r]);
+    state.queue.landmarks.push({ segmentId: "B-3-L2", label: "B-3 · L2 Market" });
+    const out = renderToStaticMarkup(<ReviewQueue />);
+    expect(out).toContain('<option value="B-3-L2" selected="">');
+    expect(out).toContain("Address from the call");
+    expect(out).toContain("pinned on the map");
+  });
   it("explains the empty queue without an approval form", () => {
     setup([]);
     const out = renderToStaticMarkup(<ReviewQueue />);

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Feature, FeatureCollection, Geometry, Point, Polygon, MultiPolygon, Position } from "geojson";
+import type { FeatureCollection, Geometry, Point, Position } from "geojson";
+import { W, bbox, projector, pathOf } from "../../data/mapGeometry";
 import { readPackageFile } from "../../data/source";
 import type { AreaBriefingView } from "../../data/contract";
 import { Banner } from "../../ui/components";
@@ -26,43 +27,6 @@ interface Layers {
   noData: FC;
   extent: FC;
   reported: FC;
-}
-
-const W = 1000;
-
-function rings(g: Geometry): Position[][] {
-  if (g.type === "Polygon") return (g as Polygon).coordinates;
-  if (g.type === "MultiPolygon") return (g as MultiPolygon).coordinates.flat();
-  return [];
-}
-
-function bbox(features: Feature<Geometry, Props>[]): [number, number, number, number] {
-  let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
-  for (const f of features)
-    for (const r of rings(f.geometry))
-      for (const [x, y] of r) {
-        x0 = Math.min(x0, x);
-        y0 = Math.min(y0, y);
-        x1 = Math.max(x1, x);
-        y1 = Math.max(y1, y);
-      }
-  return [x0, y0, x1, y1];
-}
-
-function projector([x0, y0, x1, y1]: [number, number, number, number]) {
-  const k = Math.cos(((y0 + y1) / 2) * (Math.PI / 180));
-  const pad = 0.06;
-  const dx = (x1 - x0) * k;
-  const dy = y1 - y0;
-  const s = W / (dx * (1 + 2 * pad));
-  const project = ([x, y]: Position): [number, number] => [(x - x0) * k * s + dx * s * pad, (y1 - y) * s + dy * s * pad];
-  return { project, height: dy * s * (1 + 2 * pad) };
-}
-
-function pathOf(g: Geometry, project: (p: Position) => [number, number]): string {
-  return rings(g)
-    .map((r) => "M" + r.map((p) => project(p).map((v) => v.toFixed(1)).join(",")).join("L") + "Z")
-    .join("");
 }
 
 export function ZoneMap({
