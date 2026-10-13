@@ -6,10 +6,10 @@ import { BigButton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 
 const groups = [
-  { title: "casePeople", fields: ["reporter_name", "reporter_age", "people_count", "people_details", "children_count", "elderly_count", "mobility_needs"] },
-  { title: "casePlace", fields: ["location", "landmark", "coordinates"] },
-  { title: "caseSituation", fields: ["water_level", "water_trend", "current_shelter", "injuries"] },
-  { title: "caseNeeds", fields: ["urgent_needs", "callback_contact"] },
+  { title: "casePeople", fields: ["reporter_name", "people_details", "n_children", "n_elders", "n_pets"] },
+  { title: "casePlace", fields: ["location", "coordinates", "location_details"] },
+  { title: "caseSituation", fields: ["water_level", "situation_details"] },
+  { title: "caseNeeds", fields: ["emergency_detail", "other_details"] },
 ] as const satisfies readonly { title: "casePeople" | "casePlace" | "caseSituation" | "caseNeeds"; fields: readonly (keyof CallCase)[] }[];
 
 export function CallCaseSidebar({ session, busy, onConfirm }: { session: CallSession; busy: boolean; onConfirm: () => void }) {

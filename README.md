@@ -29,7 +29,7 @@ The API uses in-memory demo state unless `REACHPOINT_DB_PATH` is set. To keep sy
 REACHPOINT_DB_PATH=local/reachpoint.sqlite3 REACHPOINT_VOICE=on uvicorn api.main:app --port 8081
 ```
 
-The ignored SQLite file is local to one server process; `/api/demo/reset` clears it. Do not put real household information in this demo. A local Cloud Run filesystem does not provide durable shared storage, so the selected Firestore deployment work remains separate. See [decision 0011](docs/decisions/0011-local-sqlite-interim.md).
+The ignored SQLite file is local to one server process; `/api/demo/reset` clears it. A confirmed chat or voice request adds one row to `help_requests` with the caller-reviewed fields; unfinished chats remain in `call_sessions`. Do not put real household information in this demo. A local Cloud Run filesystem does not provide durable shared storage, so the selected Firestore deployment work remains separate. See [decision 0011](docs/decisions/0011-local-sqlite-interim.md).
 
 The public [ReachPoint repository](https://github.com/Supphaset/ReachPoint) has a minimal README on `main`. The project documentation and static review artifacts are published on `codex/project-foundation` in [draft PR #1](https://github.com/Supphaset/ReachPoint/pull/1); a human reviews and merges them. See [decision 0008](docs/decisions/0008-reachpoint-name-and-public-repository.md) for the approved name and publication boundary.
 

@@ -33,7 +33,7 @@ from api.intake import conversation
 from api.intake.live_voice import router as live_voice_router
 from api.location.resolve import resolve as resolve_location
 from api.server.memory import Clock, MemoryStore, NotFound, Refused
-from api.server.sqlite_store import SQLiteMemoryStore, SQLiteState
+from api.server.sqlite_store import HELP_REQUEST_FIELDS, SQLiteMemoryStore, SQLiteState
 from api.views.briefing import area_briefing
 from api.views.desk import rain_view, rising_water_view, zone_order_view
 from api.views.resident import resident_status
@@ -393,10 +393,17 @@ async def call_location(session_id: str, b: CallLocation):
     return await conversation.choose_location(conversation.get(session_id), b.query, b.action, b.locationId)
 
 
+def _help_request_row(session: conversation.Conversation, report_id: str | None = None) -> dict:
+    fields = set(HELP_REQUEST_FIELDS) - {"report_id", "channel"}
+    return {"report_id": report_id, "channel": session.channel, **session.case.model_dump(include=fields)}
+
+
 async def submit_call_session(session: conversation.Conversation, _submission_id: str,
                               expected_revision: int | None = None) -> dict:
     async with session.lock:
         if session.sent:
+            if database:
+                database.put_help_request(_help_request_row(session, session.sent["reportId"]))
             return session.snapshot()
         call_key = f"CALL-{session.id}"
         with memory.lock:
@@ -406,6 +413,8 @@ async def submit_call_session(session: conversation.Conversation, _submission_id
                             if previous else None)
         if previous:
             value = previous["value"]
+            if database:
+                database.put_help_request(_help_request_row(session, value["reportId"]))
             session.sent = {**value, "statusUrl": f"/status/{value['statusToken']}",
                             "aiSource": saved_report.get("proposal", {}).get("source", "unknown") if saved_report else "unknown"}
             try:
@@ -422,8 +431,10 @@ async def submit_call_session(session: conversation.Conversation, _submission_id
         proposal = await asyncio.to_thread(extract, text, USE_AI)
         location = await asyncio.to_thread(resolve_location, location_input) if location_input else None
         # One report per session even if the browser retries with a different submissionId after a crash.
-        result = memory.write(call_key, lambda: memory.submit_report(text, session.channel, proposal,
-                                                                     location=location))
+        def submit() -> dict:
+            return memory.submit_report(text, session.channel, proposal, location=location)
+        result = (memory.write(call_key, submit, help_request=_help_request_row(session))
+                  if isinstance(memory, SQLiteMemoryStore) else memory.write(call_key, submit))
         value = result["value"]
         session.sent = {**value, "statusUrl": f"/status/{value['statusToken']}", "aiSource": proposal["source"]}
         try:

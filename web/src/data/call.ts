@@ -4,23 +4,18 @@ import { get, post, submissionId } from "./api";
 
 export interface CallCase {
   reporter_name: string | null;
-  reporter_age: number | null;
-  people_count: number | null;
   people_details: string | null;
-  children_count: number | null;
-  elderly_count: number | null;
-  mobility_needs: string | null;
+  n_children: number | null;
+  n_elders: number | null;
+  n_pets: number | null;
   location: string | null;
-  landmark: string | null;
   coordinates: string | null;
+  location_details: string | null;
   water_level: string | null;
-  water_trend: string | null;
-  current_shelter: string | null;
-  injuries: string | null;
-  urgent_needs: string | null;
+  situation_details: string | null;
+  emergency_detail: string | null;
+  other_details: string | null;
   immediate_danger: boolean | null;
-  danger_details: string | null;
-  callback_contact: string | null;
   unavailable_fields: string[];
   contradictions: string[];
 }

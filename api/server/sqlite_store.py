@@ -18,6 +18,12 @@ from typing import Any, Callable
 
 from api.server.memory import Clock, MemoryStore
 
+HELP_REQUEST_FIELDS = (
+    "report_id", "channel", "reporter_name", "people_details", "n_children", "n_elders", "n_pets",
+    "location", "coordinates", "location_details", "water_level", "situation_details",
+    "emergency_detail", "other_details",
+)
+
 
 class SQLiteState:
     def __init__(self, path: str):
@@ -34,6 +40,21 @@ class SQLiteState:
             self._db.execute("CREATE TABLE IF NOT EXISTS state (name TEXT PRIMARY KEY, payload TEXT NOT NULL)")
             self._db.execute("""CREATE TABLE IF NOT EXISTS call_sessions
                                 (id TEXT PRIMARY KEY, created_at REAL NOT NULL, payload TEXT NOT NULL)""")
+            self._db.execute("""CREATE TABLE IF NOT EXISTS help_requests (
+                                report_id TEXT PRIMARY KEY NOT NULL,
+                                channel TEXT NOT NULL CHECK (channel IN ('chat', 'voice')),
+                                reporter_name TEXT,
+                                people_details TEXT,
+                                n_children INTEGER CHECK (n_children >= 0),
+                                n_elders INTEGER CHECK (n_elders >= 0),
+                                n_pets INTEGER CHECK (n_pets >= 0),
+                                location TEXT,
+                                coordinates TEXT,
+                                location_details TEXT,
+                                water_level TEXT,
+                                situation_details TEXT,
+                                emergency_detail TEXT,
+                                other_details TEXT)""")
 
     def get(self, name: str) -> dict | None:
         with self._lock:
@@ -45,6 +66,25 @@ class SQLiteState:
         with self._lock, self._db:
             self._db.execute("INSERT INTO state(name, payload) VALUES (?, ?) "
                              "ON CONFLICT(name) DO UPDATE SET payload = excluded.payload", (name, payload))
+
+    def put_operations(self, value: dict, help_request: dict | None = None) -> None:
+        payload = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        with self._lock, self._db:
+            self._db.execute("INSERT INTO state(name, payload) VALUES ('operations', ?) "
+                             "ON CONFLICT(name) DO UPDATE SET payload = excluded.payload", (payload,))
+            if help_request:
+                placeholders = ", ".join("?" for _ in HELP_REQUEST_FIELDS)
+                self._db.execute(f"INSERT INTO help_requests ({', '.join(HELP_REQUEST_FIELDS)}) "
+                                 f"VALUES ({placeholders}) ON CONFLICT(report_id) DO NOTHING",
+                                 tuple(help_request.get(field) for field in HELP_REQUEST_FIELDS))
+
+    def put_help_request(self, value: dict) -> None:
+        """Fill a row for a report saved by an earlier version of the local adapter."""
+        with self._lock, self._db:
+            placeholders = ", ".join("?" for _ in HELP_REQUEST_FIELDS)
+            self._db.execute(f"INSERT INTO help_requests ({', '.join(HELP_REQUEST_FIELDS)}) "
+                             f"VALUES ({placeholders}) ON CONFLICT(report_id) DO NOTHING",
+                             tuple(value.get(field) for field in HELP_REQUEST_FIELDS))
 
     def get_session(self, session_id: str) -> dict | None:
         with self._lock:
@@ -69,6 +109,7 @@ class SQLiteState:
 
     def clear(self) -> None:
         with self._lock, self._db:
+            self._db.execute("DELETE FROM help_requests")
             self._db.execute("DELETE FROM call_sessions")
             self._db.execute("DELETE FROM state")
 
@@ -92,11 +133,11 @@ class SQLiteMemoryStore(MemoryStore):
                 "clock": {"mode": self.clock.mode, "start": self.clock.start.isoformat(),
                           "began": self.clock.began.isoformat()}}
 
-    def persist(self) -> None:
+    def persist(self, help_request: dict | None = None) -> None:
         """Save a derived update while the caller holds self.lock."""
-        self.database.put("operations", self._snapshot())
+        self.database.put_operations(self._snapshot(), help_request)
 
-    def write(self, submission_id: str | None, fn: Callable[[], Any]) -> dict:
+    def write(self, submission_id: str | None, fn: Callable[[], Any], help_request: dict | None = None) -> dict:
         with self.lock:
             if submission_id and submission_id in self.done:
                 return self.done[submission_id]
@@ -105,7 +146,8 @@ class SQLiteMemoryStore(MemoryStore):
                 result = {"ok": True, "value": fn()}
                 if submission_id:
                     self.done[submission_id] = result
-                self.persist()
+                row = {**help_request, "report_id": result["value"]["reportId"]} if help_request else None
+                self.persist(row)
             except Exception:
                 self.store.seed, self.counter = before, counter
                 if submission_id:
