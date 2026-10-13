@@ -1,0 +1,302 @@
+/**
+ * The word list for the victim and volunteer screens: every fixed word on those screens comes from here, in Thai
+ * and English with the same meaning. Thai wording needs a native-speaker check before the demo.
+ * Functions take numbers or names and return both languages.
+ */
+import type { Lang, Pair } from "./lang";
+
+const p = (en: string, th: string): Pair => ({ en, th });
+
+export const S = {
+  shell: {
+    demoTag: p("Synthetic demo", "ข้อมูลจำลอง"),
+    switchRole: p("Switch role", "เปลี่ยนบทบาท"),
+    tabs: {
+      waiting: p("Waiting", "รอทีม"),
+      jobs: p("My jobs", "งานของฉัน"),
+      map: p("Area map", "แผนที่"),
+      desk: p("Desk", "โต๊ะประสานงาน"),
+      split: p("Split", "แบ่งงาน"),
+      demo: p("Demo", "เดโม"),
+    },
+  },
+  common: {
+    lastUpdated: p("Last updated", "อัปเดตล่าสุด"),
+    reconnecting: p("offline, reconnecting", "ออฟไลน์ กำลังเชื่อมต่อใหม่"),
+    justNow: p("just now", "เมื่อสักครู่"),
+    tryAgain: p("Try again", "ลองอีกครั้ง"),
+    close: p("Close", "ปิด"),
+    needsServer: p("This screen needs the server. Open the app with ?data=api.", "หน้านี้ต้องใช้เซิร์ฟเวอร์ เปิดแอปด้วย ?data=api"),
+  },
+  call: {
+    title: p("Ask for help", "ขอความช่วยเหลือ"),
+    prompt: p("What is happening, where, and who is with you? Thai or English.", "เกิดอะไรขึ้น อยู่ที่ไหน และมีใครอยู่ด้วยบ้าง พิมพ์ภาษาไทยหรืออังกฤษก็ได้"),
+    placeholder: p(
+      "e.g. Near the B-4 school, water is chest deep, 2 adults, grandma is bedridden and can't walk",
+      "เช่น บ้านอยู่แถวโรงเรียน B-4 น้ำถึงอกแล้ว มีผู้ใหญ่ 2 คน ยายติดเตียงเดินไม่ได้",
+    ),
+    send: p("Send request", "ส่งคำขอ"),
+    sending: p("Sending…", "กำลังส่ง…"),
+    privacy: p(
+      "Synthetic demo: don't enter real names, phone numbers or addresses. An AI reads your words to help the coordinator; a person checks everything.",
+      "นี่เป็นเดโมด้วยข้อมูลจำลอง อย่าใส่ชื่อ เบอร์โทร หรือที่อยู่จริง AI ช่วยอ่านข้อความเพื่อช่วยผู้ประสานงาน และมีคนตรวจสอบทุกอย่าง",
+    ),
+    received: p("We received your request", "เราได้รับคำขอของคุณแล้ว"),
+    receivedBody: (id: string): Pair =>
+      p(
+        `Request ${id}. A coordinator is reading it now. Nothing is promised until a team takes it.`,
+        `คำขอ ${id} ผู้ประสานงานกำลังอ่านอยู่ ยังไม่มีการรับปากใดๆ จนกว่าจะมีทีมรับงาน`,
+      ),
+    keepLink: p("Keep this link to see what is happening with your request:", "เก็บลิงก์นี้ไว้เพื่อดูความคืบหน้าของคำขอ:"),
+    emergency: p("If it becomes an emergency, call 1669.", "หากกลายเป็นเหตุฉุกเฉิน โทร 1669"),
+    another: p("Send another request", "ส่งคำขออีกครั้ง"),
+  },
+  status: {
+    title: p("Your request", "สถานะคำขอ"),
+    request: (id: string): Pair => p(`Request ${id}`, `คำขอ ${id}`),
+    case: (id: string): Pair => p(`case ${id}`, `เคส ${id}`),
+    needsServer: p(
+      "Status links need the server. Open the app with ?data=api, then send a request from Ask for help.",
+      "ลิงก์สถานะต้องใช้เซิร์ฟเวอร์ เปิดแอปด้วย ?data=api แล้วส่งคำขอจากหน้าขอความช่วยเหลือ",
+    ),
+    notFound: p("We can't find this link. Check you copied all of it, or call again.", "ไม่พบลิงก์นี้ ตรวจดูว่าคัดลอกมาครบ หรือโทรอีกครั้ง"),
+    unavailable: p("Status unavailable.", "ดูสถานะไม่ได้ในขณะนี้"),
+    footer: p(
+      "A team's time is their estimate, not a promise. If it becomes an emergency, call 1669.",
+      "เวลาที่ทีมแจ้งเป็นการประมาณ ไม่ใช่คำสัญญา หากกลายเป็นเหตุฉุกเฉิน โทร 1669",
+    ),
+  },
+  team: {
+    waitingTitle: p("Waiting for a team", "รอทีมช่วยเหลือ"),
+    order: p("red first, then nearest, then longest waiting", "สีแดงก่อน ตามด้วยใกล้ที่สุด แล้วจึงรอนานที่สุด"),
+    offline: p("Offline. You can look, but taking a case needs a connection.", "ออฟไลน์ ดูได้ แต่การรับงานต้องเชื่อมต่ออินเทอร์เน็ต"),
+    notAvailable: p("Set yourself Available to take cases.", "ตั้งสถานะเป็น พร้อม เพื่อรับงาน"),
+    noWaiting: p("No waiting cases for your team.", "ไม่มีเคสที่รอทีมของคุณ"),
+    landmarkNote: p(
+      "Places are shown at landmark level; you get the exact point after you take a case.",
+      "แสดงตำแหน่งระดับจุดสังเกตเท่านั้น จะเห็นจุดรับที่แน่นอนหลังรับงานแล้ว",
+    ),
+    noRecords: (id: string): Pair => p(`No demo records for team ${id} yet. Sign in as Team T-S or T-R.`, `ยังไม่มีข้อมูลเดโมของทีม ${id} เข้าใช้เป็นทีม T-S หรือ T-R`),
+    listUnavailable: p("Your team's list is unavailable.", "ดูรายการของทีมไม่ได้ในขณะนี้"),
+    statusLabel: p("Team status", "สถานะทีม"),
+    at: (place: string): Pair => p(`at ${place}`, `อยู่ที่ ${place}`),
+    since: (t: string): Pair => p(`since ${t}`, `ตั้งแต่ ${t}`),
+    backAbout: (t: string): Pair => p(`back about ${t}`, `กลับประมาณ ${t}`),
+    change: p("Change", "เปลี่ยน"),
+    seatsFree: (free: string, total: number): Pair => p(`${free} free of ${total} today`, `ว่าง ${free} จาก ${total} ที่นั่ง วันนี้`),
+    reasonOptional: p("Reason (optional)", "เหตุผล (ไม่บังคับ)"),
+    backAboutField: p("Back about", "กลับประมาณ"),
+    statusNever: p("Your status never changes by itself. The desk sees it with the time you set it.", "สถานะจะไม่เปลี่ยนเอง โต๊ะประสานงานจะเห็นพร้อมเวลาที่คุณตั้ง"),
+    saveStatus: p("Save status", "บันทึกสถานะ"),
+    busyReasons: [
+      p("Refuelling", "เติมน้ำมัน"),
+      p("Boat repair", "ซ่อมเรือ"),
+      p("Rest", "พัก"),
+      p("On another job", "ทำงานอื่นอยู่"),
+      p("Carrying people to the shelter", "กำลังพาคนไปศูนย์พักพิง"),
+    ],
+    goesTo: (place: string): Pair => p(`Goes to ${place}`, `ไปที่ ${place}`),
+    byYou: p("by you", "โดยคุณ"),
+    by: (id: string): Pair => p(`by ${id}`, `โดย ${id}`),
+    lastConfirmed: (t: string, ago: string, since: string): Pair =>
+      p(`Last confirmed ${t} · ${ago} · waiting since ${since}`, `ยืนยันล่าสุด ${t} · ${ago} · รอตั้งแต่ ${since}`),
+    take: p("Take", "รับงาน"),
+    takeFamilies: p("Take families…", "เลือกครอบครัวที่จะรับ…"),
+    askedDesk: (t: string): Pair => p(`Asked the desk at ${t}`, `ขอให้โต๊ะประสานงานยืนยันแล้วเมื่อ ${t}`),
+    askReconfirm: p("Ask desk to re-confirm", "ขอให้โต๊ะประสานงานยืนยันอีกครั้ง"),
+    takeTitle: (id: string, place: string): Pair => p(`Take ${id} · ${place}`, `รับงาน ${id} · ${place}`),
+    wholeFamilies: p("Take whole families. You can take some now and leave the others for another team.", "รับทั้งครอบครัว จะรับบางครอบครัวก่อนแล้วเหลือให้ทีมอื่นก็ได้"),
+    takenByShort: (id: string): Pair => p(`taken by ${id}`, `${id} รับแล้ว`),
+    needsSeats: (need: string, free: string): Pair => p(`Needs ${need} · you have ${free} free`, `ต้องใช้ ${need} · คุณมีว่าง ${free}`),
+    lookAgain: p("Look again", "ดูอีกครั้ง"),
+    taking: p("Taking…", "กำลังรับงาน…"),
+    takeThisFamily: p("Take this family", "รับครอบครัวนี้"),
+    takeN: (n: number): Pair => p(`Take ${n} ${n === 1 ? "family" : "families"}`, `รับ ${n} ครอบครัว`),
+    nothingPromised: p("Nothing is promised to the family until you set an arrival window.", "ครอบครัวจะยังไม่ได้รับคำยืนยันใดๆ จนกว่าคุณจะตั้งช่วงเวลาที่จะถึง"),
+    jobsTitle: p("My jobs", "งานของฉัน"),
+    noOpenJobs: p("No open jobs.", "ไม่มีงานค้าง"),
+    noJobs: p("No jobs yet.", "ยังไม่มีงาน"),
+    seeWaiting: p("See who is waiting", "ดูว่าใครกำลังรอ"),
+    finishedToday: p("Finished today", "เสร็จแล้ววันนี้"),
+    medical: p("Medical · for your team only", "ข้อมูลการแพทย์ · เฉพาะทีมของคุณ"),
+    condition: p("Condition (from the desk):", "อาการ (จากโต๊ะประสานงาน):"),
+    medicalNote: p("Removed from this phone when the job closes. Don't share or photograph it.", "จะถูกลบจากโทรศัพท์นี้เมื่อปิดงาน ห้ามส่งต่อหรือถ่ายรูป"),
+    medicalRemoved: (t: string): Pair => p(`Medical notes removed at ${t}, when the job closed.`, `ลบข้อมูลการแพทย์แล้วเมื่อ ${t} ตอนปิดงาน`),
+    pickup: p("Pickup point", "จุดรับ"),
+    navigate: p("Navigate (Google Maps)", "นำทาง (Google Maps)"),
+    pointPrivate: p("Only you and the desk see this point. Roads may be flooded: the route is your call.", "เห็นจุดนี้เฉพาะคุณและโต๊ะประสานงาน ถนนอาจถูกน้ำท่วม เส้นทางให้ทีมตัดสินใจเอง"),
+    takeThemTo: p("Take them to", "พาไปที่"),
+    window: p("Arrival window", "ช่วงเวลาที่จะถึง"),
+    onHold: (why: string): Pair => p(`On hold: ${why}. New time not known.`, `พักไว้ก่อน: ${why} ยังไม่ทราบเวลาใหม่`),
+    earlierWithdrawn: p("estimate withdrawn.", "ยกเลิกเวลาประมาณนี้แล้ว"),
+    earlier: p("Earlier", "เวลาเดิม"),
+    nextUpdate: (t: string): Pair => p(`Next status update ${t} from the coordinator desk.`, `แจ้งความคืบหน้าครั้งถัดไป ${t} จากโต๊ะประสานงาน`),
+    yourEstimate: (t: string, closed: boolean): Pair =>
+      p(`(your estimate, set ${t}${closed ? ")" : "; the family sees it now)"}`, `(เวลาประมาณของคุณ ตั้งเมื่อ ${t}${closed ? ")" : " ครอบครัวเห็นแล้ว)"}`),
+    noWindow: p("No window was set.", "ไม่ได้ตั้งช่วงเวลา"),
+    seeking: p('The family sees "seeking team" until you set this.', "ครอบครัวจะเห็นว่า กำลังหาทีม จนกว่าคุณจะตั้งเวลานี้"),
+    from: p("From", "ตั้งแต่"),
+    for: p("For", "นาน"),
+    duration: (m: number): Pair => (m < 60 ? p(`${m} min`, `${m} นาที`) : p(`${m / 60} h`, `${m / 60} ชม.`)),
+    setWindow: (a: string, b: string): Pair => p(`Set window ${a}–${b}`, `ตั้งเวลา ${a}–${b}`),
+    onTheWay: p("On the way", "กำลังไป"),
+    onScene: p("On scene", "ถึงที่แล้ว"),
+    finish: p("Finish…", "ปิดงาน…"),
+    handBack: p("Hand back", "คืนงาน"),
+    closedLate: (t: string): Pair => p(`Closed ${t}. Late updates are refused: "This job is closed".`, `ปิดงานแล้วเมื่อ ${t} จะไม่รับการอัปเดตหลังจากนี้`),
+    finishTitle: (id: string): Pair => p(`Finish ${id}`, `ปิดงาน ${id}`),
+    whatHappened: p("What happened? This goes to the desk and the family's status page.", "เกิดอะไรขึ้น ข้อมูลนี้จะส่งถึงโต๊ะประสานงานและหน้าสถานะของครอบครัว"),
+    handBackTitle: (id: string): Pair => p(`Hand back ${id}`, `คืนงาน ${id}`),
+    handBackBody: p("The families go back on the list for other teams, and your seats come back. The desk is told why.", "ครอบครัวจะกลับเข้ารายการให้ทีมอื่น ที่นั่งของคุณจะว่างคืน และโต๊ะประสานงานจะได้รับแจ้งเหตุผล"),
+    why: p("Why", "เหตุผล"),
+    handBackReasons: [
+      p("Can't reach the place", "เข้าไม่ถึงที่หมาย"),
+      p("Boat problem", "เรือมีปัญหา"),
+      p("Not enough seats after all", "ที่นั่งไม่พอ"),
+      p("Called to an emergency", "ถูกเรียกไปเหตุฉุกเฉิน"),
+    ],
+    wrong: p("Something went wrong", "เกิดข้อผิดพลาด"),
+    reported: (t: string, n: number): Pair => p(` · reported ${t} by ${n} caller${n === 1 ? "" : "s"}`, ` · แจ้งเมื่อ ${t} โดยผู้โทร ${n} คน`),
+    stale: p(" · older than 6 h, may have changed", " · เก่ากว่า 6 ชม. อาจเปลี่ยนไปแล้ว"),
+    bring: p("Bring", "สิ่งที่ต้องนำไป"),
+    basis: {
+      "qualified review": p("qualified review", "ผู้ประเมินที่มีคุณวุฒิ"),
+      coordinator: p("coordinator", "ผู้ประสานงาน"),
+      "reviewed call": p("reviewed call", "สายที่ตรวจสอบแล้ว"),
+      callers: p("callers", "ผู้โทรแจ้ง"),
+      none: p("no report", "ไม่มีรายงาน"),
+    } as Record<string, Pair>,
+  },
+  segments: {
+    zoneMissions: p("Zone missions", "ภารกิจตรวจพื้นที่"),
+    intro: p("Check a segment for people who didn't call. Take one at a time; mark it when you leave.", "ตรวจหาคนที่ไม่ได้โทรแจ้งในแต่ละช่วงพื้นที่ รับได้ทีละช่วง และบันทึกผลก่อนออกจากพื้นที่"),
+    zone: (id: string): Pair => p(`Zone ${id}`, `โซน ${id}`),
+    published: (t: string): Pair => p(`published ${t}`, `ประกาศเมื่อ ${t}`),
+    takenBy: (id: string): Pair => p(`Taken by ${id}`, `${id} รับแล้ว`),
+    taking: p("Taking…", "กำลังรับ…"),
+    finishFirst: p("Finish your segment first", "ทำช่วงพื้นที่ของคุณให้เสร็จก่อน"),
+    take: p("Take segment", "รับช่วงพื้นที่"),
+    mySegments: p("My segments", "ช่วงพื้นที่ของฉัน"),
+    taken: (t: string): Pair => p(`Taken ${t}`, `รับเมื่อ ${t}`),
+    reviewedHere: (list: string): Pair => p(`Reviewed families here: ${list}. Take them from the Waiting list.`, `ครอบครัวที่ตรวจสอบแล้วในพื้นที่นี้: ${list} รับงานได้จากรายการรอทีม`),
+    foundPeople: p("Found people who didn't call? Tell the desk (no names or phone numbers)", "พบคนที่ไม่ได้โทรแจ้งไหม แจ้งโต๊ะประสานงาน (ไม่ต้องใส่ชื่อหรือเบอร์โทร)"),
+    reportPlaceholder: p("e.g. Elderly couple on the 2nd floor, one bedridden", "เช่น คู่สามีภรรยาสูงอายุอยู่ชั้น 2 หนึ่งคนติดเตียง"),
+    sentAs: (id: string): Pair => p(`Sent to the desk as ${id}. They review it before it becomes a case.`, `ส่งถึงโต๊ะประสานงานแล้วเป็น ${id} จะมีการตรวจสอบก่อนเปิดเป็นเคส`),
+    sendReport: p("Send field report", "ส่งรายงานภาคสนาม"),
+    markLegend: p("Mark this segment when you leave", "บันทึกผลช่วงพื้นที่นี้ก่อนออก"),
+    checked: p("Checked", "ตรวจแล้ว"),
+    partly: p("Partly checked", "ตรวจบางส่วน"),
+    couldNotReach: p("Couldn't reach", "เข้าไม่ถึง"),
+    whyQ: p("Why?", "เพราะอะไร"),
+    whyPlaceholder: p("e.g. access blocked, current too strong", "เช่น ทางเข้าถูกปิด กระแสน้ำแรงเกินไป"),
+    householdsFound: p("Households found", "จำนวนบ้านที่พบ"),
+    pickupsNeeded: p("Pickups needed", "จำนวนที่ต้องรับ"),
+    mark: p("Mark segment", "บันทึกผล"),
+    markLine: (state: string, t: string, team: string, found: number, pickups: number): Pair =>
+      p(
+        `${state} ${t} · ${team} · ${found} ${found === 1 ? "household" : "households"} found · ${pickups} ${pickups === 1 ? "pickup" : "pickups"} needed`,
+        `${state} ${t} · ${team} · พบ ${found} บ้าน · ต้องรับ ${pickups} จุด`,
+      ),
+    couldNotLine: (t: string, team: string, why: string): Pair => p(`Couldn't reach ${t} · ${team} · ${why}`, `เข้าไม่ถึง ${t} · ${team} · ${why}`),
+    facts: (everyone: string, register: number, families: number): Pair =>
+      p(
+        `About ${everyone} live here (estimate)` +
+          (register ? ` · ${register} on the vulnerable register (not confirmed in need)` : "") +
+          (families ? ` · ${families} reviewed ${families === 1 ? "family" : "families"} here` : " · no reviewed calls here"),
+        `มีคนอาศัยอยู่ประมาณ ${everyone} คน (ประมาณการ)` +
+          (register ? ` · มีผู้เปราะบางในทะเบียน ${register} คน (ยังไม่ยืนยันว่าต้องการความช่วยเหลือ)` : "") +
+          (families ? ` · มีครอบครัวที่ตรวจสอบแล้ว ${families} ครอบครัว` : " · ยังไม่มีสายที่ตรวจสอบแล้วในพื้นที่นี้"),
+      ),
+  },
+  demo: {
+    title: p("ReachPoint live demo", "เดโม ReachPoint"),
+    lead: p(
+      "Three live screens on one server. Act on one and watch the others change.",
+      "หน้าจอจริง 3 หน้าบนเซิร์ฟเวอร์เดียวกัน ทำบนหน้าหนึ่งแล้วดูอีกหน้าเปลี่ยนตาม",
+    ),
+    victim: p("Victim · family behind Kim Yong market", "ผู้ประสบภัย · ครอบครัวหลังตลาดกิมหยง"),
+    desk: p("Coordinator · a person approves", "ผู้ประสานงาน · คนเป็นผู้อนุมัติ"),
+    volunteer: p("Volunteer · boat team T-S", "อาสาสมัคร · ทีมเรือ T-S"),
+    steps: [
+      p("Victim: describe the emergency and send it.", "ผู้ประสบภัย: พิมพ์เล่าเหตุการณ์แล้วกดส่ง"),
+      p("Coordinator: check Gemini's quoted facts and approve.", "ผู้ประสานงาน: ตรวจข้อมูลที่ Gemini อ้างจากข้อความ แล้วกดอนุมัติ"),
+      p("Volunteer: take the new case and set an arrival window.", "อาสาสมัคร: รับเคสใหม่และตั้งช่วงเวลาที่จะถึง"),
+      p("Victim: the status page shows the team's estimate.", "ผู้ประสบภัย: หน้าสถานะแสดงเวลาประมาณของทีม"),
+    ],
+    reset: p("Reset demo", "เริ่มเดโมใหม่"),
+    resetting: p("Resetting…", "กำลังเริ่มใหม่…"),
+    resetFailed: p("Couldn't reset. Is the server running?", "เริ่มใหม่ไม่ได้ เซิร์ฟเวอร์ทำงานอยู่หรือไม่"),
+    reload: p("Reload screens", "โหลดหน้าจอใหม่"),
+    sample: p("Sample message to paste", "ข้อความตัวอย่างสำหรับวาง"),
+    sampleText: p(
+      "Water is chest deep at home behind Kim Yong market (B-3). Grandma can't walk, plus 2 adults and 2 children.",
+      "น้ำถึงอกแล้วค่ะ บ้านอยู่ซอยหลังตลาดกิมหยง B-3 ยายเดินไม่ได้ มีผู้ใหญ่ 2 คน เด็ก 2 คน",
+    ),
+    copy: p("Copy", "คัดลอก"),
+    copied: p("Copied", "คัดลอกแล้ว"),
+    needsServer: p("The demo needs the server: open it with ?data=api.", "เดโมต้องใช้เซิร์ฟเวอร์ เปิดด้วย ?data=api"),
+  },
+  units: {
+    person: (n: number): Pair => p(`${n} ${n === 1 ? "person" : "people"}`, `${n} คน`),
+    seats: (n: string, one: boolean): Pair => p(`${n} seat${one ? "" : "s"}`, `${n} ที่นั่ง`),
+    distance: (m: number | null): Pair =>
+      m === null ? p("distance unknown", "ไม่ทราบระยะทาง") : m < 1000 ? p(`about ${m} m`, `ประมาณ ${m} ม.`) : p(`about ${(m / 1000).toFixed(1)} km`, `ประมาณ ${(m / 1000).toFixed(1)} กม.`),
+    ago: (mins: number): Pair => {
+      if (mins < 1) return p("just now", "เมื่อสักครู่");
+      if (mins < 60) return p(`${mins} min ago`, `${mins} นาทีที่แล้ว`);
+      const h = Math.floor(mins / 60), m = mins % 60;
+      return m ? p(`${h} h ${m} min ago`, `${h} ชม. ${m} นาทีที่แล้ว`) : p(`${h} h ago`, `${h} ชม.ที่แล้ว`);
+    },
+  },
+  party: {
+    adults: p("adult|adults", "ผู้ใหญ่"),
+    children: p("child|children", "เด็ก"),
+    infants: p("baby|babies", "ทารก"),
+    stretcher: p("stretcher|stretchers", "ผู้ป่วยใช้เปล"),
+  },
+  assistance: {
+    evacuation_transport: p("Evacuation", "อพยพ"),
+    medical: p("Medical", "การแพทย์"),
+    supplies: p("Supplies", "สิ่งของ"),
+  } as Record<string, Pair>,
+};
+
+/** Fixed demo text that comes from the seed (team names, resources); anything else is shown as written. */
+const SEED_TH: Record<string, string> = {
+  "Team T-S (boat)": "ทีม T-S (เรือ)",
+  "Team T-R (truck)": "ทีม T-R (รถบรรทุก)",
+  boat: "เรือ",
+  truck: "รถบรรทุก",
+  "6 seats × 2 trips today": "6 ที่นั่ง × 2 เที่ยว วันนี้",
+  "high-clearance truck, 6 seats, shallow water only": "รถยกสูง 6 ที่นั่ง ลุยได้เฉพาะน้ำตื้น",
+  Shelter: "ศูนย์พักพิง",
+  rooftop: "หลังคา",
+  building: "อาคาร",
+  landmark: "จุดสังเกต",
+  "caller pin": "ผู้โทรปักหมุด",
+  "landmark only; caller couldn't give more": "ทราบแค่จุดสังเกต ผู้โทรให้ข้อมูลเพิ่มไม่ได้",
+  "landmark only (no exact point given)": "ทราบแค่จุดสังเกต (ไม่มีจุดที่แน่นอน)",
+  "Pinpoint address match": "ตรงกับที่อยู่ที่ระบุ",
+  "Google Places match, desk confirmed": "ตรงกับ Google Places โต๊ะประสานงานยืนยันแล้ว",
+  "caller described the building; desk confirmed": "ผู้โทรบอกลักษณะอาคาร โต๊ะประสานงานยืนยันแล้ว",
+};
+
+const PLACE_TH: [RegExp, string][] = [
+  [/\bCommunity building\b/, "อาคารชุมชน"],
+  [/\bHealth centre\b/, "ศูนย์สุขภาพ"],
+  [/\bSchool\b/, "โรงเรียน"],
+  [/\bTemple\b/, "วัด"],
+  [/\bMarket\b/, "ตลาด"],
+  [/\bMosque\b/, "มัสยิด"],
+  [/\bShrine\b/, "ศาลเจ้า"],
+  [/\bShelter \(high ground\)/, "ศูนย์พักพิง (ที่สูง)"],
+  [/\bHospital \(synthetic, generic\)/, "โรงพยาบาล (สมมติ)"],
+  [/^Family (\d+)$/, "ครอบครัว $1"],
+];
+
+/** Seed text and generic landmark labels ("B-3 · L5 School") in the chosen language. */
+export function seedText(text: string, lang: Lang): string {
+  if (lang === "en") return text;
+  if (SEED_TH[text]) return SEED_TH[text];
+  return PLACE_TH.reduce((s, [re, th]) => s.replace(re, th), text);
+}

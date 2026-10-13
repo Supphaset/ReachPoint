@@ -1,25 +1,26 @@
 import { NavLink, Outlet, Link } from "react-router-dom";
 import { useSession, type Role } from "../data/session";
 import { Icon, type IconName } from "../ui/Icon";
+import { LangSwitch, useLang, type Pair } from "../i18n/lang";
+import { S } from "../i18n/strings";
 import "./shell.css";
 
 interface Tab {
   to: string;
-  label: string;
-  th: string;
+  name: Pair;
   icon: IconName;
 }
 
 const TABS: Record<Role, Tab[]> = {
   team_leader: [
-    { to: "/team/list", label: "Waiting", th: "รอทีม", icon: "list" },
-    { to: "/team/mission", label: "My jobs", th: "งานของฉัน", icon: "mission" },
-    { to: "/team/map", label: "Area map", th: "แผนที่", icon: "map" },
+    { to: "/team/list", name: S.shell.tabs.waiting, icon: "list" },
+    { to: "/team/mission", name: S.shell.tabs.jobs, icon: "mission" },
+    { to: "/team/map", name: S.shell.tabs.map, icon: "map" },
   ],
   coordinator: [
-    { to: "/desk", label: "Desk", th: "โต๊ะประสานงาน", icon: "list" },
-    { to: "/desk/split", label: "Split", th: "แบ่งงาน", icon: "people" },
-    { to: "/team/map", label: "Area map", th: "แผนที่", icon: "map" },
+    { to: "/desk", name: S.shell.tabs.desk, icon: "list" },
+    { to: "/desk/split", name: S.shell.tabs.split, icon: "people" },
+    { to: "/team/map", name: S.shell.tabs.map, icon: "map" },
   ],
   resident: [],
 };
@@ -38,6 +39,7 @@ export function Wordmark() {
 
 export function AppShell() {
   const { session, signOut } = useSession();
+  const { t, lang } = useLang();
   const tabs = session ? TABS[session.role] : [];
   return (
     <div className={`shell ${tabs.length ? "has-tabs" : ""}`}>
@@ -45,19 +47,20 @@ export function AppShell() {
         <Wordmark />
         {tabs.length > 0 && (
           <nav className="topnav" aria-label="Main">
-            {tabs.map((t) => (
-              <NavLink key={t.to} to={t.to} end={t.to === "/desk"} className="topnav-link">
-                <Icon name={t.icon} size={18} />
-                {t.label}
+            {tabs.map((tab) => (
+              <NavLink key={tab.to} to={tab.to + window.location.search} end={tab.to === "/desk"} className="topnav-link">
+                <Icon name={tab.icon} size={18} />
+                {t(tab.name)}
               </NavLink>
             ))}
           </nav>
         )}
         <div className="topbar-end">
-          <span className="demo-tag">Synthetic demo</span>
+          <LangSwitch />
+          <span className="demo-tag">{t(S.shell.demoTag)}</span>
           {session && (
-            <button className="who" onClick={signOut} title="Switch role">
-              {session.label}
+            <button className="who" onClick={signOut} title={t(S.shell.switchRole)}>
+              {lang === "th" ? session.labelTh ?? session.label : session.label}
             </button>
           )}
         </div>
@@ -67,11 +70,10 @@ export function AppShell() {
       </main>
       {tabs.length > 0 && (
         <nav className="tabbar" aria-label="Main">
-          {tabs.map((t) => (
-            <NavLink key={t.to} to={t.to} end={t.to === "/desk"} className="tab">
-              <Icon name={t.icon} size={22} />
-              <span>{t.th}</span>
-              <span className="tab-en">{t.label}</span>
+          {tabs.map((tab) => (
+            <NavLink key={tab.to} to={tab.to + window.location.search} end={tab.to === "/desk"} className="tab">
+              <Icon name={tab.icon} size={22} />
+              <span>{t(tab.name)}</span>
             </NavLink>
           ))}
         </nav>

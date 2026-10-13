@@ -10,6 +10,7 @@ from __future__ import annotations
 from api.rules.tiers import TierInput, colour, distance_m, sort_key, tier
 from api.views.briefing import caller_water
 from api.views.missions import segment_jobs, zone_missions
+from api.views import thai
 from api.views.store import Store
 
 SEAT = {"adults": 1.0, "children": 0.5, "infants": 0.0, "stretcher": 3.0}
@@ -48,39 +49,54 @@ def urgency(case: dict, need: dict, water: dict, colour_: str) -> dict:
     facts, kit = [], []
     flag = (need.get("urgentFlag") or {}).get("reason", "").strip()
     if (need.get("qualifiedAssessment") or {}).get("urgentMedical"):
-        facts.append({"kind": "medical", "text": "A qualified review says someone here needs urgent medical help", "basis": "qualified review"})
+        facts.append({"kind": "medical", "text": "A qualified review says someone here needs urgent medical help",
+                      "th": thai.MEDICAL_URGENT, "basis": "qualified review"})
     if flag:
-        facts.append({"kind": "flag", "text": f"Coordinator flagged urgent: {flag}", "basis": "coordinator"})
+        facts.append({"kind": "flag", "text": f"Coordinator flagged urgent: {flag}", "th": f"ผู้ประสานงานระบุว่าด่วน: {flag}",
+                      "basis": "coordinator"})
     linked = [m for m in case["needs"] if m["listingId"] != need["listingId"] and m["type"] == "medical"
               and (m.get("qualifiedAssessment") or {}).get("urgentMedical")]
     if linked:
         facts.append({"kind": "medical", "text": f"{linked[0]['units']} person in this household needs urgent medical help; "
-                      "the medical team is asked separately", "basis": "qualified review"})
+                      "the medical team is asked separately",
+                      "th": f"มีสมาชิกในบ้าน {linked[0]['units']} คนต้องการความช่วยเหลือทางการแพทย์ด่วน ทีมแพทย์ได้รับแจ้งแยกต่างหาก",
+                      "basis": "qualified review"})
     if need.get("medicalNotes") and not linked:
-        facts.append({"kind": "medical_category", "text": MEDICAL_CATEGORY, "basis": "coordinator"})
+        facts.append({"kind": "medical_category", "text": MEDICAL_CATEGORY, "th": thai.MEDICAL_CATEGORY, "basis": "coordinator"})
     p = case["party"]
-    facts.append({"kind": "people", "text": f"{need['units']} people: {party_text(p)}", "basis": "reviewed call"})
+    facts.append({"kind": "people", "text": f"{need['units']} people: {party_text(p)}",
+                  "th": f"{need['units']} คน: {thai.party(p)}", "basis": "reviewed call"})
+    kit_th = []
     if p["stretcher"]:
-        facts.append({"kind": "mobility", "text": "Can't walk: must be carried", "basis": "reviewed call"})
+        facts.append({"kind": "mobility", "text": "Can't walk: must be carried", "th": thai.CANT_WALK, "basis": "reviewed call"})
         kit.append("Stretcher, and at least 2 people to carry")
+        kit_th.append(thai.STRETCHER_KIT)
     if p["children"] or p["infants"]:
         n = p["children"] + p["infants"]
         kit.append(f"Life jackets for {n} {'child' if n == 1 else 'children'}")
+        kit_th.append(f"เสื้อชูชีพสำหรับเด็ก {n} คน")
     w = water.get(case["segmentId"])
     if w:
         facts.append({"kind": "water", "text": f"{w['bandLabel']} (about {w['approxM']:g} m) at the landmark",
+                      "th": f"{thai.BANDS[w['band']]} (ประมาณ {w['approxM']:g} ม.) ที่จุดสังเกต",
                       "basis": "callers", "at": w["latestAt"], "callers": w["callers"], "stale": w["stale"]})
-        kit.insert(0, "Boat needed (water 1.2 m or more)" if w["approxM"] >= BOAT_DEPTH_M else "Wading may be possible; check on arrival")
+        boat = w["approxM"] >= BOAT_DEPTH_M
+        kit.insert(0, "Boat needed (water 1.2 m or more)" if boat else "Wading may be possible; check on arrival")
+        kit_th.insert(0, thai.BOAT_KIT if boat else thai.WADE_KIT)
     else:
-        facts.append({"kind": "water", "text": "Water depth here: unknown (no reviewed report)", "basis": "none"})
-    summary = next((f["text"] for k in ("flag", "medical", "mobility", "medical_category", "water") for f in facts if f["kind"] == k), "")
-    return {"title": TITLE[colour_], "summary": summary, "facts": facts, "kit": kit,
-            "withheld": WITHHELD if any(f["kind"] in ("medical", "medical_category") for f in facts) else None}
+        facts.append({"kind": "water", "text": "Water depth here: unknown (no reviewed report)", "th": thai.WATER_UNKNOWN, "basis": "none"})
+    lead = next((f for k in ("flag", "medical", "mobility", "medical_category", "water") for f in facts if f["kind"] == k), None)
+    withheld = any(f["kind"] in ("medical", "medical_category") for f in facts)
+    return {"title": TITLE[colour_], "summary": lead["text"] if lead else "", "facts": facts, "kit": kit,
+            "withheld": WITHHELD if withheld else None,
+            "th": {"title": thai.TITLE[colour_], "summary": lead["th"] if lead else "", "kit": kit_th,
+                   "withheld": thai.WITHHELD if withheld else None}}
 
 
 def destination(need: dict) -> dict:
     d = need.get("destination") or {"id": "D1", "reason": "Shelter"}
-    return {"id": d["id"], "label": DESTINATIONS[d["id"]], "reason": d["reason"]}
+    return {"id": d["id"], "label": DESTINATIONS[d["id"]], "reason": d["reason"],
+            "th": {"label": thai.DESTINATIONS[d["id"]], "reason": thai.DESTINATION_REASONS.get(d["reason"])}}
 
 
 ACTIVE = ("taken", "on_the_way", "on_scene")
@@ -109,7 +125,7 @@ def groups(need: dict, store: Store | None = None) -> list[dict]:
     for i, g in enumerate(need["groups"]):
         gid = f"{need['listingId']}-G{i + 1}"
         owner = group_owner(store, need, gid) if store else (need["allocation"].get("teamId") if need["allocation"]["state"] != "open" else None)
-        row = {"groupId": gid, "label": g["label"], "people": sum(g["party"].values()), "party": g["party"],
+        row = {"groupId": gid, "label": g["label"], "labelTh": thai.family(g["label"]), "people": sum(g["party"].values()), "party": g["party"],
                "seatUnits": seats(g["party"]), "state": "taken" if owner else "open"}
         if owner:
             row["takenBy"] = owner
@@ -125,7 +141,10 @@ def seats_used(store: Store, team_id: str) -> float:
 
 def job(store: Store, a: dict, row: dict, need: dict) -> dict:
     """The team's own job: the only place the exact point and medical notes appear (D25, D38)."""
-    exact = need.get("exactPickup") or {"at": [0, 0], "precision": "landmark", "source": "unknown"}
+    # No exact point was given (e.g. a new call): fall back to the landmark itself, labelled as such, never 0, 0.
+    case = next(c for c in store.cases if any(n["listingId"] == need["listingId"] for n in c["needs"]))
+    exact = need.get("exactPickup") or {"at": store.landmarks[case["segmentId"]]["at"], "precision": "landmark",
+                                        "source": "landmark only (no exact point given)"}
     out = {"allocationId": a["allocationId"], "listingId": a["listingId"], "caseId": row["caseId"], "colour": row["colour"],
            "landmarkLabel": row["landmarkLabel"], "urgency": row["urgency"], "destination": row["destination"],
            "medical": need.get("medicalNotes") if a["state"] in ACTIVE else None,

@@ -15,3 +15,9 @@ export function dataMode(): DataMode {
 }
 
 export const apiMode = () => dataMode() === "api";
+
+/** How often live views are fetched again in API mode: 15 s, or `?refresh=2` (seconds) on the /demo phones. */
+export function refreshMs(): number {
+  const q = typeof window === "undefined" ? null : Number(new URLSearchParams(window.location.search).get("refresh"));
+  return q && q >= 1 ? q * 1000 : 15_000;
+}

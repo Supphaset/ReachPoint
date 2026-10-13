@@ -19,6 +19,11 @@ the fixtures works on the server.
 - Unknown IDs are **404**. Bad input (missing field) is **422**.
 - A successful write returns `{ "ok": true, "value": … }`; the client then fetches the affected view again.
 - Sign-in is a demo role for now (`X-Demo-Actor: team:T-S`, `coordinator:demo-1`); Firebase Auth replaces it.
+- **Thai twins.** Lines the server writes for the victim and volunteer screens carry a Thai version next to the English
+  one (`api/views/thai.py`): status `lines[].th` and `familyTh`; team view `urgency.th {title, summary, kit, withheld}`,
+  `urgency.facts[].th`, `groups[].labelTh`, `destination.th {label, reason}`. The web app shows them when the viewer
+  picks ไทย. Words people typed (flag reasons, medical notes, caller quotes) are never translated. Rule-failure
+  `message`s are still English only.
 
 ## Views (GET)
 

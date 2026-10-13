@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { fmtAgo, fmtTime } from "../data/format";
 import { now } from "../data/clock";
 import { Icon, type IconName } from "./Icon";
+import { useLang } from "../i18n/lang";
+import { S } from "../i18n/strings";
 import { JOB, OUTCOME, PRIORITY, REVIEW, SEGMENT, TEAM_STATUS, type StateStyle } from "./states";
 import "./components.css";
 
@@ -141,13 +143,15 @@ export function Banner({
 }
 
 /** "Last updated 10:15 · 3 min ago"; offline adds "reconnecting". Times keep their own labels. */
-export function LastUpdated({ at, offline, label = "Last updated" }: { at: string; offline?: boolean; label?: string }) {
+export function LastUpdated({ at, offline, label }: { at: string; offline?: boolean; label?: string }) {
+  const { t, lang } = useLang();
+  const mins = Math.floor((now() - Date.parse(at)) / 60000);
   return (
     <p className="last-updated">
       <Icon name={offline ? "offline" : "refresh"} size={14} />
       <span>
-        {label} <time dateTime={at}>{fmtTime(at)}</time> · {fmtAgo(at, now())}
-        {offline && " · reconnecting"}
+        {label ?? t(S.common.lastUpdated)} <time dateTime={at}>{fmtTime(at)}</time> · {lang === "en" ? fmtAgo(at, now()) : t(S.units.ago(mins))}
+        {offline && ` · ${t(S.common.reconnecting)}`}
       </span>
     </p>
   );

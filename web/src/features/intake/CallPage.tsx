@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { sendRequest, type Sent } from "../../data/intake";
 import { apiMode } from "../../data/mode";
+import { useLang } from "../../i18n/lang";
+import { S } from "../../i18n/strings";
 import { Banner, BigButton } from "../../ui/components";
 import "./intake.css";
 
@@ -11,6 +13,7 @@ import "./intake.css";
  * private status link straight away.
  */
 export function CallPage() {
+  const { t } = useLang();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState<Sent | null>(null);
@@ -23,43 +26,37 @@ export function CallPage() {
   if (sent?.ok)
     return (
       <div className="page narrow intake">
-        <h1>We received your request</h1>
-        <p>
-          Request <strong className="num">{sent.reportId}</strong>. A coordinator is reading it now. Nothing is promised until a team takes it.
-        </p>
-        <p>Keep this link to see what is happening with your request:</p>
-        <Link className="status-link" to={sent.statusUrl}>
+        <h1>{t(S.call.received)}</h1>
+        <p>{t(S.call.receivedBody(sent.reportId))}</p>
+        <p>{t(S.call.keepLink)}</p>
+        <Link className="status-link" to={sent.statusUrl + window.location.search}>
           {window.location.origin}
           {sent.statusUrl}
         </Link>
-        <p className="fine-print">If it becomes an emergency, call 1669.</p>
+        <p className="fine-print">{t(S.call.emergency)}</p>
         <BigButton variant="secondary" onClick={() => (setSent(null), setText(""))}>
-          Send another request
+          {t(S.call.another)}
         </BigButton>
       </div>
     );
   return (
     <form className="page narrow intake" onSubmit={submit}>
-      <h1>
-        ขอความช่วยเหลือ <span className="muted">· Ask for help</span>
-      </h1>
-      {!apiMode() && <Banner kind="info">This screen needs the server. Open the app with ?data=api.</Banner>}
-      <label htmlFor="intake-text">
-        What is happening, where, and who is with you? Thai or English.
-      </label>
+      <h1>{t(S.call.title)}</h1>
+      {!apiMode() && <Banner kind="info">{t(S.common.needsServer)}</Banner>}
+      <label htmlFor="intake-text">{t(S.call.prompt)}</label>
       <textarea
         id="intake-text"
         rows={6}
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="เช่น บ้านอยู่แถวโรงเรียน B-4 น้ำถึงอกแล้ว มีผู้ใหญ่ 2 คน ยายติดเตียงเดินไม่ได้"
+        placeholder={t(S.call.placeholder)}
         maxLength={2000}
       />
       {sent && !sent.ok && <Banner kind="error">{sent.message}</Banner>}
       <BigButton type="submit" disabled={busy || !text.trim()}>
-        {busy ? "Sending…" : "Send request"}
+        {busy ? t(S.call.sending) : t(S.call.send)}
       </BigButton>
-      <p className="fine-print">Synthetic demo: don't enter real names, phone numbers or addresses. An AI reads your words to help the coordinator; a person checks everything.</p>
+      <p className="fine-print">{t(S.call.privacy)}</p>
     </form>
   );
 }

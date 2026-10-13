@@ -4,12 +4,14 @@ import type { Group, Job, OpenListing, Outcome, Party, TeamMissionsView, TeamSta
 import { now } from "../../data/clock";
 import { ASSISTANCE_LABEL, fmtAgo, fmtTime } from "../../data/format";
 import { useSession } from "../../data/session";
+import { apiMode, refreshMs } from "../../data/mode";
 import { SegmentJobs, ZoneMissions } from "./Segments";
 import {
   claimListing,
   closeAllocation,
   handBack,
   loadTeam,
+  refreshTeam,
   reportProgress,
   requestReconfirm,
   setTeamStatus,
@@ -18,35 +20,43 @@ import {
 } from "../../data/teamStore";
 import { Banner, BigButton, LastUpdated, PriorityBadge, Skeleton, StatusChip } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
+import { useLang, type Lang } from "../../i18n/lang";
+import { S, seedText } from "../../i18n/strings";
 import { OUTCOME, TEAM_STATUS } from "../../ui/states";
 import "./team.css";
 
 const STALE_CONFIRM_MIN = 60;
 
-export function fmtDistance(m: number | null) {
-  if (m === null) return "distance unknown";
-  return m < 1000 ? `about ${m} m` : `about ${(m / 1000).toFixed(1)} km`;
+export function fmtDistance(m: number | null, lang: Lang = "en") {
+  return S.units.distance(m)[lang];
 }
 
-export function fmtSeats(n: number) {
-  return `${Number.isInteger(n) ? n : n.toFixed(1)} seat${n === 1 ? "" : "s"}`;
+export function fmtSeats(n: number, lang: Lang = "en") {
+  return S.units.seats(Number.isInteger(n) ? `${n}` : n.toFixed(1), n === 1)[lang];
 }
 
-const ONE: Record<keyof Party, string> = { adults: "adult", children: "child", infants: "baby", stretcher: "stretcher" };
-const MANY: Record<keyof Party, string> = { adults: "adults", children: "children", infants: "babies", stretcher: "stretchers" };
-
-export function fmtParty(p: Party) {
-  return (Object.keys(ONE) as (keyof Party)[])
+export function fmtParty(p: Party, lang: Lang = "en") {
+  return (Object.keys(S.party) as (keyof Party)[])
     .filter((k) => p[k])
-    .map((k) => `${p[k]} ${p[k] === 1 ? ONE[k] : MANY[k]}`)
-    .join(", ");
+    .map((k) => {
+      if (lang === "th") return `${S.party[k].th} ${p[k]} คน`;
+      const [one, many] = S.party[k].en.split("|");
+      return `${p[k]} ${p[k] === 1 ? one : many}`;
+    })
+    .join(lang === "th" ? " " : ", ");
 }
+
+const fmtPeople = (n: number, lang: Lang) => S.units.person(n)[lang];
 
 function useTeamView() {
   const { session } = useSession();
   const teamId = session?.actor.startsWith("team:") ? session.actor.slice(5) : "T-S";
   useEffect(() => {
     loadTeam(teamId);
+    if (!apiMode()) return;
+    // A new case from the desk shows up without reloading: every 15 s, or ?refresh=2 on the /demo phones.
+    const id = window.setInterval(refreshTeam, refreshMs());
+    return () => window.clearInterval(id);
   }, [teamId]);
   return useTeam();
 }
@@ -57,6 +67,7 @@ function Frame({ children }: { children: ReactNode }) {
 
 function Gate({ render }: { render: (v: TeamMissionsView, offline: boolean) => ReactNode }) {
   const s = useTeamView();
+  const { t } = useLang();
   if (s.status === "loading")
     return (
       <Frame>
@@ -66,14 +77,14 @@ function Gate({ render }: { render: (v: TeamMissionsView, offline: boolean) => R
   if (s.status === "missing")
     return (
       <Frame>
-        <Banner kind="info">No demo records for team {s.teamId} yet. Sign in as Team T-S or T-R.</Banner>
+        <Banner kind="info">{t(S.team.noRecords(s.teamId))}</Banner>
       </Frame>
     );
   if (s.status === "error")
     return (
       <Frame>
-        <Banner kind="error" action={{ label: "Try again", onClick: () => window.location.reload() }}>
-          Your team's list is unavailable. {s.message}
+        <Banner kind="error" action={{ label: t(S.common.tryAgain), onClick: () => window.location.reload() }}>
+          {t(S.team.listUnavailable)} {s.message}
         </Banner>
       </Frame>
     );
@@ -84,31 +95,32 @@ function Gate({ render }: { render: (v: TeamMissionsView, offline: boolean) => R
 
 function StatusCard({ v }: { v: TeamMissionsView }) {
   const [open, setOpen] = useState(false);
+  const { t: tr, lang } = useLang();
   const t = v.team;
   const s = TEAM_STATUS[t.status];
   return (
-    <section className="status-card" aria-label="Team status">
+    <section className="status-card" aria-label={tr(S.team.statusLabel)}>
       <div className="status-top">
         <div>
           <p className="muted status-who">
-            {v.label} · {t.resource.kind} {t.resource.resourceId} · at {t.location.label}
+            {seedText(v.label, lang)} · {seedText(t.resource.kind, lang)} {t.resource.resourceId} · {tr(S.team.at(seedText(t.location.label, lang)))}
           </p>
           <p className="status-line">
-            <StatusChip kind="team" state={t.status} />
+            <StatusChip kind="team" state={t.status} lang={lang} />
             <span className="muted">
-              since {fmtTime(t.statusSetAt)}
-              {t.reason && ` · ${t.reason}`}
-              {t.backAbout && ` · back about ${fmtTime(t.backAbout)}`}
+              {tr(S.team.since(fmtTime(t.statusSetAt)))}
+              {t.reason && ` · ${reasonText(t.reason, lang)}`}
+              {t.backAbout && ` · ${tr(S.team.backAbout(fmtTime(t.backAbout)))}`}
             </span>
           </p>
         </div>
         <BigButton variant="secondary" size="md" onClick={() => setOpen(true)}>
-          Change
+          {tr(S.team.change)}
         </BigButton>
       </div>
       <p className="seats-line num">
-        <Icon name="people" size={16} /> {fmtSeats(t.resource.seatUnitsLeft)} free of {t.resource.seatUnits} today
-        <span className="muted"> · {t.resource.basis}</span>
+        <Icon name="people" size={16} /> {tr(S.team.seatsFree(fmtSeats(t.resource.seatUnitsLeft, lang), t.resource.seatUnits))}
+        <span className="muted"> · {seedText(t.resource.basis, lang)}</span>
       </p>
       {open && <StatusSheet v={v} onClose={() => setOpen(false)} />}
       <span className="visually-hidden">{s.en}</span>
@@ -116,7 +128,13 @@ function StatusCard({ v }: { v: TeamMissionsView }) {
   );
 }
 
-const BUSY_REASONS = ["Refuelling", "Boat repair", "Rest", "On another job", "Carrying people to the shelter"];
+const BUSY_REASONS = S.team.busyReasons.map((r) => r.en);
+
+/** Status and hand-back reasons are stored in English; show the Thai twin when we have one. */
+function reasonText(r: string, lang: Lang) {
+  const hit = [...S.team.busyReasons, ...S.team.handBackReasons].find((x) => x.en === r);
+  return hit ? hit[lang] : r;
+}
 
 function backAboutOptions() {
   const start = Math.ceil(now() / (30 * 60000)) * 30 * 60000;
@@ -127,28 +145,31 @@ function StatusSheet({ v, onClose }: { v: TeamMissionsView; onClose: () => void 
   const [status, setStatus] = useState<TeamStatus>(v.team.status);
   const [reason, setReason] = useState(v.team.reason ?? BUSY_REASONS[0]);
   const [back, setBack] = useState(v.team.backAbout ?? backAboutOptions()[2]);
+  const { t, lang } = useLang();
   return (
-    <Sheet title="Team status" onClose={onClose}>
+    <Sheet title={t(S.team.statusLabel)} onClose={onClose}>
       <div className="choice-list" role="radiogroup" aria-label="Status">
         {(["available", "busy", "off_duty"] as TeamStatus[]).map((s) => (
           <label key={s} className={`choice ${status === s ? "is-on" : ""}`}>
             <input type="radio" name="status" checked={status === s} onChange={() => setStatus(s)} />
-            <StatusChip kind="team" state={s} />
+            <StatusChip kind="team" state={s} lang={lang} />
           </label>
         ))}
       </div>
       {status !== "available" && (
         <>
           <label className="field">
-            <span>Reason (optional)</span>
+            <span>{t(S.team.reasonOptional)}</span>
             <select value={reason} onChange={(e) => setReason(e.target.value)}>
               {BUSY_REASONS.map((r) => (
-                <option key={r}>{r}</option>
+                <option key={r} value={r}>
+                  {reasonText(r, lang)}
+                </option>
               ))}
             </select>
           </label>
           <label className="field">
-            <span>Back about</span>
+            <span>{t(S.team.backAboutField)}</span>
             <select value={back} onChange={(e) => setBack(e.target.value)}>
               {backAboutOptions().map((t) => (
                 <option key={t} value={t}>
@@ -159,14 +180,14 @@ function StatusSheet({ v, onClose }: { v: TeamMissionsView; onClose: () => void 
           </label>
         </>
       )}
-      <p className="fine-print">Your status never changes by itself. The desk sees it with the time you set it.</p>
+      <p className="fine-print">{t(S.team.statusNever)}</p>
       <BigButton
         onClick={async () => {
           await setTeamStatus(status, status === "available" ? null : reason, status === "available" ? null : back);
           onClose();
         }}
       >
-        Save status
+        {t(S.team.saveStatus)}
       </BigButton>
     </Sheet>
   );
@@ -174,51 +195,46 @@ function StatusSheet({ v, onClose }: { v: TeamMissionsView; onClose: () => void 
 
 /* ---------------- Why it's urgent ---------------- */
 
-const BASIS: Record<string, string> = {
-  "qualified review": "qualified review",
-  coordinator: "coordinator",
-  "reviewed call": "reviewed call",
-  callers: "callers",
-  none: "no report",
-};
-
 export function UrgencyBox({ u, colour, open = false, inJob = false }: { u: Urgency; colour: string; open?: boolean; inJob?: boolean }) {
+  const { t, lang, pick } = useLang();
+  const th = lang === "th" ? u.th : undefined;
+  const kit = th?.kit.length === u.kit.length ? th.kit : u.kit;
+  const withheld = th?.withheld ?? u.withheld;
   return (
     <details className={`urgency tone-${colour}`} open={open}>
       <summary>
-        <span className="urgency-title">{u.title}</span>
-        <span className="urgency-summary">{u.summary}</span>
+        <span className="urgency-title">{th?.title ?? u.title}</span>
+        <span className="urgency-summary">{th?.summary || u.summary}</span>
       </summary>
       <ul className="urgency-facts">
         {u.facts.map((f) => (
           <li key={f.kind + f.text}>
             <span>
-              {f.text}
+              {pick(f.text, f.th)}
               {f.at && (
                 <span className={f.stale ? "is-stale" : ""}>
-                  {" "}
-                  · reported {fmtTime(f.at)} by {f.callers} caller{f.callers === 1 ? "" : "s"}
-                  {f.stale && " · older than 6 h, may have changed"}
+                  {t(S.team.reported(fmtTime(f.at), f.callers ?? 0))}
+                  {f.stale && t(S.team.stale)}
                 </span>
               )}
             </span>
-            <span className="basis-tag">{BASIS[f.basis] ?? f.basis}</span>
+            <span className="basis-tag">{S.team.basis[f.basis] ? t(S.team.basis[f.basis]) : f.basis}</span>
           </li>
         ))}
       </ul>
-      {u.kit.length > 0 && (
+      {kit.length > 0 && (
         <div className="urgency-kit">
-          <strong>Bring</strong>
+          <strong>{t(S.team.bring)}</strong>
           <ul>
-            {u.kit.map((k) => (
+            {kit.map((k) => (
               <li key={k}>{k}</li>
             ))}
           </ul>
         </div>
       )}
-      {u.withheld && !inJob && (
+      {withheld && !inJob && (
         <p className="fine-print">
-          <Icon name="lock" size={12} /> {u.withheld}.
+          <Icon name="lock" size={12} /> {withheld}{lang === "en" ? "." : ""}
         </p>
       )}
     </details>
@@ -230,24 +246,34 @@ export function UrgencyBox({ u, colour, open = false, inJob = false }: { u: Urge
 export function WaitingPage() {
   return (
     <Gate
-      render={(v, offline) => {
-        const open = v.open.filter((l) => l.groups.some((g) => g.state === "open"));
-        return (
+      render={(v, offline) => <WaitingBody v={v} offline={offline} />}
+    />
+  );
+}
+
+function WaitingBody({ v, offline }: { v: TeamMissionsView; offline: boolean }) {
+  const { t, lang } = useLang();
+  const open = v.open.filter((l) => l.groups.some((g) => g.state === "open"));
+  const cap = v.team.capabilities[0];
+  return (
           <>
             <header className="page-head">
-              <h1>Waiting for a team</h1>
+              <h1>{t(S.team.waitingTitle)}</h1>
               <p className="muted">
-                {ASSISTANCE_LABEL[v.team.capabilities[0]]} · red first, then nearest, then longest waiting
+                {S.assistance[cap] ? t(S.assistance[cap]) : ASSISTANCE_LABEL[cap]} · {t(S.team.order)}
               </p>
               <LastUpdated at={v.generatedAt} offline={offline} />
             </header>
-            {offline && <Banner kind="offline">Offline. You can look, but taking a case needs a connection.</Banner>}
+            {offline && <Banner kind="offline">{t(S.team.offline)}</Banner>}
             <StatusCard v={v} />
             {v.team.status !== "available" && (
-              <Banner kind="stale">You're {TEAM_STATUS[v.team.status].en.toLowerCase()}. Set yourself Available to take cases.</Banner>
+              <Banner kind="stale">
+                {lang === "th" ? `สถานะของคุณคือ ${TEAM_STATUS[v.team.status].th} ` : `You're ${TEAM_STATUS[v.team.status].en.toLowerCase()}. `}
+                {t(S.team.notAvailable)}
+              </Banner>
             )}
             {open.length === 0 ? (
-              <p className="empty">No waiting cases for your team.</p>
+              <p className="empty">{t(S.team.noWaiting)}</p>
             ) : (
               <ul className="listing-list">
                 {open.map((l) => (
@@ -256,16 +282,14 @@ export function WaitingPage() {
               </ul>
             )}
             <ZoneMissions v={v} offline={offline} />
-            <p className="fine-print">{v.dataLabel}. Places are shown at landmark level; you get the exact point after you take a case.</p>
+            <p className="fine-print">{lang === "en" ? `${v.dataLabel}. ` : ""}{t(S.team.landmarkNote)}</p>
           </>
-        );
-      }}
-    />
   );
 }
 
 function ListingRow({ l, v, offline }: { l: OpenListing; v: TeamMissionsView; offline: boolean }) {
   const [taking, setTaking] = useState(false);
+  const { t, lang } = useLang();
   const confirmedMin = (now() - Date.parse(l.lastConfirmedAt)) / 60000;
   const old = confirmedMin > STALE_CONFIRM_MIN;
   const openGroups = l.groups.filter((g) => g.state === "open");
@@ -273,15 +297,15 @@ function ListingRow({ l, v, offline }: { l: OpenListing; v: TeamMissionsView; of
   return (
     <li className={`listing-row tone-${l.colour}`}>
       <div className="listing-top">
-        <PriorityBadge priority={l.colour} lang="en" size="sm" />
+        <PriorityBadge priority={l.colour} lang={lang} size="sm" />
         <strong>{l.caseId}</strong>
-        <span className="muted">{l.landmarkLabel}</span>
-        <span className="listing-dist num">{fmtDistance(l.distanceM)}</span>
+        <span className="muted">{seedText(l.landmarkLabel, lang)}</span>
+        <span className="listing-dist num">{fmtDistance(l.distanceM, lang)}</span>
       </div>
       <UrgencyBox u={l.urgency} colour={l.colour} />
       {l.destination.id !== "D1" && (
         <p className="dest-line">
-          <Icon name="chevron" size={14} /> Goes to {l.destination.label}
+          <Icon name="chevron" size={14} /> {t(S.team.goesTo(lang === "th" ? l.destination.th?.label ?? l.destination.label : l.destination.label))}
         </p>
       )}
       {l.reasons
@@ -294,32 +318,32 @@ function ListingRow({ l, v, offline }: { l: OpenListing; v: TeamMissionsView; of
       <ul className="group-list">
         {l.groups.map((g) => (
           <li key={g.groupId} className={g.state === "taken" ? "is-taken" : ""}>
-            <span className="group-label">{g.label}</span>
+            <span className="group-label">{groupLabel(g, lang)}</span>
             <span className="num">
-              {g.people} {g.people === 1 ? "person" : "people"} · {fmtParty(g.party)} · {fmtSeats(g.seatUnits)}
+              {fmtPeople(g.people, lang)} · {fmtParty(g.party, lang)} · {fmtSeats(g.seatUnits, lang)}
             </span>
-            {g.state === "taken" && <StatusChip kind="job" state="taken" lang="en" size="sm" />}
-            {g.takenBy && <span className="muted">{g.takenBy === v.teamId ? "by you" : `by ${g.takenBy}`}</span>}
+            {g.state === "taken" && <StatusChip kind="job" state="taken" lang={lang} size="sm" />}
+            {g.takenBy && <span className="muted">{g.takenBy === v.teamId ? t(S.team.byYou) : t(S.team.by(g.takenBy))}</span>}
           </li>
         ))}
       </ul>
       <p className={`confirm-line ${old ? "is-old" : ""}`}>
         <Icon name="clock" size={14} />
         <span>
-          Last confirmed {fmtTime(l.lastConfirmedAt)} · {fmtAgo(l.lastConfirmedAt, now())} · waiting since {fmtTime(l.waitingSince)}
+          {t(S.team.lastConfirmed(fmtTime(l.lastConfirmedAt), lang === "en" ? fmtAgo(l.lastConfirmedAt, now()) : t(S.units.ago(Math.floor(confirmedMin))), fmtTime(l.waitingSince)))}
         </span>
       </p>
       <div className="listing-actions">
         <BigButton size="md" icon="hand" disabled={!canTake || openGroups.length === 0} onClick={() => setTaking(true)}>
-          {openGroups.length === l.groups.length && l.groups.length === 1 ? "Take" : "Take families…"}
+          {openGroups.length === l.groups.length && l.groups.length === 1 ? t(S.team.take) : t(S.team.takeFamilies)}
         </BigButton>
         {l.reconfirmRequestedAt ? (
           <span className="muted reconfirm-sent">
-            <Icon name="check" size={14} /> Asked the desk at {fmtTime(l.reconfirmRequestedAt)}
+            <Icon name="check" size={14} /> {t(S.team.askedDesk(fmtTime(l.reconfirmRequestedAt)))}
           </span>
         ) : (
           <BigButton size="md" variant={old ? "secondary" : "quiet"} onClick={() => requestReconfirm(l.listingId)}>
-            Ask desk to re-confirm
+            {t(S.team.askReconfirm)}
           </BigButton>
         )}
       </div>
@@ -334,6 +358,7 @@ function TakeSheet({ l, v, onClose }: { l: OpenListing; v: TeamMissionsView; onC
   const [picked, setPicked] = useState<string[]>(open.map((g) => g.groupId));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
+  const { t, lang } = useLang();
   const seen = l.needRevision;
   const need = open.filter((g) => picked.includes(g.groupId)).reduce((s, g) => s + g.seatUnits, 0);
   const left = v.team.resource.seatUnitsLeft;
@@ -349,8 +374,8 @@ function TakeSheet({ l, v, onClose }: { l: OpenListing; v: TeamMissionsView; onC
   };
 
   return (
-    <Sheet title={`Take ${l.caseId} · ${l.landmarkLabel}`} onClose={onClose}>
-      <p className="muted">Take whole families. You can take some now and leave the others for another team.</p>
+    <Sheet title={t(S.team.takeTitle(l.caseId, seedText(l.landmarkLabel, lang)))} onClose={onClose}>
+      <p className="muted">{t(S.team.wholeFamilies)}</p>
       <div className="choice-list">
         {l.groups.map((g: Group) => (
           <label key={g.groupId} className={`choice ${picked.includes(g.groupId) ? "is-on" : ""} ${g.state !== "open" ? "is-disabled" : ""}`}>
@@ -361,21 +386,21 @@ function TakeSheet({ l, v, onClose }: { l: OpenListing; v: TeamMissionsView; onC
               onChange={(e) => setPicked((p) => (e.target.checked ? [...p, g.groupId] : p.filter((x) => x !== g.groupId)))}
             />
             <span>
-              <strong>{g.label}</strong> · {g.people} {g.people === 1 ? "person" : "people"} ({fmtParty(g.party)}) · {fmtSeats(g.seatUnits)}
-              {g.state !== "open" && ` · taken by ${g.takenBy}`}
+              <strong>{groupLabel(g, lang)}</strong> · {fmtPeople(g.people, lang)} ({fmtParty(g.party, lang)}) · {fmtSeats(g.seatUnits, lang)}
+              {g.state !== "open" && ` · ${t(S.team.takenByShort(g.takenBy ?? ""))}`}
             </span>
           </label>
         ))}
       </div>
       <p className={`seats-check num ${need > left ? "is-short" : ""}`}>
-        Needs {fmtSeats(need)} · you have {fmtSeats(left)} free
+        {t(S.team.needsSeats(fmtSeats(need, lang), fmtSeats(left, lang)))}
       </p>
       {error && (
         <Banner
           kind="error"
           action={
             error.code === "NEED_CHANGED" || error.code === "VERSION_CONFLICT"
-              ? { label: "Look again", onClick: onClose }
+              ? { label: t(S.team.lookAgain), onClick: onClose }
               : undefined
           }
         >
@@ -383,9 +408,9 @@ function TakeSheet({ l, v, onClose }: { l: OpenListing; v: TeamMissionsView; onC
         </Banner>
       )}
       <BigButton onClick={take} disabled={busy || picked.length === 0 || mustLookAgain} icon="hand">
-        {busy ? "Taking…" : picked.length === open.length && open.length === 1 ? "Take this family" : `Take ${picked.length} ${picked.length === 1 ? "family" : "families"}`}
+        {busy ? t(S.team.taking) : picked.length === open.length && open.length === 1 ? t(S.team.takeThisFamily) : t(S.team.takeN(picked.length))}
       </BigButton>
-      <p className="fine-print">Nothing is promised to the family until you set an arrival window.</p>
+      <p className="fine-print">{t(S.team.nothingPromised)}</p>
     </Sheet>
   );
 }
@@ -395,19 +420,25 @@ function TakeSheet({ l, v, onClose }: { l: OpenListing; v: TeamMissionsView; onC
 export function JobsPage() {
   return (
     <Gate
-      render={(v, offline) => {
-        const active = v.jobs.filter((j) => j.state !== "closed");
-        const closed = v.jobs.filter((j) => j.state === "closed");
-        return (
+      render={(v, offline) => <JobsBody v={v} offline={offline} />}
+    />
+  );
+}
+
+function JobsBody({ v, offline }: { v: TeamMissionsView; offline: boolean }) {
+  const { t } = useLang();
+  const active = v.jobs.filter((j) => j.state !== "closed");
+  const closed = v.jobs.filter((j) => j.state === "closed");
+  return (
           <>
             <header className="page-head">
-              <h1>My jobs</h1>
+              <h1>{t(S.team.jobsTitle)}</h1>
               <LastUpdated at={v.generatedAt} offline={offline} />
             </header>
             <SegmentJobs v={v} />
             {active.length === 0 && (
               <p className="empty">
-                {closed.length ? "No open jobs." : "No jobs yet."} <Link to={`/team/list${window.location.search}`}>See who is waiting</Link>.
+                {closed.length ? t(S.team.noOpenJobs) : t(S.team.noJobs)} <Link to={`/team/list${window.location.search}`}>{t(S.team.seeWaiting)}</Link>
               </p>
             )}
             {active.map((j) => (
@@ -415,17 +446,18 @@ export function JobsPage() {
             ))}
             {closed.length > 0 && (
               <section className="closed-jobs">
-                <h2>Finished today</h2>
+                <h2>{t(S.team.finishedToday)}</h2>
                 {closed.map((j) => (
                   <JobCard key={j.allocationId} j={j} />
                 ))}
               </section>
             )}
           </>
-        );
-      }}
-    />
   );
+}
+
+function groupLabel(g: { label: string; labelTh?: string }, lang: Lang) {
+  return lang === "th" ? g.labelTh ?? seedText(g.label, lang) : g.label;
 }
 
 function windowStarts() {
@@ -443,10 +475,13 @@ export function JobCard({ j }: { j: Job }) {
   const [ending, setEnding] = useState(false);
   const closed = j.state === "closed";
   const held = j.state === "held";
+  const { t, lang } = useLang();
+  const destLabel = lang === "th" ? j.destination.th?.label ?? j.destination.label : j.destination.label;
+  const destReason = lang === "th" ? j.destination.th?.reason ?? j.destination.reason : j.destination.reason;
 
   const run = async (p: Promise<{ ok: boolean; message?: string }>) => {
     const r = await p;
-    setError(r.ok ? null : (r.message ?? "Something went wrong"));
+    setError(r.ok ? null : (r.message ?? t(S.team.wrong)));
   };
   const [lon, lat] = j.pickup.at;
   const nav = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
@@ -454,29 +489,29 @@ export function JobCard({ j }: { j: Job }) {
   return (
     <article className={`job-card tone-${j.colour}`} id={j.allocationId}>
       <header className="job-head">
-        <PriorityBadge priority={j.colour} lang="en" size="sm" />
+        <PriorityBadge priority={j.colour} lang={lang} size="sm" />
         <strong>{j.caseId}</strong>
-        <span className="muted">{j.landmarkLabel}</span>
+        <span className="muted">{seedText(j.landmarkLabel, lang)}</span>
         <span className="job-state">
-          {closed && j.outcome ? <OutcomeChip o={j.outcome} /> : <StatusChip kind="job" state={j.state} lang="en" size="sm" />}
+          {closed && j.outcome ? <OutcomeChip o={j.outcome} /> : <StatusChip kind="job" state={j.state} lang={lang} size="sm" />}
         </span>
       </header>
       {j.urgency && <UrgencyBox u={j.urgency} colour={j.colour} open={!closed} inJob />}
       <ul className="group-list">
         {j.groups.map((g) => (
           <li key={g.groupId}>
-            <span className="group-label">{g.label}</span>
+            <span className="group-label">{groupLabel(g, lang)}</span>
             <span className="num">
-              {g.people} {g.people === 1 ? "person" : "people"} · {fmtParty(g.party)}
+              {fmtPeople(g.people, lang)} · {fmtParty(g.party, lang)}
             </span>
           </li>
         ))}
       </ul>
 
       {j.medical && (
-        <section className="medical" aria-label="Medical, for your team only">
+        <section className="medical" aria-label={t(S.team.medical)}>
           <h3>
-            <Icon name="lock" size={16} /> Medical · for your team only
+            <Icon name="lock" size={16} /> {t(S.team.medical)}
           </h3>
           <ul>
             {j.medical.functional.map((f) => (
@@ -484,66 +519,63 @@ export function JobCard({ j }: { j: Job }) {
             ))}
           </ul>
           <p>
-            <span className="muted">Condition (from the desk):</span> {j.medical.condition}
+            <span className="muted">{t(S.team.condition)}</span> {j.medical.condition}
           </p>
           <p className="fine-print">
-            {j.medical.basis}. Removed from this phone when the job closes. Don't share or photograph it.
+            {j.medical.basis}. {t(S.team.medicalNote)}
           </p>
         </section>
       )}
       {!j.medical && j.medicalRemovedAt && (
         <p className="fine-print">
-          <Icon name="lock" size={12} /> Medical notes removed at {fmtTime(j.medicalRemovedAt)}, when the job closed.
+          <Icon name="lock" size={12} /> {t(S.team.medicalRemoved(fmtTime(j.medicalRemovedAt)))}
         </p>
       )}
 
       <section className="pickup">
         <h3>
-          <Icon name="map" size={16} /> Pickup point
+          <Icon name="map" size={16} /> {t(S.team.pickup)}
         </h3>
         <p className="num">
-          {lat.toFixed(5)}, {lon.toFixed(5)} · <span className="muted">{j.pickup.precision}: {j.pickup.source}</span>
+          {lat.toFixed(5)}, {lon.toFixed(5)} · <span className="muted">{seedText(j.pickup.precision, lang)}: {seedText(j.pickup.source, lang)}</span>
         </p>
         {!closed && !held && (
           <a className="btn btn-secondary btn-md nav-link" href={nav} target="_blank" rel="noreferrer">
-            <Icon name="chevron" size={18} /> Navigate (Google Maps)
+            <Icon name="chevron" size={18} /> {t(S.team.navigate)}
           </a>
         )}
-        <p className="fine-print">Only you and the desk see this point. Roads may be flooded: the route is your call.</p>
+        <p className="fine-print">{t(S.team.pointPrivate)}</p>
         <p className="dest-line">
-          <Icon name="chevron" size={14} /> Take them to <strong>{j.destination.label}</strong>
-          <span className="muted"> · {j.destination.reason}</span>
+          <Icon name="chevron" size={14} /> {t(S.team.takeThemTo)} <strong>{destLabel}</strong>
+          <span className="muted"> · {destReason}</span>
         </p>
       </section>
 
       <section className="window">
         <h3>
-          <Icon name="clock" size={16} /> Arrival window
+          <Icon name="clock" size={16} /> {t(S.team.window)}
         </h3>
         {held ? (
           <p>
-            On hold: {j.holdReason}. New time not known.
-            {j.withdrawnWindow && <> Earlier <s className="num">{fmtTime(j.withdrawnWindow.start)}–{fmtTime(j.withdrawnWindow.end)}</s> estimate withdrawn.</>}
-            {j.nextStatusUpdate && <> Next status update {fmtTime(j.nextStatusUpdate.at)} from the coordinator desk.</>}
+            {t(S.team.onHold(j.holdReason ?? ""))}
+            {j.withdrawnWindow && <> {t(S.team.earlier)} <s className="num">{fmtTime(j.withdrawnWindow.start)}–{fmtTime(j.withdrawnWindow.end)}</s> {t(S.team.earlierWithdrawn)}</>}
+            {j.nextStatusUpdate && <> {t(S.team.nextUpdate(fmtTime(j.nextStatusUpdate.at)))}</>}
           </p>
         ) : j.window ? (
           <p>
             <strong className="num">
               {fmtTime(j.window.start)}–{fmtTime(j.window.end)}
             </strong>{" "}
-            <span className="muted">
-              (your estimate, set {fmtTime(j.window.setAt)}
-              {closed ? ")" : "; the family sees it now)"}
-            </span>
+            <span className="muted">{t(S.team.yourEstimate(fmtTime(j.window.setAt), closed))}</span>
           </p>
         ) : closed ? (
-          <p className="muted">No window was set.</p>
+          <p className="muted">{t(S.team.noWindow)}</p>
         ) : (
           <>
-            <p className="muted">The family sees "seeking team" until you set this.</p>
+            <p className="muted">{t(S.team.seeking)}</p>
             <div className="window-pick">
               <label className="field">
-                <span>From</span>
+                <span>{t(S.team.from)}</span>
                 <select value={start} onChange={(e) => setStart(e.target.value)}>
                   {windowStarts().map((t) => (
                     <option key={t} value={t}>
@@ -553,18 +585,18 @@ export function JobCard({ j }: { j: Job }) {
                 </select>
               </label>
               <label className="field">
-                <span>For</span>
+                <span>{t(S.team.for)}</span>
                 <select value={mins} onChange={(e) => setMins(Number(e.target.value))}>
                   {DURATIONS.map((d) => (
                     <option key={d} value={d}>
-                      {d < 60 ? `${d} min` : `${d / 60} h`}
+                      {t(S.team.duration(d))}
                     </option>
                   ))}
                 </select>
               </label>
             </div>
             <BigButton size="md" onClick={() => run(setWindow(j.allocationId, start, new Date(Date.parse(start) + mins * 60000).toISOString()))}>
-              Set window {fmtTime(start)}–{fmtTime(new Date(Date.parse(start) + mins * 60000).toISOString())}
+              {t(S.team.setWindow(fmtTime(start), fmtTime(new Date(Date.parse(start) + mins * 60000).toISOString())))}
             </BigButton>
           </>
         )}
@@ -576,29 +608,29 @@ export function JobCard({ j }: { j: Job }) {
         <div className="job-actions">
           {j.state === "taken" && (
             <BigButton size="md" disabled={!j.window} onClick={() => run(reportProgress(j.allocationId, "on_the_way"))}>
-              On the way
+              {t(S.team.onTheWay)}
             </BigButton>
           )}
           {j.state === "on_the_way" && (
             <BigButton size="md" onClick={() => run(reportProgress(j.allocationId, "on_scene"))}>
-              On scene
+              {t(S.team.onScene)}
             </BigButton>
           )}
           {j.state !== "taken" && (
             <BigButton size="md" onClick={() => setEnding(true)}>
-              Finish…
+              {t(S.team.finish)}
             </BigButton>
           )}
           <BigButton size="md" variant="secondary" onClick={() => setHanding(true)}>
-            Hand back
+            {t(S.team.handBack)}
           </BigButton>
         </div>
       )}
-      {closed && j.closedAt && <p className="fine-print">Closed {fmtTime(j.closedAt)}. Late updates are refused: "This job is closed".</p>}
+      {closed && j.closedAt && <p className="fine-print">{t(S.team.closedLate(fmtTime(j.closedAt)))}</p>}
 
       {ending && (
-        <Sheet title={`Finish ${j.caseId}`} onClose={() => setEnding(false)}>
-          <p className="muted">What happened? This goes to the desk and the family's status page.</p>
+        <Sheet title={t(S.team.finishTitle(j.caseId))} onClose={() => setEnding(false)}>
+          <p className="muted">{t(S.team.whatHappened)}</p>
           <div className="outcome-grid">
             {(Object.keys(OUTCOME) as Outcome[]).map((o) => (
               <BigButton
@@ -610,7 +642,7 @@ export function JobCard({ j }: { j: Job }) {
                   setEnding(false);
                 }}
               >
-                {OUTCOME[o].en}
+                {OUTCOME[o][lang]}
               </BigButton>
             ))}
           </div>
@@ -622,21 +654,25 @@ export function JobCard({ j }: { j: Job }) {
 }
 
 function OutcomeChip({ o }: { o: Outcome }) {
-  return <StatusChip kind="outcome" state={o} lang="en" size="sm" />;
+  const { lang } = useLang();
+  return <StatusChip kind="outcome" state={o} lang={lang} size="sm" />;
 }
 
-const HAND_BACK_REASONS = ["Can't reach the place", "Boat problem", "Not enough seats after all", "Called to an emergency"];
+const HAND_BACK_REASONS = S.team.handBackReasons.map((r) => r.en);
 
 function HandBackSheet({ j, onClose, onError }: { j: Job; onClose: () => void; onError: (m: string | null) => void }) {
   const [reason, setReason] = useState(HAND_BACK_REASONS[0]);
+  const { t, lang } = useLang();
   return (
-    <Sheet title={`Hand back ${j.caseId}`} onClose={onClose}>
-      <p className="muted">The families go back on the list for other teams, and your seats come back. The desk is told why.</p>
+    <Sheet title={t(S.team.handBackTitle(j.caseId))} onClose={onClose}>
+      <p className="muted">{t(S.team.handBackBody)}</p>
       <label className="field">
-        <span>Why</span>
+        <span>{t(S.team.why)}</span>
         <select value={reason} onChange={(e) => setReason(e.target.value)}>
           {HAND_BACK_REASONS.map((r) => (
-            <option key={r}>{r}</option>
+            <option key={r} value={r}>
+              {reasonText(r, lang)}
+            </option>
           ))}
         </select>
       </label>
@@ -648,7 +684,7 @@ function HandBackSheet({ j, onClose, onError }: { j: Job; onClose: () => void; o
           onClose();
         }}
       >
-        Hand back
+        {t(S.team.handBack)}
       </BigButton>
     </Sheet>
   );
@@ -657,6 +693,7 @@ function HandBackSheet({ j, onClose, onError }: { j: Job; onClose: () => void; o
 /* ---------------- Sheet ---------------- */
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  const { t } = useLang();
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", k);
@@ -667,7 +704,7 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
       <div className="ui-sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <header className="ui-sheet-head">
           <h2>{title}</h2>
-          <button className="icon-btn" onClick={onClose} aria-label="Close">
+          <button className="icon-btn" onClick={onClose} aria-label={t(S.common.close)}>
             <Icon name="close" size={22} />
           </button>
         </header>
