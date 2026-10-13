@@ -54,6 +54,19 @@ SAY = {
 }
 
 
+PLACE_TH = {"Community building": "อาคารชุมชน", "Health centre": "ศูนย์สุขภาพ", "School": "โรงเรียน", "Temple": "วัด",
+            "Market": "ตลาด", "Mosque": "มัสยิด", "Shrine": "ศาลเจ้า", "Shelter (high ground)": "ศูนย์พักพิง (ที่สูง)",
+            "Hospital (synthetic, generic)": "โรงพยาบาล (สมมติ)"}
+
+
+def place_label(label: str, lang: str) -> str:
+    """A generic landmark label ("B-3 · L3 Community building") in the caller's language."""
+    if lang == "th":
+        for en, th in PLACE_TH.items():
+            label = label.replace(en, th)
+    return label
+
+
 def lang_of(text: str, default: str = "th") -> str:
     """The caller's language from their own words: Thai script means Thai, Latin letters mean English."""
     if _THAI.search(text or ""):
@@ -315,7 +328,7 @@ async def pin(session: Conversation, location: dict | None, resolved: dict | Non
             session.lookup = {"status": "pinned", "query": session.lookup.get("query")}
             _apply_pin(session, session.case)
             label = (resolved or {}).get("landmarkLabel") or (resolved or {}).get("label") or ""
-            reply = say("pinned", session.lang) + label
+            reply = say("pinned", session.lang) + place_label(label, session.lang)
             if session.ready():
                 reply += "\n\n" + render_summary(session.case, session.lang)
         session.messages.append({"role": "assistant", "text": reply})
