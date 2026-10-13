@@ -179,8 +179,9 @@ def rule_proposals(store: Store, now: str) -> dict:
 
 def run_agent(store: Store, now: str, model: str | None = None, timeout_s: float = 45.0) -> dict:
     """One triage pass with the ADK agent over the current new requests. Falls back to the rules on any failure."""
+    from api.ai import gemini
     key = api_key()
-    if not key:
+    if not key and not gemini.use_vertex():
         return {**rule_proposals(store, now), "note": "No AI key on this server"}
     try:
         from google.adk.agents import Agent
@@ -188,13 +189,12 @@ def run_agent(store: Store, now: str, model: str | None = None, timeout_s: float
         from google.genai import types
     except Exception as e:  # ADK not installed
         return {**rule_proposals(store, now), "note": f"ADK unavailable ({type(e).__name__})"}
-    os.environ["GOOGLE_API_KEY"] = key  # read by google-genai inside ADK; never logged
-    os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "FALSE")
+    gemini.adk_env()  # Vertex AI or the key, read by google-genai inside ADK; never logged
     s = TriageSession(store, now)
     if not s._new():
         return {"source": "agent", "order": [], "proposals": {}, "calls": []}
     last_error = None
-    for m in ([model] if model else list(MODELS)):
+    for m in ([model] if model else list(MODELS if key else gemini.models(MODELS))):
         s.proposals, s.calls, trace = {}, [], []
         agent = Agent(name="triage", model=m, instruction=INSTRUCTIONS,
                       tools=[s.list_new_requests, s.find_similar, s.propose_link, s.propose_rank],

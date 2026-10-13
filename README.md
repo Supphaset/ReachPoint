@@ -21,7 +21,7 @@ One app with three roles, in Thai and English, built for phones:
 
 | Who | What they do | Screen |
 |---|---|---|
-| **Person asking for help** | Types what is happening in their own words, and pins their spot (GPS, a tap on the Google map, or an address) | `/call` |
+| **Person asking for help** | Chats or talks (Gemini Live voice) in Thai or English. The assistant asks only what's missing, and nothing is sent until they confirm the summary. They can pin their spot instead of describing it (GPS, a tap on the Google map, or an address) | `/call` |
 | **Coordinator** | Checks what Gemini read from the message, every fact with the caller's quote, and approves it. A person always decides | `/desk` |
 | **Volunteer team** | Takes a whole family (first team wins), sets an arrival window, reports progress | `/team/list` |
 | **Family** | Sees honest status: who is coming and when, or that a promised time was withdrawn | `/status/…` |
@@ -45,6 +45,7 @@ Two moments show what is different:
 
 | Part | What it does | Where |
 |---|---|---|
+| **Gemini talks with the caller** | Text chat and Gemini Live voice (`gemini-3.8-live`) ask one missing thing at a time, in the caller's language. They give the 1669/1784 numbers when someone is in danger, and read a summary back for the caller to confirm. Voice confirms only on the exact phrase, checked on the server | [`api/intake/conversation.py`](api/intake/conversation.py), [`live_voice.py`](api/intake/live_voice.py) |
 | **Gemini reads the request** | Structured output, every fact with a quote copied from the caller. Thai and English | [`api/intake/extract.py`](api/intake/extract.py) |
 | **Checks on what Gemini proposes** | Drops a fact whose quote isn't in the text, a danger the caller denies, says is over or only fears ("ไม่มีใครหมดสติ"), and counts that don't match the caller's numbers. A danger word Gemini left out is added back for the coordinator to confirm | same file |
 | **Triage agent (Google ADK)** | Uses 5 allowed tools: reads new requests, finds similar cases nearby, proposes a duplicate link or a question to ask the caller ("is this your household, or another family at the temple?"), and gives a reason. The desk shows the tools the agent called | [`api/ai/triage.py`](api/ai/triage.py) |
@@ -93,11 +94,12 @@ Latest run (13 Oct, `gemini-flash-lite-latest`). Gemini numbers count only readi
 ```mermaid
 flowchart LR
   P["Phones and laptops<br/>React + Vite, Thai/English"] -->|HTTPS| R["Cloud Run: one service<br/>FastAPI + the built web app"]
-  R --> G["Gemini API<br/>request reading, briefings"]
+  R --> G["Vertex AI Gemini<br/>chat, request reading, briefings"]
+  R --> L["Vertex AI Gemini Live<br/>voice, us-central1"]
   R --> A["Google ADK triage agent<br/>5 allowlisted tools"]
   A --> G
   R --> O["OR-Tools CP-SAT<br/>split solver"]
-  R --> SM["Secret Manager<br/>Gemini, Pinpoint, Maps keys"]
+  R --> SM["Secret Manager<br/>Pinpoint and Maps keys"]
   P --> M["Google Maps JavaScript API<br/>caller pin"]
   R --> PP["Pinpoint geocoder (being connected)<br/>Thai addresses, server side"]
   D["Data package (built offline)<br/>Earth Engine Sentinel-1 extent, IMERG rain,<br/>OSM streets, zones and landmarks"] --> R
@@ -114,8 +116,8 @@ can replace the in-memory store without changing them.
 - **Not validated with responders yet.** The design draws on published accounts of the Hat Yai response and other
   volunteer rescue groups. It hasn't been tried in a drill with a rescue team.
 - **The evaluation is small** (48 synthetic cases, written by the team): a development check, not a benchmark.
-- **Planned, not built:** voice calls (Gemini Live), a database (Firestore), sign-in for coordinators and teams,
-  Vertex AI. The demo rooms stand in for sign-in.
+- **Planned, not built:** a database (Firestore) and sign-in for coordinators and teams. The demo rooms stand in
+  for sign-in. Phone-line calls aren't connected; voice works in the browser.
 
 ## Run it locally
 
@@ -126,8 +128,10 @@ python -m venv .venv && .venv/bin/pip install -r api/requirements-dev.txt
 .venv/bin/python -m pytest -q api/tests && (cd web && npm test)
 ```
 
-The Gemini key goes in `~/.config/reachpoint/env` as `GEMINI_API_KEY=…`, outside the repo. Without it, the keyword
-stand-in is used. Deploy: `scripts/put-secrets.sh`, then `scripts/deploy.sh`.
+Locally, Gemini uses the key in `~/.config/reachpoint/env` (`GEMINI_API_KEY=…`, outside the repo), or Vertex AI
+after `gcloud auth application-default login`. With neither, the keyword stand-in is used. Voice needs
+`REACHPOINT_VOICE=on` and Vertex credentials. Deploy: `scripts/put-secrets.sh` (Pinpoint and Maps keys), then
+`scripts/deploy.sh`. On Cloud Run, Gemini runs on Vertex AI with the service's own identity.
 
 ## For the team
 

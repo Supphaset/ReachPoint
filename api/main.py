@@ -25,10 +25,13 @@ from pydantic import BaseModel, Field, model_validator
 
 import threading
 import time
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 from api.ai import briefing_text, triage
 from api.intake.extract import extract
+from api.intake import conversation
+from api.intake.live_voice import router as live_voice_router
 from api.location.resolve import resolve as resolve_location
 from api.server.memory import NotFound, Refused
 from api.server.rooms import Room, RoomAttr, Rooms
@@ -46,6 +49,7 @@ WEB = Path(os.environ.get("REACHPOINT_WEB_DIST", ROOT / "web" / "dist"))
 DAY_START, STEPS = "2026-10-11T03:00:00Z", 15  # the replayed demo day: 10:00–17:00 Bangkok, every 30 min
 
 app = FastAPI(title="ReachPoint", version="0.1", docs_url="/api/docs", openapi_url="/api/openapi.json")
+app.include_router(live_voice_router)
 # Each visitor has their own demo room (api/server/rooms.py); `memory` and `flood_replay` are the current room's.
 rooms = Rooms()
 memory = RoomAttr(rooms, "memory")
@@ -287,7 +291,7 @@ class LocationInput(BaseModel):
     kind: Literal["pin", "address"]
     lat: float | None = Field(default=None, ge=-90, le=90)
     lon: float | None = Field(default=None, ge=-180, le=180)
-    method: Literal["gps", "map"] | None = None
+    method: Literal["gps", "map", "pinpoint"] | None = None
     accuracyM: float | None = Field(default=None, ge=0, le=100_000)
     text: str | None = Field(default=None, max_length=300)
 
@@ -306,6 +310,30 @@ class Intake(Write):
     segmentId: str | None = None  # a field report from a team in its segment (D20)
     teamId: str | None = None
     location: LocationInput | None = None
+
+
+class CallTurn(BaseModel):
+    text: str = Field(min_length=1, max_length=conversation.MAX_TURN_CHARS)
+    turnId: str = Field(min_length=1, max_length=100)
+
+
+class CallLocation(BaseModel):
+    query: str
+    action: Literal["select", "reject"]
+    locationId: str | None = None
+
+
+class CallStart(BaseModel):
+    lang: Literal["th", "en"] = "th"
+
+
+class CallPin(BaseModel):
+    location: LocationInput | None = None
+
+
+class CallConfirm(BaseModel):
+    submissionId: str = Field(min_length=1, max_length=100)
+    expectedRevision: int = Field(ge=0)
 
 
 class Locate(BaseModel):
@@ -339,6 +367,72 @@ def intake_text(b: Intake):
     v = r["value"]
     _triager.submit(_run_triage, rooms.current())  # the triage agent looks at the new request in the background
     return {"ok": True, "value": {**v, "statusUrl": f"/status/{v['statusToken']}", "aiSource": proposal["source"]}}
+
+
+@app.get("/api/call/config")
+def call_config():
+    available = USE_AI and conversation.configured()
+    return {"chat": available, "voice": available and os.environ.get("REACHPOINT_VOICE", "off") == "on"}
+
+
+@app.post("/api/call/sessions")
+def start_call(b: CallStart | None = None):
+    """A new conversation in the visitor's demo room, greeting in the page's language."""
+    return conversation.create(room_id=rooms.current_id.get(), lang=b.lang if b else "th").snapshot()
+
+
+@app.get("/api/call/sessions/{session_id}")
+def read_call(session_id: str):
+    return conversation.get(session_id).snapshot()
+
+
+@app.post("/api/call/sessions/{session_id}/turn")
+async def call_turn(session_id: str, b: CallTurn):
+    if not USE_AI:
+        raise HTTPException(503, "Conversation mode is disabled on this server.")
+    return await conversation.turn(conversation.get(session_id), b.text, b.turnId)
+
+
+@app.post("/api/call/sessions/{session_id}/location")
+async def call_location(session_id: str, b: CallLocation):
+    return await conversation.choose_location(conversation.get(session_id), b.query, b.action, b.locationId)
+
+
+@app.post("/api/call/sessions/{session_id}/pin")
+async def call_pin(session_id: str, b: CallPin):
+    """The caller's own spot from the chat's location card (GPS, a tap on the map, or an address), or null to clear it.
+    Resolved like any request location (D25); a located pin means the assistant stops asking where they are."""
+    loc = b.location.model_dump(exclude_none=True) if b.location else None
+    resolved = await asyncio.to_thread(resolve_location, loc) if loc else None
+    return await conversation.pin(conversation.get(session_id), loc, resolved)
+
+
+async def submit_call_session(session: conversation.Conversation, submission_id: str,
+                              expected_revision: int | None = None) -> dict:
+    """One report from a confirmed conversation, in the room the conversation started in (voice arrives over a
+    WebSocket, which carries no room header)."""
+    room = rooms.get(session.room_id)
+    m = room.memory
+    async with session.lock:
+        if session.sent:
+            return session.snapshot()
+        if expected_revision is not None and expected_revision != session.revision:
+            raise HTTPException(409, "The summary changed. Review the latest details before confirming.")
+        text, location_input = conversation.submission(session)
+        if len(text) > conversation.MAX_REPORT_CHARS:
+            raise HTTPException(409, "Conversation too long. Please use the text form.")
+        proposal = await asyncio.to_thread(extract, text, USE_AI)
+        location = await asyncio.to_thread(resolve_location, location_input) if location_input else None
+        result = m.write(submission_id, lambda: m.submit_report(text, session.channel, proposal, location=location))
+        value = result["value"]
+        session.sent = {**value, "statusUrl": f"/status/{value['statusToken']}", "aiSource": proposal["source"]}
+        _triager.submit(_run_triage, room)
+        return session.snapshot()
+
+
+@app.post("/api/call/sessions/{session_id}/confirm")
+async def confirm_call(session_id: str, b: CallConfirm):
+    return await submit_call_session(conversation.get(session_id), b.submissionId, b.expectedRevision)
 
 
 def _run_triage(room: Room) -> None:

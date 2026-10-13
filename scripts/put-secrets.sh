@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Copy the keys from ~/.config/reachpoint/env (outside the repo) into Secret Manager, once per project.
 # Each value goes straight from the file to gcloud through a pipe: it is never printed, logged or put in Git.
-#   GEMINI_API_KEY          -> gemini-api-key      (required)
+#   GEMINI_API_KEY          -> gemini-api-key      (optional; the deploy uses Vertex AI, this is only a spare)
 #   PINPOINT_API_KEY        -> pinpoint-api-key    (optional)
 #   GOOGLE_MAPS_BROWSER_KEY or VITE_GOOGLE_MAPS_KEY -> maps-browser-key (optional; a browser key, locked to our sites)
 # Running it again adds a new version of each secret.

@@ -13,7 +13,8 @@ import json
 import re
 from typing import Any
 
-from api.intake.extract import ENDPOINT, MODELS, api_key
+from api.ai import gemini
+from api.intake.extract import MODELS, api_key
 
 MAX_CHARS, MAX_SENTENCES = 420, 3
 THAI_DIGITS = str.maketrans("๐๑๒๓๔๕๖๗๘๙", "0123456789")
@@ -145,17 +146,16 @@ def validate(text: str, facts: dict) -> list[str]:
 
 def write(facts: dict, timeout: float = 12.0) -> dict:
     """Ask Gemini, then validate. Returns the briefing field for the zone view."""
-    import httpx
     key = api_key()
-    if not key:
+    if not key and not gemini.use_vertex():
         return {"state": "unavailable", "text": None, "reason": "no_ai_key"}
     last = "model_unavailable"
-    for model in MODELS:
+    for model in (MODELS if key else gemini.models(MODELS)):
         try:
             body = {"systemInstruction": {"parts": [{"text": INSTRUCTIONS}]},
                     "contents": [{"role": "user", "parts": [{"text": "Facts (JSON):\n" + json.dumps(facts, ensure_ascii=False)}]}],
                     "generationConfig": {"temperature": 0.2, "maxOutputTokens": 200}}
-            r = httpx.post(ENDPOINT.format(model=model), headers={"x-goog-api-key": key}, json=body, timeout=timeout)
+            r = gemini.post(model, body, timeout, key=key)
             if r.status_code != 200:
                 last = f"http_{r.status_code}"
                 continue

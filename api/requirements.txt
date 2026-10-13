@@ -3,6 +3,7 @@ fastapi==0.133.0            # google-adk 2.11 requires FastAPI >= 0.133
 uvicorn[standard]==0.34.0   # google-adk 2.11 requires Uvicorn >= 0.34
 httpx==0.28.1               # Gemini REST calls; compatible with google-genai via ADK
 google-adk==2.11.0          # triage agent (api/ai/triage.py)
+google-genai==2.30.0       # conversation extraction and Gemini Live voice
 # google-adk 2.11 needs opentelemetry <= 1.42.1; google-api-core 2.42+ needs >= 1.44, so pin both sides.
 opentelemetry-api==1.42.1
 opentelemetry-sdk==1.42.1
