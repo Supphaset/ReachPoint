@@ -437,7 +437,8 @@ export interface ProposedFacts {
   needs: ({ type: AssistanceType } & Quoted)[];
   water: ({ band: WaterBand } & Quoted) | null;
   place: ({ text: string } & Quoted) | null;
-  dangerSigns: ({ text: string } & Quoted)[];
+  /** `by: "keyword check"`: a danger word the caller used that the AI left out, added back for you to confirm. */
+  dangerSigns: ({ text: string; by?: "keyword check" } & Quoted)[];
   cantWalk: Quoted | null;
   summary: string;
 }
@@ -478,6 +479,10 @@ export interface ReviewRow {
     at: string;
     links: { caseId: string; place: string; people: number; reason: string; quote: string; newHazard: boolean }[];
     rank: { reason: string; quote: string; danger: string[] } | null;
+    /** Same place, unclear whether it is the same household: a question for you to ask the caller. */
+    question?: { caseId: string; text: string } | null;
+    /** The tools the agent itself chose to call for this request, in order (from the ADK events). */
+    steps?: string[];
   };
   fromTeam?: string;
 }
