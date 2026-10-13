@@ -55,9 +55,9 @@
 .desk-form .inline { min-height: var(--tap-min); padding: var(--space-2); border: var(--border-thin) solid var(--color-line); border-radius: var(--radius-sm); }
 .desk-form .inline input, .desk-page input[type="checkbox"] { width: var(--space-5); min-height: var(--space-5); flex: none; }
 .desk-form .desk-people { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
-.desk-stepper { display: flex; align-items: center; gap: var(--space-1); }
+.desk-stepper { display: flex; align-items: center; gap: var(--space-1); max-width: 13rem; }
 .desk-stepper button { width: var(--tap-min); flex: none; font-size: var(--text-lg); }
-.desk-form .desk-stepper input { width: 100%; text-align: center; padding: var(--space-1); appearance: textfield; }
+.desk-form .desk-stepper input { width: 100%; min-width: 3rem; font-size: var(--text-lg); font-weight: var(--weight-bold); text-align: center; padding: var(--space-1); appearance: textfield; }
 .desk-stepper input::-webkit-inner-spin-button { appearance: none; }
 .desk-footer { position: sticky; bottom: 0; z-index: 1; display: grid; gap: var(--space-2); padding: var(--space-3) 0; background: var(--color-surface); border-top: var(--border-thin) solid var(--color-line); }
 .desk-footer .review-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
