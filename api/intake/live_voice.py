@@ -106,7 +106,14 @@ async def live_voice(websocket: WebSocket, session_id: str) -> None:
         if os.environ.get("REACHPOINT_AI", "on") == "off" or os.environ.get("REACHPOINT_VOICE", "off") != "on":
             raise RuntimeError("Voice mode is disabled on this server.")
         session = conversation.get(session_id)
-        session.channel = "voice"
+        async with session.lock:
+            old_channel = session.channel
+            session.channel = "voice"
+            try:
+                conversation.save(session)
+            except Exception:
+                session.channel = old_channel
+                raise
         credentials, detected_project = await asyncio.to_thread(
             google.auth.default, scopes=["https://www.googleapis.com/auth/cloud-platform"])
         if not credentials.valid:

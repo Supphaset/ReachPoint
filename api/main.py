@@ -3,9 +3,9 @@
     uvicorn api.main:app --reload            # local, from the repo root
     VITE_DATA=api npm --prefix web run build # then the same server serves the app at /
 
-It serves the built web app and the API from one Cloud Run service. Records live in memory, starting from
-`contract/seed/demo.hy-2025-11.json`, so a restart resets the demo; the friend's version swaps `MemoryStore` for
-Firestore and keeps the routes, rules and views. No secrets here: Cloud Run's own identity calls Google APIs.
+It serves the built web app and the API from one service. Records start from
+`contract/seed/demo.hy-2025-11.json`. Set REACHPOINT_DB_PATH for local SQLite persistence;
+without it, the demo resets on restart. Firestore remains the planned shared store.
 """
 
 from __future__ import annotations
@@ -33,6 +33,7 @@ from api.intake import conversation
 from api.intake.live_voice import router as live_voice_router
 from api.location.resolve import resolve as resolve_location
 from api.server.memory import Clock, MemoryStore, NotFound, Refused
+from api.server.sqlite_store import SQLiteMemoryStore, SQLiteState
 from api.views.briefing import area_briefing
 from api.views.desk import rain_view, rising_water_view, zone_order_view
 from api.views.resident import resident_status
@@ -49,8 +50,22 @@ DAY_START, STEPS = "2026-10-11T03:00:00Z", 15  # the replayed demo day: 10:00–
 
 app = FastAPI(title="ReachPoint", version="0.1", docs_url="/api/docs", openapi_url="/api/openapi.json")
 app.include_router(live_voice_router)
-memory = MemoryStore(clock=Clock(os.environ.get("REACHPOINT_CLOCK", "demo")))
-flood_replay = FloodReplay(memory.store.catalogue)
+database = SQLiteState(os.environ["REACHPOINT_DB_PATH"]) if os.environ.get("REACHPOINT_DB_PATH") else None
+conversation.configure_storage(database)
+
+
+def _new_memory() -> MemoryStore:
+    clock = Clock(os.environ.get("REACHPOINT_CLOCK", "demo"))
+    return SQLiteMemoryStore(database, clock) if database else MemoryStore(clock=clock)
+
+
+def _new_replay(store: MemoryStore) -> FloodReplay:
+    return FloodReplay(store.store.catalogue, saved=database.get("replay") if database else None,
+                       persist=(lambda state: database.put("replay", state)) if database else None)
+
+
+memory = _new_memory()
+flood_replay = _new_replay(memory)
 USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"  # off: no Gemini calls (tests, offline demo)
 
 
@@ -78,7 +93,8 @@ def _replay_times():
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "store": "memory", "seedVersion": memory.store.seed.get("version"), "clock": memory.clock.mode, "now": _now()}
+    return {"ok": True, "store": "sqlite" if database else "memory", "seedVersion": memory.store.seed.get("version"),
+            "clock": memory.clock.mode, "now": _now()}
 
 
 # Zone briefing text (C8): written in the background, once per set of facts, then kept. A view never waits for it.
@@ -377,10 +393,26 @@ async def call_location(session_id: str, b: CallLocation):
     return await conversation.choose_location(conversation.get(session_id), b.query, b.action, b.locationId)
 
 
-async def submit_call_session(session: conversation.Conversation, submission_id: str,
+async def submit_call_session(session: conversation.Conversation, _submission_id: str,
                               expected_revision: int | None = None) -> dict:
     async with session.lock:
         if session.sent:
+            return session.snapshot()
+        call_key = f"CALL-{session.id}"
+        with memory.lock:
+            previous = memory.done.get(call_key)
+            saved_report = (next((r for r in memory.store.seed.get("reports", [])
+                                  if r["reportId"] == previous["value"]["reportId"]), None)
+                            if previous else None)
+        if previous:
+            value = previous["value"]
+            session.sent = {**value, "statusUrl": f"/status/{value['statusToken']}",
+                            "aiSource": saved_report.get("proposal", {}).get("source", "unknown") if saved_report else "unknown"}
+            try:
+                conversation.save(session)
+            except Exception:
+                session.sent = None
+                raise
             return session.snapshot()
         if expected_revision is not None and expected_revision != session.revision:
             raise HTTPException(409, "The summary changed. Review the latest details before confirming.")
@@ -389,10 +421,16 @@ async def submit_call_session(session: conversation.Conversation, submission_id:
             raise HTTPException(409, "Conversation too long. Please use the text form.")
         proposal = await asyncio.to_thread(extract, text, USE_AI)
         location = await asyncio.to_thread(resolve_location, location_input) if location_input else None
-        result = memory.write(submission_id, lambda: memory.submit_report(text, session.channel, proposal,
-                                                                           location=location))
+        # One report per session even if the browser retries with a different submissionId after a crash.
+        result = memory.write(call_key, lambda: memory.submit_report(text, session.channel, proposal,
+                                                                     location=location))
         value = result["value"]
         session.sent = {**value, "statusUrl": f"/status/{value['statusToken']}", "aiSource": proposal["source"]}
+        try:
+            conversation.save(session)
+        except Exception:
+            session.sent = None
+            raise
         _triager.submit(_run_triage)
         return session.snapshot()
 
@@ -419,8 +457,7 @@ def _run_triage() -> None:
                                                   memory.store.exposure, memory.store.register)
                 now = _now()
             result = triage.run_agent(snapshot, now) if USE_AI else triage.rule_proposals(snapshot, now)
-            with memory.lock:
-                memory.store.seed["triage"] = {**result, "at": now}
+            memory.write(None, lambda: memory.store.seed.__setitem__("triage", {**result, "at": now}))
             if not _triage_again.is_set():
                 break
     finally:
@@ -518,8 +555,11 @@ def mark_segment(claim_id: str, b: MarkSegment):
 def reset():
     """Start the demo again from the seed (coordinator only once sign-in exists)."""
     global memory, flood_replay
-    memory = MemoryStore(clock=Clock(os.environ.get("REACHPOINT_CLOCK", "demo")))
-    flood_replay = FloodReplay(memory.store.catalogue)  # the 1,200-report replay starts again too
+    if database:
+        database.clear()
+    conversation.clear_cache()
+    memory = _new_memory()
+    flood_replay = _new_replay(memory)  # the 1,200-report replay starts again too
     return {"ok": True, "now": _now()}
 
 

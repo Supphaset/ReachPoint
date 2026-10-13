@@ -29,6 +29,7 @@ coverage/
 dist/
 build/
 *.log
+*.sqlite3*
 
 
 # Google Cloud / Firebase (implementation phase, decision 0009)

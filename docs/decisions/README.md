@@ -14,6 +14,7 @@ Only explicit human approvals are accepted product decisions. AI recommendations
 | [0008](0008-reachpoint-name-and-public-repository.md) | Accepted name and public documentation publication | ReachPoint, public repository and review PR |
 | [0009](0009-implementation-start-and-technical-direction.md) | Accepted by the user; friend confirmation pending | Implementation from 12 Oct, stack A, Google Cloud layout, real past-event flood packages, browser-voice interim intake |
 | [0010](0010-surge-demonstration-and-exception-review.md) | Accepted user clarification, 12 Oct 2026 | 1,000+ synthetic-request demonstration; automatic organization and human exception review |
+| [0011](0011-local-sqlite-interim.md) | Accepted by user, 13 Oct 2026 | Temporary local SQLite persistence for all changing demo state; deployed database remains future work |
 
 For the next consequential choice create `0011-<topic>.md` with date, status (proposed/accepted/superseded), human approval reference, context/evidence, decision, rationale, alternatives, consequences and affected docs. Drafting a record does not accept it. Preserve superseded decisions and link replacements.
 
