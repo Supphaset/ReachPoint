@@ -8,6 +8,7 @@ import { sendRequest, type Sent } from "../../data/intake";
 import { apiMode } from "../../data/mode";
 import { useLang } from "../../i18n/lang";
 import { S, seedText } from "../../i18n/strings";
+import { callerPlace } from "../location/LocationChip";
 import { Banner, BigButton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 import { ProgressTracker } from "../../ui/ProgressTracker";
@@ -166,6 +167,7 @@ export function CallPage() {
   };
 
   const newConversation = async () => {
+    if (session && !session.sent && session.messages.length > 1 && !window.confirm(t(S.call.conversation.restartConfirm))) return;
     stopVoice(); setError(""); setBusy(true);
     if (!config?.chat) { setSent(null); setText(""); setMode("form"); setBusy(false); return; }
     try {
@@ -232,7 +234,7 @@ export function CallPage() {
           </div>
           {!session.sent && <div className="call-chat-location">
             {session.pinned?.status === "located" && session.pinned.landmarkLabel
-              ? <div className="call-location-set"><Icon name="pin" size={18} /><span>{seedText(session.pinned.landmarkLabel, lang)}</span>
+              ? <div className="call-location-set"><Icon name="pin" size={18} /><span>{t(S.location.near(callerPlace(seedText(session.pinned.landmarkLabel, lang))))}</span>
                   <button type="button" className="btn btn-quiet btn-md" onClick={openSheet} aria-haspopup="dialog">{t(S.location.change)}</button></div>
               : <button type="button" className="btn btn-md call-location-cta" onClick={openSheet} aria-haspopup="dialog"><Icon name="pin" />{t(S.call.conversation.shareLocation)}</button>}
             <dialog ref={sheet} className="call-location-sheet" aria-labelledby="caller-location-title"

@@ -67,3 +67,6 @@
 .location-map-note { margin: 0; padding: var(--space-2) var(--space-4); background: var(--color-held-bg); font-size: var(--text-sm); }
 .sheet-foot { display: grid; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-top: var(--border-thin) solid var(--color-line); background: var(--color-surface); }
 .sheet-foot .btn { width: 100%; justify-content: center; }
+
+.location-block .btn-lg { min-height: var(--button-big); }
+.sheet-body.is-map:has(.location-map-note) .location-gmap-help { display: none; }

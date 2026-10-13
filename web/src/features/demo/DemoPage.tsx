@@ -26,7 +26,7 @@ const q = (path: string, lang: "th" | "en", as: string, room: string) =>
 
 /** /demo: victim and volunteer phones side by side, with the coordinator's approval between them. */
 export function DemoPage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [k, setK] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
@@ -51,6 +51,7 @@ export function DemoPage() {
     }
   };
   const reset = async () => {
+    if (!window.confirm(t(S.demo.resetConfirm))) return;
     setBusy(true);
     setError(false);
     try {
@@ -78,10 +79,10 @@ export function DemoPage() {
         <h1>{t(S.demo.title)}</h1>
         <div className="demo-actions">
           <LangSwitch />
-          <button type="button" className="btn btn-secondary btn-md" onClick={() => setK((n) => n + 1)}>
+          <button type="button" className="btn btn-quiet btn-md" onClick={() => setK((n) => n + 1)}>
             {t(S.demo.reload)}
           </button>
-          <button type="button" className="btn btn-primary btn-md" onClick={reset} disabled={busy || !apiMode()}>
+          <button type="button" className="btn btn-secondary btn-md" onClick={reset} disabled={busy || !apiMode()}>
             {busy ? t(S.demo.resetting) : t(S.demo.reset)}
           </button>
         </div>
@@ -117,9 +118,9 @@ export function DemoPage() {
       </div>
       {apiMode() && (
         <div className="demo-stage">
-          <Screen k={k} name={S.demo.victim} src={q("/call", "th", "resident:demo", room)} />
-          <Screen k={k} name={S.demo.desk} src={q("/desk", "en", "coordinator:demo-1", room)} wide />
-          <Screen k={k} name={S.demo.volunteer} src={q("/team/list", "th", "team:T-S", room)} />
+          <Screen k={k} name={S.demo.victim} src={q("/call", lang, "resident:demo", room)} />
+          <Screen k={k} name={S.demo.desk} src={q("/desk", lang, "coordinator:demo-1", room)} wide />
+          <Screen k={k} name={S.demo.volunteer} src={q("/team/list", lang, "team:T-S", room)} />
         </div>
       )}
     </div>

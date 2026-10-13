@@ -108,6 +108,7 @@
   font-weight: var(--weight-bold);
   cursor: pointer;
   min-width: var(--tap-min);
+  text-decoration: none;
 }
 .btn-lg { min-height: var(--button-big); padding: 0 var(--space-5); font-size: var(--text-lg); width: 100%; }
 .btn-md { min-height: var(--tap-min); padding: 0 var(--space-4); font-size: var(--text-md); }

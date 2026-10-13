@@ -41,7 +41,7 @@
 .desk-ai { color: var(--color-ai); background: var(--color-ai-bg); border: var(--border-ai); }
 .desk-empty { display: grid; gap: var(--space-3); padding: var(--space-5); border: var(--border-thin) solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-surface); }
 .desk-reading { display: grid; gap: var(--space-3); align-content: start; }
-.desk-back { display: none; }
+.desk-back { justify-self: start; }
 .desk-detail .review-text { border: 0; border-radius: var(--radius-sm); padding: var(--space-4); font-size: var(--text-lg); }
 .desk-detail { overflow-wrap: anywhere; }
 .desk-facts { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: var(--text-sm); }

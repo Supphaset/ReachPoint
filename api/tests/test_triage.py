@@ -86,3 +86,17 @@ def test_desk_queue_shows_proposals_in_safe_order():
     r1 = next(r for r in c.get("/api/views/reviewQueue").json()["reports"] if r["reportId"] == "R-001")
     assert r1["triage"]["links"] == []
     assert c.post("/api/reports/R-002/link", json={"caseId": "C-03"}).json()["code"] == "INVALID"
+
+
+def test_the_agent_gets_exactly_the_allowlist(m):
+    from api.ai.triage import agent_tools
+    s = TriageSession(m.store, m.clock.iso())
+    assert [f.__name__ for f in agent_tools(s)] == list(TOOLS) and "propose_question" in TOOLS
+
+
+def test_a_question_needs_a_similar_case_and_links_nothing(m):
+    s = TriageSession(m.store, m.clock.iso())
+    assert s.propose_question("R-004", "C-03", "Is this your household?")["ok"] is False  # C-03 is not near B-4
+    assert s.propose_question("R-001", "C-03", "บ้านของคุณ หรืออีกครอบครัวที่วัด? " * 10)["ok"]
+    slot = s.proposals["R-001"]
+    assert slot["question"]["caseId"] == "C-03" and len(slot["question"]["text"]) <= 160 and slot["links"] == []

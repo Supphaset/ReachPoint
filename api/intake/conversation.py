@@ -49,7 +49,8 @@ SAY = {
     "rejected": ("ไม่ใช้พิกัดเหล่านี้ค่ะ กรุณาบอกจังหวัด อำเภอ หรือจุดสังเกตเพิ่มได้ไหมคะ?",
                  "OK, not those. Can you tell me the district or a landmark near you?"),
     "chosen": ("ยืนยันสถานที่ที่เลือกแล้วค่ะ ", "Location confirmed: "),
-    "pinned": ("ได้รับตำแหน่งของคุณแล้วค่ะ ", "Got your location: "),
+    "pinned": ("ได้รับตำแหน่งแล้วค่ะ คุณอยู่ใกล้", "Got it, you're near "),
+    "who": ("ตอนนี้มีกี่คนอยู่ด้วยกัน มีใครบาดเจ็บหรือเดินไม่ได้ไหมคะ?", "How many people are with you, and is anyone hurt or unable to walk?"),
     "pin_cleared": ("ลบตำแหน่งที่ปักไว้แล้วค่ะ บอกได้เลยว่าคุณอยู่ที่ไหน", "Location removed. Tell me where you are."),
 }
 
@@ -60,7 +61,8 @@ PLACE_TH = {"Community building": "อาคารชุมชน", "Health cent
 
 
 def place_label(label: str, lang: str) -> str:
-    """A generic landmark label ("B-3 · L3 Community building") in the caller's language."""
+    """A generic landmark label for the caller, without zone codes ("B-3 · L3 Community building" → "อาคารชุมชน")."""
+    label = re.sub(r"^[A-Z]-\d+\s*·\s*(L\d+\s+)?", "", label)
     if lang == "th":
         for en, th in PLACE_TH.items():
             label = label.replace(en, th)
@@ -331,6 +333,8 @@ async def pin(session: Conversation, location: dict | None, resolved: dict | Non
             reply = say("pinned", session.lang) + place_label(label, session.lang)
             if session.ready():
                 reply += "\n\n" + render_summary(session.case, session.lang)
+            elif session.case.people_count is None:
+                reply += (" " if session.lang == "th" else ". ") + say("who", session.lang)
         session.messages.append({"role": "assistant", "text": reply})
         session.revision += 1
         return session.snapshot()

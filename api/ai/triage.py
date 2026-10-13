@@ -165,6 +165,11 @@ class TriageSession:
         return [r["reportId"] for r in sorted(new, key=lambda r: (0 if self._danger(r) else 1, r["receivedAt"], r["reportId"]))]
 
 
+def agent_tools(s: TriageSession) -> list:
+    """The session methods the agent is given: exactly the allowlist, in order (a test keeps the two in step)."""
+    return [getattr(s, name) for name in TOOLS]
+
+
 def rule_proposals(store: Store, now: str) -> dict:
     """The same proposals from the duplicate rules alone, when the agent can't run."""
     s = TriageSession(store, now)
@@ -197,7 +202,7 @@ def run_agent(store: Store, now: str, model: str | None = None, timeout_s: float
     for m in ([model] if model else list(MODELS if key else gemini.models(MODELS))):
         s.proposals, s.calls, trace = {}, [], []
         agent = Agent(name="triage", model=m, instruction=INSTRUCTIONS,
-                      tools=[s.list_new_requests, s.find_similar, s.propose_link, s.propose_rank],
+                      tools=agent_tools(s),
                       generate_content_config=types.GenerateContentConfig(temperature=0))
         runner = InMemoryRunner(agent=agent, app_name="reachpoint-triage")
 

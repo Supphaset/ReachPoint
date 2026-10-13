@@ -11,6 +11,8 @@ export function landmarkText(label: string, t: (p: Pair) => string): string {
   for (const [en, pair] of Object.entries(S.location.landmarks)) result = result.replace(en, t(pair));
   return result;
 }
+/** A landmark label for the person asking for help: no zone or landmark codes ("B-3 · L3 School" → "School"). */
+export const callerPlace = (label: string) => label.replace(/^[A-Z]-\d+\s*·\s*(L\d+\s+)?/, "");
 export function locationSource(location: Location, viewer: "caller" | "desk" = "caller"): Pair {
   if (location.kind === "pin") return viewer === "desk"
     ? S.location.sources[location.method === "gps" ? "callerGps" : "callerMap"]

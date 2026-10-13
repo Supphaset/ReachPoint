@@ -148,10 +148,10 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
             {f.water && <tr><th>{t(S.desk.water)}</th><td>{t(S.desk[f.water.band])}</td><td><q>{f.water.quote}</q></td></tr>}
             {f.place && <tr><th>{t(S.desk.place)}</th><td>{f.place.text}</td><td><q>{f.place.quote}</q></td></tr>}
             {f.dangerSigns.map(d => <tr key={d.quote}><th>{t(S.desk.danger)}</th><td>{d.text}{d.by && <span className="fine-print"> · {t(S.desk.keywordCheck)}</span>}</td><td><q>{d.quote}</q></td></tr>)}
-            {f.cantWalk && <tr><th>{t(S.desk.stretcher)}</th><td>{t(S.desk.stretcher)}</td><td><q>{f.cantWalk.quote}</q></td></tr>}
+            {f.cantWalk && <tr><th>{t(S.desk.stretcher)}</th><td>{t(S.desk.stretcherNeeded)}</td><td><q>{f.cantWalk.quote}</q></td></tr>}
           </tbody>
         </table>
-        <p className="fine-print">{t(S.desk.readBy)} {r.proposal.source.replace("gemini:", "Gemini ")}{r.proposal.note ? ` · ${r.proposal.note}` : ""}{r.proposal.dropped.length ? ` · ${t(S.desk.dropped(r.proposal.dropped.length))}` : ""}</p>
+        <p className="fine-print">{t(S.desk.readBy)} {r.proposal.source.startsWith("gemini") ? "Gemini" : r.proposal.source}{r.proposal.note ? ` · ${r.proposal.note}` : ""}{r.proposal.dropped.length ? ` · ${t(S.desk.dropped(r.proposal.dropped.length))}` : ""}</p>
       </ProposalCard>
       {r.triage && (r.triage.links.length > 0 || r.triage.rank || r.triage.question) && (
         <ProposalCard title={t(S.desk.triage)} label={t(S.desk.proposal)}>
@@ -184,7 +184,7 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
           ))}
           {!!r.triage.steps?.length && (
             <p className="fine-print">
-              {t(S.desk.agentSteps)} ({r.triage.source.replace("agent:", "Gemini ")}): {r.triage.steps.map((s) => (S.desk.tools[s] ? t(S.desk.tools[s]) : s)).join(" → ")}
+              {t(S.desk.agentSteps)} ({r.triage.source.startsWith("agent") ? "Gemini" : r.triage.source}): {r.triage.steps.map((s) => (S.desk.tools[s] ? t(S.desk.tools[s]) : s)).join(" → ")}
             </p>
           )}
         </ProposalCard>

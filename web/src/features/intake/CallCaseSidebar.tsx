@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { CallCase, CallSession } from "../../data/call";
 import { useLang } from "../../i18n/lang";
-import { S } from "../../i18n/strings";
+import { S, seedText } from "../../i18n/strings";
 import { BigButton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 
@@ -13,7 +13,7 @@ const groups = [
 ] as const satisfies readonly { title: "casePeople" | "casePlace" | "caseSituation" | "caseNeeds"; fields: readonly (keyof CallCase)[] }[];
 
 export function CallCaseSidebar({ session, busy, onConfirm }: { session: CallSession; busy: boolean; onConfirm: () => void }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [expanded, setExpanded] = useState(false);
   useEffect(() => { if (session.canConfirm) setExpanded(true); }, [session.canConfirm]);
 
@@ -42,7 +42,7 @@ export function CallCaseSidebar({ session, busy, onConfirm }: { session: CallSes
           const declined = unknown && session.case.unavailable_fields.includes(field);
           return <div className="call-case-row" key={field}>
             <dt>{t(S.call.conversation.caseFields[field])}</dt>
-            <dd className={unknown ? "is-unknown" : ""}>{declined ? t(S.call.conversation.caseDeclined) : unknown ? t(S.call.conversation.caseUnknown) : String(value)}</dd>
+            <dd className={unknown ? "is-unknown" : ""}>{declined ? t(S.call.conversation.caseDeclined) : unknown ? t(S.call.conversation.caseUnknown) : seedText(String(value), lang)}</dd>
           </div>;
         })}</dl>
       </section>)}
