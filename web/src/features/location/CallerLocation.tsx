@@ -7,7 +7,7 @@ import { useLang, type Pair } from "../../i18n/lang";
 import { S } from "../../i18n/strings";
 import { Icon } from "../../ui/Icon";
 import { LocationChip } from "./LocationChip";
-import { LocationMap } from "./LocationMap";
+import { GoogleLocationPicker } from "./GoogleLocationPicker";
 
 export function CallerLocation({ onChange, onBusy }: { onChange: (input?: LocationInput) => void; onBusy: (busy: boolean) => void }) {
   const { t } = useLang();
@@ -64,7 +64,7 @@ export function CallerLocation({ onChange, onBusy }: { onChange: (input?: Locati
     </>}
     <div role="status" aria-live="polite">{busy ? t(S.location.finding) : message && t(message)}</div>
     {resolved && resolved.status !== "located" && !map && <button type="button" className="btn btn-secondary" disabled={busy} onClick={() => setMap(true)}>{t(S.location.map)}</button>}
-    {map && !busy && <LocationMap onConfirm={at => void preview({ kind: "pin", lon: at[0], lat: at[1], method: "map" })} />}
+    {map && !busy && <GoogleLocationPicker onConfirm={at => void preview({ kind: "pin", lon: at[0], lat: at[1], method: "map" })} />}
     {(map || busy) && <button type="button" className="btn btn-secondary" onClick={() => { generation.current++; working(false); setMap(false); }}>{t(S.location.cancel)}</button>}
     <p className="fine-print"><Icon name="lock" size={16} /> {t(S.location.privacy)}</p>
   </section>;

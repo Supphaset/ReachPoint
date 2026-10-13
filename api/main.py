@@ -360,6 +360,14 @@ def view_review():
         return {**review_queue(memory.store), "generatedAt": _now()}
 
 
+@app.get("/api/config")
+def client_config():
+    """Browser settings. The Maps key is a browser key, locked to our web addresses in Google Cloud; it is served here
+    so it is never baked into the build or committed. No key → the web app uses its drawn map instead."""
+    from api.location.pinpoint import _config
+    return {"mapsKey": _config("GOOGLE_MAPS_BROWSER_KEY") or _config("VITE_GOOGLE_MAPS_KEY")}
+
+
 @app.post("/api/locate")
 def locate(b: Locate):
     """Read-only preview of where a pin or address lands (D25). Writes nothing."""

@@ -3,7 +3,7 @@ import { bbox, type Bounds } from "./mapGeometry";
 import { readPackageFile } from "./source";
 
 export type MapCollection = FeatureCollection<Geometry, Record<string, unknown>>;
-export interface LocationLayers { zones: MapCollection; segments: MapCollection; landmarks: MapCollection; bounds: Bounds }
+export interface LocationLayers { zones: MapCollection; segments: MapCollection; landmarks: MapCollection; lines: MapCollection; bounds: Bounds }
 let areaBounds: Promise<Bounds> | undefined;
 let layers: Promise<LocationLayers> | undefined;
 
@@ -17,7 +17,10 @@ export function locationLayers(): Promise<LocationLayers> {
   return layers ??= Promise.all([
     readPackageFile<MapCollection>("zones.geojson"),
     readPackageFile<MapCollection>("segments.geojson"),
-    readPackageFile<MapCollection>("landmarks.geojson"), demoBounds(),
-  ]).then(([zones, segments, landmarks, bounds]) => ({ zones, segments, landmarks, bounds }))
+    readPackageFile<MapCollection>("landmarks.geojson"),
+    // OpenStreetMap roads, railway, river and canals: what people recognise when they look for their street.
+    readPackageFile<MapCollection>("osm-lines.geojson").catch(() => ({ type: "FeatureCollection", features: [] }) as MapCollection),
+    demoBounds(),
+  ]).then(([zones, segments, landmarks, lines, bounds]) => ({ zones, segments, landmarks, lines, bounds }))
     .catch(e => { layers = undefined; throw e; });
 }

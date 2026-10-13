@@ -14,7 +14,7 @@ import { apiMode } from "./mode";
 const briefings = import.meta.glob("../../../contract/fixtures/areaBriefing.*.json", { import: "default" });
 const rainFile = import.meta.glob("../../../contract/fixtures/rainStatus.hy-2025-11.json", { import: "default" });
 const risingFiles = import.meta.glob("../../../contract/fixtures/risingWater.*.json", { import: "default" });
-const geography = import.meta.glob("../../../data/hy-2025-11/{areas,zones,segments,landmarks,no-satellite-data,extent-2025-11-23-o164,reported-flooding}.geojson", { query: "?raw", import: "default" });
+const geography = import.meta.glob("../../../data/hy-2025-11/{areas,zones,segments,landmarks,no-satellite-data,extent-2025-11-23-o164,reported-flooding,osm-lines}.geojson", { query: "?raw", import: "default" });
 
 export function devSwitch(name: string): string | null {
   if (typeof window === "undefined") return null;

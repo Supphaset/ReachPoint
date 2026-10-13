@@ -41,6 +41,26 @@ export function pathOf(g: Geometry, project: (p: Position) => [number, number]):
 }
 
 
+/** SVG path for roads, rivers and canals (LineString / MultiLineString). */
+export function lineOf(g: Geometry, project: (p: Position) => [number, number]): string {
+  const lines = g.type === "LineString" ? [g.coordinates] : g.type === "MultiLineString" ? g.coordinates : [];
+  return lines.map((l) => "M" + l.map((p) => project(p).map((v) => v.toFixed(1)).join(",")).join("L")).join("");
+}
+
+/** Point in polygon (outer rings), for "which zone did they tap". */
+export function contains(g: Geometry, [x, y]: Position): boolean {
+  const polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+  return polys.some((poly) => {
+    const r = poly[0];
+    let inside = false;
+    for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+      const [xi, yi] = r[i], [xj, yj] = r[j];
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  });
+}
+
 /** Inclusive package bbox check; invalid coordinates never pass. */
 export function insideBounds([lon, lat]: Position, [west, south, east, north]: Bounds): boolean {
   return Number.isFinite(lon) && Number.isFinite(lat) && lon >= west && lon <= east && lat >= south && lat <= north;

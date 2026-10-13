@@ -23,3 +23,14 @@
 .location-map-pin path { stroke: var(--color-on-ink); stroke-width: var(--border-thin); }
 .location-block :focus-visible { outline: var(--space-1) solid var(--color-focus); outline-offset: var(--space-1); }
 .location-block button { white-space: normal; padding-inline: var(--space-3); }
+.location-map-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.location-map-line.is-water { stroke: var(--map-water); stroke-width: 3; opacity: 0.7; }
+.location-map-line.is-trunk, .location-map-line.is-primary { stroke: var(--color-line-strong); stroke-width: 3; }
+.location-map-line.is-secondary { stroke: var(--color-line-strong); stroke-width: 2; }
+.location-map-line.is-tertiary { stroke: var(--color-line); stroke-width: 1.5; }
+.location-map-line.is-rail { stroke: var(--color-ink-3); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.location-map-pin .location-map-pin-dot { fill: var(--color-surface); stroke: none; }
+.location-back { justify-self: start; }
+.location-gmap-frame { position: relative; }
+.location-gmap { width: 100%; height: var(--location-map-height); border: var(--border-thin) solid var(--color-line-strong); border-radius: var(--radius-md); overflow: hidden; background: var(--map-land); }
+.location-gmap-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--color-ink-3); }
