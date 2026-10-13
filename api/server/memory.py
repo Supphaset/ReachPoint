@@ -245,12 +245,12 @@ class MemoryStore:
     def submit_report(self, text: str, channel: str, proposal: dict, segment_id: str | None = None, team_id: str | None = None,
                       location: dict | None = None) -> dict:
         """A request in the caller's words, with the AI's proposal. Returns its ID and the family's status link token."""
-        if not (text or "").strip():
+        if not (text or "").strip() or len(text) > 12000:
             raise Refused("INVALID", "Write what is happening and where")
         reports = self.store.seed.setdefault("reports", [])
         rid = f"R-{len(reports) + 1:03d}"
         token = secrets.token_urlsafe(16)  # 128 bits; carries no personal data
-        reports.append({"reportId": rid, "receivedAt": self.clock.iso(), "channel": channel, "text": text.strip()[:2000],
+        reports.append({"reportId": rid, "receivedAt": self.clock.iso(), "channel": channel, "text": text.strip(),
                         "proposal": proposal, "status": "proposed", "statusToken": token,
                         **({"segmentId": segment_id, "teamId": team_id} if segment_id else {}),
                         **({"location": location} if location else {})})  # exact point: coordinator only (D25)
