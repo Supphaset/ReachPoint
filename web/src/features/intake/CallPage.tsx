@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../data/api";
 import { callConfig, chooseCallLocation, confirmCall, readCall, sendCallTurn, startCall, type CallConfig, type CallSession } from "../../data/call";
@@ -10,6 +10,7 @@ import { Banner, BigButton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 import { ProgressTracker } from "../../ui/ProgressTracker";
 import { GeminiLiveVoice } from "./gemini-live";
+import { CallCaseSidebar } from "./CallCaseSidebar";
 import "./intake.css";
 
 const SESSION_KEY = "reachpoint.call.session";
@@ -101,6 +102,12 @@ export function CallPage() {
     finally { setBusy(false); }
   };
 
+  const onMessageKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
+  };
+
   const choose = async (action: "select" | "reject", locationId?: string) => {
     if (!session || !session.locationLookup.query || busy) return;
     setBusy(true); setError("");
@@ -163,9 +170,10 @@ export function CallPage() {
   );
 
   return (
-    <div className="page narrow intake">
-      <h1>{t(S.call.title)}</h1>
+    <div className={mode === "conversation" ? "call-page" : "page narrow intake"}>
+      <div className="call-page-heading"><h1>{t(S.call.title)}</h1>
       <p className="call-danger" role="note"><Icon name="alert" size={20} /><span>{t(S.call.danger)}</span></p>
+      </div>
       {!apiMode() && <Banner kind="info">{t(S.common.needsServer)}</Banner>}
       <div className="call-mode" role="tablist" aria-label={t(S.call.title)}>
         <button type="button" role="tab" aria-selected={mode === "conversation"} onClick={() => setMode("conversation")} disabled={!config?.chat}>{t(S.call.conversation.tab)}</button>
@@ -173,43 +181,45 @@ export function CallPage() {
       </div>
       {error && <Banner kind="error">{error}</Banner>}
 
-      {mode === "conversation" && session ? <>
-        <p>{t(S.call.conversation.intro)}</p>
-        <div className="call-voice-bar">
-          <BigButton variant={voiceState === "off" ? "secondary" : "quiet"} onClick={voiceState === "off" ? startVoice : stopVoice} disabled={!config?.voice} icon="mic">
-            {voiceState === "off" ? t(S.call.conversation.voiceStart) : t(S.call.conversation.voiceStop)}
-          </BigButton>
-          <span role="status">{voiceState === "connecting" ? t(S.call.conversation.voiceConnecting) : voiceState === "active" ? t(S.call.conversation.voiceActive) : ""}</span>
-        </div>
-        {!config?.voice && <p className="fine-print">{t(S.call.conversation.voiceUnavailable)}</p>}
-        {heard && <p className="fine-print">{t(S.call.conversation.lastHeard)}: {heard}</p>}
-        <div className="call-messages" role="log" aria-live="polite" aria-label={t(S.call.conversation.tab)}>
-          {session.messages.map((item, index) => <div key={index} className={`call-message call-message-${item.role}`}>
-            <span className="fine-print">{item.role === "user" ? (lang === "th" ? "คุณ" : "You") : (lang === "th" ? "ผู้ช่วย" : "Assistant")}</span>
-            <p>{item.text}</p>
-          </div>)}
-          <div ref={messagesEnd} />
-        </div>
-        {session.locationLookup.status === "candidates" && <section className="call-location" aria-label={t(S.call.conversation.locationTitle)}>
-          <h2>{t(S.call.conversation.locationTitle)}</h2>
-          <p>{t(S.call.conversation.locationNote)}</p>
-          {session.locationLookup.candidates?.map((candidate) => <BigButton key={candidate.id} variant="secondary" disabled={busy} onClick={() => choose("select", candidate.id)}>{candidate.label}</BigButton>)}
-          <BigButton variant="quiet" disabled={busy} onClick={() => choose("reject")}>{t(S.call.conversation.locationReject)}</BigButton>
-        </section>}
-        {session.locationLookup.status === "confirmed" && <p className="fine-print">{t(S.call.conversation.selected)}: {session.locationLookup.label || session.locationLookup.query}</p>}
-        {session.summary && <section className="call-summary" aria-label={t(S.call.conversation.confirmTitle)}>
-          <h2>{t(S.call.conversation.confirmTitle)}</h2>
-          <p>{session.summary}</p>
-          <p className="fine-print">{t(S.call.conversation.correction)}</p>
-          <BigButton onClick={confirm} disabled={!session.canConfirm || busy}>{busy ? t(S.call.sending) : t(S.call.conversation.confirm)}</BigButton>
-        </section>}
-        <form className="call-reply" onSubmit={sendMessage}>
-          <label htmlFor="call-reply">{t(S.call.conversation.type)}</label>
-          <textarea id="call-reply" rows={3} value={message} onChange={(event) => setMessage(event.target.value)} maxLength={500} placeholder={t(S.call.conversation.placeholder)} />
-          <BigButton type="submit" disabled={busy || !message.trim()}>{t(S.call.conversation.send)}</BigButton>
-        </form>
-        <BigButton variant="quiet" onClick={newConversation} disabled={busy}>{t(S.call.conversation.restart)}</BigButton>
-      </> : mode === "conversation" ? <p>{t(S.call.conversation.unavailable)}</p> :
+      {mode === "conversation" && session ? <div className="call-workspace">
+        <section className="call-chat-panel" aria-label={t(S.call.conversation.tab)}>
+          <div className="call-chat-head">
+            <p>{t(S.call.conversation.intro)}</p>
+            <div className="call-voice-bar">
+              <BigButton variant={voiceState === "off" ? "secondary" : "quiet"} onClick={voiceState === "off" ? startVoice : stopVoice} disabled={!config?.voice} icon="mic">
+                {voiceState === "off" ? t(S.call.conversation.voiceStart) : t(S.call.conversation.voiceStop)}
+              </BigButton>
+              <span role="status">{voiceState === "connecting" ? t(S.call.conversation.voiceConnecting) : voiceState === "active" ? t(S.call.conversation.voiceActive) : ""}</span>
+            </div>
+            {!config?.voice && <p className="fine-print">{t(S.call.conversation.voiceUnavailable)}</p>}
+            {heard && <p className="fine-print">{t(S.call.conversation.lastHeard)}: {heard}</p>}
+          </div>
+          <div className="call-chat-scroll">
+            <div className="call-messages" role="log" aria-live="polite" aria-label={t(S.call.conversation.tab)}>
+              {session.messages.map((item, index) => <div key={index} className={`call-message call-message-${item.role}`}>
+                <span className="fine-print">{item.role === "user" ? (lang === "th" ? "คุณ" : "You") : (lang === "th" ? "ผู้ช่วย" : "Assistant")}</span>
+                <p>{item.text}</p>
+              </div>)}
+            </div>
+            {session.locationLookup.status === "candidates" && <section className="call-location" aria-label={t(S.call.conversation.locationTitle)}>
+              <h2>{t(S.call.conversation.locationTitle)}</h2>
+              <p>{t(S.call.conversation.locationNote)}</p>
+              {session.locationLookup.candidates?.map((candidate) => <BigButton key={candidate.id} variant="secondary" disabled={busy} onClick={() => choose("select", candidate.id)}>{candidate.label}</BigButton>)}
+              <BigButton variant="quiet" disabled={busy} onClick={() => choose("reject")}>{t(S.call.conversation.locationReject)}</BigButton>
+            </section>}
+            <div ref={messagesEnd} />
+          </div>
+          <div className="call-composer">
+            <form className="call-reply" onSubmit={sendMessage}>
+              <label className="visually-hidden" htmlFor="call-reply">{t(S.call.conversation.type)}</label>
+              <textarea id="call-reply" rows={2} value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={onMessageKeyDown} maxLength={500} placeholder={t(S.call.conversation.placeholder)} />
+              <BigButton type="submit" disabled={busy || !message.trim()}>{busy ? t(S.call.sending) : t(S.call.conversation.send)}</BigButton>
+            </form>
+            <div className="call-composer-foot"><span className="fine-print">{t(S.call.conversation.enterHint)}</span><button className="call-restart" type="button" onClick={newConversation} disabled={busy}>{t(S.call.conversation.restart)}</button></div>
+          </div>
+        </section>
+        <CallCaseSidebar session={session} busy={busy} onConfirm={confirm} />
+      </div> : mode === "conversation" ? <p>{t(S.call.conversation.unavailable)}</p> :
         <form className="intake" onSubmit={sendForm}>
           <label htmlFor="intake-text">{t(S.call.prompt)}</label>
           <div className="call-hints" role="group" aria-label={t(S.call.helpTitle)}>
