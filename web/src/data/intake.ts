@@ -1,6 +1,6 @@
 /** Intake and desk review calls (contract/api.md). These need the server: in fixture mode they say so. */
 import { ApiError, post, submissionId } from "./api";
-import type { AssistanceType, WaterBand } from "./contract";
+import type { AssistanceType, WaterBand, LocationInput, Location } from "./contract";
 import { apiMode } from "./mode";
 
 export type Sent = { ok: true; reportId: string; statusUrl: string; aiSource: string } | { ok: false; message: string };
@@ -18,12 +18,13 @@ async function send<T>(path: string, body: object): Promise<{ ok: true; value: T
   }
 }
 
-export async function sendRequest(text: string): Promise<Sent> {
-  const r = await send<{ reportId: string; statusUrl: string; aiSource: string }>("/api/intake/text", { text, channel: "text" });
+export async function sendRequest(text: string, location?: LocationInput): Promise<Sent> {
+  const r = await send<{ reportId: string; statusUrl: string; aiSource: string }>("/api/intake/text", { text, channel: "text", ...(location ? { location } : {}) });
   return r.ok ? { ok: true, ...r.value } : r;
 }
 
 export interface Approval {
+  location?: LocationInput;
   segmentId: string;
   people: { adults: number; children: number; infants: number; stretcher: number };
   needs: AssistanceType[];
@@ -40,3 +41,14 @@ export const publishMission = (zoneId: string, reasons: string[]): Promise<Done>
 export const dismissCheck = (zoneId: string, reason: string): Promise<Done> => send(`/api/suggested-checks/${zoneId}/dismiss`, { reason });
 export const linkReport = (reportId: string, caseId: string): Promise<Done> => send(`/api/reports/${reportId}/link`, { caseId });
 export const notSame = (reportId: string, caseId: string): Promise<Done> => send(`/api/reports/${reportId}/not-same`, { caseId });
+
+/** Read-only preview: unlike writes this deliberately has no submissionId. */
+export async function locate(location: LocationInput): Promise<{ ok: true; value: Location } | { ok: false; message: string }> {
+  if (!apiMode()) return { ok: false, message: NEEDS_SERVER };
+  try {
+    const r = await post<{ value: Location }>("/api/locate", { location });
+    return { ok: true, value: r.value };
+  } catch {
+    return { ok: false, message: "locate_failed" };
+  }
+}
