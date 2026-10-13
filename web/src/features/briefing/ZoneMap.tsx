@@ -4,6 +4,8 @@ import { readPackageFile } from "../../data/source";
 import type { AreaBriefingView } from "../../data/contract";
 import { Banner } from "../../ui/components";
 import { fmtTime } from "../../data/format";
+import { useLang } from "../../i18n/lang";
+import { S } from "../../i18n/strings";
 
 /**
  * Offline schematic map of an area, drawn from the flood package (no tiles, no API key).
@@ -74,6 +76,7 @@ export function ZoneMap({
 }) {
   const [layers, setLayers] = useState<Layers | null>(null);
   const [failed, setFailed] = useState(false);
+  const { t } = useLang();
 
   useEffect(() => {
     let alive = true;
@@ -99,8 +102,8 @@ export function ZoneMap({
     return { zones, project, height };
   }, [layers, view]);
 
-  if (failed) return <Banner kind="error">Map unavailable. List and briefing still work.</Banner>;
-  if (!layers || !drawn) return <div className="map-loading">Loading map…</div>;
+  if (failed) return <Banner kind="error">{t(S.briefing.mapUnavailable)}</Banner>;
+  if (!layers || !drawn) return <div className="map-loading">{t(S.briefing.mapLoading)}</div>;
 
   const { zones, project, height } = drawn;
   const byId = new Map(view.zones.map((z) => [z.zoneId, z]));
@@ -112,9 +115,9 @@ export function ZoneMap({
   return (
     <figure className="zone-map">
       {!extentOk && (
-        <Banner kind="stale">Flood extent unavailable. Nothing on this map is shown as dry; callers' reports still show.</Banner>
+        <Banner kind="stale">{t(S.briefing.extentUnavailable)}</Banner>
       )}
-      <svg viewBox={`0 0 ${W} ${height}`} role="img" aria-label={`Map of ${view.label}`}>
+      <svg viewBox={`0 0 ${W} ${height}`} role="img" aria-label={t(S.briefing.mapOf(view.label))}>
         <defs>
           <pattern id="nodata" width="10" height="10" patternUnits="userSpaceOnUse">
             <circle cx="2.5" cy="2.5" r="1.4" className="map-nodata-dot" />

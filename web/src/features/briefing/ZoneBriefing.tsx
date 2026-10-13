@@ -3,26 +3,31 @@ import { ASSISTANCE_LABEL, fmtAgo, fmtDepth, fmtInt, fmtRange, fmtTime } from ".
 import { now } from "../../data/clock";
 import { CountBadge, EstimateRange, PriorityBadge, StatusChip } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
+import { useLang } from "../../i18n/lang";
+import { S, seedText } from "../../i18n/strings";
+import { areaText, bt, unitText } from "../../i18n/briefing";
 
 export function FactValue({ f }: { f: Fact }) {
-  if (f.value === null) return <span className="muted">Unknown</span>;
+  const { t, lang } = useLang();
+  if (f.value === null) return <span className="muted">{t(S.briefing.unknownValue)}</span>;
   return (
     <span className="num">
       {fmtInt(f.value)}
-      {f.of !== undefined && ` of ${fmtInt(f.of)}`}{" "}
-      <span className="fact-unit">{(f.of ?? f.value) === 1 ? f.unit.replace(/s$/, "") : f.unit}</span>
+      {f.of !== undefined && t(S.briefing.of(fmtInt(f.of)))}{" "}
+      <span className="fact-unit">{unitText(f.unit, f.of ?? f.value, lang)}</span>
     </span>
   );
 }
 
 export function FactList({ facts }: { facts: Fact[] }) {
+  const { lang } = useLang();
   return (
     <dl className="facts">
       {facts.map((f) => (
         <div key={f.key} className="fact">
           <dt>
-            {f.label}
-            {f.basis && <span className="fact-basis">{f.basis}</span>}
+            {bt(f.label, lang)}
+            {f.basis && <span className="fact-basis">{bt(f.basis, lang)}</span>}
           </dt>
           <dd>
             <FactValue f={f} />
@@ -35,7 +40,8 @@ export function FactList({ facts }: { facts: Fact[] }) {
 
 /** Zone briefing: facts, the Unknown row, estimate and depth (labelled), cases, segments, briefing text. */
 export function ZoneBriefing({ zone, area, onClose }: { zone: ZoneBriefingView; area: AreaBriefingView; onClose?: () => void }) {
-  const label = (segmentId: string) => zone.segments.find((s) => s.segmentId === segmentId)?.label ?? segmentId;
+  const { t, lang } = useLang();
+  const label = (segmentId: string) => seedText(zone.segments.find((s) => s.segmentId === segmentId)?.label ?? segmentId, lang);
   const evac = zone.facts.find((f) => f.key === "reviewedEvacuation");
 
   return (
@@ -43,13 +49,13 @@ export function ZoneBriefing({ zone, area, onClose }: { zone: ZoneBriefingView; 
       <header className="zb-head">
         <div>
           <p className="muted zb-crumb">
-            {area.label}
+            {areaText(area.areaId, area.label, area.description, lang).label}
             {zone.district && ` · ${zone.district}`}
           </p>
-          <h2 id={`zb-${zone.zoneId}`}>Zone {zone.zoneId}</h2>
+          <h2 id={`zb-${zone.zoneId}`}>{t(S.briefing.zone(zone.zoneId))}</h2>
         </div>
         {onClose && (
-          <button className="icon-btn" onClick={onClose} aria-label="Close zone briefing">
+          <button className="icon-btn" onClick={onClose} aria-label={t(S.briefing.closeZone)}>
             <Icon name="close" size={22} />
           </button>
         )}
@@ -58,69 +64,69 @@ export function ZoneBriefing({ zone, area, onClose }: { zone: ZoneBriefingView; 
       <CountBadge urgent={zone.badge.urgent} unreviewed={zone.badge.unreviewed} empty={zone.status === "no_reports"} />
 
       <section className="zb-headline">
-        <EstimateRange range={fmtRange(zone.estimate.everyone)}>live here</EstimateRange>
+        <EstimateRange range={fmtRange(zone.estimate.everyone)}>{t(S.briefing.liveHere)}</EstimateRange>
         {evac && evac.value !== null && (
           <p className="zb-reviewed">
             <Icon name="check" size={16} />
             <span>
-              <strong className="num">{fmtInt(evac.value)}</strong> reported needing evacuation (reviewed)
+              <strong className="num">{fmtInt(evac.value)}</strong> {t(S.briefing.reviewedEvac)}
             </span>
           </p>
         )}
       </section>
 
       <section>
-        <h3>Facts</h3>
+        <h3>{t(S.briefing.facts)}</h3>
         <FactList facts={zone.facts} />
       </section>
 
-      <section className="unknown-row" aria-label="Unknown">
+      <section className="unknown-row" aria-label={t(S.briefing.unknown)}>
         <h3>
-          <Icon name="question" size={18} /> Unknown
+          <Icon name="question" size={18} /> {t(S.briefing.unknown)}
         </h3>
         {zone.unknown.length ? (
           <ul>
             {zone.unknown.map((u) => (
-              <li key={u.key + (u.ref ?? "")}>{u.text}</li>
+              <li key={u.key + (u.ref ?? "")}>{seedText(bt(u.text, lang), lang)}</li>
             ))}
           </ul>
         ) : (
-          <p className="muted">Nothing listed. Unknown is never zero: ask the desk if in doubt.</p>
+          <p className="muted">{t(S.briefing.unknownNone)}</p>
         )}
       </section>
 
       <section className="zb-estimate">
-        <h3>People here (estimate)</h3>
-        <EstimateRange range={fmtRange(zone.estimate.notYetChecked)}>in segments not yet checked</EstimateRange>
+        <h3>{t(S.briefing.peopleHere)}</h3>
+        <EstimateRange range={fmtRange(zone.estimate.notYetChecked)}>{t(S.briefing.notYetChecked)}</EstimateRange>
         {zone.estimate.modelledFlooded && zone.estimate.basis === "model" && (
-          <EstimateRange range={fmtRange(zone.estimate.modelledFlooded)}>likely flooded at the peak (model)</EstimateRange>
+          <EstimateRange range={fmtRange(zone.estimate.modelledFlooded)}>{t(S.briefing.floodedPeak)}</EstimateRange>
         )}
         {zone.depth && (
           <p className="estimate">
             <Icon name="water" size={16} />
             <span>
-              Water depth <strong>{fmtDepth(zone.depth.modelledM)}</strong>{" "}
-              <span className="estimate-tag">model, not measured</span>
+              {t(S.briefing.waterDepth)} <strong>{fmtDepth(zone.depth.modelledM, 3, lang)}</strong>{" "}
+              <span className="estimate-tag">{t(S.briefing.modelNotMeasured)}</span>
             </span>
           </p>
         )}
-        <p className="fine-print">{area.estimate.label}</p>
+        <p className="fine-print">{bt(area.estimate.label, lang)}</p>
       </section>
 
       <section>
         <h3>
-          <Icon name="water" size={18} /> Water reported by callers
+          <Icon name="water" size={18} /> {t(S.briefing.callerWater)}
         </h3>
         {zone.callerWater.length === 0 ? (
-          <p className="muted">No reviewed caller has described the water here. That doesn't mean it's dry.</p>
+          <p className="muted">{t(S.briefing.noCallerWater)}</p>
         ) : (
           <ul className="water-list">
             {zone.callerWater.map((w) => (
               <li key={w.segmentId} className={w.stale ? "is-stale" : ""}>
-                <strong>{w.bandLabel}</strong> <span className="muted">(about {w.approxM} m)</span>
+                <strong>{bt(w.bandLabel, lang)}</strong> <span className="muted">{t(S.briefing.about(w.approxM))}</span>
                 <span className="fine-print">
-                  {w.landmarkLabel} · {fmtTime(w.latestAt)} · {w.callers} caller{w.callers > 1 ? "s" : ""}
-                  {w.stale && " · older than 6 h, may have changed"}
+                  {seedText(w.landmarkLabel, lang)} · {fmtTime(w.latestAt)} · {t(S.briefing.callers(w.callers))}
+                  {w.stale && t(S.briefing.staleWater)}
                 </span>
               </li>
             ))}
@@ -129,9 +135,9 @@ export function ZoneBriefing({ zone, area, onClose }: { zone: ZoneBriefingView; 
       </section>
 
       <section>
-        <h3>Cases in this zone</h3>
+        <h3>{t(S.briefing.cases)}</h3>
         {zone.cases.length === 0 ? (
-          <p className="muted">No reviewed cases. That doesn't mean no one needs help.</p>
+          <p className="muted">{t(S.briefing.noCases)}</p>
         ) : (
           <ul className="case-list">
             {zone.cases.map((c) => (
@@ -146,16 +152,16 @@ export function ZoneBriefing({ zone, area, onClose }: { zone: ZoneBriefingView; 
                 <ul className="case-needs">
                   {c.assistance.map((a) => (
                     <li key={a.type}>
-                      <span className="need-type">{ASSISTANCE_LABEL[a.type]}</span>
-                      <PriorityBadge priority={a.priority} lang="en" size="sm" />
-                      <StatusChip kind="job" state={a.allocation} lang="en" size="sm" />
+                      <span className="need-type">{S.assistance[a.type] ? t(S.assistance[a.type]) : ASSISTANCE_LABEL[a.type]}</span>
+                      <PriorityBadge priority={a.priority} lang={lang} size="sm" />
+                      <StatusChip kind="job" state={a.allocation} lang={lang} size="sm" />
                       {a.teamId && <span className="muted">{a.teamId}</span>}
-                      {a.note && <span className="muted">· {a.note}</span>}
+                      {a.note && <span className="muted">· {bt(a.note, lang)}</span>}
                     </li>
                   ))}
                 </ul>
                 <p className="fine-print">
-                  Last confirmed {fmtTime(c.lastConfirmedAt)} · {fmtAgo(c.lastConfirmedAt, now())}
+                  {t(S.briefing.lastConfirmed(fmtTime(c.lastConfirmedAt), lang === "en" ? fmtAgo(c.lastConfirmedAt, now()) : t(S.units.ago(Math.floor((now() - Date.parse(c.lastConfirmedAt)) / 60000)))))}
                 </p>
               </li>
             ))}
@@ -164,27 +170,25 @@ export function ZoneBriefing({ zone, area, onClose }: { zone: ZoneBriefingView; 
       </section>
 
       <section>
-        <h3>Segments</h3>
+        <h3>{t(S.briefing.segments)}</h3>
         <ul className="segment-list">
           {zone.segments.map((s) => (
             <li key={s.segmentId} className="segment-row">
               <div>
-                <p>{s.label}</p>
+                <p>{seedText(s.label, lang)}</p>
                 <p className="fine-print num">
-                  About {fmtRange(s.estimate.everyone)} live here (estimate)
-                  {s.depth.modelledM && ` · depth ${fmtDepth(s.depth.modelledM)} (model)`}
-                  {s.cases > 0 && ` · ${s.cases} case${s.cases > 1 ? "s" : ""}`}
+                  {t(S.briefing.segLine(fmtRange(s.estimate.everyone), s.depth.modelledM ? fmtDepth(s.depth.modelledM, 3, lang) : null, s.cases))}
                 </p>
                 {s.check.at && (
                   <p className="fine-print">
                     {fmtTime(s.check.at)} · {s.check.teamId}
-                    {s.check.householdsFound !== undefined && ` · ${s.check.householdsFound} households found`}
-                    {s.check.pickupsNeeded ? ` · ${s.check.pickupsNeeded} pickup needed` : ""}
+                    {s.check.householdsFound !== undefined && t(S.briefing.households(s.check.householdsFound))}
+                    {s.check.pickupsNeeded ? t(S.briefing.pickupNeeded(s.check.pickupsNeeded)) : ""}
                     {s.check.reason && ` · ${s.check.reason}`}
                   </p>
                 )}
               </div>
-              <StatusChip kind="segment" state={s.check.state} lang="en" size="sm" />
+              <StatusChip kind="segment" state={s.check.state} lang={lang} size="sm" />
             </li>
           ))}
         </ul>
@@ -192,17 +196,20 @@ export function ZoneBriefing({ zone, area, onClose }: { zone: ZoneBriefingView; 
 
       <section className="zb-text">
         <h3>
-          <Icon name="sparkle" size={16} /> Briefing
+          <Icon name="sparkle" size={16} /> {t(S.briefing.briefingTitle)}
         </h3>
         {zone.briefing.state === "ready" && zone.briefing.text ? (
           <div className="zb-ai">
-            <p>{zone.briefing.text}</p>
-            <p className="fine-print">Written by AI from the facts above only. Every number and place was checked against them before it was shown.</p>
+            <p lang="en">{zone.briefing.text}</p>
+            <p className="fine-print">
+              {t(S.briefing.aiNote)}
+              {lang === "th" && ` ${t(S.briefing.aiEnglish)}`}
+            </p>
           </div>
         ) : zone.briefing.state === "writing" ? (
-          <p className="muted">Writing the briefing… The facts above are complete without it.</p>
+          <p className="muted">{t(S.briefing.writing)}</p>
         ) : (
-          <p className="muted">Briefing unavailable. The facts above are complete.</p>
+          <p className="muted">{t(S.briefing.briefingUnavailable)}</p>
         )}
       </section>
 

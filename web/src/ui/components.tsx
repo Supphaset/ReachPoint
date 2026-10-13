@@ -41,11 +41,12 @@ export function StatusChip({
 
 /** Count badge for an area or zone row, e.g. "1 urgent · 1 unreviewed". Nothing is shown as "safe". */
 export function CountBadge({ urgent, unreviewed, empty }: { urgent: number; unreviewed: number; empty?: boolean }) {
+  const { t } = useLang();
   if (empty) {
     return (
       <span className="chip chip-unknown chip-sm hatched">
         <Icon name="question" size={14} />
-        <span>No reports yet · not checked</span>
+        <span>{t(S.common.noReports)}</span>
       </span>
     );
   }
@@ -54,13 +55,13 @@ export function CountBadge({ urgent, unreviewed, empty }: { urgent: number; unre
       {urgent > 0 && (
         <span className="chip chip-red chip-sm">
           <Icon name="octagon" size={14} />
-          <span className="num">{urgent} urgent</span>
+          <span className="num">{t(S.common.urgentN(urgent))}</span>
         </span>
       )}
       {unreviewed > 0 && (
         <span className="chip chip-unknown chip-sm">
           <Icon name="question" size={14} />
-          <span className="num">{unreviewed} unreviewed</span>
+          <span className="num">{t(S.common.unreviewedN(unreviewed))}</span>
         </span>
       )}
     </span>
@@ -184,11 +185,12 @@ export function BigButton({
 
 /** A labelled estimate. Always says "estimate", always a range, never added to counts. */
 export function EstimateRange({ range, children }: { range: string; children: ReactNode }) {
+  const { t } = useLang();
   return (
     <p className="estimate">
       <Icon name="people" size={16} />
       <span>
-        About <strong className="num">{range}</strong> {children} <span className="estimate-tag">estimate</span>
+        {t(S.common.about)} <strong className="num">{range}</strong> {children} <span className="estimate-tag">{t(S.common.estimate)}</span>
       </span>
     </p>
   );

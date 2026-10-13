@@ -22,6 +22,7 @@
   --text-lg: 1.25rem;    /* 20 */
   --text-xl: 1.5rem;     /* 24 */
   --text-2xl: 1.875rem;  /* 30 */
+  --text-3xl: 2.5rem;    /* 40: start page headline on wide screens */
   --leading: 1.5;        /* Thai needs room for marks above and below */
   --weight-regular: 400;
   --weight-medium: 500;

@@ -9,6 +9,9 @@ import { Icon } from "../../ui/Icon";
 import { FactList, ZoneBriefing } from "./ZoneBriefing";
 import { GaugeLine, RainLine } from "./Rain";
 import { ZoneMap } from "./ZoneMap";
+import { useLang } from "../../i18n/lang";
+import { S, seedText } from "../../i18n/strings";
+import { areaText } from "../../i18n/briefing";
 import "./briefing.css";
 
 const AREAS = ["P-A", "P-B", "P-C"];
@@ -22,11 +25,12 @@ export function BriefingPage() {
 }
 
 function AreaList() {
+  const { t } = useLang();
   return (
     <div className="page">
       <header className="page-head">
-        <h1>Areas</h1>
-        <p className="muted">Hat Yai, flood of Nov 2025 (synthetic demo records)</p>
+        <h1>{t(S.briefing.areas)}</h1>
+        <p className="muted">{t(S.briefing.areasLead)}</p>
       </header>
       <ul className="area-list">
         {AREAS.map((id) => (
@@ -39,19 +43,21 @@ function AreaList() {
 
 function AreaRow({ areaId }: { areaId: string }) {
   const v = useView<AreaBriefingView>(`views/areaBriefing/${areaId}`);
+  const { t, lang } = useLang();
   if (v.status !== "ready")
     return (
       <li className="area-row">
-        {v.status === "loading" ? <Skeleton lines={2} /> : <Banner kind="error">{areaId}: briefing unavailable</Banner>}
+        {v.status === "loading" ? <Skeleton lines={2} /> : <Banner kind="error">{t(S.briefing.unavailable(areaId))}</Banner>}
       </li>
     );
   const a = v.data;
+  const txt = areaText(a.areaId, a.label, a.description, lang);
   return (
     <li>
       <Link to={`/team/map/${a.areaId}${window.location.search}`} className="area-row">
         <div className="row-main">
-          <h2>{a.label}</h2>
-          <p className="muted">{a.description}</p>
+          <h2>{txt.label}</h2>
+          <p className="muted">{txt.description}</p>
           <CountBadge urgent={a.badge.urgent} unreviewed={a.badge.unreviewed} />
         </div>
         <Icon name="chevron" size={22} />
@@ -76,6 +82,7 @@ function AreaScreen({ areaId, zoneId }: { areaId: string; zoneId: string | null 
   const v = useView<AreaBriefingView>(`views/areaBriefing/${areaId}`);
   const navigate = useNavigate();
   const narrow = useNarrow();
+  const { t } = useLang();
   const [mode, setMode] = useState<"list" | "map">("list");
   const keep = window.location.search;
   const openZone = (id: string | null) => navigate(`/team/map/${areaId}${id ? `/${id}` : ""}${keep}`);
@@ -89,14 +96,14 @@ function AreaScreen({ areaId, zoneId }: { areaId: string; zoneId: string | null 
   if (v.status === "missing")
     return (
       <div className="page">
-        <Banner kind="info">No briefing for area {areaId}.</Banner>
+        <Banner kind="info">{t(S.briefing.noBriefing(areaId))}</Banner>
       </div>
     );
   if (v.status === "error")
     return (
       <div className="page">
-        <Banner kind="error" action={{ label: "Try again", onClick: () => window.location.reload() }}>
-          Area briefing unavailable. {v.message}
+        <Banner kind="error" action={{ label: t(S.common.tryAgain), onClick: () => window.location.reload() }}>
+          {t(S.briefing.areaUnavailable)} {v.message}
         </Banner>
       </div>
     );
@@ -122,10 +129,10 @@ function AreaScreen({ areaId, zoneId }: { areaId: string; zoneId: string | null 
   if (narrow)
     return (
       <div className="area-screen is-narrow">
-        <div className="segmented" role="tablist" aria-label="View">
+        <div className="segmented" role="tablist" aria-label={t(S.briefing.view)}>
           {(["list", "map"] as const).map((m) => (
             <button key={m} role="tab" aria-selected={mode === m} onClick={() => setMode(m)}>
-              <Icon name={m} size={18} /> {m === "list" ? "List" : "Map"}
+              <Icon name={m} size={18} /> {m === "list" ? t(S.briefing.list) : t(S.briefing.map)}
             </button>
           ))}
         </div>
@@ -151,26 +158,29 @@ function AreaScreen({ areaId, zoneId }: { areaId: string; zoneId: string | null 
 }
 
 function AreaHeader({ area, offline, stale }: { area: AreaBriefingView; offline: boolean; stale: boolean }) {
+  const { t, lang } = useLang();
+  const txt = areaText(area.areaId, area.label, area.description, lang);
   return (
     <header className="area-head">
       <Link to={`/team/map${window.location.search}`} className="back-link">
-        <Icon name="back" size={18} /> Areas
+        <Icon name="back" size={18} /> {t(S.briefing.areas)}
       </Link>
-      <h1>{area.label}</h1>
-      <p className="muted">{area.description}</p>
+      <h1>{txt.label}</h1>
+      <p className="muted">{txt.description}</p>
       <LastUpdated at={area.generatedAt} offline={offline} />
-      {offline && <Banner kind="offline">Offline. Showing the last data received; reconnecting.</Banner>}
-      {!offline && stale && <Banner kind="stale">This briefing is old. Check with the desk before you go.</Banner>}
+      {offline && <Banner kind="offline">{t(S.briefing.offline)}</Banner>}
+      {!offline && stale && <Banner kind="stale">{t(S.briefing.old)}</Banner>}
       <CountBadge urgent={area.badge.urgent} unreviewed={area.badge.unreviewed} />
       <FactList facts={area.facts} />
-      <EstimateRange range={fmtRange(area.estimate.notYetChecked)}>in segments not yet checked</EstimateRange>
+      <EstimateRange range={fmtRange(area.estimate.notYetChecked)}>{t(S.briefing.notYetChecked)}</EstimateRange>
       <GaugeLine areaId={area.areaId} />
-      <RainLine areaId={area.areaId} labels={Object.fromEntries(area.zones.flatMap((z) => z.segments.map((s) => [s.segmentId, s.label])))} />
+      <RainLine areaId={area.areaId} labels={Object.fromEntries(area.zones.flatMap((z) => z.segments.map((s) => [s.segmentId, seedText(s.label, lang)])))} />
     </header>
   );
 }
 
 function ZoneRow({ zone, selected, onOpen }: { zone: ZoneBriefingView; selected: boolean; onOpen: () => void }) {
+  const { t, lang } = useLang();
   const evac = zone.facts.find((f) => f.key === "reviewedEvacuation")?.value;
   return (
     <li>
@@ -181,11 +191,8 @@ function ZoneRow({ zone, selected, onOpen }: { zone: ZoneBriefingView; selected:
             {zone.district && <span className="muted">{zone.district}</span>}
             <CountBadge urgent={zone.badge.urgent} unreviewed={zone.badge.unreviewed} empty={zone.status === "no_reports"} />
           </div>
-          <p className="zone-row-line num">
-            About {fmtRange(zone.estimate.everyone)} live here (estimate)
-            {evac ? ` · ${evac} reported needing evacuation` : ""}
-          </p>
-          {zone.depth && <p className="fine-print">Depth {fmtDepth(zone.depth.modelledM)} (model)</p>}
+          <p className="zone-row-line num">{t(S.briefing.zoneLine(fmtRange(zone.estimate.everyone), evac ?? null))}</p>
+          {zone.depth && <p className="fine-print">{t(S.briefing.depthModel(fmtDepth(zone.depth.modelledM, 3, lang)))}</p>}
         </div>
         <Icon name="chevron" size={20} />
       </button>
