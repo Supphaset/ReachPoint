@@ -47,6 +47,7 @@ export function CallPage() {
   const [heard, setHeard] = useState("");
   const [focusEnd, setFocusEnd] = useState(0);
   const box = useRef<HTMLTextAreaElement>(null);
+  const replyBox = useRef<HTMLTextAreaElement>(null);
   const voice = useRef<GeminiLiveVoice | null>(null);
   const messagesEnd = useRef<HTMLDivElement>(null);
 
@@ -75,7 +76,7 @@ export function CallPage() {
     return () => { cancelled = true; voice.current?.stop(); voice.current = null; };
   }, []);
 
-  useEffect(() => { messagesEnd.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [session?.messages.length]);
+  useEffect(() => { messagesEnd.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" }); }, [session?.messages.length]);
   useEffect(() => {
     const el = box.current;
     if (!focusEnd || !el) return;
@@ -245,13 +246,19 @@ export function CallPage() {
             </dialog>
           </div>}
           <div className="call-composer">
+            {!session.messages.some(item => item.role === "user") && <div className="call-first-replies" role="group" aria-label={t(S.call.conversation.firstRepliesLabel)}>
+              {S.call.conversation.firstReplies.map(reply => <button key={reply.en} type="button" className="call-hint" onClick={() => {
+                setMessage(value => value.trim() ? `${value.replace(/\s+$/, "")} ${t(reply)}` : t(reply));
+                replyBox.current?.focus();
+              }}>{t(reply)}</button>)}
+            </div>}
             <form className={`call-reply ${config?.voice ? "has-voice" : ""}`} onSubmit={sendMessage}>
               {config?.voice && <button type="button" className={`btn btn-secondary call-voice-btn ${voiceState !== "off" ? "is-on" : ""}`}
                 aria-pressed={voiceState !== "off"} onClick={voiceState === "off" ? startVoice : stopVoice}
                 aria-label={voiceState === "off" ? t(S.call.conversation.voiceStart) : t(S.call.conversation.voiceStop)}
                 title={voiceState === "off" ? t(S.call.conversation.voiceStart) : t(S.call.conversation.voiceStop)}><Icon name="mic" /></button>}
               <label className="visually-hidden" htmlFor="call-reply">{t(S.call.conversation.type)}</label>
-              <textarea id="call-reply" rows={2} value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={onMessageKeyDown} maxLength={500} placeholder={t(S.call.conversation.placeholder)} />
+              <textarea id="call-reply" ref={replyBox} rows={2} value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={onMessageKeyDown} maxLength={500} placeholder={t(S.call.conversation.placeholder)} />
               <BigButton type="submit" disabled={busy || locating || !message.trim()}>{busy ? t(S.call.sending) : t(S.call.conversation.send)}</BigButton>
             </form>
             <div className="call-composer-foot"><span className="fine-print">{t(S.call.conversation.enterHint)}</span><span className="call-composer-links"><button className="call-restart" type="button" onClick={() => setMode("form")}>{t(S.call.conversation.formLink)}</button><button className="call-restart" type="button" onClick={newConversation} disabled={busy}>{t(S.call.conversation.restart)}</button></span></div>

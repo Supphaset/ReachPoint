@@ -100,3 +100,16 @@ def test_a_question_needs_a_similar_case_and_links_nothing(m):
     assert s.propose_question("R-001", "C-03", "บ้านของคุณ หรืออีกครอบครัวที่วัด? " * 10)["ok"]
     slot = s.proposals["R-001"]
     assert slot["question"]["caseId"] == "C-03" and len(slot["question"]["text"]) <= 160 and slot["links"] == []
+
+
+def test_rank_keeps_thai_reason_and_caps_it(m):
+    s = TriageSession(m.store, m.clock.iso())
+    assert s.propose_rank("R-002", "Danger sign", "grandma is now unconscious", "มีผู้หมดสติ")["ok"]
+    assert s.proposals["R-002"]["rank"]["reasonTh"] == "มีผู้หมดสติ"
+    s.propose_rank("R-002", "Danger sign", reason_th="ก" * 200)
+    assert s.proposals["R-002"]["rank"]["reasonTh"] == "ก" * 160
+    s.propose_rank("R-003", "No danger sign read")
+    assert s.proposals["R-003"]["rank"]["reasonTh"] == ""
+    rules = rule_proposals(m.store, m.clock.iso())["proposals"]
+    assert rules["R-002"]["rank"]["reasonTh"].startswith("สัญญาณอันตราย: ")
+    assert rules["R-003"]["rank"]["reasonTh"] == "ไม่พบสัญญาณอันตราย"

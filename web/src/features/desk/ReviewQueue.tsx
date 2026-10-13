@@ -86,7 +86,7 @@ export function ReviewQueue({ onCount }: { onCount?: (n: number) => void }) {
 }
 
 function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueView["landmarks"]; onDone: (message?: string, remove?: boolean) => void }) {
-  const { t } = useLang();
+  const { t, pick } = useLang();
   const f = r.proposal.facts;
   const [segmentId, setSegment] = useState((r.location?.status === "located" ? r.location.segmentId : undefined) ?? r.suggestedSegment?.segmentId ?? "");
   const [location, setLocation] = useState<LocationInput>();
@@ -139,14 +139,14 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
       <DeskLocation location={resolvedLocation} disabled={busy} onApply={(input, resolved) => {
         setLocation(input); setResolvedLocation(resolved); setSegment(resolved.segmentId ?? "");
       }} />
-      <ProposalCard title={f.summary || t(S.desk.facts)} label={t(S.desk.proposal)}>
+      <ProposalCard title={pick(f.summary, f.summaryTh) || t(S.desk.facts)} label={t(S.desk.proposal)}>
         <table className="desk-facts"><thead><tr><th>{t(S.desk.fact)}</th><th>{t(S.desk.value)}</th><th>{t(S.desk.quote)}</th></tr></thead>
           <tbody>
             <tr><th>{t(S.desk.kind)}</th><td>{t(S.desk[f.kind])}</td><td>{f.kindQuote && <q>{f.kindQuote}</q>}</td></tr>
             {f.people && <tr><th>{t(S.desk.people)}</th><td>{(["adults", "children", "infants", "stretcher"] as const).map(k => `${t(S.desk[k])}: ${f.people![k]}`).join(" · ")}</td><td><q>{f.people.quote}</q></td></tr>}
             {f.needs.map(x => <tr key={x.type}><th>{t(S.desk.help)}</th><td>{t(S.desk[x.type])}</td><td><q>{x.quote}</q></td></tr>)}
             {f.water && <tr><th>{t(S.desk.water)}</th><td>{t(S.desk[f.water.band])}</td><td><q>{f.water.quote}</q></td></tr>}
-            {f.place && <tr><th>{t(S.desk.place)}</th><td>{f.place.text}</td><td><q>{f.place.quote}</q></td></tr>}
+            {f.place && <tr><th>{t(S.desk.place)}</th><td>{pick(f.place.text, f.place.textTh)}</td><td><q>{f.place.quote}</q></td></tr>}
             {f.dangerSigns.map(d => <tr key={d.quote}><th>{t(S.desk.danger)}</th><td>{d.text}{d.by && <span className="fine-print"> · {t(S.desk.keywordCheck)}</span>}</td><td><q>{d.quote}</q></td></tr>)}
             {f.cantWalk && <tr><th>{t(S.desk.stretcher)}</th><td>{t(S.desk.stretcherNeeded)}</td><td><q>{f.cantWalk.quote}</q></td></tr>}
           </tbody>
@@ -155,7 +155,7 @@ function Row({ r, landmarks, onDone }: { r: ReviewRow; landmarks: ReviewQueueVie
       </ProposalCard>
       {r.triage && (r.triage.links.length > 0 || r.triage.rank || r.triage.question) && (
         <ProposalCard title={t(S.desk.triage)} label={t(S.desk.proposal)}>
-          {r.triage.rank && <p className="fine-print">{r.triage.rank.reason}</p>}
+          {r.triage.rank && <p className="fine-print">{pick(r.triage.rank.reason, r.triage.rank.reasonTh)}</p>}
           {r.triage.question && (
             <div className="triage-link">
               <p>{t(S.desk.askCaller(r.triage.question.caseId))} <q>{r.triage.question.text}</q></p>

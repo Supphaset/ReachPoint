@@ -436,11 +436,12 @@ export interface ProposedFacts {
   people: ({ adults: number; children: number; infants: number; stretcher: number } & Quoted) | null;
   needs: ({ type: AssistanceType } & Quoted)[];
   water: ({ band: WaterBand } & Quoted) | null;
-  place: ({ text: string } & Quoted) | null;
+  place: ({ text: string; textTh?: string } & Quoted) | null;
   /** `by: "keyword check"`: a danger word the caller used that the AI left out, added back for you to confirm. */
   dangerSigns: ({ text: string; by?: "keyword check" } & Quoted)[];
   cantWalk: Quoted | null;
   summary: string;
+  summaryTh?: string;
 }
 /** D25: caller input, resolved by the server; exact points are restricted. */
 export type LocationInput =
@@ -478,7 +479,7 @@ export interface ReviewRow {
     source: string;
     at: string;
     links: { caseId: string; place: string; people: number; reason: string; quote: string; newHazard: boolean }[];
-    rank: { reason: string; quote: string; danger: string[] } | null;
+    rank: { reason: string; reasonTh?: string; quote: string; danger: string[] } | null;
     /** Same place, unclear whether it is the same household: a question for you to ask the caller. */
     question?: { caseId: string; text: string } | null;
     /** The tools the agent itself chose to call for this request, in order (from the ADK events). */

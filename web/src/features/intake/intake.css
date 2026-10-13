@@ -192,3 +192,10 @@ a.call-danger span { flex: 1; }
 /* Composer links are real tap targets; a disabled Send looks calm, not broken */
 .call-restart { min-height: var(--tap-min); padding-inline: var(--space-2); font-size: var(--text-sm); }
 .call-reply .btn:disabled { opacity: 1; background: var(--color-surface-sunken); color: var(--color-ink-3); border-color: var(--color-line); }
+
+.call-case-title { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+.call-case-count { flex: none; padding: var(--space-1) var(--space-2); border-radius: var(--radius-pill); background: var(--color-waiting-bg); color: var(--color-brand); font-size: var(--text-xs); font-weight: var(--weight-medium); }
+.call-case-needed { color: var(--color-ink-3); font-size: var(--text-sm); overflow-wrap: anywhere; }
+.call-first-replies { display: flex; flex-wrap: nowrap; gap: var(--space-2); min-width: 0; overflow-x: auto; padding: var(--space-1); }
+.call-first-replies .call-hint { flex: none; white-space: nowrap; }
+.call-first-replies .call-hint:focus-visible { outline: var(--border-thin) solid var(--color-focus); outline-offset: var(--space-1); }

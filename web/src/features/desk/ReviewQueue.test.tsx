@@ -67,6 +67,24 @@ describe("desk inbox", () => {
     expect(out).toContain("Please help our family");
     expect(out).not.toContain("Coordinator desk");
   });
+  it("shows AI summary, place and rank in the desk language with an English fallback", () => {
+    const r = report("R-language", "Synthetic caller quote");
+    r.proposal.facts.summary = "Family needs a boat";
+    r.proposal.facts.summaryTh = "ครอบครัวต้องการเรือ";
+    r.proposal.facts.place = { text: "School", textTh: "โรงเรียน", quote: "Synthetic caller quote" };
+    r.triage = { source: "fixture", at: "", links: [], rank: { reason: "No danger sign read", reasonTh: "ไม่พบสัญญาณอันตราย", quote: "", danger: [] } };
+    setup([r]);
+    const thai = renderToStaticMarkup(<LangProvider lang="th"><ReviewQueue /></LangProvider>);
+    for (const text of ["ครอบครัวต้องการเรือ", "โรงเรียน", "ไม่พบสัญญาณอันตราย", "Synthetic caller quote"]) expect(thai).toContain(text);
+    for (const text of ["Family needs a boat", "School", "No danger sign read"]) expect(thai).not.toContain(text);
+    const english = renderToStaticMarkup(<LangProvider lang="en"><ReviewQueue /></LangProvider>);
+    for (const text of ["Family needs a boat", "School", "No danger sign read"]) expect(english).toContain(text);
+    r.proposal.facts.summaryTh = "";
+    delete r.proposal.facts.place.textTh;
+    delete r.triage.rank!.reasonTh;
+    const fallback = renderToStaticMarkup(<LangProvider lang="th"><ReviewQueue /></LangProvider>);
+    for (const text of ["Family needs a boat", "School", "No danger sign read"]) expect(fallback).toContain(text);
+  });
   it("retains duplicate controls and refuses to link a new danger away", () => {
     const r = report("R-3", "Help");
     r.triage = { source: "fixture", at: "", rank: null, links: [{ caseId: "C-03", place: "L2", people: 2, reason: "Same words", quote: "Help", newHazard: false }] };

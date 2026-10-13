@@ -259,6 +259,16 @@ export const S = {
   call: {
     title: p("Ask for help", "ขอความช่วยเหลือ"),
     conversation: {
+      firstReplies: [
+        p("Water in the house", "น้ำเข้าบ้าน"),
+        p("Someone is trapped", "มีคนติดอยู่"),
+        p("Older or sick person", "มีผู้สูงอายุหรือคนป่วย"),
+        p("We need a boat", "ต้องการเรือ"),
+      ],
+      firstRepliesLabel: p("Suggested first replies", "คำตอบแรกที่แนะนำ"),
+      caseCollected: (known: number, total: number): Pair => p(`${known} of ${total} details collected`, `รวบรวมแล้ว ${known} จาก ${total} ข้อ`),
+      caseStillNeeded: (labels: string): Pair => p(`Still needed: ${labels}`, `ยังต้องการ: ${labels}`),
+      caseSkipped: p("skipped", "ข้าม"),
       tab: p("Chat or voice", "แชตหรือพูดคุย"),
       formTab: p("Write one message", "พิมพ์ครั้งเดียว"),
       done: p("Done", "เสร็จ"),
