@@ -465,7 +465,11 @@ export interface ReviewQueueView {
   reports: ReviewRow[];
   landmarks: { segmentId: string; label: string }[];
 }
+export interface ReceiptResponse { answer: "yes" | "no"; at: string }
+
 export interface ResidentStatusView {
+  receipt?: ReceiptResponse | null;
+  completedAt?: (string | null)[];
   reportId: string;
   caseId?: string;
   generatedAt: string;

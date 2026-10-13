@@ -30,10 +30,12 @@ from concurrent.futures import ThreadPoolExecutor
 from api.ai import briefing_text, triage
 from api.intake.extract import extract
 from api.intake import conversation
+from api.intake.facts import FloodCase, render_fields, render_summary
+from api.intake.schema import HELP_REQUEST_FIELDS, HelpRequestDetails
 from api.intake.live_voice import router as live_voice_router
 from api.location.resolve import resolve as resolve_location
 from api.server.memory import Clock, MemoryStore, NotFound, Refused
-from api.server.sqlite_store import HELP_REQUEST_FIELDS, SQLiteMemoryStore, SQLiteState
+from api.server.sqlite_store import SQLiteMemoryStore, SQLiteState
 from api.views.briefing import area_briefing
 from api.views.desk import rain_view, rising_water_view, zone_order_view
 from api.views.resident import resident_status
@@ -332,6 +334,13 @@ class CallConfirm(BaseModel):
     expectedRevision: int = Field(ge=0)
 
 
+class CallForm(HelpRequestDetails):
+    phone_number: str = Field(min_length=1, max_length=100)
+    type: Literal["food", "evacuation"]
+    submissionId: str = Field(min_length=1, max_length=100)
+    expectedRevision: int = Field(ge=0)
+
+
 class Locate(BaseModel):
     location: LocationInput
 
@@ -365,29 +374,34 @@ def intake_text(b: Intake):
     return {"ok": True, "value": {**v, "statusUrl": f"/status/{v['statusToken']}", "aiSource": proposal["source"]}}
 
 
+@app.get("/api/callers/config")
 @app.get("/api/call/config")
 def call_config():
     available = USE_AI and conversation.configured()
     return {"chat": available, "voice": available and os.environ.get("REACHPOINT_VOICE", "off") == "on"}
 
 
+@app.post("/api/callers/sessions")
 @app.post("/api/call/sessions")
 def start_call():
     return conversation.create().snapshot()
 
 
+@app.get("/api/callers/sessions/{session_id}")
 @app.get("/api/call/sessions/{session_id}")
 def read_call(session_id: str):
     return conversation.get(session_id).snapshot()
 
 
+@app.post("/api/callers/sessions/{session_id}/turn")
 @app.post("/api/call/sessions/{session_id}/turn")
 async def call_turn(session_id: str, b: CallTurn):
     if not USE_AI:
         raise HTTPException(503, "Conversation mode is disabled on this server.")
-    return await conversation.turn(conversation.get(session_id), b.text, b.turnId)
+    return await conversation.turn(conversation.get(session_id), b.text, b.turnId, channel="chat")
 
 
+@app.post("/api/callers/sessions/{session_id}/location")
 @app.post("/api/call/sessions/{session_id}/location")
 async def call_location(session_id: str, b: CallLocation):
     return await conversation.choose_location(conversation.get(session_id), b.query, b.action, b.locationId)
@@ -446,6 +460,38 @@ async def submit_call_session(session: conversation.Conversation, _submission_id
         return session.snapshot()
 
 
+@app.post("/api/callers/sessions/{session_id}/form")
+async def submit_caller_form(session_id: str, b: CallForm):
+    session = conversation.get(session_id)
+    async with session.lock:
+        if session.sent:
+            return session.snapshot()
+        if b.expectedRevision != session.revision:
+            raise HTTPException(409, "The details changed. Review the latest details before submitting.")
+        details = b.model_dump(include=set(HelpRequestDetails.model_fields))
+        if all(value is None for value in details.values()):
+            raise HTTPException(422, "Enter the details of your request before submitting.")
+        before = session.record()
+        case = FloodCase(**details, immediate_danger=session.case.immediate_danger,
+                         unavailable_fields=[key for key, value in details.items() if value is None])
+        lookup = session.lookup
+        if case.coordinates != session.case.coordinates or case.location != session.case.location:
+            lookup = {"status": "skipped"}
+            if case.coordinates:
+                lat, lon = (float(part.strip()) for part in case.coordinates.split(","))
+                lookup = {"status": "confirmed", "lat": lat, "lon": lon, "method": "map"}
+        elif lookup.get("status") == "candidates":
+            lookup = {"status": "skipped"}
+        session.case, session.lookup, session.channel = case, lookup, "form"
+        session.messages = [*session.messages, {"role": "user", "text": render_fields(case)},
+                            {"role": "assistant", "text": render_summary(case)}]
+        session.revision += 1
+        conversation.save_change(session, before)
+        revision = session.revision
+    return await submit_call_session(session, b.submissionId, revision)
+
+
+@app.post("/api/callers/sessions/{session_id}/confirm")
 @app.post("/api/call/sessions/{session_id}/confirm")
 async def confirm_call(session_id: str, b: CallConfirm):
     return await submit_call_session(conversation.get(session_id), b.submissionId, b.expectedRevision)
@@ -520,6 +566,21 @@ def status(token: str):
     if v is None:
         raise NotFound("status link")
     return v
+
+
+class ReceiptResponse(BaseModel):
+    answer: Literal["yes", "no"]
+    submissionId: str = Field(min_length=1, max_length=100)
+
+
+@app.post("/api/status/{token}/receipt")
+def status_receipt(token: str, b: ReceiptResponse):
+    with memory.lock:
+        ref = memory.store.seed.get("statusTokens", {}).get(token)
+        if ref is None:
+            raise NotFound("status link")
+        report_id = ref["reportId"]
+    return memory.write(f"RECEIPT-{report_id}-{b.submissionId}", lambda: memory.record_receipt(token, b.answer))["value"]
 
 
 class Publish(Write):

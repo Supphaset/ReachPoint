@@ -1,0 +1,16 @@
+.tracking-link-card { display: grid; gap: var(--space-2); padding: var(--space-4); border: 2px solid var(--color-brand); border-radius: var(--radius-lg); background: var(--color-waiting-bg); }
+.tracking-copy { width: 100%; min-height: calc(var(--tap-min) + var(--space-3)); justify-content: center; white-space: normal; text-align: center; }
+.tracking-link-card p, .tracking-demo p { margin: 0; font-size: var(--text-sm); }
+.tracking-link-card input { width: 100%; box-sizing: border-box; padding: var(--space-2); font: inherit; border: 1px solid var(--color-line-strong); border-radius: var(--radius-md); }
+.tracking-demo { display: grid; gap: var(--space-3); padding: var(--space-4); border: 1px dashed var(--color-line-strong); border-radius: var(--radius-lg); background: var(--color-surface-sunken); }
+.tracking-demo > .btn { justify-content: center; }
+.tracking-demo-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.tracking-demo-actions .btn { flex: 1; }
+
+.tracking-receipt { display: grid; gap: var(--space-3); padding: var(--space-4); border: 2px solid var(--color-brand); border-radius: var(--radius-lg); background: var(--color-surface); }
+.tracking-receipt h2, .tracking-receipt p { margin: 0; }
+.tracking-receipt h2 { font-size: var(--text-lg); }
+.tracking-receipt-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.tracking-receipt-actions .btn { justify-content: center; }
+.tracking-receipt-actions [aria-pressed="true"] { outline: 2px solid var(--color-brand); outline-offset: 3px; }
+.tracking-time-label { margin: 0; font-size: var(--text-xs); color: var(--color-ink-2); }

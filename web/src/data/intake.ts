@@ -18,8 +18,8 @@ async function send<T>(path: string, body: object): Promise<{ ok: true; value: T
   }
 }
 
-export async function sendRequest(text: string): Promise<Sent> {
-  const r = await send<{ reportId: string; statusUrl: string; aiSource: string }>("/api/intake/text", { text, channel: "text" });
+export async function sendRequest(text: string, path = "/api/intake/text"): Promise<Sent> {
+  const r = await send<{ reportId: string; statusUrl: string; aiSource: string }>(path, { text, channel: "text" });
   return r.ok ? { ok: true, ...r.value } : r;
 }
 

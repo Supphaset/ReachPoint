@@ -205,3 +205,37 @@ Teams still use existing claim/window/progress rules. Plan identity changes with
 (or the minute-level snapshot); stale asks write no new event. Medical and supplies remain separate existing workflows.
 The current demo-role access model is retained; production authentication and automatic AI-read assistance filing are
 explicit friend-owned handoffs.
+
+### Caller page and shared request schema
+
+The `/callers` page has Chat, Voice and Form modes. `/api/callers/config`, `/api/callers/sessions` and its read/turn/location/confirm/live routes use the same handlers as `/api/call/...`.
+
+`POST /api/callers/sessions/{id}/form` accepts the 13 editable fields below plus `submissionId` and `expectedRevision`. `phone_number` and `type` are required for new requests; other fields are nullable. Phone numbers contain 7–15 digits and may start with `+`; spaces, hyphens, dots and parentheses are removed without changing a leading zero or country prefix. `type` is exactly `food` or `evacuation`. Counts must be nonnegative integers, and coordinates use `latitude, longitude`. The form is reviewed directly before the caller submits it. The API rejects stale revisions, uses the same confirmation/persistence path as conversation intake, and returns the conversation snapshot with `sent`. Retries for the same session return the existing report.
+
+All three modes save exactly these columns in `help_requests`:
+
+```text
+report_id
+channel
+phone_number
+type
+people_details
+n_children
+n_elders
+n_pets
+location
+coordinates
+location_details
+water_level
+situation_details
+emergency_detail
+other_details
+```
+
+`report_id` is server-generated. New form, chat and voice requests cannot be confirmed without `phone_number` and `type`, even if those fields are marked unavailable during conversation. Phone numbers support a later follow-up about help received; this change does not send messages. Existing rows retain null for these new fields until collected, and existing saved requests remain readable and retryable. `channel` is `chat`, `voice` or `form`; mixed chat/voice sessions use the latest recorded input mode. The Python model in `api/intake/schema.py` defines the shared fields, and `web/src/data/call.ts` defines the matching browser types. Unknown values stay null; zero means a reported absence. Conversation control state (danger flag, contradictions, unavailable fields, revisions, messages and status tokens) is separate from the stored request columns. No caller name is requested, extracted or stored as a field. See [decision 0012](../docs/decisions/0012-shared-caller-schema.md).
+
+### Caller receipt response and step times
+
+`GET /api/status/{token}` also returns the latest `receipt` (`{answer: yes | no, at}` or null) and `completedAt`, a four-entry timestamp/null array: report received, report reviewed, volunteer visit completed, and caller-confirmed receipt. No timestamp is invented for an unknown historical event.
+
+`POST /api/status/{token}/receipt` accepts `answer: yes | no` and `submissionId`. Possession of this request's private status token grants access to respond for this report only. The API records the response and server timestamp, preserves earlier responses, and scopes retries to the report. Yes supplies the final completion timestamp; No leaves it unset. Responses do not close volunteer allocations or alter confirmed quantities. Demo controls and demo receipt answers never call this endpoint.

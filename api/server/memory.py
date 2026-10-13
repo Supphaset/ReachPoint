@@ -117,6 +117,14 @@ class MemoryStore:
                 self.done[submission_id] = result
             return result
 
+    def record_receipt(self, token: str, answer: str) -> dict:
+        ref = self.store.seed.get("statusTokens", {}).get(token)
+        if ref is None:
+            raise NotFound("status link")
+        response = {"answer": answer, "at": self.clock.iso()}
+        self.store.seed.setdefault("receiptResponses", {}).setdefault(ref["reportId"], []).append(response)
+        return response
+
     # --- team actions (C6) ---
 
     def claim(self, listing_id: str, team_id: str, group_ids: list[str], expected_revision: int) -> dict:

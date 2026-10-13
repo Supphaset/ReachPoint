@@ -34,7 +34,7 @@ export class GeminiLiveVoice {
   private nextPlaybackTime = 0;
   private stopped = false;
 
-  constructor(private sessionId: string, private callbacks: LiveCallbacks) {}
+  constructor(private sessionId: string, private callbacks: LiveCallbacks, private apiBase = "/api/call") {}
 
   async start(): Promise<void> {
     this.context = new AudioContext();
@@ -45,7 +45,7 @@ export class GeminiLiveVoice {
       });
       const base = new URL((import.meta.env.VITE_API_URL as string | undefined) || window.location.origin, window.location.origin);
       base.protocol = base.protocol === "https:" ? "wss:" : "ws:";
-      const socket = new WebSocket(new URL(`/api/call/sessions/${this.sessionId}/live`, base));
+      const socket = new WebSocket(new URL(`${this.apiBase}/sessions/${this.sessionId}/live`, base));
       this.socket = socket;
       socket.binaryType = "arraybuffer";
       await new Promise<void>((resolve, reject) => {

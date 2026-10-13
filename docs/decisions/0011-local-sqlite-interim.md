@@ -13,6 +13,10 @@ The user then requested a shared chat/voice question flow and a reviewable manua
 
 This is a single-process local bridge, not a change to the selected shared deployment database in [0009](0009-implementation-start-and-technical-direction.md). The file stays outside Git and contains synthetic demo information only. The demo reset clears it. Raw audio is streamed to Gemini Live but not saved by this adapter.
 
+## Schema amendment — 13 Oct 2026
+
+[Decision 0012](0012-shared-caller-schema.md) replaces the original 14-column shape with 13 columns, removes `reporter_name`, and adds structured Form submissions alongside Chat and Voice. The original approval above remains historical context.
+
 ## Why and limits
 
 The caller's confirmed report and its status link need to remain usable after restarting the local server. Saving the full operational snapshot keeps coordinator and team updates consistent with that report while the final database is unfinished. The structured row makes the reported information directly inspectable in SQLite. The API routes and rule methods stay the same.

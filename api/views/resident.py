@@ -70,7 +70,12 @@ def resident_status(store: Store, token: str, now: str) -> dict | None:
     if ref is None:
         return None
     report = next((r for r in store.seed.get("reports", []) if r["reportId"] == ref["reportId"]), None)
-    base = {"reportId": ref["reportId"], "generatedAt": now, "label": "Your request (ReachPoint demo, synthetic)"}
+    responses = store.seed.get("receiptResponses", {}).get(ref["reportId"], [])
+    receipt = responses[-1] if responses else None
+    times = [(report or {}).get("receivedAt"), (report or {}).get("reviewedAt"), None,
+             receipt["at"] if receipt and receipt["answer"] == "yes" else None]
+    base = {"reportId": ref["reportId"], "generatedAt": now, "label": "Your request (ReachPoint demo, synthetic)",
+            "receipt": receipt, "completedAt": times}
     if ref.get("caseId") is None:
         if report and report["status"] == "rejected":
             why = report.get("rejectReason", "")
@@ -87,6 +92,11 @@ def resident_status(store: Store, token: str, now: str) -> dict | None:
         for i, g in enumerate(n["groups"]):
             lines.append({"family": g["label"], "familyTh": thai.family(g["label"]),
                           **_family_line(store, n, f"{n['listingId']}-G{i + 1}")})
+    if lines and all(line["state"] == "done" for line in lines):
+        listing_ids = {need["listingId"] for need in case["needs"]}
+        finished = [a["closedAt"] for a in store.seed.get("allocations", [])
+                    if a["listingId"] in listing_ids and a.get("outcome") == "done" and a.get("closedAt")]
+        times[2] = max(finished) if finished else None
     if not lines:
         lines.append({"state": "reviewed", "text": "Your request was reviewed and is on the list for supplies or medical help.",
                       "th": "คำขอของคุณได้รับการตรวจสอบแล้ว และอยู่ในรายการรอรับสิ่งของหรือความช่วยเหลือทางการแพทย์"})

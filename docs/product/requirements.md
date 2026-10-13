@@ -44,6 +44,14 @@ Status labels: **Accepted** = explicit human request or boundary; **Proposed** =
 
 For this example, outstanding = requested − approved receipt; unassigned = outstanding − active commitment. Overdelivery, overlapping commitments, cancellations and unit conversions still need explicit policies; do not extrapolate this example into a complete implementation rule.
 
+## Accepted caller-request schema — 13 Oct 2026
+
+Form, chat and voice share the same request details and `help_requests` storage shape, with no `reporter_name`. `report_id` is assigned by the server; `channel` is `chat`, `voice` or `form`. New requests require `phone_number` for a later help-received follow-up and `type` set to `food` or `evacuation`; Chat and Voice ask before allowing confirmation. Other blank values remain unknown and reported zero counts remain zero. The exact fields and local migration are recorded in [decision 0012](../decisions/0012-shared-caller-schema.md).
+
+## Accepted caller-tracking presentation — 13 Oct 2026
+
+The caller tracking page shows four steps: รับคำขอแล้ว, ตรวจสอบรายการ, ทีมงานกำลังช่วยเหลือ, ได้รับการช่วยเหลือ. It has a prominent button to copy the private tracking link, and removes the footer sentence about calling 1669. Clearly labelled demo controls preview each step locally, with reset and return-to-live actions; they do not change the saved request. The final step asks whether help was received, with exactly Yes and No responses. Yes confirms receipt; No leaves receipt unconfirmed. Completion times use recorded events and Bangkok time; unknown times remain unknown. Demo answers and example times stay local. Volunteer completion remains separate from caller-confirmed receipt. See [decision 0013](../decisions/0013-caller-tracking-demo.md).
+
 ## Proposed approaches
 
 AI conversational clarification, case-history retrieval, contradiction interpretation, suggested report relationships, evidence-linked proposed events, unresolved-issue explanations, handovers and suggested next actions. A reviewed event history is promising but not a final storage architecture.

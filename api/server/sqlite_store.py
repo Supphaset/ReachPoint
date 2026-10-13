@@ -17,12 +17,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from api.server.memory import Clock, MemoryStore
-
-HELP_REQUEST_FIELDS = (
-    "report_id", "channel", "reporter_name", "people_details", "n_children", "n_elders", "n_pets",
-    "location", "coordinates", "location_details", "water_level", "situation_details",
-    "emergency_detail", "other_details",
-)
+from api.intake.schema import HELP_REQUEST_FIELDS, HelpRequest
 
 
 class SQLiteState:
@@ -37,13 +32,15 @@ class SQLiteState:
         self._db.execute("PRAGMA journal_mode=WAL")
         self._db.execute("PRAGMA synchronous=FULL")
         with self._db:
+            self._db.execute("BEGIN")
             self._db.execute("CREATE TABLE IF NOT EXISTS state (name TEXT PRIMARY KEY, payload TEXT NOT NULL)")
             self._db.execute("""CREATE TABLE IF NOT EXISTS call_sessions
                                 (id TEXT PRIMARY KEY, created_at REAL NOT NULL, payload TEXT NOT NULL)""")
-            self._db.execute("""CREATE TABLE IF NOT EXISTS help_requests (
+            table_sql = """CREATE TABLE IF NOT EXISTS help_requests (
                                 report_id TEXT PRIMARY KEY NOT NULL,
-                                channel TEXT NOT NULL CHECK (channel IN ('chat', 'voice')),
-                                reporter_name TEXT,
+                                channel TEXT NOT NULL CHECK (channel IN ('chat', 'voice', 'form')),
+                                phone_number TEXT,
+                                type TEXT CHECK (type IN ('food', 'evacuation')),
                                 people_details TEXT,
                                 n_children INTEGER CHECK (n_children >= 0),
                                 n_elders INTEGER CHECK (n_elders >= 0),
@@ -54,7 +51,19 @@ class SQLiteState:
                                 water_level TEXT,
                                 situation_details TEXT,
                                 emergency_detail TEXT,
-                                other_details TEXT)""")
+                                other_details TEXT)"""
+            existing = self._db.execute("SELECT sql FROM sqlite_master WHERE name = 'help_requests'").fetchone()
+            existing_columns = {row[1] for row in self._db.execute("PRAGMA table_info(help_requests)")}
+            if existing and (existing_columns != set(HELP_REQUEST_FIELDS) or "'form'" not in existing[0]):
+                # Rebuild only this table; keep all retained values and request IDs.
+                self._db.execute(table_sql.replace("help_requests (", "help_requests_updated ("))
+                columns = ", ".join(HELP_REQUEST_FIELDS)
+                retained = ", ".join(f'"{field}"' if field in existing_columns else "NULL" for field in HELP_REQUEST_FIELDS)
+                self._db.execute(f"INSERT INTO help_requests_updated ({columns}) SELECT {retained} FROM help_requests")
+                self._db.execute("DROP TABLE help_requests")
+                self._db.execute("ALTER TABLE help_requests_updated RENAME TO help_requests")
+            else:
+                self._db.execute(table_sql)
 
     def get(self, name: str) -> dict | None:
         with self._lock:
@@ -73,6 +82,7 @@ class SQLiteState:
             self._db.execute("INSERT INTO state(name, payload) VALUES ('operations', ?) "
                              "ON CONFLICT(name) DO UPDATE SET payload = excluded.payload", (payload,))
             if help_request:
+                help_request = HelpRequest.model_validate(help_request).model_dump()
                 placeholders = ", ".join("?" for _ in HELP_REQUEST_FIELDS)
                 self._db.execute(f"INSERT INTO help_requests ({', '.join(HELP_REQUEST_FIELDS)}) "
                                  f"VALUES ({placeholders}) ON CONFLICT(report_id) DO NOTHING",
@@ -81,6 +91,10 @@ class SQLiteState:
     def put_help_request(self, value: dict) -> None:
         """Fill a row for a report saved by an earlier version of the local adapter."""
         with self._lock, self._db:
+            # Historical rows without newly required fields remain readable and retryable.
+            if self._db.execute("SELECT 1 FROM help_requests WHERE report_id = ?", (value.get("report_id"),)).fetchone():
+                return
+            value = HelpRequest.model_validate(value).model_dump()
             placeholders = ", ".join("?" for _ in HELP_REQUEST_FIELDS)
             self._db.execute(f"INSERT INTO help_requests ({', '.join(HELP_REQUEST_FIELDS)}) "
                              f"VALUES ({placeholders}) ON CONFLICT(report_id) DO NOTHING",
