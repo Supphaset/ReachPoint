@@ -9,6 +9,8 @@ import { LocationMap } from "./LocationMap";
 
 export function DeskLocation({ location, disabled, onApply }: { location?: Location; disabled: boolean; onApply: (input: LocationInput, location: Location) => void }) {
   const { t } = useLang();
+  const [editing, setEditing] = useState(false);
+  const searchOpen = location?.status !== "located" || editing;
   const [address, setAddress] = useState("");
   const [preview, setPreview] = useState<{ input: LocationInput; location: Location }>();
   const [used, setUsed] = useState(false);
@@ -32,22 +34,25 @@ export function DeskLocation({ location, disabled, onApply }: { location?: Locat
     <h3 id="desk-location-title">{t(S.location.title)}</h3>
     <div className="location-actions">
       <span className={`chip ${location?.status === "located" ? "chip-waiting" : "chip-unknown"}`}>{t(location ? S.location[location.status] : S.location.notGiven)}</span>
-      <LocationChip location={location} />
+      <LocationChip location={location} viewer="desk" />
     </div>
-    {location && <p className="fine-print">{t(location.precision ? S.location.precision[location.precision] : S.location.precision.unknown)} · {t(locationSource(location))}</p>}
+    {location && <p className="fine-print">{t(location.precision ? S.location.precision[location.precision] : S.location.precision.unknown)} · {t(locationSource(location, "desk"))}</p>}
     {location?.status === "located" && location.at && <LocationMap at={location.at} zoneId={location.zoneId} segmentId={location.segmentId} />}
-    <label htmlFor="desk-call-address">{t(S.location.callAddress)}</label>
-    <div className="location-address">
-      <input id="desk-call-address" value={address} disabled={busy || disabled} onChange={e => { setAddress(e.target.value); setPreview(undefined); setMessage(undefined); setUsed(false); }} onKeyDown={e => {
-        if (e.key === "Enter") { e.preventDefault(); if (address.trim() && !busy && !disabled) void find(); }
-      }} />
-      <button type="button" className="btn btn-secondary" disabled={busy || disabled || !address.trim()} onClick={() => void find()}>{t(S.location.find)}</button>
+    {location?.status === "located" && <button type="button" className="btn btn-quiet" aria-expanded={searchOpen} aria-controls="desk-location-search" disabled={disabled || busy} onClick={() => setEditing(value => !value)}>{t(S.location.fixLocation)}</button>}
+    <div id="desk-location-search" className="desk-location-search" hidden={!searchOpen}>
+      <label htmlFor="desk-call-address">{t(S.location.callAddress)}</label>
+      <div className="location-address">
+        <input id="desk-call-address" value={address} disabled={busy || disabled} onChange={e => { setAddress(e.target.value); setPreview(undefined); setMessage(undefined); setUsed(false); }} onKeyDown={e => {
+          if (e.key === "Enter") { e.preventDefault(); if (address.trim() && !busy && !disabled) void find(); }
+        }} />
+        <button type="button" className="btn btn-secondary" disabled={busy || disabled || !address.trim()} onClick={() => void find()}>{t(S.location.find)}</button>
+      </div>
+      <div role="status" aria-live="polite">
+        {busy ? t(S.location.finding) : message && t(message)}
+        {preview && <LocationChip location={preview.location} viewer="desk" />}
+        {used && <p>{t(S.location.applied)}</p>}
+      </div>
+      {preview?.location.status === "located" && !used && <button type="button" className="btn btn-secondary" disabled={disabled} onClick={() => { onApply(preview.input, preview.location); setUsed(true); }}>{t(S.location.useLocation)}</button>}
     </div>
-    <div role="status" aria-live="polite">
-      {busy ? t(S.location.finding) : message && t(message)}
-      {preview && <LocationChip location={preview.location} />}
-      {used && <p>{t(S.location.applied)}</p>}
-    </div>
-    {preview?.location.status === "located" && !used && <button type="button" className="btn btn-secondary" disabled={disabled} onClick={() => { onApply(preview.input, preview.location); setUsed(true); }}>{t(S.location.useLocation)}</button>}
   </section>;
 }

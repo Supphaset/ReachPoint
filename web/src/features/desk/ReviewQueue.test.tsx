@@ -32,8 +32,22 @@ describe("desk inbox", () => {
     state.queue.landmarks.push({ segmentId: "B-3-L2", label: "B-3 · L2 Market" });
     const out = renderToStaticMarkup(<ReviewQueue />);
     expect(out).toContain('<option value="B-3-L2" selected="">');
-    expect(out).toContain("Address from the call");
-    expect(out).toContain("pinned on the map");
+    expect(out).toContain("Fix location");
+    expect(out).toContain('class="desk-location-search" hidden=""');
+    expect(out).toContain("from the caller&#x27;s map pin");
+  });
+  it("puts the caller message before the location and uses the caller’s GPS copy", () => {
+    const r = report("R-001", "Synthetic family needs help");
+    r.location = { status: "located", kind: "pin", method: "gps", at: [100.4705, 7.0089], precision: "house", source: "synthetic", provider: "device" };
+    setup([r]);
+    const out = renderToStaticMarkup(<ReviewQueue />);
+    expect(out.indexOf('<blockquote class="review-text">')).toBeLessThan(out.indexOf('class="location-block"'));
+    expect(out).toContain("from the caller&#x27;s phone GPS");
+    expect(out).not.toContain("from your phone");
+    expect(out).toContain('aria-expanded="false"');
+    const thai = renderToStaticMarkup(<LangProvider lang="th"><ReviewQueue /></LangProvider>);
+    expect(thai).toContain("จาก GPS โทรศัพท์ของผู้แจ้ง");
+    expect(thai).toContain("แก้ตำแหน่ง");
   });
   it("explains the empty queue without an approval form", () => {
     setup([]);

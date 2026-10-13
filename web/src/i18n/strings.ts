@@ -14,6 +14,7 @@ export const S = {
     gps: p("Use my location", "ใช้ตำแหน่งของฉัน"),
     map: p("Pick on the map", "เลือกบนแผนที่"),
     address: p("Or type an address", "หรือพิมพ์ที่อยู่"),
+    fixLocation: p("Fix location", "แก้ตำแหน่ง"),
     callAddress: p("Address from the call", "ที่อยู่ที่ผู้โทรแจ้ง"),
     find: p("Find", "ค้นหา"),
     finding: p("Finding your spot…", "กำลังค้นหาตำแหน่ง…"),
@@ -49,6 +50,8 @@ export const S = {
     near: (label: string): Pair => p(`Near ${label}`, `ใกล้ ${label}`),
     accuracy: (n: number): Pair => p(`(±${Math.round(n)} m)`, `(±${Math.round(n)} ม.)`),
     sources: {
+      callerGps: p("from the caller's phone GPS", "จาก GPS โทรศัพท์ของผู้แจ้ง"),
+      callerMap: p("from the caller's map pin", "จากหมุดบนแผนที่ของผู้แจ้ง"),
       gps: p("from your phone's GPS", "จาก GPS ของโทรศัพท์คุณ"),
       map: p("pinned on the map", "ปักหมุดบนแผนที่"),
       pinpoint: p("Pinpoint address match", "ที่อยู่ที่พบโดย Pinpoint"),
@@ -82,7 +85,7 @@ export const S = {
     review: p('Review', 'ตรวจสอบ'),
     waterTab: p('Water rising', 'น้ำกำลังขึ้น'),
     boatTab: p('Boat S1', 'เรือ S1'),
-    quietTab: p('Quiet zones', 'พื้นที่ไม่มีสายแจ้ง'),
+    quietTab: p('Quiet zones', 'พื้นที่เงียบ'),
     queue: p('Requests to review', 'คำขอรอตรวจสอบ'),
     queueOffline: p('Review queue: open the app with ?data=api to see requests sent from Ask for help.', 'เปิดแอปด้วย ?data=api เพื่อดูคำขอที่ส่งมาจากหน้าขอความช่วยเหลือ'),
     queueError: p('Review queue unavailable.', 'โหลดคำขอไม่ได้'),
@@ -216,6 +219,8 @@ export const S = {
     estimate: p("estimate", "ประมาณการ"),
   },
   home: {
+    askHelp: p("Ask for help", "ขอความช่วยเหลือ"),
+    helpCompound: p("help", "ความช่วยเหลือ"),
     tagline: p("Every call for help reaches a team that can get there.", "ทุกเสียงขอความช่วยเหลือ ถึงมือทีมที่ไปถึงได้"),
     lead: p(
       "ReachPoint turns flood calls into checked facts, puts the most dangerous first, and tells families honestly when a team expects to arrive.",
@@ -340,6 +345,11 @@ export const S = {
     jobLabel: p("Job progress", "ความคืบหน้างาน"),
   },
   status: {
+    share: p("Send this link to family", "ส่งลิงก์นี้ให้ครอบครัว"),
+    shareMessage: (id: string): Pair => p(`Follow help request ${id} here`, `ติดตามคำขอความช่วยเหลือ ${id} ได้ที่ลิงก์นี้`),
+    copied: p("Copied", "คัดลอกแล้ว"),
+    shareFailed: p("Could not share. Try again.", "แชร์ไม่ได้ กรุณาลองอีกครั้ง"),
+    call1669: p("Call 1669", "โทร 1669"),
     title: p("Your request", "สถานะคำขอ"),
     request: (id: string): Pair => p(`Request ${id}`, `คำขอ ${id}`),
     case: (id: string): Pair => p(`case ${id}`, `เคส ${id}`),
@@ -355,6 +365,7 @@ export const S = {
     ),
   },
   team: {
+    coordinatorWords: p("Coordinator’s own words:", "คำพูดของผู้ประสานงาน:"),
     waitingTitle: p("Waiting for a team", "รอทีมช่วยเหลือ"),
     order: p("red first, then nearest, then longest waiting", "สีแดงก่อน ตามด้วยใกล้ที่สุด แล้วจึงรอนานที่สุด"),
     offline: p("Offline. You can look, but taking a case needs a connection.", "ออฟไลน์ ดูได้ แต่การรับงานต้องเชื่อมต่ออินเทอร์เน็ต"),

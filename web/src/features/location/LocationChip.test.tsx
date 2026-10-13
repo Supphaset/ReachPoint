@@ -39,7 +39,9 @@ describe("location copy", () => {
     const out = renderToStaticMarkup(<LangProvider lang="th">{caller}</LangProvider>);
     expect(out).toContain("คุณอยู่ที่ไหน?"); expect(out).toContain("เลือกบนแผนที่"); expect(out).toContain("จุดที่แน่นอนจะแชร์เฉพาะผู้ประสานงาน");
     const desk = <DeskLocation location={location} disabled={false} onApply={() => {}} />;
-    expect(renderToStaticMarkup(desk)).toContain("Address from the call");
-    expect(renderToStaticMarkup(<LangProvider lang="th">{desk}</LangProvider>)).toContain("ที่อยู่ที่ผู้โทรแจ้ง");
+    expect(renderToStaticMarkup(desk)).toContain("Fix location");
+    expect(renderToStaticMarkup(desk)).toContain('class="desk-location-search" hidden=""');
+    expect(renderToStaticMarkup(<LangProvider lang="th">{desk}</LangProvider>)).toContain("แก้ตำแหน่ง");
+    expect(renderToStaticMarkup(<DeskLocation disabled={false} onApply={() => {}} />)).toContain("Address from the call");
   });
 });
