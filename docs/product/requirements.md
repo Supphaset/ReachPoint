@@ -52,6 +52,12 @@ Form, chat and voice share the same request details and `help_requests` storage 
 
 The caller tracking page shows four steps: รับคำขอแล้ว, ตรวจสอบรายการ, ทีมงานกำลังช่วยเหลือ, ได้รับการช่วยเหลือ. It has a prominent button to copy the private tracking link, and removes the footer sentence about calling 1669. Clearly labelled demo controls preview each step locally, with reset and return-to-live actions; they do not change the saved request. The final step asks whether help was received, with exactly Yes and No responses. Yes confirms receipt; No leaves receipt unconfirmed. Completion times use recorded events and Bangkok time; unknown times remain unknown. Demo answers and example times stay local. Volunteer completion remains separate from caller-confirmed receipt. See [decision 0013](../decisions/0013-caller-tracking-demo.md).
 
+## Accepted desk caller review — 15 Oct 2026
+
+Rename local `help_requests` to `callers`, preserving caller-confirmed details. `/desk` reviews these rows with AI transport candidates (boat/truck/needs assessment), operational emergency recommendations (1a suspected medical, 1b urgent rescue, 2 priority assistance, **3 routine/non-emergency**), and AI/Human review provenance. Unknown information and model failure remain unresolved rather than routine. Immediate reported danger appears before model completion. Review reasons and supporting caller quotes remain visible; human corrections retain history and cannot be silently replaced by AI.
+
+An optional preparation summary highlights reported medication, critical water, mobility and other relevant needs. Its absence never blocks review or case approval. It is visible in the responding team's active accepted job and removed on closure/hand-back. AI does not prescribe medication, clear routes, confirm clinical assessment, assign teams or promise arrival. The new recommendation layer remains separate from existing validated allocation tiers and case approval. See [decision 0014](../decisions/0014-desk-caller-ai-review.md).
+
 ## Proposed approaches
 
 AI conversational clarification, case-history retrieval, contradiction interpretation, suggested report relationships, evidence-linked proposed events, unresolved-issue explanations, handovers and suggested next actions. A reviewed event history is promising but not a final storage architecture.

@@ -36,7 +36,13 @@ class SQLiteState:
             self._db.execute("CREATE TABLE IF NOT EXISTS state (name TEXT PRIMARY KEY, payload TEXT NOT NULL)")
             self._db.execute("""CREATE TABLE IF NOT EXISTS call_sessions
                                 (id TEXT PRIMARY KEY, created_at REAL NOT NULL, payload TEXT NOT NULL)""")
-            table_sql = """CREATE TABLE IF NOT EXISTS help_requests (
+            legacy = self._db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='help_requests'").fetchone()
+            current = self._db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='callers'").fetchone()
+            if legacy and current:
+                raise RuntimeError("Both callers and help_requests exist; reconcile them before migrating. No records were changed.")
+            if legacy:
+                self._db.execute("ALTER TABLE help_requests RENAME TO callers")
+            table_sql = """CREATE TABLE IF NOT EXISTS callers (
                                 report_id TEXT PRIMARY KEY NOT NULL,
                                 channel TEXT NOT NULL CHECK (channel IN ('chat', 'voice', 'form')),
                                 phone_number TEXT,
@@ -52,16 +58,16 @@ class SQLiteState:
                                 situation_details TEXT,
                                 emergency_detail TEXT,
                                 other_details TEXT)"""
-            existing = self._db.execute("SELECT sql FROM sqlite_master WHERE name = 'help_requests'").fetchone()
-            existing_columns = {row[1] for row in self._db.execute("PRAGMA table_info(help_requests)")}
+            existing = self._db.execute("SELECT sql FROM sqlite_master WHERE name = 'callers'").fetchone()
+            existing_columns = {row[1] for row in self._db.execute("PRAGMA table_info(callers)")}
             if existing and (existing_columns != set(HELP_REQUEST_FIELDS) or "'form'" not in existing[0]):
                 # Rebuild only this table; keep all retained values and request IDs.
-                self._db.execute(table_sql.replace("help_requests (", "help_requests_updated ("))
+                self._db.execute(table_sql.replace("callers (", "callers_updated ("))
                 columns = ", ".join(HELP_REQUEST_FIELDS)
                 retained = ", ".join(f'"{field}"' if field in existing_columns else "NULL" for field in HELP_REQUEST_FIELDS)
-                self._db.execute(f"INSERT INTO help_requests_updated ({columns}) SELECT {retained} FROM help_requests")
-                self._db.execute("DROP TABLE help_requests")
-                self._db.execute("ALTER TABLE help_requests_updated RENAME TO help_requests")
+                self._db.execute(f"INSERT INTO callers_updated ({columns}) SELECT {retained} FROM callers")
+                self._db.execute("DROP TABLE callers")
+                self._db.execute("ALTER TABLE callers_updated RENAME TO callers")
             else:
                 self._db.execute(table_sql)
 
@@ -84,7 +90,7 @@ class SQLiteState:
             if help_request:
                 help_request = HelpRequest.model_validate(help_request).model_dump()
                 placeholders = ", ".join("?" for _ in HELP_REQUEST_FIELDS)
-                self._db.execute(f"INSERT INTO help_requests ({', '.join(HELP_REQUEST_FIELDS)}) "
+                self._db.execute(f"INSERT INTO callers ({', '.join(HELP_REQUEST_FIELDS)}) "
                                  f"VALUES ({placeholders}) ON CONFLICT(report_id) DO NOTHING",
                                  tuple(help_request.get(field) for field in HELP_REQUEST_FIELDS))
 
@@ -92,13 +98,18 @@ class SQLiteState:
         """Fill a row for a report saved by an earlier version of the local adapter."""
         with self._lock, self._db:
             # Historical rows without newly required fields remain readable and retryable.
-            if self._db.execute("SELECT 1 FROM help_requests WHERE report_id = ?", (value.get("report_id"),)).fetchone():
+            if self._db.execute("SELECT 1 FROM callers WHERE report_id = ?", (value.get("report_id"),)).fetchone():
                 return
             value = HelpRequest.model_validate(value).model_dump()
             placeholders = ", ".join("?" for _ in HELP_REQUEST_FIELDS)
-            self._db.execute(f"INSERT INTO help_requests ({', '.join(HELP_REQUEST_FIELDS)}) "
+            self._db.execute(f"INSERT INTO callers ({', '.join(HELP_REQUEST_FIELDS)}) "
                              f"VALUES ({placeholders}) ON CONFLICT(report_id) DO NOTHING",
                              tuple(value.get(field) for field in HELP_REQUEST_FIELDS))
+
+    def callers(self) -> list[dict]:
+        with self._lock:
+            rows = self._db.execute(f"SELECT {', '.join(HELP_REQUEST_FIELDS)} FROM callers ORDER BY report_id").fetchall()
+        return [dict(zip(HELP_REQUEST_FIELDS, row)) for row in rows]
 
     def get_session(self, session_id: str) -> dict | None:
         with self._lock:
@@ -123,7 +134,7 @@ class SQLiteState:
 
     def clear(self) -> None:
         with self._lock, self._db:
-            self._db.execute("DELETE FROM help_requests")
+            self._db.execute("DELETE FROM callers")
             self._db.execute("DELETE FROM call_sessions")
             self._db.execute("DELETE FROM state")
 

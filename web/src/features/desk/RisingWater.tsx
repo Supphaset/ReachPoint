@@ -8,6 +8,7 @@ import { Banner, BigButton, Skeleton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 import { pickSnapshot, useMinute } from "../briefing/Rain";
 import { ReviewQueue } from "./ReviewQueue";
+import { CallerDesk } from "./CallerDesk";
 import { SuggestedChecks } from "./SuggestedChecks";
 import { ResourceFailure } from "./ResourceFailure";
 import "../intake/intake.css";
@@ -143,7 +144,10 @@ export function DeskPage() {
     <div className="desk-tabs" role="group" aria-label={t(S.desk.title)}>
       {tabs.map(([id, label, icon]) => <button key={id} aria-pressed={tab === id} onClick={() => setTab(id)}><Icon name={icon} />{t(label)}{counts[id] !== undefined && <span className="num">({counts[id]})</span>}</button>)}
     </div>
-    <div hidden={tab !== "review"}><ReviewQueue onCount={setReviewCount} /></div>
+    <div hidden={tab !== "review"}>
+      <CallerDesk onCount={setReviewCount} />
+      <details><summary>{t(S.desk.caseCreation)}</summary><ReviewQueue /></details>
+    </div>
     <div hidden={tab !== "water"}><RisingWaterPanel onCount={setWaterCount} /></div>
     <div hidden={tab !== "boat"}><ResourceFailure /></div>
     <div hidden={tab !== "quiet"}><SuggestedChecks onCount={setQuietCount} /></div>

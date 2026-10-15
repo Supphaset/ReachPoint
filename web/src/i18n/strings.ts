@@ -9,6 +9,7 @@ const p = (en: string, th: string): Pair => ({ en, th });
 
 export const S = {
   desk: {
+    caseCreation: p("Create team cases from reviewed reports", "สร้างเคสให้ทีมจากคำขอที่ตรวจสอบแล้ว"),
     textChannel: p("Text", "ข้อความ"),
     voiceChannel: p("Call", "สายโทรเข้า"),
     dangerPrompt: p("Flag urgent with a reason if a callback or the words confirm the danger.", "ระบุเร่งด่วนพร้อมเหตุผล หากการโทรกลับหรือคำพูดยืนยันอันตราย"),

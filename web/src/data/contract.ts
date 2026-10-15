@@ -243,6 +243,8 @@ export interface Job {
   /** Present while the job is open; removed from the team's view when it closes (D38). */
   medical: MedicalNotes | null;
   medicalRemovedAt?: string;
+  /** Private preparation note for the team holding this job; absent after closure. */
+  preparationSummary?: { text: string; checkedBy: "AI" | "Human" | null; at: string };
   groups: Group[];
   seatUnits: number;
   state: JobState;

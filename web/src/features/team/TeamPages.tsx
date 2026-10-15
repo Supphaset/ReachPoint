@@ -581,6 +581,11 @@ export function JobCard({ j }: { j: Job }) {
         ))}
       </ul>
 
+      {!closed && j.preparationSummary && <section className="medical">
+        <h3>{lang === "th" ? "สรุปเพื่อเตรียมทีม" : "Volunteer preparation summary"} · {j.preparationSummary.checkedBy ?? "AI"}</h3>
+        <p style={{ whiteSpace: "pre-wrap" }}>{j.preparationSummary.text}</p>
+        <p className="fine-print">{fmtTime(j.preparationSummary.at)} · {lang === "th" ? "ข้อมูลจากผู้แจ้ง ต้องยืนยันสภาพปัจจุบัน" : "Caller-reported information; confirm current conditions."}</p>
+      </section>}
       {j.medical && (
         <section className="medical" aria-label={t(S.team.medical)}>
           <h3>

@@ -244,6 +244,7 @@ export async function closeAllocation(allocationId: string, outcome: Outcome) {
     j.state = "closed";
     j.outcome = outcome;
     j.closedAt = iso();
+    delete j.preparationSummary;
     if (j.medical) {
       j.medical = null; // D38: medical notes leave the team's phone when the job closes
       j.medicalRemovedAt = j.closedAt;

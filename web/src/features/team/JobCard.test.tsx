@@ -12,6 +12,11 @@ const base: Job = { ...row, allocationId: "AL-UI", state: "taken", seatUnits: 2.
   pickup: { landmarkLabel: row.landmarkLabel, at: [100.47, 7.0], precision: "landmark", source: "synthetic" } };
 
 describe("job next action", () => {
+  it("shows preparation notes only on active jobs", () => {
+    const j = { ...base, preparationSummary: { text: "Synthetic medication request", checkedBy: "AI" as const, at: "2026-10-15T03:00:00Z" } };
+    expect(renderToStaticMarkup(<JobCard j={j} />)).toContain("Synthetic medication request");
+    expect(renderToStaticMarkup(<JobCard j={{ ...j, state: "closed" }} />)).not.toContain("Synthetic medication request");
+  });
   it.each<[Job["state"], Job["window"], string]>([
     ["taken", null, "Set window"], ["taken", windowEstimate, "On the way"],
     ["on_the_way", windowEstimate, "On scene"], ["on_the_way", null, "On scene"],

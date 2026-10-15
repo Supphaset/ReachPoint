@@ -17,7 +17,8 @@ Only explicit human approvals are accepted product decisions. AI recommendations
 | [0011](0011-local-sqlite-interim.md) | Accepted by user, 13 Oct 2026 | Temporary local SQLite persistence and caller-confirmed `help_requests`; deployed database remains future work |
 | [0012](0012-shared-caller-schema.md) | Accepted by user, 13 Oct 2026 | Form, chat, voice and `help_requests` share 15 fields; no caller name; required phone and food/evacuation type |
 | [0013](0013-caller-tracking-demo.md) | Accepted by user, 13 Oct 2026 | Four-step tracking, prominent copy link and local demo controls |
+| [0014](0014-desk-caller-ai-review.md) | Accepted by user, 15 Oct 2026 | Caller table rename; AI/Human operational review, routine Level 3 and optional preparation summary |
 
-For the next consequential choice create `0014-<topic>.md` with date, status (proposed/accepted/superseded), human approval reference, context/evidence, decision, rationale, alternatives, consequences and affected docs. Drafting a record does not accept it. Preserve superseded decisions and link replacements.
+For the next consequential choice create `0015-<topic>.md` with date, status (proposed/accepted/superseded), human approval reference, context/evidence, decision, rationale, alternatives, consequences and affected docs. Drafting a record does not accept it. Preserve superseded decisions and link replacements.
 
 Prototype v1 scope is accepted in 0005 and revised by 0009 (real past-event flood packages instead of a fictional locality). 0009 selects the framework, database, hosting, map and AI route, pending the friend's confirmation. Telecom provider, spend cap and any real clinical workflow are not accepted. Public repository visibility is accepted in 0008.

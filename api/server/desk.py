@@ -1,0 +1,108 @@
+"""Versioned caller review records using the existing atomic/persistent write wrapper."""
+
+from __future__ import annotations
+
+import copy
+from typing import Callable
+
+from api.ai import desk_review
+from api.server.memory import NotFound, Refused
+
+
+def callers(memory, database) -> list[dict]:
+    return database.callers() if database else list(memory.store.seed.get("callers", {}).values())
+
+
+def caller(memory, database, report_id: str) -> dict:
+    row = next((r for r in callers(memory, database) if r["report_id"] == report_id), None)
+    if row is None:
+        raise NotFound(report_id)
+    return row
+
+
+def view(memory, database) -> dict:
+    with memory.lock:
+        reports = {r["reportId"]: r for r in memory.store.seed.get("reports", [])}
+        reviews = memory.store.seed.get("callerReviews", {})
+        history = memory.store.seed.get("callerReviewHistory", {})
+        rows = []
+        for c in callers(memory, database):
+            rid = c["report_id"]
+            r = reports.get(rid, {})
+            revision = desk_review.input_revision(c)
+            review = copy.deepcopy(reviews.get(rid))
+            stale = bool(review and review["input_revision"] != revision)
+            floor = desk_review.safety_evidence(c) if not review or stale else []
+            floor_level = "1a" if any(e.kind == "medical_emergency" for e in floor) else "1b" if floor else None
+            if stale:
+                review.update(checked_by=None, review_status="human_review_required")
+                if floor_level:
+                    review.update(emergency_level=floor_level, immediate_danger=True)
+            rows.append({**c, "received_at": r.get("receivedAt"), "report_status": r.get("status", "reported"),
+                         "input_revision": revision, "review": review, "review_stale": stale,
+                         "immediate_danger": bool(floor or (review or {}).get("immediate_danger")),
+                         "reported_emergency_level": floor_level,
+                         "history": copy.deepcopy(history.get(rid, []))})
+        rows.sort(key=desk_review.sort_key)
+        return {"generated_at": memory.clock.iso(), "callers": rows,
+                "counts": {"total": len(rows),
+                           "ai_read": sum((r["review"] or {}).get("checked_by") == "AI" for r in rows),
+                           "human_reviewed": sum((r["review"] or {}).get("checked_by") == "Human" for r in rows),
+                           "needs_review": sum(not r["review"] or r["review"]["review_status"] == "human_review_required" for r in rows)}}
+
+
+def _save(memory, report_id: str, review: dict) -> dict:
+    reviews = memory.store.seed.setdefault("callerReviews", {})
+    review = {**review, "review_revision": reviews.get(report_id, {}).get("review_revision", 0) + 1,
+              "reviewed_at": memory.clock.iso()}
+    reviews[report_id] = review
+    memory.store.seed.setdefault("callerReviewHistory", {}).setdefault(report_id, []).append(copy.deepcopy(review))
+    return review
+
+
+def ai_review(memory, database, report_id: str, use_model: bool, submission_id: str | None = None,
+              is_current: Callable[[], bool] = lambda: True) -> dict:
+    with memory.lock:
+        if submission_id and submission_id in memory.done:
+            return copy.deepcopy(memory.done[submission_id]["value"])
+        c = copy.deepcopy(caller(memory, database, report_id))
+        previous = memory.store.seed.get("callerReviews", {}).get(report_id)
+        if previous and previous.get("checked_by") == "Human" and previous["input_revision"] == desk_review.input_revision(c):
+            return copy.deepcopy(previous)
+        expected = previous.get("review_revision", 0) if previous else 0
+    review = desk_review.generate(c, use_model)  # Network work never holds the records lock.
+
+    def save():
+        if not is_current():
+            raise Refused("VERSION_CONFLICT", "The demo was reset during review. Refresh the caller list.")
+        latest = memory.store.seed.get("callerReviews", {}).get(report_id)
+        if desk_review.input_revision(caller(memory, database, report_id)) != review["input_revision"]:
+            raise Refused("VERSION_CONFLICT", "Caller information changed. Review the latest record.")
+        if latest and latest["review_revision"] != expected:
+            return latest  # Another AI/human review won; never overwrite it with an older result.
+        return _save(memory, report_id, {**review, "reviewed_by": None})
+
+    return memory.write(submission_id, save)["value"]
+
+
+def human_review(memory, database, report_id: str, data: dict) -> dict:
+    c = caller(memory, database, report_id)
+    previous = memory.store.seed.get("callerReviews", {}).get(report_id)
+    revision = desk_review.input_revision(c)
+    if revision != data["input_revision"] or (previous or {}).get("review_revision", 0) != data["expected_revision"]:
+        raise Refused("VERSION_CONFLICT", "The caller or review changed. Refresh before saving.")
+    if not data["reason"].strip() or not data["reviewed_by"].strip():
+        raise Refused("INVALID", "Record who reviewed this case and why.")
+    if data["immediate_danger"] and data["emergency_level"] not in ("1a", "1b"):
+        raise Refused("INVALID", "Immediate danger must remain an emergency level (1a or 1b).")
+    result = {**(previous or {}), "transport_recommendation": data["transport_recommendation"],
+              "emergency_level": data["emergency_level"], "immediate_danger": data["immediate_danger"],
+              "volunteer_summary": (data["volunteer_summary"].strip() or None) if data["volunteer_summary"] is not None else None,
+              "checked_by": "Human", "reviewed_by": data["reviewed_by"].strip(), "source": "human",
+              "review_status": "human_reviewed" if data["emergency_level"] and data["transport_recommendation"] != "needs_assessment" else "human_review_required",
+              "clinical_assessment": "not_assessed", "input_revision": revision,
+              "rules_version": desk_review.RULES_VERSION, "reasons": [data["reason"].strip()],
+              "evidence": (previous or {}).get("evidence", []),
+              "missing_information": (["Confirm current urgency."] if data["emergency_level"] is None else []) +
+                                     (["Confirm suitable access and rescue capability."] if data["transport_recommendation"] == "needs_assessment" else [])}
+    return _save(memory, report_id, result)

@@ -8,6 +8,10 @@ npm run dev        # http://localhost:5173
 npm run check      # type-check, token check, tests
 ```
 
+`npm run build` defaults to API data because the built app is served by the backend. `/desk` therefore loads caller reviews without requiring `?data=api`, including after returning through the home page. Build the offline demo explicitly with `VITE_DATA=fixtures npm run build`; URL overrides (`?data=api` / `?data=fixtures`) still take precedence. Development and test defaults remain fixtures.
+
+The caller desk uses area-led request cards and a preparation-first detail pane with the review form alongside on wide screens. Caller fields, evidence, reasons and history expand on demand; the optional preparation summary never blocks saving a review. On narrow screens select a card to open its details and use “Back to requests” to return. Offline records remain readable, with review writes disabled until reconnection.
+
 | Path | What |
 |---|---|
 | `src/shell/` | App shell: wordmark, role routes, top nav on desktop, bottom tab bar under 768 px |

@@ -60,7 +60,7 @@ class CallerSchemaTests(unittest.TestCase):
 
     def rows(self):
         self.database._db.row_factory = sqlite3.Row
-        return [dict(row) for row in self.database._db.execute("SELECT * FROM help_requests")]
+        return [dict(row) for row in self.database._db.execute("SELECT * FROM callers")]
 
     def test_form_round_trip_preserves_fields_nulls_and_zero_and_retry(self):
         session = self.start()
@@ -200,15 +200,16 @@ class CallerSchemaTests(unittest.TestCase):
         old.close()
         migrated = SQLiteState(path)
         try:
-            self.assertEqual(tuple(row[1] for row in migrated._db.execute("PRAGMA table_info(help_requests)")), FIELDS)
-            self.assertEqual(migrated._db.execute("SELECT * FROM help_requests").fetchone(), ("LEGACY-1", "voice", None, None, *(DETAILS[key] for key in legacy_fields)))
+            self.assertEqual(tuple(row[1] for row in migrated._db.execute("PRAGMA table_info(callers)")), FIELDS)
+            self.assertEqual(migrated._db.execute("SELECT * FROM callers").fetchone(), ("LEGACY-1", "voice", None, None, *(DETAILS[key] for key in legacy_fields)))
+            self.assertIsNone(migrated._db.execute("SELECT 1 FROM sqlite_master WHERE name='help_requests'").fetchone())
             migrated.put_help_request({"report_id": "LEGACY-1", "channel": "voice", **{key: DETAILS[key] for key in legacy_fields}})
             migrated.put_help_request({"report_id": "FORM-1", "channel": "form", **DETAILS})
-            self.assertEqual(migrated._db.execute("SELECT COUNT(*) FROM help_requests").fetchone()[0], 2)
+            self.assertEqual(migrated._db.execute("SELECT COUNT(*) FROM callers").fetchone()[0], 2)
         finally:
             migrated._db.close()
         reopened = SQLiteState(path)
-        self.assertEqual(reopened._db.execute("SELECT COUNT(*) FROM help_requests").fetchone()[0], 2)
+        self.assertEqual(reopened._db.execute("SELECT COUNT(*) FROM callers").fetchone()[0], 2)
         reopened._db.close()
 
 

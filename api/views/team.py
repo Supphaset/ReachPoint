@@ -154,6 +154,10 @@ def job(store: Store, a: dict, row: dict, need: dict) -> dict:
            "pickup": {"landmarkLabel": row["landmarkLabel"], **exact}}
     if (a.get("window") or {}).get("state") == "withdrawn":
         out["withdrawnWindow"] = dict(a["window"])
+    review = store.seed.get("callerReviews", {}).get(case.get("fromReport"))
+    if a["state"] in ACTIVE and review and review.get("volunteer_summary"):
+        out["preparationSummary"] = {"text": review["volunteer_summary"], "checkedBy": review["checked_by"],
+                                     "at": review["reviewed_at"]}
     for k in ("outcome", "closedAt", "medicalRemovedAt", "owner", "holdReason", "nextStatusUpdate", "briefRevision"):
         if a.get(k):
             out[k] = a[k]

@@ -36,6 +36,8 @@ from api.intake.live_voice import router as live_voice_router
 from api.location.resolve import resolve as resolve_location
 from api.server.memory import Clock, MemoryStore, NotFound, Refused
 from api.server.sqlite_store import SQLiteMemoryStore, SQLiteState
+from api.server import desk as caller_desk
+from api.ai.desk_review import Level, Transport
 from api.views.briefing import area_briefing
 from api.views.desk import rain_view, rising_water_view, zone_order_view
 from api.views.resident import resident_status
@@ -446,7 +448,9 @@ async def submit_call_session(session: conversation.Conversation, _submission_id
         location = await asyncio.to_thread(resolve_location, location_input) if location_input else None
         # One report per session even if the browser retries with a different submissionId after a crash.
         def submit() -> dict:
-            return memory.submit_report(text, session.channel, proposal, location=location)
+            value = memory.submit_report(text, session.channel, proposal, location=location)
+            memory.store.seed.setdefault("callers", {})[value["reportId"]] = _help_request_row(session, value["reportId"])
+            return value
         result = (memory.write(call_key, submit, help_request=_help_request_row(session))
                   if isinstance(memory, SQLiteMemoryStore) else memory.write(call_key, submit))
         value = result["value"]
@@ -457,6 +461,8 @@ async def submit_call_session(session: conversation.Conversation, _submission_id
             session.sent = None
             raise
         _triager.submit(_run_triage)
+        if USE_AI:
+            _schedule_desk_review(memory, database, value["reportId"])
         return session.snapshot()
 
 
@@ -525,6 +531,71 @@ def _run_triage() -> None:
 def view_review():
     with memory.lock:
         return {**review_queue(memory.store), "generatedAt": _now()}
+
+
+_desk_reviewer = ThreadPoolExecutor(max_workers=1)
+_desk_pending: set[tuple[int, str]] = set()
+_desk_pending_lock = threading.Lock()
+
+
+def _schedule_desk_review(store, db, report_id: str) -> None:
+    key = (id(store), report_id)
+    with _desk_pending_lock:
+        if key in _desk_pending:
+            return
+        _desk_pending.add(key)
+
+    def run():
+        try:
+            caller_desk.ai_review(store, db, report_id, USE_AI, is_current=lambda: store is memory)
+        except (Refused, NotFound):
+            pass  # Caller changed or disappeared during review; a later refresh retries.
+        finally:
+            with _desk_pending_lock:
+                _desk_pending.discard(key)
+    _desk_reviewer.submit(run)
+
+
+@app.get("/api/desk")
+def desk_callers():
+    result = caller_desk.view(memory, database)
+    if USE_AI:
+        for row in result["callers"]:
+            if not row["review"] or row["review_stale"]:
+                _schedule_desk_review(memory, database, row["report_id"])
+    return result
+
+
+@app.get("/api/desk/{report_id}")
+def desk_caller(report_id: str):
+    row = next((r for r in caller_desk.view(memory, database)["callers"] if r["report_id"] == report_id), None)
+    if row is None:
+        raise NotFound(report_id)
+    return row
+
+
+@app.post("/api/desk/{report_id}/ai-review")
+def desk_ai_review(report_id: str, b: Write):
+    store = memory
+    return {"ok": True, "value": caller_desk.ai_review(store, database, report_id, USE_AI, b.submissionId,
+                                                       is_current=lambda: store is memory)}
+
+
+class DeskHumanReview(Write):
+    model_config = {"extra": "forbid"}
+    input_revision: str = Field(min_length=1)
+    expected_revision: int = Field(ge=0)
+    transport_recommendation: Transport
+    emergency_level: Level | None
+    immediate_danger: bool
+    volunteer_summary: str | None = Field(default=None, max_length=2000)
+    reason: str = Field(min_length=1, max_length=1000)
+    reviewed_by: str = Field(min_length=1, max_length=100)
+
+
+@app.post("/api/desk/{report_id}/human-review")
+def desk_human_review(report_id: str, b: DeskHumanReview):
+    return memory.write(b.submissionId, lambda: caller_desk.human_review(memory, database, report_id, b.model_dump()))
 
 
 @app.post("/api/locate")
@@ -627,11 +698,12 @@ def mark_segment(claim_id: str, b: MarkSegment):
 def reset():
     """Start the demo again from the seed (coordinator only once sign-in exists)."""
     global memory, flood_replay
-    if database:
-        database.clear()
-    conversation.clear_cache()
-    memory = _new_memory()
-    flood_replay = _new_replay(memory)  # the 1,200-report replay starts again too
+    with memory.lock:
+        if database:
+            database.clear()
+        conversation.clear_cache()
+        memory = _new_memory()
+        flood_replay = _new_replay(memory)  # the 1,200-report replay starts again too
     return {"ok": True, "now": _now()}
 
 

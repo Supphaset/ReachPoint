@@ -125,6 +125,7 @@
 :root {
   --desk-width: 1400px;
   --desk-inbox-width: 360px;
+  --desk-caller-queue-width: 280px;
   --desk-count-width: 64px;
   --desk-pane-height: 72dvh;
 }

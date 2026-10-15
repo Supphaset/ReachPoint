@@ -75,7 +75,7 @@ def test_status_link_is_private_and_unguessable(c):
     assert c.get("/api/status/not-a-real-token").status_code == 404
     v = c.post("/api/intake/text", json={"text": "need food and drinking water, 3 people"}).json()["value"]
     s = c.get(f"/api/status/{v['statusToken']}").json()
-    assert set(s) <= {"reportId", "generatedAt", "label", "state", "lines", "caseId", "lastConfirmedAt"}
+    assert set(s) <= {"reportId", "generatedAt", "label", "state", "lines", "caseId", "lastConfirmedAt", "receipt", "completedAt"}
 
 
 def test_empty_request_refused(c):

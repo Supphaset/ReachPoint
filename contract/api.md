@@ -51,6 +51,25 @@ Views are built by `api/views`. Legacy fixture mode remains available; the flood
 
 ## Desk actions (POST, coordinator)
 
+### Caller review (`/desk`, 15 Oct 2026)
+
+The source table is `callers`, transactionally migrated from `help_requests` at startup. Original caller fields remain unchanged. In memory-only mode the same rows live in the operation snapshot. Derived reviews and append-only history are separate from caller statements, validated cases and team commitments.
+
+| Route | Request / result |
+|---|---|
+| `GET /api/desk` | `{generated_at, callers, counts}`. Each caller includes its original fields, `input_revision`, `received_at`, `report_status`, `review`, `review_stale`, `immediate_danger`, `reported_emergency_level`, and `history`. Counts separate AI-read, human-reviewed and cases still needing review. |
+| `GET /api/desk/{report_id}` | One caller with the same metadata; missing ID is 404. |
+| `POST /api/desk/{report_id}/ai-review` | `{submissionId}`; returns `{ok:true,value:review}`. Model work happens outside the records lock; older results cannot overwrite newer reviews. Same-ID retries return the original result. A new rerun preserves a human review of the same input revision. |
+| `POST /api/desk/{report_id}/human-review` | `{submissionId,input_revision,expected_revision,transport_recommendation,emergency_level,immediate_danger,volunteer_summary?,reviewed_by,reason}`. Atomically saves the review/history; stale input/review revisions are 409; reviewer/reason must be nonblank; summary is optional/null. |
+
+Review fields: `transport_recommendation` is `boat`, `truck`, or `needs_assessment` (candidates, never route clearance). `emergency_level` is `1a` (suspected medical emergency), `1b` (urgent flood rescue), `2` (priority assistance), `3` (routine/non-emergency), or null (unresolved). `checked_by` is `AI`, `Human`, or null (unreviewed/rules-only). `review_status` is `ai_read`, `human_review_required`, or `human_reviewed`. Also present: `source`, `rules_version`, `review_revision`, `input_revision`, `reviewed_at`, `reviewed_by`, `clinical_assessment: not_assessed`, `reasons[]`, `evidence[{field,quote,kind}]`, `missing_information[]`, and nullable `volunteer_summary`.
+
+Immediate danger is surfaced before AI completes using a conservative reported-sign escalation floor, and sorts first across medical/rescue categories. Missing evidence/model failure never implies Level 3. Gemini findings require quotes in the corresponding caller field. Dedicated phone, coordinate and address fields are excluded from model input; operational narratives, including access details, and counts are included. Supported excerpts form the optional preparation summary; it does not prescribe medication or invent equipment. New callers trigger background review; opening the desk schedules existing unreviewed/stale rows. Stored results prevent repeated Gemini calls on every poll. Explicit retry is available after failure.
+
+The existing validated allocation tiers remain governed by qualified assessment and coordinator approval. Desk recommendations do not approve cases, change clinical assessment, alter inventory, dispatch teams or promise arrival. Case creation is available in the desk's expandable case-approval panel. Accepted active team jobs may carry `preparationSummary: {text,checkedBy,at}`, absent from shared open listings, other teams' jobs and closed/handed-back jobs. Reviewer identity uses the existing demo identity; it is not authenticated professional accreditation.
+
+### Existing coordinator actions
+
 | Route | Body | Rules | `value` |
 |---|---|---|---|
 | `/api/resources/{resourceId}/unavailable` | `submissionId` (required), `reason`, `nextStatusUpdate` (future ISO timestamp with timezone) | coordinator review; all-or-nothing; resource unavailable; unfinished **transport** allocations using it held, owned by coordinator; groups reopen in the existing priority order; windows withdrawn, retained for history; capacity excluded; medical missions, completed jobs, drafts and other resources unchanged | `{ resourceId, heldAllocationIds[], alreadyUnavailable? }` |
@@ -212,7 +231,7 @@ The `/callers` page has Chat, Voice and Form modes. `/api/callers/config`, `/api
 
 `POST /api/callers/sessions/{id}/form` accepts the 13 editable fields below plus `submissionId` and `expectedRevision`. `phone_number` and `type` are required for new requests; other fields are nullable. Phone numbers contain 7–15 digits and may start with `+`; spaces, hyphens, dots and parentheses are removed without changing a leading zero or country prefix. `type` is exactly `food` or `evacuation`. Counts must be nonnegative integers, and coordinates use `latitude, longitude`. The form is reviewed directly before the caller submits it. The API rejects stale revisions, uses the same confirmation/persistence path as conversation intake, and returns the conversation snapshot with `sent`. Retries for the same session return the existing report.
 
-All three modes save exactly these columns in `help_requests`:
+All three modes save exactly these columns in `callers` (renamed from `help_requests`):
 
 ```text
 report_id
