@@ -52,6 +52,9 @@ app = FastAPI(title="ReachPoint", version="0.1", docs_url="/api/docs", openapi_u
 app.include_router(live_voice_router)
 # Each visitor has their own demo room (api/server/rooms.py); `memory` and `flood_replay` are the current room's.
 rooms = Rooms()
+from api.v2.routes import bind as _v2_bind, router as v2_router  # noqa: E402
+_v2_bind(rooms)
+app.include_router(v2_router)
 memory = RoomAttr(rooms, "memory")
 flood_replay = RoomAttr(rooms, "flood_replay")
 USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"  # off: no Gemini calls (tests, offline demo)
