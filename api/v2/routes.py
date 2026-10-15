@@ -33,6 +33,16 @@ def bind(rooms) -> None:
     global _rooms_ref
     _rooms_ref = rooms
 
+    def warm():  # load the city, the scenario and the time-lapse, and wake Gemini, before the first judge arrives
+        try:
+            G.load()
+            P.run(80)
+            ai.read("น้ำถึงเข่า อยู่กัน 2 คน")
+            B.timeline()
+        except Exception:
+            pass
+    threading.Thread(target=warm, daemon=True).start()
+
 
 def room() -> V2Room:
     r = _rooms_ref.get(_rooms_ref.current_id.get())
@@ -42,7 +52,15 @@ def room() -> V2Room:
 
 
 def _state(v: V2Room, at_h: float | None = None) -> dict:
-    return B.state(min(at_h if at_h is not None else v.now_h, v.now_h), v.messages, v.plans, v.alerts, v.pulled)
+    """The board at a moment; reused until the room changes (polling never recomputes an unchanged board)."""
+    at = min(at_h if at_h is not None else v.now_h, v.now_h)
+    sig = (round(at, 2), v.now_h, len(v.messages), len(v.plans), len(v.alerts), len(v.pulled))
+    cache = v.__dict__.setdefault("_cache", {})
+    if sig not in cache:
+        if len(cache) > 40:
+            cache.clear()
+        cache[sig] = B.state(at, v.messages, v.plans, v.alerts, v.pulled)
+    return cache[sig]
 
 
 def _public(s: dict) -> dict:
@@ -150,7 +168,8 @@ def chat_turn(sid: str, body: TurnIn):
                 prefix = I.say("none", lang) + " "
                 s.neighbour_results.append({"side": pending, "result": "none"})
             else:
-                r = ai.read(text, body.channel)
+                from api.v2.reader import read_rules
+                r = read_rules(text, body.channel)  # short answers: the rules are instant and enough
                 nb = {"side": pending, "people": r.get("people"), "elderly": r.get("elderly") or (1 if "ยาย" in text or "old" in text.lower() else 0),
                       "children": r.get("children")}
                 v.seq += 1
@@ -169,7 +188,12 @@ def chat_turn(sid: str, body: TurnIn):
                     prefix = I.say("known" if has_plan else "known_noplan", lang) if eff["known"] else I.say("new", lang)
                     prefix += " "
         else:
-            r = ai.read(text, body.channel)
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(2) as ex:  # Gemini reads while Pinpoint looks up the address
+                f_read = ex.submit(ai.read, text, body.channel)
+                f_loc = ex.submit(I.locate, text, geo) if not s.pin else None
+                r = f_read.result()
+                pre_loc = f_loc.result() if f_loc else None
             if pending == "people" and r.get("people") is None:
                 import re
                 m = re.search(r"\d+", text)
@@ -178,7 +202,7 @@ def chat_turn(sid: str, body: TurnIn):
             if pending == "vulnerable" and I.NONE_WORDS.search(text):
                 s.facts["vulnerable"] = {"value": "none", "quote": text}
             if not s.pin:
-                loc = I.locate(r.get("address") or text, geo)
+                loc = pre_loc or (I.locate(r.get("address"), geo) if r.get("address") and r.get("address") != text else None)
                 if loc:
                     s.pin, s.building_id, s.zone_id = {"lon": loc["lon"], "lat": loc["lat"], "precision": "address"}, loc["buildingId"], loc["zoneId"]
                     effects["located"] = loc

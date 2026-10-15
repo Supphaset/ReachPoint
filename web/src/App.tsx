@@ -10,14 +10,16 @@ import { DevUi } from "./pages/DevUi";
 import { FloodPage } from "./features/flood/FloodPage";
 import { Home } from "./pages/Home";
 import { DemoPage } from "./features/demo/DemoPage";
+import { V2Page } from "./features/v2/V2Page";
 
-/** Role routes. Team: /team/*; coordinator: /desk; resident: /status/:token; shared parts: /dev/ui. */
+/** v2 judge page at /. The earlier role screens stay reachable from /classic. Role routes. Team: /team/*; coordinator: /desk; resident: /status/:token; shared parts: /dev/ui. */
 export function App() {
   return (
     <Routes>
+      <Route index element={<V2Page />} />
       <Route path="demo" element={<DemoPage />} />
       <Route element={<AppShell />}>
-        <Route index element={<Home />} />
+        <Route path="classic" element={<Home />} />
         <Route path="team/map/:areaId?/:zoneId?" element={<BriefingPage />} />
         <Route path="team/list" element={<WaitingPage />} />
         <Route path="team/mission" element={<JobsPage />} />

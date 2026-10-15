@@ -134,3 +134,39 @@
   --location-mini-height: 180px;
   --location-map-label-size: 38px;
 }
+
+/* v2 board: water depth (most likely), sources and agents. Unknown stays grey, never "dry". */
+:root {
+  --depth-unknown: #8a939f;
+  --depth-0: #e6eef3;
+  --depth-1: #a9d3e6;
+  --depth-2: #5aa6cf;
+  --depth-3: #1f6fa8;
+  --depth-4: #0b3d6e;
+  --depth-line: #ffffff;
+  --household-open: #ffffff;
+  --household-urgent: #ff5a4e;
+  --household-safe: #4fd18b;
+  --household-lost: #ffc53d;
+  --house-me: #ffd60a;
+  --house-known: #4fd18b;
+  --house-new: #ff9f0a;
+  --v2-ink-on-map: #ffffff;
+  --v2-map-scrim: rgb(10 20 32 / 0.62);
+  --v2-chart-gauge: #7a4f00;
+  --v2-agent-supervisor: #0f4c81;
+  --v2-agent-reader: #6237b8;
+  --v2-agent-locator: #0b6672;
+  --v2-agent-dedupe: #4b3a99;
+  --v2-agent-analyst: #1f6fa8;
+  --v2-agent-planner: #7a4f00;
+  --v2-agent-notifier: #17633a;
+  --v2-phone-bg: #0d1117;
+  --v2-bubble-agent: #eef2f6;
+  --v2-bubble-person: #0f4c81;
+  --v2-bubble-check: #fff3cf;
+  --v2-header-bg: #0d1b2a;
+  --v2-board-width: 1500px;
+  --v2-phone-width: 380px;
+  --v2-map-height: 560px;
+}

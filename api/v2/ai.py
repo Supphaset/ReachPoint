@@ -71,14 +71,14 @@ def validate(text: str, raw: dict) -> tuple[list[Fact], int]:
     return ok, dropped
 
 
-def read(text: str, channel: str = "chat", use_model: bool = True, timeout: float = 10.0) -> Read:
+def read(text: str, channel: str = "chat", use_model: bool = True, timeout: float = 9.0, models: int = 1) -> Read:
     """Gemini's reading when it works, else the rules. Never raises."""
     key = gemini.api_key()
     if use_model and USE_AI and gemini.available():
         body = {"systemInstruction": {"parts": [{"text": INSTRUCTION}]},
                 "contents": [{"role": "user", "parts": [{"text": f"Channel: {channel}\nMessage:\n<<<\n{text}\n>>>"}]}],
                 "generationConfig": {"responseMimeType": "application/json", "responseSchema": SCHEMA, "temperature": 0}}
-        for model in gemini.models(KEY_MODELS)[:2]:
+        for model in gemini.models(KEY_MODELS)[:models]:
             try:
                 r = gemini.post(model, body, timeout, key=None if gemini.use_vertex() else key)
                 if r.status_code != 200:
