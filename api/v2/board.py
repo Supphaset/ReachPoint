@@ -28,7 +28,7 @@ def zone_view(w, geo: G.Geo, zid: str) -> dict:
     hh = [h for h in w.households.values() if h.zone_id == zid]
     obs = [o for o in w.obs if o.zone_id == zid]
     reported_people = sum(h.people or 1 for h in hh)
-    possible_dupes = sum(1 for h in hh if h.reported_by_others_only and h.precision != "address")
+    possible_dupes = sum(1 for h in hh if h.possible_duplicate_of)
     est = meta["estimate"]
     depth = lvl.depth_at(p50) if lvl.wse_m is not None else None
     sources = []
@@ -62,7 +62,7 @@ def zone_view(w, geo: G.Geo, zid: str) -> dict:
             "wseM": lvl.wse_m, "loM": lvl.lo_m, "hiM": lvl.hi_m, "depthM": depth[0], "depthLoM": depth[1], "depthHiM": depth[2],
             "trendCmH": lvl.trend_cm_h, "n": lvl.n, "doubtful": len(lvl.doubtful), "certainty": lvl.certainty},
         "people": {"everyone": est.get("everyone"), "likelyFlooded": est.get("modelledFlooded"),
-                   "reported": [reported_people, reported_people + 3 * possible_dupes] if possible_dupes else [reported_people, reported_people],
+                   "reported": [reported_people - sum((h.people or 1) for h in hh if h.possible_duplicate_of), reported_people],
                    "households": len(hh), "elderly": sum(h.elderly for h in hh), "children": sum(h.children for h in hh),
                    "cannotWalk": sum(h.cannot_walk for h in hh), "urgent": sum(1 for h in hh if h.urgent and h.status == "open")},
         "status": status, "sources": sources, "plans": [{k: p.get(k) for k in ("id", "team", "vehicle", "seats", "eta", "offers", "at", "told")} for p in plans],

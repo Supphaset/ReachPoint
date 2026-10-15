@@ -97,6 +97,7 @@ class World:
     by_building: dict = field(default_factory=dict)
     by_phone: dict = field(default_factory=dict)
     texts: dict = field(default_factory=dict)
+    threads: dict = field(default_factory=dict)
 
 
 @lru_cache(maxsize=1)
@@ -194,10 +195,18 @@ def _merge_people(hh: Household, r: Read, first_hand: bool):
         hh.urgent = True
 
 
-def _same_family(r: Read, cand: "Household") -> bool:
+def _same_family(r: Read, cand: "Household", strict: bool = False) -> bool:
     p = r.get("people")
     if p is not None and cand.people is not None and p != cand.people:
         return False
+    if strict:
+        if p is None or cand.people is None:
+            return False
+        # the whole makeup must match: who is elderly, children, who can't walk
+        for k, attr in (("elderly", "elderly"), ("children", "children"), ("cannotWalk", "cannot_walk")):
+            if int(r.get(k) or 0) != int(getattr(cand, attr) or 0):
+                return False
+        return True
     if bool(r.get("cannotWalk")) != bool(cand.cannot_walk) and r.get("cannotWalk") is not None and cand.people is not None:
         return False
     c = r.get("children")
@@ -207,16 +216,16 @@ def _same_family(r: Read, cand: "Household") -> bool:
 
 
 def _posted_about(w: World, pin: dict, zone_id: str, r: Read):
+    """A family's own report after a relative posted about them: adopt that household only if exactly one fits."""
     x, y = G.to_m(pin["lon"], pin["lat"])
-    best = None
+    fits = []
     for h in w.households.values():
         if h.zone_id != zone_id or h.first_hand or h.precision == "address":
             continue
         hx, hy = G.to_m(h.lon, h.lat)
-        d = math.hypot(hx - x, hy - y)
-        if d <= 200 and _same_family(r, h) and (best is None or d < best[0]):
-            best = (d, h)
-    return best[1] if best else None
+        if math.hypot(hx - x, hy - y) <= 150 and _same_family(r, h, strict=True):
+            fits.append(h)
+    return fits[0] if len(fits) == 1 else None
 
 
 def _near_first_hand(w: World, pin: dict, zone_id: str, r_m: float):
@@ -264,13 +273,13 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
     how = None
     if msg.get("householdHint") and msg["householdHint"] in w.households:
         hh, how = w.households[msg["householdHint"]], "same conversation"
+    elif msg.get("thread") and msg["thread"] in w.threads:
+        hh, how = w.households[w.threads[msg["thread"]]], "reply in the same conversation"
     elif kind == "forward" and base in w.texts:
         hh, how = w.households.get(w.texts[base]), "forwarded copy of an earlier post"
         w.duplicates += 1
     elif b and precision == "address" and b.id in w.by_building:
         hh, how = w.households[w.by_building[b.id]], "same building"
-    elif b and precision == "address" and (near := _near_first_hand(w, pin, b.zone_id, 12)):
-        hh, how = near, "same place"
     elif b and precision == "address" and kind in ("self", "reply") and (post := _posted_about(w, pin, b.zone_id, r)):
         hh, how = post, "the family a relative posted about earlier"
         w.duplicates += 1
@@ -279,21 +288,23 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
     elif b and precision != "address":
         # a post near a known household with the same makeup is probably the same family
         x, y = G.to_m(pin["lon"], pin["lat"])
-        best = None
+        matches = []
         for cand in w.households.values():
-            if cand.zone_id != b.zone_id:
+            if cand.zone_id != b.zone_id or cand.lon is None:
                 continue
             d = math.hypot(*(a - c for a, c in zip(G.to_m(cand.lon, cand.lat), (x, y))))
-            if d > 200:
-                continue
-            same = _same_family(r, cand)
-            if same and (best is None or d < best[0]):
-                best = (d, cand)
-        if best:
-            hh, how = best[1], "probably the same family: nearby, same people"
+            if d <= 150 and _same_family(r, cand, strict=True):
+                matches.append((d, cand))
+        matches.sort(key=lambda m: m[0])
+        if len(matches) == 1:
+            hh, how = matches[0][1], "probably the same family: nearby, same people"
             w.duplicates += 1
+        elif matches:
+            possible = matches[0][1].id  # several families fit: keep it separate, count it as a range
     if hh is None:
         hh = _new_household(w, b, pin.get("lon"), pin.get("lat"), precision, at)
+        if kind not in ("self", "reply") and "possible" in locals():
+            hh.possible_duplicate_of = possible
         if kind in ("self", "reply"):
             hh.first_hand = True
         if live or (kind == "self" and len(w.households) % 9 == 0):
@@ -313,6 +324,8 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
         hh.phone_key = msg["phoneKey"]
         w.by_phone[msg["phoneKey"]] = hh.id
     hh.message_ids.append(msg["id"])
+    if kind == "self":
+        w.threads.setdefault(msg["id"], hh.id)
     hh.last_heard_h = at
     if kind == "reply":
         hh.checks_unanswered = 0
@@ -392,11 +405,11 @@ def zone_levels(w: World, geo: G.Geo) -> dict[str, Level]:
         times = [t for t, _ in first]
         for o in os_:
             mine = by_id[o.id]
-            i0, i1 = bisect_left(times, o.at_h - 3), bisect_right(times, min(o.at_h + 3, w.now_h))
-            around = [x for _, x in first[i0:i1] if x.id != o.id]
+            i0, i1 = bisect_left(times, o.at_h - 6), bisect_right(times, min(o.at_h + 6, w.now_h))
+            around = [x for _, x in first[i0:i1] if x.id != o.id and x.id not in bad]
             then = estimate_around(around, o.at_h)
             wse_o = mine.wse
-            if then.wse_m is not None and then.n >= 3 and abs(wse_o - then.wse_m) > mine.half_range + (then.hi_m - then.lo_m) / 2 + 0.4:
+            if then.wse_m is not None and then.n >= 2 and abs(wse_o - then.wse_m) > mine.half_range + (then.hi_m - then.lo_m) / 2 + 0.4:
                 bad.add(o.id)
                 o.label = "doubtful"
             elif then.wse_m is not None and o.source in ("self", "reply") and then.n >= 2 and abs(wse_o - then.wse_m) <= 0.5:

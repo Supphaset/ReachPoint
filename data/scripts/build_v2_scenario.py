@@ -132,12 +132,12 @@ def main() -> None:
 
     msgs = []
 
-    def add(h, channel, kind, text, b, precision, about=None, reporter=None, **extra):
+    def add(h, channel, kind, text, b, precision, about=None, reporter=None, thread=None, **extra):
         jitter = {"address": 0, "landmark": 70, "area": 250}[precision]
         x, y = b.x + rnd.gauss(0, jitter), b.y + rnd.gauss(0, jitter)
         lon, lat = G.to_ll(x, y)
         msgs.append({"id": f"M{len(msgs) + 1:04d}", "atH": round(h, 2), "at": iso(h), "channel": channel, "kind": kind,
-                     "text": text, "pin": {"lon": round(lon, 6), "lat": round(lat, 6), "precision": precision},
+                     "text": text, "pin": {"lon": round(lon, 6), "lat": round(lat, 6), "precision": precision}, "thread": thread,
                      "truth": {"about": about, "reporter": reporter, "buildingId": b.id, **extra}})
 
     def people_th(hh):
@@ -189,7 +189,7 @@ def main() -> None:
         d = noisy(depth(b, t0), planted)
         lang = hh["lang"]
         if reports_self:
-            ch = rnd.choices(["chat", "voice", "post"], [55, 25, 20])[0]
+            ch = rnd.choices(["chat", "voice"], [65, 35])[0]
             if lang == "th":
                 help_ = rnd.choice(["ช่วยด้วยค่ะ ", "ช่วยด้วยครับ ", "ขอความช่วยเหลือค่ะ ", "", "ตอนนี้"])
                 text = f"{help_}{words_for(d, 'th')}แล้ว {people_th(hh)} {where_th(hh, b)}"
@@ -215,12 +215,13 @@ def main() -> None:
                     nb_side = {"side": side, "neighbourBuildingId": nid, "neighbourHousehold": other["id"]}
             add(t0, ch, "self", text, b, prec, about=hh["id"], reporter=hh["id"], planted=planted,
                 trueDepthM=round(depth(b, t0), 2), neighbour=nb_side)
+            thread = msgs[-1]["id"]
         # relatives and friends post about them too (duplicates, sometimes forwarded later)
         if rnd.random() < (0.35 if reports_self else 0.6):
             tp = t0 + rnd.uniform(0.5, 18)
             if tp < HOURS:
                 dd = noisy(depth(b, tp))
-                rel = rnd.choice(["ญาติผม", "แม่ของเพื่อน", "ยายผม", "ครอบครัวพี่สาว", "เพื่อนบ้าน"])
+                rel = rnd.choice(["ญาติผม", "ครอบครัวพี่สาว", "เพื่อนบ้าน"] + (["ยายผม", "แม่ของเพื่อน"] if hh["elderly"] else []))
                 text = f"ใครอยู่แถว{street_of(b) or 'นั้น'} ช่วยด้วยครับ {rel} {people_th(hh)} {words_for(dd, 'th')} ติดต่อไม่ค่อยได้"
                 add(tp, "post", "relative", text, b, "landmark", about=hh["id"], trueDepthM=round(depth(b, tp), 2))
                 if rnd.random() < 0.25 and tp + 30 < HOURS:
@@ -235,14 +236,14 @@ def main() -> None:
                 evac_at = hc
                 add(hc + rnd.uniform(0.2, 1.5), "safetyReply", "reply",
                     "อพยพออกมาแล้วค่ะ ทีมเรือมารับ ทุกคนปลอดภัย" if lang == "th" else "We've been evacuated by a boat team. Everyone is safe.",
-                    b, "address", about=hh["id"], reporter=hh["id"], trueDepthM=round(depth(b, hc), 2), evacuated=True)
+                    b, "address", about=hh["id"], reporter=hh["id"], thread=thread, trueDepthM=round(depth(b, hc), 2), evacuated=True)
                 break
             if hh["lostContactAfterH"] and hc > hh["lostContactAfterH"]:
                 break
             if depth(b, hc) < 0.05 and depth(b, hc - 12) < 0.05:
                 add(hc + rnd.uniform(0.05, 1.5), "safetyReply", "reply",
                     "น้ำลดแล้วค่ะ ทุกคนปลอดภัย" if lang == "th" else "The water has gone down. We're all safe.", b, "address",
-                    about=hh["id"], reporter=hh["id"], trueDepthM=0.0)
+                    about=hh["id"], reporter=hh["id"], thread=thread, trueDepthM=0.0)
                 break
             if rnd.random() < 0.94:
                 dd = noisy(depth(b, hc))
@@ -252,7 +253,7 @@ def main() -> None:
                        (("Still OK. " if dd < 1.2 else "We need help now. ") + words_for(dd, "en").capitalize() +
                         (", still rising." if rising else ", holding steady."))
                 add(hc + rnd.uniform(0.05, 1.5), "safetyReply", "reply", text, b, "address", about=hh["id"],
-                    reporter=hh["id"], trueDepthM=round(depth(b, hc), 2))
+                    reporter=hh["id"], thread=thread, trueDepthM=round(depth(b, hc), 2))
 
     # --- bulletins reconstructed from the real gauge, every 6 hours
     for h in range(0, HOURS, 6):
@@ -282,8 +283,13 @@ def main() -> None:
                       "truth": {"team": team, "vehicle": veh, "seats": seats, "zones": [z1, z2], "eta": eta.isoformat(timespec='minutes'), "offers": offer}})
 
     msgs.sort(key=lambda m: m["atH"])
+    renum = {}
     for i, m in enumerate(msgs):
-        m["id"] = f"M{i + 1:04d}"
+        renum[m["id"]] = f"M{i + 1:04d}"
+    for m in msgs:
+        m["id"] = renum[m["id"]]
+        if m.get("thread"):
+            m["thread"] = renum[m["thread"]]
     truth_wse = {zid: [[h, wse(zid, h)] for h in range(0, HOURS + 1, 3)] for zid in zt}
     out = {"package": "hy-2025-11", "start": START.isoformat(), "hours": HOURS,
            "label": "Real gauge, rain, satellite, terrain and buildings; synthetic people, messages and plans.",
