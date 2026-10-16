@@ -339,6 +339,7 @@ def me(token: str):
 
 class PlanIn(BaseModel):
     text: str = Field(min_length=3, max_length=300)
+    team: str | None = Field(default=None, max_length=80)   # the plan page sends the team's own name
 
 
 @router.post("/plans")
@@ -348,7 +349,68 @@ def post_plan(body: PlanIn):
     with v.lock:
         v.seq += 1
         p = {"id": f"LP{v.seq}", "atH": v.now_h, "text": body.text, "_parsed": {k: parsed.get(k) for k in ("team", "vehicle", "seats", "zones", "eta", "offers")}}
+        if body.team and body.team.strip():
+            p["_parsed"]["team"] = body.team.strip()
         v.plans.append(p)
     st = _state(v)
     mine = next((x for x in st["world"].plans if x["id"] == p["id"]), None)
     return {"plan": mine, "reader": parsed.get("reader")}
+
+
+# --- volunteer pages (docs/product/v2-volunteer-pages.md) ---
+@router.get("/v/overview")
+def v_overview():
+    from api.v2 import cases as C
+    return C.overview(_state(room()))
+
+
+@router.get("/v/feed")
+def v_feed(kind: str | None = None, team: str | None = None, limit: int = 80):
+    from api.v2 import cases as C
+    v = room()
+    return C.feed(_state(v), v.messages, kind, min(max(limit, 1), 300), team)
+
+
+@router.get("/v/zones/{zid}")
+def v_zone(zid: str, team: str | None = None):
+    from api.v2 import cases as C
+    out = C.zone(_state(room()), zid, team)
+    if out is None:
+        raise HTTPException(404, "No such zone")
+    return out
+
+
+@router.get("/v/cases/{hid}")
+def v_case(hid: str, team: str | None = None):
+    from api.v2 import cases as C
+    v = room()
+    out = C.case(_state(v), v.messages, hid, team)
+    if out is None:
+        raise HTTPException(404, "No such household")
+    return out
+
+
+class OutcomeIn(BaseModel):
+    outcome: str = Field(pattern="^(pickedUp|nobodyThere)$")
+    team: str = Field(min_length=1, max_length=80)
+
+
+@router.post("/v/cases/{hid}/outcome")
+def v_outcome(hid: str, body: OutcomeIn):
+    """A team's one tap: picked up, or nobody there. The family's phone is told; the board counts it."""
+    from api.v2 import cases as C
+    v = room()
+    with v.lock:
+        if hid not in _state(v)["world"].households:
+            raise HTTPException(404, "No such household")
+        v.seq += 1
+        v.messages.append({"id": f"L{v.seq}", "atH": v.now_h, "channel": "team", "outcome": body.outcome, "team": body.team.strip(),
+                           "householdHint": hid, "live": True,
+                           "text": f"{body.team.strip()}: " + ("picked them up" if body.outcome == "pickedUp" else "went there, nobody there")})
+    return C.case(_state(v), v.messages, hid, body.team)
+
+
+@router.get("/v/trip")
+def v_trip(zones: str, team: str | None = None):
+    from api.v2 import cases as C
+    return C.trip(_state(room()), [z.strip() for z in zones.split(",") if z.strip()][:6], team)

@@ -3,6 +3,7 @@
  * The board is the volunteer's view of Hat Yai city during the real 21–28 Nov 2025 flood (synthetic people).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { apiMode } from "../../data/mode";
 import { BoardMap, type HouseMark, type SimMode } from "./BoardMap";
 import { ActivityList, PlanBox, TimeBar, ZoneCard } from "./Panels";
@@ -153,6 +154,7 @@ export function V2Page() {
           <button type="button" onClick={() => act("river")}>River rising</button>
           <button type="button" onClick={() => act("flood")}>Flood the system</button>
           <button type="button" onClick={() => act("reset")}>Reset</button>
+          <Link to="/v" className="v2-volunteer-link">Volunteer pages →</Link>
         </nav>
       </header>
       {error ? <p className="v2-error">Couldn't reach the server: {error}</p> : null}
@@ -200,6 +202,7 @@ export function V2Page() {
             <button role="tab" aria-selected={tab === "activity"} onClick={() => setTab("activity")}>AI activity</button>
           </div>
           {tab === "zone" ? <ZoneCard zone={zone} state={state} /> : <ActivityList items={state?.activity ?? []} />}
+          {tab === "zone" && zone ? <p className="v2-more"><Link to={`/v/zone/${zone.id}`}>Open zone {zone.id}: every family, by priority →</Link></p> : null}
           <PlanBox onPosted={() => load()} />
         </section>
       </div>

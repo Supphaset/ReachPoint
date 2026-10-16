@@ -273,7 +273,7 @@ def _outcome(w: World, msg: dict):
     hh.message_ids.append(msg["id"])
     w.msg_link[msg["id"]] = {"householdId": hh.id, "how": "team visit", "kind": "team"}
     from api.v2.messages import say
-    w.outbound.append({"atH": at + 0.02, "householdId": hh.id, "kind": kind, "text": say(kind, team=team)})
+    w.outbound.append({"atH": at, "householdId": hh.id, "kind": kind, "text": say(kind, team=team)})
     _log(w, "Team", f"{team}: {'picked up' if kind == 'pickedUp' else 'nobody there at'} {hh.id} ({hh.zone_id}).",
          "volunteer tap", at, msg["id"], kind)
 

@@ -114,3 +114,28 @@ def test_judge_conversation_lands_on_the_board():
     assert plan["plan"]["told"] >= 1
     me = c.get(f"/api/v2/me/{x['session']['token']}", headers=h).json()
     assert any(i["kind"] == "planUpdate" for i in me["inbox"])
+
+
+def test_volunteer_pages_tell_the_story_and_close_the_loop():
+    from api.main import app
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-volunteer"}
+    c.post("/api/v2/clock", json={"action": "reset"}, headers=h)
+    o = c.get("/api/v2/v/overview", headers=h).json()
+    zid = o["zones"][0]["id"]
+    z = c.get(f"/api/v2/v/zones/{zid}", headers=h).json()
+    hid = z["households"][0]["id"]
+    case = c.get(f"/api/v2/v/cases/{hid}", headers=h).json()
+    # every message says why it belongs to this family; addresses stay masked until a team's plan covers the zone
+    assert case["story"] and all(s["how"] for s in case["story"])
+    assert not case["unlocked"] and case["address"] is None
+    c.post("/api/v2/plans", json={"text": f"เรือ 8 ที่ จะเข้า {zid} ราวบ่ายสอง", "team": "ทีมทดสอบ"}, headers=h)
+    case = c.get(f"/api/v2/v/cases/{hid}?team=ทีมทดสอบ", headers=h).json()
+    assert case["unlocked"]
+    # one tap: picked up; the family's phone is told and the zone counts it
+    after = c.post(f"/api/v2/v/cases/{hid}/outcome", json={"outcome": "pickedUp", "team": "ทีมทดสอบ"}, headers=h).json()
+    assert after["household"]["status"] == "evacuated" and after["contact"]["sent"][-1]["kind"] == "pickedUp"
+    z2 = c.get(f"/api/v2/v/zones/{zid}", headers=h).json()
+    assert z2["totals"]["open"] == z["totals"]["open"] - 1
+    feed = c.get("/api/v2/v/feed?kind=team", headers=h).json()
+    assert feed["items"] and feed["items"][0]["householdId"] == hid

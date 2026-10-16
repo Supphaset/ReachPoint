@@ -174,9 +174,144 @@ export const v2 = {
   newChat: (lang: "th" | "en") => post<Session>(`/api/v2/chat/sessions?lang=${lang}`, {}),
   turn: (id: string, text: string, channel: "chat" | "voice") => post<TurnResult>(`/api/v2/chat/sessions/${id}/turn`, { text, channel }),
   me: (token: string) => get<Inbox>(`/api/v2/me/${token}`),
-  plan: (text: string) => post<{ plan: Plan; reader: string }>("/api/v2/plans", { text }),
+  plan: (text: string, team?: string) => post<{ plan: Plan; reader: string }>("/api/v2/plans", team ? { text, team } : { text }),
   buildings: (lon: number, lat: number, r = 45) =>
     get<{ buildings: { id: string; outline: [number, number][]; groundM: number | null }[] }>(`/api/v2/buildings?lon=${lon}&lat=${lat}&r=${r}`),
+};
+
+// --- volunteer pages (docs/product/v2-volunteer-pages.md) ---
+const q = (team?: string | null) => (team ? `team=${encodeURIComponent(team)}` : "");
+
+export interface CaseRow {
+  id: string;
+  zoneId: string | null;
+  lon: number | null;
+  lat: number | null;
+  people: number | null;
+  elderly: number;
+  children: number;
+  cannotWalk: number;
+  urgent: boolean;
+  status: "open" | "safe" | "evacuated" | "lostContact" | "nobodyThere";
+  needs: string[];
+  depth: { m: number; lo: number; hi: number; reports: number } | null;
+  boat: boolean;
+  priority: number;
+  messages: number;
+  lastHeard: string;
+  hoursSilent: number;
+  firstHand: boolean;
+  possibleDuplicateOf: string | null;
+  outcome: { kind: "pickedUp" | "nobodyThere"; team: string; at: string } | null;
+  reportedBy: string;
+}
+
+export interface OverviewZone {
+  id: string;
+  district: string | null;
+  score: number;
+  open: number;
+  urgent: number;
+  lostContact: number;
+  cannotWalk: number;
+  elderly: number;
+  boat: number;
+  depthM: number | null;
+  likelyFlooded: Range | null;
+  heard: number;
+  plans: number;
+  nextPlan: Plan | null;
+  gap: string | null;
+  quiet: boolean;
+  predicted: boolean;
+  closed: number;
+}
+
+export interface Overview {
+  atH: number;
+  at: string;
+  overall: BoardState["overall"];
+  zones: OverviewZone[];
+  points: CaseRow[];
+}
+
+export interface FactView { field: string; value: unknown; quote: string }
+
+export interface FeedItem {
+  id: string;
+  atH: number;
+  at: string;
+  channel: string;
+  source: string;
+  text: string;
+  householdId: string;
+  zoneId: string | null;
+  how: string;
+  tags: string[];
+  facts: FactView[];
+  label: string | null;
+  reader: string | null;
+}
+
+export interface Feed { atH: number; items: FeedItem[]; total: number; counts: Record<string, number> }
+
+export interface StoryItem {
+  id: string;
+  atH: number;
+  at: string;
+  channel: string;
+  source: string;
+  how: string | null;
+  text: string;
+  facts: FactView[];
+  reader: string | null;
+  depth: { lo: number; hi: number; model: number; label: string; weight: number } | null;
+}
+
+export interface CaseView {
+  household: CaseRow;
+  unlocked: boolean;
+  address: string | null;
+  building: { id: string; outline: [number, number][]; groundM: number | null } | null;
+  story: StoryItem[];
+  depth: { m: number; lo: number; hi: number; reports: number; model: number } | null;
+  depthSeries: [number, number][];
+  depthReports: [number, number, number, string][];
+  doubtfulWhy: string | null;
+  neighbours: { from: string; to: string; side: string; sure: boolean; quote: string; known: boolean; at?: string; atH: number }[];
+  possibleDuplicates: string[];
+  contact: { sent: { atH: number; at: string; kind: string; text: string }[]; replies: number; unanswered: number; lastHeard: string };
+  zone: { id: string; district: string | null; level: Level | null; gap: string | null } | null;
+  plans: Plan[];
+  now: { atH: number; at: string };
+}
+
+export interface ZonePage {
+  zone: ZoneView;
+  households: CaseRow[];
+  outlook: { inH: number; wetShare: number; surfaceM: number | null }[];
+  briefing: string;
+  unlocked: boolean;
+  totals: { open: number; people: number; boat: number; closed: number };
+  now: { atH: number; at: string };
+}
+
+export interface Trip {
+  zones: { id: string; district: string | null; depthM: number | null; families: CaseRow[]; count: number; people: number; cannotWalk: number;
+    elderly: number; children: number; boat: number; urgent: number; otherTeams: Plan[]; gap: string | null }[];
+  people: number;
+  boatNeeded: boolean;
+  now: { atH: number; at: string };
+}
+
+export const vol = {
+  overview: () => get<Overview>("/api/v2/v/overview"),
+  feed: (kind?: string, team?: string | null) => get<Feed>(`/api/v2/v/feed?${[kind ? `kind=${kind}` : "", q(team)].filter(Boolean).join("&")}`),
+  zone: (id: string, team?: string | null) => get<ZonePage>(`/api/v2/v/zones/${encodeURIComponent(id)}?${q(team)}`),
+  case: (id: string, team?: string | null) => get<CaseView>(`/api/v2/v/cases/${encodeURIComponent(id)}?${q(team)}`),
+  outcome: (id: string, outcome: "pickedUp" | "nobodyThere", team: string) =>
+    post<CaseView>(`/api/v2/v/cases/${encodeURIComponent(id)}/outcome`, { outcome, team }),
+  trip: (zones: string[], team?: string | null) => get<Trip>(`/api/v2/v/trip?zones=${encodeURIComponent(zones.join(","))}&${q(team)}`),
 };
 
 export function depthBand(d: number | null | undefined): "unknown" | "0" | "1" | "2" | "3" | "4" {
