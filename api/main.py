@@ -55,6 +55,8 @@ rooms = Rooms()
 from api.v2.routes import bind as _v2_bind, router as v2_router  # noqa: E402
 _v2_bind(rooms)
 app.include_router(v2_router)
+from api.v2.live import router as v2_live_router  # noqa: E402  (Gemini Live voice for the intake agent)
+app.include_router(v2_live_router)
 memory = RoomAttr(rooms, "memory")
 flood_replay = RoomAttr(rooms, "flood_replay")
 USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"  # off: no Gemini calls (tests, offline demo)

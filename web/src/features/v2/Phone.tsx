@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { v2, type Fact, type NbConfirm, type Session, type TurnResult } from "./api";
 import { NeighbourPicture } from "./NeighbourPicture";
+import { LiveCall } from "./liveVoice";
 
 type Item =
   | { kind: "agent"; text: string }
@@ -68,6 +69,8 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
   const seen = useRef(new Set<string>());
   const rec = useRef<Rec>(null);
   const end = useRef<HTMLDivElement>(null);
+  const call = useRef<LiveCall | null>(null);
+  const [onCall, setOnCall] = useState<"off" | "connecting" | "on">("off");
 
   const start = (l: "th" | "en") =>
     v2.newChat(l).then((s) => {
@@ -107,11 +110,27 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
 
   const send = async (t: string, channel: "chat" | "voice") => {
     if (!session || !t.trim() || busy) return;
+    if (call.current && onCall === "on") {  // on a call: typed words go to Gemini Live like speech (it echoes them back)
+      call.current.say(t);
+      setText("");
+      return;
+    }
     setItems((xs) => [...xs, { kind: "person", text: t, voice: channel === "voice" }]);
     setText("");
     setBusy(true);
     try {
       const r = await v2.turn(session.id, t, channel);
+      apply(r);
+    } catch {
+      setItems((xs) => [...xs, { kind: "agent", text: lang === "th" ? "ส่งไม่สำเร็จ ลองอีกครั้งนะคะ" : "That didn't send. Please try again." }]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Show what the agent understood and said, from a typed turn or a voice-call turn. */
+  const apply = (r: TurnResult) => {
+    {
       setSession(r.session);
       const extra: string[] = [];
       if (r.effects.located) extra.push(lang === "th" ? `พบบ้าน · โซน ${r.effects.located.zoneId}` : `House found · zone ${r.effects.located.zoneId}`);
@@ -128,14 +147,41 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
         { kind: "agent", text: r.reply },
         ...(r.effects.nbConfirm ? [{ kind: "confirm" as const, c: r.effects.nbConfirm }] : []),
       ]);
-      say(r.reply);
+      if (!call.current) say(r.reply);  // on a call Gemini already speaks it
       onTurn(r);
-    } catch {
-      setItems((xs) => [...xs, { kind: "agent", text: lang === "th" ? "ส่งไม่สำเร็จ ลองอีกครั้งนะคะ" : "That didn't send. Please try again." }]);
-    } finally {
-      setBusy(false);
     }
   };
+
+  const toggleCall = async () => {
+    if (!session) return;
+    if (call.current) {
+      call.current.stop();
+      call.current = null;
+      setOnCall("off");
+      return;
+    }
+    setOnCall("connecting");
+    const c = new LiveCall(session.id, {
+      onReady: () => setOnCall("on"),
+      onCaller: (t) => { setItems((xs) => [...xs, { kind: "person", text: t, voice: true }]); setBusy(true); },
+      onTurn: (r) => { setBusy(false); apply(r); },
+      onEnd: (m) => {
+        call.current = null;
+        setOnCall("off");
+        setBusy(false);
+        if (m) setItems((xs) => [...xs, { kind: "agent", text: m }]);
+      },
+    });
+    call.current = c;
+    try {
+      await c.start();
+    } catch (e) {
+      call.current = null;
+      setOnCall("off");
+      setItems((xs) => [...xs, { kind: "agent", text: lang === "th" ? "เริ่มสายไม่ได้ (ต้องอนุญาตไมโครโฟน) พิมพ์แทนได้ค่ะ" : `Couldn't start the call (${(e as Error).message}). Typing still works.` }]);
+    }
+  };
+  useEffect(() => () => call.current?.stop(), []);
 
   const lastConfirm = items.reduce((k, it, i) => (it.kind === "confirm" ? i : k), -1);
   const SR = (window as Rec).SpeechRecognition || (window as Rec).webkitSpeechRecognition;
@@ -157,11 +203,16 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
       <header className="v2-phone-top">
         <span>ReachPoint · {lang === "th" ? "แจ้งขอความช่วยเหลือ" : "Ask for help"}</span>
         <span className="v2-phone-tools">
+          <button type="button" className={`v2-callbtn is-${onCall}`} onClick={toggleCall} disabled={onCall === "connecting"}
+            title="Gemini Live: talk to the agent; it answers by voice">
+            {onCall === "on" ? (lang === "th" ? "วางสาย" : "Hang up") : onCall === "connecting" ? "…" : (lang === "th" ? "📞 โทร" : "📞 Call")}
+          </button>
           <button type="button" onClick={() => { const l = lang === "th" ? "en" : "th"; setLang(l); start(l); }}>{lang === "th" ? "EN" : "ไทย"}</button>
           <button type="button" aria-pressed={speak} onClick={() => setSpeak(!speak)} title="Read replies aloud">{speak ? "🔊" : "🔈"}</button>
           <button type="button" onClick={() => start(lang)}>{lang === "th" ? "เริ่มใหม่" : "Restart"}</button>
         </span>
       </header>
+      {onCall === "on" ? <p className="v2-oncall">{lang === "th" ? "กำลังคุยกับ ReachPoint ด้วยเสียง · Gemini Live" : "On a call with ReachPoint · Gemini Live"}</p> : null}
       <div className="v2-chat" role="log" aria-live="polite">
         {/* the Yes/No buttons stay on the latest picture even when a notice arrives after it */}
         {items.map((it, i) =>

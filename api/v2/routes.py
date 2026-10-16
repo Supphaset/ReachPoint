@@ -249,15 +249,20 @@ def _add_neighbour(v, s, channel: str, lang: str, building_id: str | None = None
 
 @router.post("/chat/sessions/{sid}/turn")
 def chat_turn(sid: str, body: TurnIn):
+    return turn(sid, body.text, body.channel)
+
+
+def turn(sid: str, said: str, channel: str = "chat") -> dict:
+    """One turn of the intake agent: typed, held-mic, or Gemini Live voice (api/v2/live.py)."""
     v = room()
     s = v.sessions.get(sid)
     if s is None:
         raise HTTPException(404, "No such conversation")
-    text = body.text.strip()
+    text = said.strip()
     with v.lock:
         lang = I.lang_of(text, s.lang)
         s.lang = lang
-        s.transcript.append({"role": "person", "text": text, "channel": body.channel})
+        s.transcript.append({"role": "person", "text": text, "channel": channel})
         pending = s.pending
         geo = G.load()
         effects = {}
@@ -267,7 +272,7 @@ def chat_turn(sid: str, body: TurnIn):
             go = re.search(r"^\s*(ไป|ได้|โอเค|ok|okay|yes|go|ไปได้|ไปค่ะ|ไปครับ)", text, re.I) and not re.search(r"ไม่|อยู่บ้าน|stay|no\b", text, re.I)
             if go:
                 v.seq += 1
-                v.messages.append({"id": f"L{v.seq}", "atH": v.now_h, "channel": body.channel, "text": text, "live": True, "pin": s.pin,
+                v.messages.append({"id": f"L{v.seq}", "atH": v.now_h, "channel": channel, "text": text, "live": True, "pin": s.pin,
                                    "sessionId": s.id, "householdHint": s.household_id, "toShelter": True,
                                    "shelterId": s.shelter_offer["shelterId"], "_read": Read([], reader="rules")})
                 effects["shelter"] = {**s.shelter_offer, "going": True}
@@ -282,21 +287,21 @@ def chat_turn(sid: str, body: TurnIn):
             if side:
                 item["nb"]["side"] = side
             else:  # they don't know which way: match the nearest building, marked not sure
-                effects["neighbour"], prefix = _add_neighbour(v, s, body.channel, lang)
+                effects["neighbour"], prefix = _add_neighbour(v, s, channel, lang)
         elif pending == "nb_confirm" and s.nb_queue:
             item = s.nb_queue[0]
             yes = re.search(r"^\s*(ใช่|ถูก|yes|yeah|yep|correct|ใช่ค่ะ|ใช่ครับ)", text, re.I) and not re.search(r"ไม่ใช่|^\s*no\b|not", text, re.I)
             if yes:
-                effects["neighbour"], prefix = _add_neighbour(v, s, body.channel, lang, item["cands"][item["i"]])
+                effects["neighbour"], prefix = _add_neighbour(v, s, channel, lang, item["cands"][item["i"]])
             elif item["i"] + 1 < len(item["cands"]):
                 item["i"] += 1  # show the next building that way
             else:
-                effects["neighbour"], prefix = _add_neighbour(v, s, body.channel, lang)
+                effects["neighbour"], prefix = _add_neighbour(v, s, channel, lang)
                 prefix = I.say("nb_unsure", lang) + " " + prefix
         else:
             from concurrent.futures import ThreadPoolExecutor
             with ThreadPoolExecutor(2) as ex:  # Gemini reads while Pinpoint looks up the address
-                f_read = ex.submit(ai.read, text, body.channel)
+                f_read = ex.submit(ai.read, text, channel)
                 f_loc = ex.submit(I.locate, text, geo) if not s.pin else None
                 r = f_read.result()
                 pre_loc = f_loc.result() if f_loc else None
@@ -319,8 +324,8 @@ def chat_turn(sid: str, body: TurnIn):
                 # everything said before the house was found goes in with this message
                 earlier = " ".join(t["text"] for t in s.transcript if t["role"] == "person") if not s.household_id else text
                 v.seq += 1
-                rr = r if s.household_id or earlier == text else _hold_neighbour(s, ai.read(earlier, body.channel))
-                msg = {"id": f"L{v.seq}", "atH": v.now_h, "channel": "safetyReply" if s.finished else body.channel, "text": earlier,
+                rr = r if s.household_id or earlier == text else _hold_neighbour(s, ai.read(earlier, channel))
+                msg = {"id": f"L{v.seq}", "atH": v.now_h, "channel": "safetyReply" if s.finished else channel, "text": earlier,
                        "live": True, "pin": s.pin, "sessionId": s.id, "householdHint": s.household_id, "_read": rr}
                 v.messages.append(msg)
                 main_msg = msg
@@ -340,7 +345,7 @@ def chat_turn(sid: str, body: TurnIn):
             while s.nb_queue and s.pin and s.nb_queue[0]["nb"].get("side") in G.DIRECTIONS and not s.nb_queue[0]["cands"]:
                 s.nb_queue[0]["cands"] = _candidates(s, s.nb_queue[0])
                 if not s.nb_queue[0]["cands"]:  # no building that way within 60 m: nearest one, not sure
-                    effects["neighbour"], p2 = _add_neighbour(v, s, body.channel, lang)
+                    effects["neighbour"], p2 = _add_neighbour(v, s, channel, lang)
                     prefix += p2
                     st = _state(v)
                     w = st["world"]
@@ -365,7 +370,7 @@ def chat_turn(sid: str, body: TurnIn):
                 if s.shelter_offer == {} and near and s.facts.get("urgent", {}).get("value") is not True:
                     prefix += I.say("shelter_none", lang, name=near["name"], deep=near["deepestM"]) + " "
                 while s.nb_queue and s.pin:  # urgent: no more questions; neighbours go in unconfirmed
-                    effects["neighbour"], _ = _add_neighbour(v, s, body.channel, lang)
+                    effects["neighbour"], _ = _add_neighbour(v, s, channel, lang)
                     st = _state(v)
                     w = st["world"]
                 reply = prefix + I.say("urgent_done" if s.facts.get("urgent", {}).get("value") is True else "done", lang)

@@ -147,3 +147,18 @@ def test_volunteer_pages_tell_the_story_and_close_the_loop():
     assert z2["totals"]["open"] == z["totals"]["open"] - 1
     feed = c.get("/api/v2/v/feed?kind=team", headers=h).json()
     assert feed["items"] and feed["items"][0]["householdId"] == hid
+
+
+def test_voice_call_turns_go_through_the_intake_agent():
+    # the Live bridge's turn function is the same agent as typing: words in, facts and a reply out
+    from api.v2 import routes as R
+    from api.main import app
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-live"}
+    sid = c.post("/api/v2/chat/sessions", headers=h).json()["id"]
+    out = R._rooms_ref.current_id.set("pytest-v2-live")
+    try:
+        r = R.turn(sid, "น้ำถึงเอวแล้ว อยู่กัน 2 คน บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2", "voice")
+    finally:
+        R._rooms_ref.current_id.reset(out)
+    assert r["reply"] and r["effects"]["household"]["zoneId"]
