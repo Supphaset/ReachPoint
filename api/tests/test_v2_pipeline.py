@@ -68,10 +68,24 @@ def test_unknown_is_not_dry_before_any_report():
     assert all(l.wse_m is None for l in w.levels.values())
 
 
-def test_neighbour_reader_takes_the_side_and_the_people():
-    r = read_rules("น้ำถึงเข่า บ้านฝั่งตรงข้ามมีครอบครัว 3 คน มีเด็ก 1 คน ยังไม่ได้ออกมา")
-    assert r.get("neighbour") == {"side": "across", "people": 3, "children": 1}
+def test_neighbour_reader_takes_the_direction_and_the_people():
+    r = read_rules("น้ำถึงเข่า บ้านทางทิศเหนือมีครอบครัว 3 คน มีเด็ก 1 คน ยังไม่ได้ออกมา")
+    assert r.get("neighbour") == {"side": "north", "people": 3, "children": 1}
     assert r.get("depthRange") == [0.4, 0.6]
+    # without a compass direction the side is unknown, and the agent asks
+    assert read_rules("บ้านข้างๆ มียายอยู่คนเดียว").get("neighbour")["side"] == "unknown"
+
+
+def test_compass_neighbours_point_the_right_way():
+    from api.v2 import geo as G
+    geo = G.load()
+    b = next(iter(geo.buildings.values()))
+    for side, ids in geo.neighbours(b).items():
+        for nid in ids:
+            n = geo.buildings[nid]
+            dx, dy = n.x - b.x, n.y - b.y
+            assert {"north": dy >= abs(dx) - 1e-6, "south": -dy >= abs(dx) - 1e-6,
+                    "east": dx >= abs(dy) - 1e-6, "west": -dx >= abs(dy) - 1e-6}[side]
 
 
 def test_judge_conversation_lands_on_the_board():
@@ -81,16 +95,21 @@ def test_judge_conversation_lands_on_the_board():
     c.post("/api/v2/clock", json={"action": "reset"}, headers=h)
     before = c.get("/api/v2/state", headers=h).json()["overall"]["households"]
     sid = c.post("/api/v2/chat/sessions", headers=h).json()["id"]
-    x = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "น้ำถึงเอวแล้ว อยู่กัน 2 คน แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"}, headers=h).json()
+    x = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "น้ำถึงเอวแล้ว อยู่กัน 2 คน แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2 บ้านข้างๆ มียายอยู่คนเดียว"}, headers=h).json()
     assert x["effects"]["household"]["zoneId"] and x["zone"]["id"] == x["effects"]["household"]["zoneId"]
+    # the neighbour is held until the agent knows which way that house is
     assert c.get("/api/v2/state", headers=h).json()["overall"]["households"] == before + 1
-    # neighbour answers either match a known house or add one; the count never double-counts the judge
     for _ in range(4):
-        sess = x["session"]
-        if sess["pending"] in ("left", "right", "across"):
-            x = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "มียายอยู่คนเดียว"}, headers=h).json()
+        if x["session"]["pending"] == "nb_dir":
             break
         x = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "ไม่มี"}, headers=h).json()
+    assert x["session"]["pending"] == "nb_dir"
+    x = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "ทิศตะวันออกค่ะ"}, headers=h).json()
+    nb = x["effects"]["neighbour"]
+    assert nb and nb["side"] == "east"
+    # matched to a known house (count unchanged) or added as one new house; the judge is never counted twice
+    after = c.get("/api/v2/state", headers=h).json()["overall"]["households"]
+    assert after == before + 1 + (0 if nb["known"] else 1)
     plan = c.post("/api/v2/plans", json={"text": f"ทีมเรือเรา 8 ที่นั่ง จะเข้า {x['zone']['id']} ประมาณ 15:00 อพยพ"}, headers=h).json()
     assert plan["plan"]["told"] >= 1
     me = c.get(f"/api/v2/me/{x['session']['token']}", headers=h).json()

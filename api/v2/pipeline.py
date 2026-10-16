@@ -256,6 +256,10 @@ def _near_first_hand(w: World, pin: dict, zone_id: str, r_m: float):
     return best[1] if best else None
 
 
+def _way(side: str | None) -> str:
+    return f"{side} of" if side in G.DIRECTIONS else "nearest to"
+
+
 def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
     at = msg["atH"]
     w.messages_in += 1
@@ -364,8 +368,8 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
         if nbid:
             known = w.by_building.get(nbid)
             if known:
-                _log(w, "Locator", f"\"{r.quote('neighbour')}\" → building on the {side} of {hh.id}: already household "
-                                   f"{known}. Count unchanged.", "street direction · neighbour map", at, msg["id"], "neighbourKnown")
+                _log(w, "Locator", f"\"{r.quote('neighbour')}\" → the building {_way(side)} {hh.id}: already household "
+                                   f"{known}. Count unchanged.", "compass direction · building outlines", at, msg["id"], "neighbourKnown")
                 nh = w.households[known]
                 if nb.get("elderly") and not nh.elderly:
                     nh.elderly = nb["elderly"]
@@ -375,8 +379,8 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
                 nh.people = nb.get("people")
                 nh.elderly = nb.get("elderly", 0)
                 nh.children = nb.get("children", 0)
-                _log(w, "Locator", f"\"{r.quote('neighbour')}\" → building on the {side} of {hh.id}: nobody had reported. "
-                                   f"New household {nh.id}, reported by a neighbour.", "street direction · neighbour map", at, msg["id"], "neighbourNew")
+                _log(w, "Locator", f"\"{r.quote('neighbour')}\" → the building {_way(side)} {hh.id}: nobody had reported. "
+                                   f"New household {nh.id}, reported by a neighbour.", "compass direction · building outlines", at, msg["id"], "neighbourNew")
             msg.setdefault("_effects", {})["neighbour"] = {"side": side, "known": bool(known), "householdId": known or nh.id,
                                                            "buildingId": nbid, "sure": sure}
 

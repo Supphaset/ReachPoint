@@ -51,10 +51,22 @@ def _num(s: str) -> int | None:
     return NUM_TH.get(s)
 
 
-NEIGHBOUR = re.compile(r"(บ้าน(ทาง)?(ซ้ายมือ|ขวามือ|ฝั่งตรงข้าม|ตรงข้าม|ติดกัน|ข้างหลัง|ด้านหลัง)|the house (on (our|my) (left|right)|across the street|next door|behind))(.{0,80})", re.I)
-SIDE = {"ซ้ายมือ": "left", "ขวามือ": "right", "ฝั่งตรงข้าม": "across", "ตรงข้าม": "across", "ติดกัน": "next",
-        "ข้างหลัง": "behind", "ด้านหลัง": "behind", "left": "left", "right": "right", "across the street": "across",
-        "next door": "next", "behind": "behind"}
+# a neighbouring house: by compass direction when the person gives one, otherwise "unknown" (the agent then asks)
+NEIGHBOUR = re.compile(
+    r"(บ้าน(?:ที่อยู่)?(?:ทาง|ด้าน|ฝั่ง)?(?:ทิศ)?(?P<th>เหนือ|ใต้|ตะวันออก|ตะวันตก)"
+    r"|บ้าน(?:ข้าง ?ๆ|ข้างบ้าน|ติดกัน|ซ้ายมือ|ขวามือ|ทางซ้าย|ทางขวา|ฝั่งตรงข้าม|ตรงข้าม|ข้างหลัง|ด้านหลัง)|ข้างบ้าน"
+    r"|the house (?:to the |on the )?(?P<en>north|south|east|west)(?: side)?(?: of (?:us|ours|mine))?"
+    r"|the house (?:next door|on (?:our|my) (?:left|right)|across the street|behind (?:us|ours))|next door|(?:my|our) neighbou?r(?:'s house)?)"
+    r"(.{0,80})", re.I)
+DIRECTION_WORDS = {"เหนือ": "north", "ใต้": "south", "ตะวันออก": "east", "ตะวันตก": "west",
+                   "north": "north", "south": "south", "east": "east", "west": "west"}
+DIRECTION = re.compile(r"(ตะวันออก|ตะวันตก|เหนือ|ใต้|north|south|east|west)", re.I)
+
+
+def direction_of(text: str) -> str | None:
+    """A compass direction in a short answer ("ทิศเหนือ", "east"), or None."""
+    m = DIRECTION.search(text or "")
+    return DIRECTION_WORDS[m.group(1).lower()] if m else None
 
 
 def read_rules(text: str, channel: str = "chat") -> Read:
@@ -111,8 +123,8 @@ def read_rules(text: str, channel: str = "chat") -> Read:
     if m9:
         r.facts.append(Fact("address", (m9.group(1) or m9.group(2)).strip(), (m9.group(1) or m9.group(2)).strip()))
     if nb_text:
-        side_word = m.group(3) or m.group(5) or ""
-        side = SIDE.get(side_word.lower(), SIDE.get(side_word, "next"))
+        side_word = m.group("th") or m.group("en") or ""
+        side = DIRECTION_WORDS.get(side_word.lower(), "unknown")
         nb = {"side": side}
         rest = m.group(0)
         if re.search(r"ยาย|old lady|grandma", rest, re.I) and re.search(r"คนเดียว|alone", rest, re.I):
@@ -158,7 +170,8 @@ def normalise(field: str, value):
     if field == "neighbour":
         if not isinstance(value, dict):
             return None
-        out = {"side": value.get("side") if value.get("side") in ("left", "right", "across", "behind", "next") else "next"}
+        side = str(value.get("side") or "").lower()
+        out = {"side": side if side in ("north", "south", "east", "west") else "unknown"}
         for k in ("people", "elderly", "children"):
             v = normalise(k, value.get(k)) if value.get(k) is not None else None
             if v:

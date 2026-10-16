@@ -239,7 +239,7 @@ def main() -> None:
             nb_side = None
             if ch != "post" and rnd.random() < 0.35:
                 sides = geo.neighbours(b)
-                opts = [(s, ids[0]) for s, ids in sides.items() if ids and s in ("left", "right", "across")]
+                opts = [(s, ids[0]) for s, ids in sides.items() if ids and geo.neighbour_on(b, s) == (ids[0], True)]
                 if opts:
                     side, nid = rnd.choice(opts)
                     nb = geo.buildings[nid]
@@ -247,8 +247,8 @@ def main() -> None:
                     hh_by_building[nid] = other
                     who_th = ("ยายอยู่คนเดียว" if other["elderly"] and other["people"] == 1 else
                               f"ครอบครัว {other['people']} คน" + (f" มีเด็ก {other['children']} คน" if other["children"] else ""))
-                    side_th = {"left": "บ้านทางซ้ายมือ", "right": "บ้านทางขวามือ", "across": "บ้านฝั่งตรงข้าม"}[side]
-                    side_en = {"left": "the house on our left", "right": "the house on our right", "across": "the house across the street"}[side]
+                    side_th = {"north": "บ้านทางทิศเหนือ", "south": "บ้านทางทิศใต้", "east": "บ้านทางทิศตะวันออก", "west": "บ้านทางทิศตะวันตก"}[side]
+                    side_en = f"the house to the {side}"
                     who_en = ("an old lady lives alone" if other["elderly"] and other["people"] == 1 else
                               f"a family of {other['people']}" + (f" with {other['children']} kids" if other["children"] else ""))
                     text += f" {side_th}มี{who_th} ยังไม่ได้ออกมา" if lang == "th" else f" Also {side_en}: {who_en}, still inside."

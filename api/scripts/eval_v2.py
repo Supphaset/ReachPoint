@@ -106,7 +106,7 @@ def main() -> None:
         ("Facts shown with the person's exact words", "100% (enforced: a fact whose quote isn't in the message is dropped)", "≥ 95%"),
         ("Depth from words in the same band as the reference reading", pct(depth_ok, depth_n), "≥ 85%"),
         ("People count read correctly (first-hand reports)", pct(people_ok, people_n), "—"),
-        ("Neighbour side read correctly (left, right, across)", pct(nb_ok, nb_n), "—"),
+        ("Neighbour direction read correctly (north, south, east, west)", pct(nb_ok, nb_n), "—"),
         ("\"Still safe\" replies wrongly marked urgent", pct(urgent_fp, urgent_n), "low"),
         ("Households counted vs real families heard about",
          f"{len(w.households) - sum(1 for h in w.households.values() if h.possible_duplicate_of)}–{len(w.households)} vs {len(true_heard)} "

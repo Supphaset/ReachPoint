@@ -215,8 +215,8 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
       </form>
       <div className="v2-samples">
         {(lang === "th"
-          ? ["น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2", "2 คน", "บ้านซ้ายมือมียายอยู่คนเดียว", "ไม่มี", "มีครอบครัว เด็กเล็ก 2 คน"]
-          : ["Water is up to my waist, I'm with my mom who can't walk, house 52/9 Phetkasem Soi 2", "2 of us", "An old lady lives alone there", "No one", "A family with 2 small kids"]
+          ? ["น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2", "2 คน", "บ้านข้างๆ มียายอยู่คนเดียว", "ทิศตะวันออก", "ไม่มี", "มีครอบครัว เด็กเล็ก 2 คน"]
+          : ["Water is up to my waist, I'm with my mom who can't walk, house 52/9 Phetkasem Soi 2", "2 of us", "Next door an old lady lives alone", "East", "No one", "A family with 2 small kids"]
         ).map((s) => (
           <button key={s} type="button" onClick={() => send(s, "chat")} disabled={busy}>
             {s.length > 28 ? s.slice(0, 26) + "…" : s}

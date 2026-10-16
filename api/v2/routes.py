@@ -198,6 +198,35 @@ def _household_of(w, session) -> str | None:
     return None
 
 
+def _hold_neighbour(s, r):
+    """A neighbour mentioned without a direction waits for the agent's question instead of being matched now."""
+    nb = r.get("neighbour")
+    if nb and nb.get("side") == "unknown":
+        s.nb_pending = {"nb": nb, "quote": r.quote("neighbour")}
+        r.facts = [f for f in r.facts if f.field != "neighbour"]
+    return r
+
+
+def _add_neighbour(v, s, side: str, channel: str, lang: str):
+    """The neighbour's house goes in as its own message, matched to the building in that direction."""
+    held, s.nb_pending = s.nb_pending, None
+    nb = {**held["nb"], "side": side}
+    v.seq += 1
+    msg = {"id": f"L{v.seq}", "atH": v.now_h, "channel": channel, "text": held["quote"], "live": True, "pin": s.pin,
+           "sessionId": s.id, "householdHint": s.household_id, "neighbourOnly": True,
+           "_read": Read([Fact("neighbour", nb, held["quote"])], reader="rules")}
+    v.messages.append(msg)
+    st = _state(v)
+    eff = msg.get("_effects", {}).get("neighbour")
+    s.neighbour_results.append({"side": side, "result": "known" if eff and eff["known"] else "new" if eff else "unmatched",
+                                "buildingId": eff and eff["buildingId"]})
+    if not eff:
+        return None, ""
+    nz = st["world"].households[eff["householdId"]].zone_id
+    has_plan = any(nz in p.get("zones", []) for p in st["world"].plans)
+    return eff, (I.say("known" if has_plan else "known_noplan", lang) if eff["known"] else I.say("new", lang)) + " "
+
+
 @router.post("/chat/sessions/{sid}/turn")
 def chat_turn(sid: str, body: TurnIn):
     v = room()
@@ -213,30 +242,11 @@ def chat_turn(sid: str, body: TurnIn):
         geo = G.load()
         effects = {}
         prefix = ""
-        if pending in ("left", "right", "across") and s.pin:
-            if I.NONE_WORDS.search(text):
-                prefix = I.say("none", lang) + " "
-                s.neighbour_results.append({"side": pending, "result": "none"})
-            else:
-                from api.v2.reader import read_rules
-                r = read_rules(text, body.channel)  # short answers: the rules are instant and enough
-                nb = {"side": pending, "people": r.get("people"), "elderly": r.get("elderly") or (1 if "ยาย" in text or "old" in text.lower() else 0),
-                      "children": r.get("children")}
-                v.seq += 1
-                msg = {"id": f"L{v.seq}", "atH": v.now_h, "channel": body.channel, "text": text, "live": True,
-                       "pin": s.pin, "sessionId": s.id, "householdHint": s.household_id, "neighbourOnly": True,
-                       "_read": Read([Fact("neighbour", {k: x for k, x in nb.items() if x}, text)], reader=r.reader)}
-                v.messages.append(msg)
-                st = _state(v)
-                eff = msg.get("_effects", {}).get("neighbour")
-                effects["neighbour"] = eff
-                s.neighbour_results.append({"side": pending, "result": "known" if eff and eff["known"] else "new" if eff else "unmatched",
-                                            "buildingId": eff and eff["buildingId"]})
-                if eff:
-                    nz = st["world"].households[eff["householdId"]].zone_id
-                    has_plan = any(nz in p.get("zones", []) for p in st["world"].plans)
-                    prefix = I.say("known" if has_plan else "known_noplan", lang) if eff["known"] else I.say("new", lang)
-                    prefix += " "
+        main_msg = None
+        if pending == "nb_dir" and s.nb_pending:
+            from api.v2.reader import direction_of
+            side = direction_of(text) or "unknown"
+            effects["neighbour"], prefix = _add_neighbour(v, s, side, body.channel, lang)
         else:
             from concurrent.futures import ThreadPoolExecutor
             with ThreadPoolExecutor(2) as ex:  # Gemini reads while Pinpoint looks up the address
@@ -256,6 +266,7 @@ def chat_turn(sid: str, body: TurnIn):
                 if loc:
                     s.pin, s.building_id, s.zone_id = {"lon": loc["lon"], "lat": loc["lat"], "precision": "address"}, loc["buildingId"], loc["zoneId"]
                     effects["located"] = loc
+            _hold_neighbour(s, r)
             I._merge(s, r)
             effects["facts"] = [{"field": f.field, "value": f.value, "quote": f.quote} for f in r.facts if f.field != "neighbour"]
             effects["reader"] = r.reader
@@ -263,13 +274,21 @@ def chat_turn(sid: str, body: TurnIn):
                 # everything said before the house was found goes in with this message
                 earlier = " ".join(t["text"] for t in s.transcript if t["role"] == "person") if not s.household_id else text
                 v.seq += 1
+                rr = r if s.household_id or earlier == text else _hold_neighbour(s, ai.read(earlier, body.channel))
                 msg = {"id": f"L{v.seq}", "atH": v.now_h, "channel": "safetyReply" if s.finished else body.channel, "text": earlier,
-                       "live": True, "pin": s.pin, "sessionId": s.id, "householdHint": s.household_id,
-                       "_read": r if s.household_id else ai.read(earlier, body.channel) if earlier != text else r}
+                       "live": True, "pin": s.pin, "sessionId": s.id, "householdHint": s.household_id, "_read": rr}
                 v.messages.append(msg)
+                main_msg = msg
         st = _state(v)
         w = st["world"]
         s.household_id = _household_of(w, s) or s.household_id
+        if main_msg and (main_msg.get("_effects") or {}).get("neighbour"):  # a neighbour named with its direction
+            eff = main_msg["_effects"]["neighbour"]
+            effects["neighbour"] = eff
+            s.neighbour_results.append({"side": eff["side"], "result": "known" if eff["known"] else "new", "buildingId": eff["buildingId"]})
+            nz = w.households[eff["householdId"]].zone_id
+            has_plan = any(nz in p.get("zones", []) for p in w.plans)
+            prefix = (I.say("known" if has_plan else "known_noplan", lang) if eff["known"] else I.say("new", lang)) + " "
         if s.finished:
             reply = I.say("reply_ok", lang)
             s.pending = None
@@ -282,6 +301,10 @@ def chat_turn(sid: str, body: TurnIn):
             else:
                 s.pending = None
                 s.finished = True
+                if s.nb_pending and s.pin:  # urgent: no more questions; the neighbour goes in without a direction
+                    effects["neighbour"], _ = _add_neighbour(v, s, "unknown", body.channel, lang)
+                    st = _state(v)
+                    w = st["world"]
                 reply = prefix + I.say("urgent_done" if s.facts.get("urgent", {}).get("value") is True else "done", lang)
         s.transcript.append({"role": "agent", "text": reply})
         hh = w.households.get(s.household_id) if s.household_id else None

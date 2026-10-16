@@ -24,9 +24,8 @@ Q = {
     "vulnerable": ("มีผู้สูงอายุ เด็กเล็ก คนป่วย หรือคนที่เดินไม่ได้ไหมคะ", "Is anyone elderly, a small child, sick, or unable to walk?"),
     "depth": ("ตอนนี้น้ำสูงแค่ไหนคะ เทียบกับร่างกายก็ได้ เช่น ถึงเข่า ถึงเอว", "How high is the water now? Compared with your body is fine, like knee or waist."),
     "askBack": ("น้ำอยู่สูงกว่าหรือต่ำกว่าลูกบิดประตูคะ", "Is the water above or below your door handle?"),
-    "left": ("บ้านติดกันทางซ้ายมือ (ยืนที่ประตูมองออกไปที่ถนน) มีคนยังอยู่ไหมคะ", "The house next to yours on the left (standing at your door, looking at the street): is anyone still there?"),
-    "right": ("แล้วบ้านทางขวามือล่ะคะ", "And the house on your right?"),
-    "across": ("แล้วบ้านฝั่งตรงข้ามถนนล่ะคะ", "And the house across the street?"),
+    "nb_dir": ("บ้านที่คุณพูดถึง อยู่ทิศไหนของบ้านคุณคะ เหนือ ใต้ ตะวันออก หรือตะวันตก",
+               "Which direction is the house you mentioned from yours: north, south, east or west?"),
     "urgent_done": ("รับทราบค่ะ เป็นกรณีด่วน เรื่องของคุณขึ้นเป็นลำดับแรกแล้ว หากมีคนหายใจไม่ออกหรือบาดเจ็บ โทร 1669 ทันทีค่ะ",
                     "Understood. This is urgent, and your case is at the top now. If anyone can't breathe or is injured, call 1669 now."),
     "done": ("ขอบคุณค่ะ ข้อมูลของคุณอยู่ในระบบแล้ว เมื่อมีทีมวางแผนเข้าโซนของคุณ เราจะแจ้งทันที และจะถามไถ่เป็นระยะนะคะ",
@@ -66,6 +65,7 @@ class Session:
     pending: str | None = "intro"
     transcript: list[dict] = field(default_factory=list)
     neighbour_results: list[dict] = field(default_factory=list)
+    nb_pending: dict | None = None   # a neighbour mentioned without a direction: {"nb": {...}, "quote": "..."}
     finished: bool = False
 
     def view(self):
@@ -133,7 +133,7 @@ def _next(s: Session) -> str | None:
         return "askBack"
     if f.get("urgent", {}).get("value") is True:
         return None
-    for side in ("left", "right", "across"):
-        if side not in s.asked:
-            return side
+    # neighbours only come up when the person mentions one: then ask which way that house is
+    if s.nb_pending and "nb_dir" not in s.asked:
+        return "nb_dir"
     return None

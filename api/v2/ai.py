@@ -59,8 +59,9 @@ Fields:
 - forwarded: true if the text says it is forwarded or copied.
 - about: "relative" if the writer reports someone else (a relative or friend), not themselves.
 - address: the address or landmark words.
-- neighbour: {side: left|right|across|behind|next, people?, elderly?, children?} when they mention a neighbouring
-  house; quote the words about the neighbour.
+- neighbour: {side: north|south|east|west|unknown, people?, elderly?, children?} when they mention a neighbouring
+  house. side is the compass direction from the writer's house, only if they say it; "next door", "beside us", left,
+  right or across are "unknown". Quote the words about the neighbour.
 Return {"facts": [...]}."""
 
 SCHEMA = {"type": "object", "properties": {"facts": {"type": "array", "items": {"type": "object", "properties": {

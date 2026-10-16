@@ -1,7 +1,7 @@
 """Buildings, streets and zones for v2: snap a point to a building, and name a house's neighbours.
 
-"Left", "right", "across" and "behind" are as seen standing at the door, looking at the nearest street. That is how
-people describe neighbours, and the intake agent asks the question the same way. No GIS library: the city is small
+Neighbours are named by compass direction (north, south, east, west of the reporter's house): unlike left and right,
+it does not depend on which way the person is facing. "unknown" (next door, beside us) takes the nearest building. No GIS library: the city is small
 enough for a local flat projection (metres east and north of a fixed origin) and grid buckets.
 """
 
@@ -18,6 +18,7 @@ PKG = Path(__file__).resolve().parents[2] / "data" / "hy-2025-11"
 LAT0, LON0 = 7.02, 100.47
 MX = 111_320 * math.cos(math.radians(LAT0))
 MY = 110_574
+DIRECTIONS = ("north", "east", "south", "west")
 CELL = 60.0
 
 
@@ -140,54 +141,40 @@ class Geo:
         return Facing(s.get("name"), s.get("nameTh"), s.get("kind"), px, py, nx, ny, round(d, 1))
 
     def neighbours(self, b: Building) -> dict[str, list[str]]:
-        """Building ids on each side of b, nearest first: left, right, across, behind (as seen from b's door)."""
-        f = self.facing(b)
-        out = {"left": [], "right": [], "across": [], "behind": []}
-        if f is None:
-            return out
-        fx, fy = -f.nx, -f.ny             # looking at the street
-        rx, ry = fy, -fx                  # the person's right hand
-        mine = (b.x - f.sx) * f.nx + (b.y - f.sy) * f.ny  # how far b sits back from the street
+        """Building ids in each compass direction from b (a 90° sector each, within 60 m), nearest first."""
+        out = {d: [] for d in DIRECTIONS}
         scored = []
         for n in self.near(b.x, b.y, 60):
             if n.id == b.id:
                 continue
-            along = (n.x - b.x) * rx + (n.y - b.y) * ry
-            back = (n.x - f.sx) * f.nx + (n.y - f.sy) * f.ny
-            if back < -3:                                   # other side of the street
-                if abs(along) <= 30 and back > -50:
-                    scored.append(("across", abs(along) + abs(back) * 0.3, n.id))
-            elif back - mine > 7 and abs(along) <= 12:
-                scored.append(("behind", back - mine, n.id))
-            elif abs(back - mine) <= 12 and 2 < abs(along) <= 40:
-                scored.append(("right" if along > 0 else "left", abs(along), n.id))
+            dx, dy = n.x - b.x, n.y - b.y
+            d = math.hypot(dx, dy)
+            if d < 2 or d > 60:
+                continue
+            ang = math.degrees(math.atan2(dx, dy)) % 360          # bearing: 0 north, 90 east
+            side = DIRECTIONS[int(((ang + 45) % 360) // 90)]
+            scored.append((side, d, n.id))
         for side, d, nid in sorted(scored, key=lambda s: s[1]):
             out[side].append(nid)
         return out
 
-    def neighbour_on(self, b: Building, side: str) -> tuple[str | None, bool]:
-        """The building on one side, and whether it is a clear match. When the strict rules find none, the nearest
-        building in roughly that direction (marked not sure)."""
+    def neighbour_on(self, b: Building, side: str | None) -> tuple[str | None, bool]:
+        """The building in one direction from b, and whether it is a clear match (the nearest one, within 35 m, with
+        no other building almost as close in that direction). Without a direction: the nearest building, not sure."""
         sides = self.neighbours(b)
-        ids = sides.get(side) or (sides.get("left", []) + sides.get("right", []) if side == "next" else [])
-        if ids:
-            return ids[0], True
-        f = self.facing(b)
-        if f is None:
-            return None, False
-        fx, fy = -f.nx, -f.ny
-        rx, ry = fy, -fx
-        best = None
-        for n in self.near(b.x, b.y, 60):
-            if n.id == b.id:
-                continue
-            along = (n.x - b.x) * rx + (n.y - b.y) * ry
-            fwd = (n.x - b.x) * fx + (n.y - b.y) * fy
-            ok = {"left": along < -2, "right": along > 2, "across": fwd > 5, "behind": fwd < -5, "next": abs(along) > 2}.get(side, True)
-            d = math.hypot(n.x - b.x, n.y - b.y)
-            if ok and (best is None or d < best[0]):
-                best = (d, n.id)
-        return (best[1], False) if best else (None, False)
+        if side in DIRECTIONS:
+            ids = sides[side]
+            if not ids:
+                return None, False
+            d0 = self._dist(b, ids[0])
+            sure = d0 <= 35 and (len(ids) == 1 or self._dist(b, ids[1]) - d0 > 4)
+            return ids[0], sure
+        near = sorted((self._dist(b, i), i) for ids in sides.values() for i in ids)
+        return (near[0][1], False) if near else (None, False)
+
+    def _dist(self, b: Building, nid: str) -> float:
+        n = self.buildings[nid]
+        return math.hypot(n.x - b.x, n.y - b.y)
 
 
 @lru_cache(maxsize=1)

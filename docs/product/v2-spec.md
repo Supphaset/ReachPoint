@@ -55,12 +55,13 @@ A supervisor runs on the demo clock: every 15 simulated minutes, and on each new
 in order and logs each decision to Activity.
 
 1. **Intake** (live chat or voice). It asks one question at a time, only for missing critical facts: location,
-   people, vulnerable people, water depth, then neighbours (left, right, across, behind). It skips the neighbour
-   questions when the case is life-threatening. Every fact keeps its quote.
+   people, vulnerable people, water depth. It does not ask about neighbours unprompted; when the person mentions a
+   neighbour without saying where, it asks which direction that house is (north, south, east, west). It skips that
+   question when the case is life-threatening. Every fact keeps its quote.
 2. **Reader** turns public posts and bulletins into the same facts, in batch. It spots forwarded or old text.
 3. **Locator** finds the address with Pinpoint, snaps the point to the nearest building outline, and turns
-   neighbour words into a building. It uses the street direction (OSM) to define left, right, across and behind,
-   as seen from the door. Gemini picks a building from the candidates and gives a reason; rules come first.
+   neighbour words into a building: the nearest building outline in that compass direction (a 90° sector, within
+   60 m). Compass directions don't depend on which way the person is facing, unlike left and right. Gemini picks a building from the candidates and gives a reason; rules come first.
 4. **Dedupe** decides whether this is the same household. A phone match or the same building is sure, unless the
    names or descriptions clearly differ. Otherwise Gemini compares the two. Results: sure (merge), probably (one
    household, with the count shown as a range) or different.

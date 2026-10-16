@@ -26,8 +26,9 @@ Open the site. You get your own private demo room (nobody else sees your reports
    *"น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"*.
    The agent asks only what is missing; under each answer you see what it understood, with your own words.
 2. **Watch your house appear** on the satellite map, and the zone's numbers change.
-3. **Answer "is anyone in the house on your left?"** The system finds that house on the map. If it already reported,
-   it isn't counted twice; if not, it is added as a household reported by a neighbour.
+3. **Mention a neighbour** ("บ้านข้างๆ มียายอยู่คนเดียว"). The agent asks which way that house is from yours: north,
+   south, east or west. The system finds that house on the building map. If it already reported, it isn't counted
+   twice; if not, it is added as a household reported by a neighbour.
 4. **Post a plan as a volunteer** ("เรือเรา 8 ที่ จะเข้า B-3 ราวบ่ายสอง") and see your phone told that a boat is coming.
 5. **Press "Play the flood"** to watch 21–28 Nov 2025: the flood simulation spreads from the canal as the real gauge
    rises, reports arrive, duplicates merge, quiet zones get asked, and the picture sharpens.
@@ -40,7 +41,7 @@ flowchart LR
   P["Public posts"] --> RD["Reader"]
   B["Bulletins, gauge X.44"] --> RD
   S["Sentinel-1, IMERG rain, FABDEM terrain"] --> SIM["Flood simulation"]
-  I --> L["Locator: address → building,<br/>'house on my left' → building"]
+  I --> L["Locator: address → building,<br/>'house to the east' → building"]
   RD --> L
   L --> D["Dedupe: households, not reports"]
   D --> A["Analyst: words → depth,<br/>simulation corrected by reports,<br/>doubtful reports"]
@@ -55,7 +56,7 @@ flowchart LR
 |---|---|---|
 | **Intake agent** | One question at a time, only what is missing: where, how many, who is vulnerable, how deep (with a concrete check: "above or below your door handle?"), then the neighbours side by side. Skips the neighbour questions when life is at risk | [`api/v2/intake.py`](api/v2/intake.py) |
 | **Reader** | A language model turns any message into facts. Every fact must quote the person's exact words or it is dropped. Rules take over if the model is unavailable, and say so | [`api/v2/ai.py`](api/v2/ai.py), [`reader.py`](api/v2/reader.py) |
-| **Locator** | Address → Pinpoint → the Google Open Buildings outline under it. "The house on my left" → the building on that side, as seen from the door looking at the street (OSM street direction) | [`api/v2/geo.py`](api/v2/geo.py) |
+| **Locator** | Address → Pinpoint → the Google Open Buildings outline under it. "The house to the east" → the nearest building in that direction, as seen from the door looking at the street (OSM street direction) | [`api/v2/geo.py`](api/v2/geo.py) |
 | **Dedupe** | Counts households, not messages. Replies stay in their conversation; a relative's post merges only when exactly one nearby family has the same makeup; otherwise it is kept apart and counted as a range | [`api/v2/pipeline.py`](api/v2/pipeline.py) |
 | **Flood simulation** | Diffusive shallow-water model on the 30 m FABDEM terrain: the canal at the real gauge X.44 level hour by hour, the real IMERG rain, drainage | [`data/scripts/build_v2_flood_sim.py`](data/scripts/build_v2_flood_sim.py) |
 | **Analyst** | Words → depth ranges; each report is compared with the simulation at its own house; nearby reports' gaps correct the simulation ("reports say 0.6 m deeper here: likely blocked drains"); a report whose gap disagrees with its neighbours is marked doubtful, never deleted | [`api/v2/pipeline.py`](api/v2/pipeline.py), [`level.py`](api/v2/level.py) |
@@ -76,7 +77,7 @@ scenario (real water data, synthetic people and messages, with deliberately wron
 | Planted wrong reports flagged doubtful | 13 of 14 | ≥ 80% |
 | Honest reports wrongly flagged | 3% | low |
 | Two families wrongly merged into one | 1% | ≤ 3% |
-| "The house on my left" matched to the exact building | 88% | ≥ 85% |
+| "The house to the east" matched to the exact building | 88% | ≥ 85% |
 
 The scenario's "true" flood is the simulation plus local effects it can't know (blocked drains, pumps, smooth
 differences), so these numbers show how well physics and reports combine, not field accuracy.
