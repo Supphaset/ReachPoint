@@ -14,7 +14,7 @@ import re
 
 from api.ai import gemini
 from api.intake.extract import MODELS as KEY_MODELS
-from api.v2.reader import Fact, Read, read_rules
+from api.v2.reader import Fact, Read, normalise, read_rules
 
 USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"
 # Which model reads messages: "gemini" (the submitted build) or "claude" (local work, through the Claude Code CLI).
@@ -49,7 +49,8 @@ Fields:
 - depthRange: [low, high] metres of water where the writer is. Use body references for a standing adult:
   ankle 0.05-0.2, shin 0.2-0.4, knee 0.4-0.6, thigh 0.6-0.8, waist 0.9-1.1, door handle 0.9-1.1, chest 1.2-1.4,
   neck 1.4-1.6, over head 1.8-2.3, second floor 2.5-3.2, roof 3-4. "a little below/above" shifts the band.
-- people: total people with the writer, only if stated or listed.
+- people: total people in the household the message is about (the writer's own, or the family a relative or
+  neighbour reports), only if stated or listed.
 - elderly, children, cannotWalk: counts, only if stated (cannotWalk includes bedridden or wheelchair).
 - urgent: true only for a stated current life threat (can't breathe, water still rising over people who cannot
   leave, someone injured or sick) or explicit "need help now/urgently". A plain "help" or "please help" is not urgent.
@@ -65,6 +66,9 @@ Return {"facts": [...]}."""
 SCHEMA = {"type": "object", "properties": {"facts": {"type": "array", "items": {"type": "object", "properties": {
     "field": {"type": "string"}, "value": {"type": "string", "description": "JSON-encoded value"}, "quote": {"type": "string"}},
     "required": ["field", "value", "quote"]}}}, "required": ["facts"]}
+
+# facts the plain words state that a model sometimes leaves out: added back from the rules, with their quote
+ADD_BACK = ("urgent", "depthRange", "cannotWalk", "people", "elderly", "children")
 
 FIELDS = {"depthRange", "people", "elderly", "children", "cannotWalk", "urgent", "safe", "trend", "forwarded", "about",
           "address", "neighbour"}
@@ -88,6 +92,9 @@ def validate(text: str, raw: dict) -> tuple[list[Fact], int]:
             v = json.loads(f["value"]) if isinstance(f.get("value"), str) else f.get("value")
         except (ValueError, TypeError):
             v = f.get("value")
+        v = normalise(f["field"], v)
+        if v is None or (f["field"] in ("urgent", "forwarded") and v is False):
+            continue
         if f["field"] == "depthRange":
             if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, (int, float)) for x in v) and 0 <= v[0] <= v[1] <= 6):
                 dropped += 1
@@ -107,7 +114,7 @@ def read(text: str, channel: str = "chat", use_model: bool = True, timeout: floa
                 rules = read_rules(text, channel)
                 have = {f.field for f in facts}
                 for f in rules.facts:
-                    if f.field in ("urgent", "depthRange", "cannotWalk") and f.field not in have:
+                    if f.field in ADD_BACK and f.field not in have:
                         facts.append(f)
                 return Read(facts, reader=f"claude:{CLAUDE_MODEL}")
         return read_rules(text, channel)
@@ -127,7 +134,7 @@ def read(text: str, channel: str = "chat", use_model: bool = True, timeout: floa
                     have = {f.field for f in facts}
                     # a danger or depth the model missed but the words plainly say is added back from the rules
                     for f in rules.facts:
-                        if f.field in ("urgent", "depthRange", "cannotWalk") and f.field not in have:
+                        if f.field in ADD_BACK and f.field not in have:
                             facts.append(f)
                     return Read(facts, reader=f"gemini:{model}")
             except Exception:

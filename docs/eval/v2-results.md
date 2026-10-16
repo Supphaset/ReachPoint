@@ -6,15 +6,15 @@ not field accuracy. Reference readings for depth are the rule reader's band for 
 
 | Measure | Result | Target |
 |---|---|---|
-| Messages read by Gemini (batch) | 0% (0/1016) | — |
+| Messages read by the model in batch (claude:claude-haiku-5-5) | 100% (1016/1016) | — |
 | Facts shown with the person's exact words | 100% (enforced: a fact whose quote isn't in the message is dropped) | ≥ 95% |
-| Depth from words in the same band as the reference reading | — | ≥ 85% |
-| People count read correctly (first-hand reports) | — | — |
-| Neighbour side read correctly (left, right, across) | — | — |
-| "Still safe" replies wrongly marked urgent | — | low |
-| Households counted vs real families heard about | 272–275 vs 265 (the range keeps possible duplicates apart) | truth inside the range |
-| Households wrongly merged (two families as one) | 1% (4/275) | ≤ 3% |
-| Neighbour words matched to the exact building | 88% (44/50) | ≥ 85% |
+| Depth from words in the same band as the reference reading | 100% (881/881) | ≥ 85% |
+| People count read correctly (first-hand reports) | 100% (158/158) | — |
+| Neighbour side read correctly (left, right, across) | 100% (50/50) | — |
+| "Still safe" replies wrongly marked urgent | 0% (0/359) | low |
+| Households counted vs real families heard about | 284–287 vs 265 (the range keeps possible duplicates apart) | truth inside the range |
+| Households wrongly merged (two families as one) | 1% (4/287) | ≤ 3% |
+| Neighbour words matched to the exact building | 100% (50/50) | ≥ 85% |
 | Planted wrong reports flagged doubtful | 93% (13/14) | ≥ 80% |
 | Honest reports wrongly flagged doubtful | 3% (23/836) | low |
 | Most likely depth at a household vs the true depth there (mean error) | 0.14 m over 752 reports (median 0.12 m) | ≤ 0.2 m |

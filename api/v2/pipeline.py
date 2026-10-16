@@ -170,8 +170,16 @@ def facts_for(msg: dict) -> Read:
 def _facts_for(msg: dict) -> Read:
     cached = cached_facts().get(msg["id"])
     if cached:
-        from api.v2.reader import Fact
-        return Read([Fact(**f) for f in cached["facts"]], reader=cached.get("reader", "gemini"))
+        from api.v2.reader import Fact, normalise
+        facts = []
+        for f in cached["facts"]:
+            v = normalise(f["field"], f["value"])
+            if v is not None and not (f["field"] in ("urgent", "forwarded") and v is False):
+                facts.append(Fact(f["field"], v, f["quote"]))
+        from api.v2.ai import ADD_BACK
+        have = {f.field for f in facts}
+        facts += [f for f in read_rules(msg["text"], msg.get("channel", "chat")).facts if f.field in ADD_BACK and f.field not in have]
+        return Read(facts, reader=cached.get("reader", "model"))
     return read_rules(msg["text"], msg.get("channel", "chat"))
 
 

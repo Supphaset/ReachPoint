@@ -113,6 +113,8 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
       if (r.effects.neighbour)
         extra.push(r.effects.neighbour.known ? (lang === "th" ? "บ้านนี้มีในระบบแล้ว · ไม่นับซ้ำ" : "Already known · not counted twice") : lang === "th" ? "เพิ่มบ้านใหม่" : "New household added");
       if (r.effects.depthHere) extra.push(lang === "th" ? `น้ำที่บ้านคุณน่าจะ ≈ ${r.effects.depthHere[0]} ม.` : `Water at your house most likely ≈ ${r.effects.depthHere[0]} m`);
+      else if (r.effects.simHere !== undefined && r.effects.simHere !== null && r.effects.located)
+        extra.push(lang === "th" ? `แบบจำลองน้ำท่วมที่บ้านคุณ ≈ ${r.effects.simHere} ม.` : `Flood simulation at your house ≈ ${r.effects.simHere} m`);
       const facts = (r.effects.facts ?? []).filter((f) => FIELD[f.field]);
       setItems((xs) => [
         ...xs,

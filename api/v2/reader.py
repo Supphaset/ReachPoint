@@ -125,3 +125,43 @@ def read_rules(text: str, channel: str = "chat") -> Read:
             nb["children"] = int(mk.group(1) or mk.group(2))
         r.facts.append(Fact("neighbour", nb, rest.strip()))
     return r
+
+
+COUNT_FIELDS = ("people", "elderly", "children", "cannotWalk")
+
+
+def normalise(field: str, value):
+    """A model's value in the shape the pipeline expects; None drops the fact. Counts become integers (a vague
+    'some' / 'yes' counts as at least 1 for vulnerable groups, never for the total); flags become booleans."""
+    if field in COUNT_FIELDS:
+        if isinstance(value, bool):
+            return (1 if value else None) if field != "people" else None
+        if isinstance(value, (int, float)):
+            return int(value) if value >= 0 else None
+        if isinstance(value, str):
+            m = re.search(r"\d+", value.translate(THAI_DIGITS))
+            if m:
+                return int(m.group(0))
+            if field != "people" and re.search(r"some|yes|มี|true|one|person|people", value, re.I):
+                return 1
+        return None
+    if field == "urgent":
+        return value is True or (isinstance(value, str) and value.lower() in ("true", "yes"))
+    if field == "safe":
+        if isinstance(value, str):
+            return "evacuated" if "evac" in value.lower() else value.lower() in ("true", "yes", "safe")
+        return value
+    if field == "forwarded":
+        return value is True or (isinstance(value, str) and value.lower() == "true")
+    if field == "trend":
+        return value if value in ("rising", "steady", "falling") else None
+    if field == "neighbour":
+        if not isinstance(value, dict):
+            return None
+        out = {"side": value.get("side") if value.get("side") in ("left", "right", "across", "behind", "next") else "next"}
+        for k in ("people", "elderly", "children"):
+            v = normalise(k, value.get(k)) if value.get(k) is not None else None
+            if v:
+                out[k] = v
+        return out
+    return value

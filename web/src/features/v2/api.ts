@@ -151,6 +151,7 @@ export interface TurnResult {
     neighbour?: { side: string; known: boolean; householdId: string; buildingId: string; sure: boolean } | null;
     household?: HouseholdView | null;
     depthHere?: [number, number, number] | null;
+    simHere?: number | null;
   };
   zone: ZoneView | null;
 }
