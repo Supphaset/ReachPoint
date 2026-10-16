@@ -37,7 +37,7 @@ def plan_outreach(w, geo: G.Geo) -> None:
 
     # lost contact: two scheduled checks with no reply
     for hh in w.households.values():
-        if not hh.first_hand or hh.status in ("safe", "evacuated"):
+        if not hh.first_hand or hh.status in ("safe", "evacuated") or hh.outcome:
             continue
         missed = check_times(hh.last_heard_h, now)
         hh.checks_unanswered = len(missed)

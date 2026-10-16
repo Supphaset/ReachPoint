@@ -12,8 +12,8 @@ not field accuracy. Reference readings for depth are the rule reader's band for 
 | People count read correctly (first-hand reports) | 100% (158/158) | — |
 | Neighbour direction read correctly (north, south, east, west) | 100% (59/59) | — |
 | "Still safe" replies wrongly marked urgent | 0% (0/591) | low |
-| Households counted vs real families heard about | 314–315 vs 284 (the range keeps possible duplicates apart) | truth inside the range |
-| Households wrongly merged (two families as one) | 1% (3/315) | ≤ 3% |
+| Households counted vs real families heard about | 284–285 vs 284 (the range keeps possible duplicates apart) | truth inside the range |
+| Households wrongly merged (two families as one) | 2% (5/285) | ≤ 3% |
 | Neighbour words matched to the exact building | 100% (62/62) | ≥ 85% |
 | Planted wrong reports flagged doubtful | 92% (12/13) | ≥ 80% |
 | Honest reports wrongly flagged doubtful | 4% (52/1252) | low |

@@ -29,6 +29,7 @@ from api.v2.reader import Read, read_rules
 PKG = G.PKG
 CHECK_HOURS = (7, 19)
 LOCAL_M = 400.0  # reports this close share roughly one water surface
+POST_MATCH_M = {"landmark": 250, "area": 400}  # how far a post pinned to a landmark or an area may sit from the house
 SOURCE_WEIGHT = {"self": 1.0, "reply": 1.0, "neighbour": 0.7, "relative": 0.5, "post": 0.5, "forward": 0.2}
 PRECISION_WEIGHT = {"address": 1.0, "landmark": 0.6, "area": 0.3}
 SATELLITE_PASSES = [("2025-11-24T06:03+07:00", "extent-2025-11-23-o164.geojson"),   # file names keep the UTC date
@@ -58,6 +59,7 @@ class Household:
     last_depth: list[float] | None = None
     phone_key: str | None = None
     checks_unanswered: int = 0
+    outcome: dict | None = None     # a team's one tap: {"kind": "pickedUp" | "nobodyThere", "team", "atH"}
 
     def view(self):
         return {"id": self.id, "buildingId": self.building_id, "zoneId": self.zone_id, "lon": self.lon, "lat": self.lat,
@@ -65,7 +67,7 @@ class Household:
                 "cannotWalk": self.cannot_walk, "urgent": self.urgent, "status": self.status, "firstHand": self.first_hand,
                 "reportedByOthersOnly": self.reported_by_others_only, "messages": len(self.message_ids),
                 "possibleDuplicateOf": self.possible_duplicate_of, "lastDepth": self.last_depth,
-                "firstAtH": self.first_at_h, "lastHeardH": self.last_heard_h}
+                "firstAtH": self.first_at_h, "lastHeardH": self.last_heard_h, "outcome": self.outcome}
 
 
 @dataclass
@@ -105,6 +107,8 @@ class World:
     by_phone: dict = field(default_factory=dict)
     texts: dict = field(default_factory=dict)
     threads: dict = field(default_factory=dict)
+    msg_link: dict = field(default_factory=dict)    # message id → {"householdId", "how", "kind"}: why it joined
+    nb_links: list = field(default_factory=list)    # neighbour reports: who reported which house, which way
 
 
 @lru_cache(maxsize=1)
@@ -239,7 +243,7 @@ def _posted_about(w: World, pin: dict, zone_id: str, r: Read):
         if h.zone_id != zone_id or h.first_hand or h.precision == "address":
             continue
         hx, hy = G.to_m(h.lon, h.lat)
-        if math.hypot(hx - x, hy - y) <= 150 and _same_family(r, h, strict=True):
+        if math.hypot(hx - x, hy - y) <= POST_MATCH_M.get(h.precision, 150) and _same_family(r, h, strict=True):
             fits.append(h)
     return fits[0] if len(fits) == 1 else None
 
@@ -256,6 +260,24 @@ def _near_first_hand(w: World, pin: dict, zone_id: str, r_m: float):
     return best[1] if best else None
 
 
+def _outcome(w: World, msg: dict):
+    """A team's one tap on a case: picked up, or nobody there. The family's phone is told."""
+    hh = w.households.get(msg.get("householdHint") or "")
+    if hh is None:
+        return
+    kind, team, at = msg["outcome"], msg.get("team") or "A team", msg["atH"]
+    hh.outcome = {"kind": kind, "team": team, "atH": at, "at": label_time(at)}
+    hh.status = "evacuated" if kind == "pickedUp" else "nobodyThere"
+    if kind == "pickedUp":
+        hh.urgent = False
+    hh.message_ids.append(msg["id"])
+    w.msg_link[msg["id"]] = {"householdId": hh.id, "how": "team visit", "kind": "team"}
+    from api.v2.messages import say
+    w.outbound.append({"atH": at + 0.02, "householdId": hh.id, "kind": kind, "text": say(kind, team=team)})
+    _log(w, "Team", f"{team}: {'picked up' if kind == 'pickedUp' else 'nobody there at'} {hh.id} ({hh.zone_id}).",
+         "volunteer tap", at, msg["id"], kind)
+
+
 def _way(side: str | None) -> str:
     return f"{side} of" if side in G.DIRECTIONS else "nearest to"
 
@@ -270,6 +292,9 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
         if t.get("gaugeM") and t["gaugeM"] > 7.4 and (t.get("rateMh") or 0) > 0:
             _log(w, "Reader", f"Bulletin read: gauge X.44 at {t['gaugeM']:.2f} m, over the 7.40 m bank and rising "
                               f"{t['rateMh'] * 100:.0f} cm/h.", "gemini · read bulletin", at, msg["id"], "bulletin")
+        return
+    if msg.get("outcome"):
+        _outcome(w, msg)
         return
     r = msg.get("_read") or facts_for(msg)
     kind = "self" if msg["channel"] in ("chat", "voice") else ("reply" if msg["channel"] == "safetyReply" else "post")
@@ -313,7 +338,7 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
             if cand.zone_id != b.zone_id or cand.lon is None:
                 continue
             d = math.hypot(*(a - c for a, c in zip(G.to_m(cand.lon, cand.lat), (x, y))))
-            if d <= 150 and _same_family(r, cand, strict=True):
+            if d <= POST_MATCH_M.get(precision, 150) and _same_family(r, cand, strict=True):
                 matches.append((d, cand))
         matches.sort(key=lambda m: m[0])
         if len(matches) == 1:
@@ -323,6 +348,7 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
             possible = matches[0][1].id  # several families fit: keep it separate, count it as a range
     if hh is None:
         hh = _new_household(w, b, pin.get("lon"), pin.get("lat"), precision, at)
+        how = "new household" + (" (possibly the same as " + possible + ")" if kind not in ("self", "reply") and "possible" in locals() else "")
         if kind not in ("self", "reply") and "possible" in locals():
             hh.possible_duplicate_of = possible
         if kind in ("self", "reply"):
@@ -344,6 +370,7 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
         hh.phone_key = msg["phoneKey"]
         w.by_phone[msg["phoneKey"]] = hh.id
     hh.message_ids.append(msg["id"])
+    w.msg_link[msg["id"]] = {"householdId": hh.id, "how": how, "kind": kind}
     if kind == "self":
         w.threads.setdefault(msg["id"], hh.id)
     hh.last_heard_h = at
@@ -353,7 +380,9 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
         w.texts.setdefault(base, hh.id)
     _merge_people(hh, r, first_hand)
     safe = r.get("safe")
-    if safe == "evacuated":
+    if hh.outcome:
+        pass  # a team was there: its tap stands over later messages
+    elif safe == "evacuated":
         hh.status = "evacuated"
     elif safe and not r.get("urgent"):
         hh.status = "safe" if (r.get("depthRange") or [0, 0])[0] < 1.0 else "open"
@@ -362,6 +391,8 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
 
     # --- neighbour words → building → known or new household
     nb = r.get("neighbour")
+    if nb and nb.get("side") not in G.DIRECTIONS and kind not in ("self", "reply"):
+        nb = None  # "my neighbour, a family of 5" in a post is about that family itself, like a relative's post
     if nb and b:
         side = nb.get("side")
         nbid, sure = geo.neighbour_on(b, side)
@@ -381,6 +412,8 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
                 nh.children = nb.get("children", 0)
                 _log(w, "Locator", f"\"{r.quote('neighbour')}\" → the building {_way(side)} {hh.id}: nobody had reported. "
                                    f"New household {nh.id}, reported by a neighbour.", "compass direction · building outlines", at, msg["id"], "neighbourNew")
+            w.nb_links.append({"from": hh.id, "to": known or nh.id, "side": side, "sure": sure, "messageId": msg["id"],
+                               "atH": at, "quote": r.quote("neighbour"), "known": bool(known)})
             msg.setdefault("_effects", {})["neighbour"] = {"side": side, "known": bool(known), "householdId": known or nh.id,
                                                            "buildingId": nbid, "sure": sure}
 
