@@ -8,7 +8,8 @@ import { apiMode } from "../../data/mode";
 import { BoardMap, type HouseMark, type SimMode } from "./BoardMap";
 import { ActivityList, PlanBox, TimeBar, ZoneCard } from "./Panels";
 import { Phone } from "./Phone";
-import { v2, type BoardState, type GeoView, type Timeline, type TurnResult } from "./api";
+import { depthAt, v2, type BoardState, type DepthSeries, type GeoView, type Timeline, type TurnResult } from "./api";
+import { HouseScene } from "./HouseScene";
 import "./v2.css";
 
 export function V2Page() {
@@ -26,6 +27,7 @@ export function V2Page() {
   const [simMode, setSimMode] = useState<SimMode>("corrected");
   const [simHour, setSimHour] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [myHouse, setMyHouse] = useState<{ lon: number; lat: number } | null>(null);
   const live = useRef(true);
   const nowH = state?.now.atH ?? 96;
 
@@ -94,6 +96,7 @@ export function V2Page() {
     setViewH(null);
     const s = await load();
     const hh = r.effects.household;
+    if (hh?.lon && hh.lat) setMyHouse({ lon: hh.lon, lat: hh.lat });
     if (hh?.zoneId) {
       setSelected(hh.zoneId);
       setTab("zone");
@@ -118,6 +121,7 @@ export function V2Page() {
     if (a === "reset") {
       setHouses([]);
       setFocus(null);
+      setMyHouse(null);
       setChatVersion((v) => v + 1);
     }
     live.current = true;
@@ -159,7 +163,10 @@ export function V2Page() {
       </header>
       {error ? <p className="v2-error">Couldn't reach the server: {error}</p> : null}
       <div className="v2-layout">
-        <Phone onTurn={onTurn} version={chatVersion} lang={lang} setLang={setLang} />
+        <div className="v2-left">
+          <VictimScene house={myHouse} hour={simHour ?? viewing} nowH={nowH} lang={lang} version={state?.overall.messages ?? 0} />
+          <Phone onTurn={onTurn} version={chatVersion} lang={lang} setLang={setLang} />
+        </div>
         <section className="v2-board" aria-label="Volunteer information board">
           {o ? (
             <div className="v2-stats">
@@ -209,6 +216,45 @@ export function V2Page() {
         </section>
       </div>
     </main>
+  );
+}
+
+// before the judge reports, an example house west of the railway, where the water came first
+const EXAMPLE_HOUSE = { lon: 100.4655, lat: 7.0065 };
+
+/** The victim's view: the judge's own house (or an example one) with the water at its modelled depth, following
+ * the clock and the time-lapse. At "now" the depth is the model corrected by the reports around the house. */
+function VictimScene({ house, hour, nowH, lang, version }: { house: { lon: number; lat: number } | null; hour: number; nowH: number; lang: "th" | "en"; version: number }) {
+  const p = house ?? EXAMPLE_HOUSE;
+  const [series, setSeries] = useState<DepthSeries | null>(null);
+  useEffect(() => {
+    let live = true;
+    depthAt(p.lon, p.lat).then((s) => live && setSeries(s), () => undefined);
+    return () => { live = false; };
+  }, [p.lon, p.lat, nowH, version]);
+  const atNow = hour >= nowH - 0.5;
+  const h = Math.max(0, Math.min((series?.model.length ?? 1) - 1, Math.round(hour)));
+  const depth = series ? (atNow ? series.corrected.m : series.model[h]) : null;
+  const th = lang === "th";
+  return (
+    <section className="v2-scene" aria-label={th ? "บ้านของคุณ" : "Your house"}>
+      <div className="v2-scene-head">
+        <b>{house ? (th ? "บ้านของคุณ" : "Your house") : (th ? "ลองเป็นผู้ประสบภัย: บ้านตัวอย่าง" : "Play a victim: an example house")}</b>
+        <span>{atNow ? (th ? "ตอนนี้" : "now") : (th ? "ย้อนดู" : "time-lapse")}</span>
+      </div>
+      <HouseScene
+        depth={depth}
+        lo={atNow ? series?.corrected.lo : undefined}
+        hi={atNow ? series?.corrected.hi : undefined}
+        lang={lang}
+        note={!series ? "…" : atNow
+          ? (series.corrected.reports
+            ? (th ? `แบบจำลองน้ำท่วมบอก ${series.corrected.model.toFixed(1)} ม. แก้ด้วยรายงานใกล้ๆ ${series.corrected.reports} รายการ` : `Flood model ${series.corrected.model.toFixed(1)} m, corrected by ${series.corrected.reports} nearby reports.`)
+            : (th ? "จากแบบจำลองน้ำท่วม ยังไม่มีรายงานใกล้ๆ" : "From the flood model; no reports nearby yet."))
+          : (th ? "ระดับน้ำจากแบบจำลอง ณ เวลานั้น" : "Modelled water at that hour.")}
+        caption={house ? undefined : (th ? "เห็นน้ำถึงตรงไหน ลองแจ้งผู้ช่วย AI ทางโทรศัพท์ด้านล่าง แล้วดูกระดานด้านขวาเปลี่ยน" : "See where the water is, tell the AI on the phone below, and watch the board on the right react.")}
+      />
+    </section>
   );
 }
 

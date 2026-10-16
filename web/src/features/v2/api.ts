@@ -324,6 +324,18 @@ export interface Trip {
   now: { atH: number; at: string };
 }
 
+export interface DepthSeries {
+  start: string;
+  nowH: number;
+  now: string;
+  model: number[];
+  corrected: { m: number; lo: number; hi: number; reports: number; model: number };
+  groundM: number | null;
+  buildingId: string | null;
+}
+
+export const depthAt = (lon: number, lat: number) => get<DepthSeries>(`/api/v2/depth-series?lon=${lon}&lat=${lat}`);
+
 export const vol = {
   overview: () => get<Overview>("/api/v2/v/overview"),
   feed: (kind?: string, team?: string | null) => get<Feed>(`/api/v2/v/feed?${[kind ? `kind=${kind}` : "", q(team)].filter(Boolean).join("&")}`),

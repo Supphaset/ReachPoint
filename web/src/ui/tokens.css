@@ -149,6 +149,17 @@
   --household-safe: #4fd18b;
   --household-lost: #ffc53d;
   --house-me: #ffd60a;
+  --hs-sky: #dfe9f1;           /* victim's-view house scene */
+  --hs-inside: #fbf6ec;
+  --hs-wall: #8b6b4a;
+  --hs-roof: #a24a2c;
+  --hs-slab: #b8a48c;
+  --hs-door: #6b4a2e;
+  --hs-window: #bcd7ea;
+  --hs-person: #2b3440;
+  --hs-water: #2f7fb8;
+  --hs-water-top: #5aa6cf;
+  --hs-street: #6d727a;
   --shelter: #2ec27e;          /* shelter marker on the satellite map */
   --shelter-ink: #06331d;
   --plan-line: #4cc2ff;        /* zones a team plans to come to */

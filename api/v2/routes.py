@@ -440,3 +440,20 @@ def v_outcome(hid: str, body: OutcomeIn):
 def v_trip(zones: str, team: str | None = None):
     from api.v2 import cases as C
     return C.trip(_state(room()), [z.strip() for z in zones.split(",") if z.strip()][:6], team)
+
+
+@router.get("/depth-series")
+def depth_series(lon: float, lat: float):
+    """The water at one house, hour by hour from the flood model, and now corrected by nearby reports: for the
+    victim's-view scene and the case page."""
+    from api.v2 import sim as S
+    v = room()
+    st = _state(v)
+    w = st["world"]
+    hours = int(min(S.meta()["hours"], v.now_h + 24))
+    model = [round(S.depth(lon, lat, h) or 0.0, 2) for h in range(hours + 1)]
+    d, sd, n, prior = P.local_depth(w, lon, lat, v.now_h)
+    b = G.load().snap(lon, lat, 40)
+    return {"start": S.meta()["start"], "nowH": v.now_h, "now": P.label_time(v.now_h), "model": model,
+            "corrected": {"m": round(d, 2), "lo": round(max(0.0, d - sd), 2), "hi": round(d + sd, 2), "reports": n, "model": round(prior, 2)},
+            "groundM": b.ground_m if b else None, "buildingId": b.id if b else None}

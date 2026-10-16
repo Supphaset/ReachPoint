@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { vol, type CaseView } from "../api";
+import { HouseScene } from "../HouseScene";
 import { FactChips } from "./FeedPage";
 import { Depth, Needs, StatusChip, VShell, useLive, useTeam } from "./shared";
 
@@ -88,6 +89,9 @@ export function CasePage() {
             <div className="v-side">
               <section className="v2-card v-pad">
                 <h2 className="v-h2">Water at the house</h2>
+                <HouseScene depth={data.depth?.m ?? null} lo={data.depth?.lo} hi={data.depth?.hi} lang="en"
+                  family={{ people: h.people, elderly: h.elderly, children: h.children, cannotWalk: h.cannotWalk }}
+                  caption={h.status === "atShelter" ? "The family has checked in at a shelter: the house should be empty." : undefined} />
                 <DepthChart c={data} />
                 {data.depth ? <p className="v-small">Now about <b>{data.depth.m.toFixed(1)} m</b> (likely {data.depth.lo.toFixed(1)}–{data.depth.hi.toFixed(1)}). The flood model alone says {data.depth.model.toFixed(1)} m; {data.depth.reports} nearby reports correct it.</p> : null}
                 {data.doubtfulWhy ? <p className="v-note">{data.doubtfulWhy}</p> : null}
