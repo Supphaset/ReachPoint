@@ -17,7 +17,7 @@ export interface Level {
 }
 
 export interface Source {
-  kind: "victims" | "posts" | "satellite" | "gauge" | "terrain";
+  kind: "victims" | "posts" | "satellite" | "gauge" | "terrain" | "simulation";
   text: string;
   labels?: { confirmed: number; unconfirmed: number; doubtful: number };
   lastH: number | null;
@@ -61,6 +61,7 @@ export interface ZoneView {
   predicted: boolean;
   disagree: string | null;
   summary: string;
+  simulation?: { wetShare: number; surfaceM: number | null; correctionM: number | null };
 }
 
 export interface HouseholdView {

@@ -6,6 +6,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../data/googleMaps";
 import { cssVar, depthBand, type BoardState, type GeoView, type HouseholdView } from "./api";
+import { drawFlood, loadSim, type Sim } from "./floodLayer";
+
+export type SimMode = "corrected" | "physics" | "off";
 
 export interface HouseMark {
   outline: [number, number][];
@@ -20,6 +23,35 @@ interface Props {
   houses: HouseMark[];
   focus: { lon: number; lat: number } | null;
   lang: "th" | "en";
+  simHour: number;
+  simMode: SimMode;
+}
+
+function corrections(state: BoardState | null, mode: SimMode): Record<string, number | null> | null {
+  if (mode !== "corrected" || !state) return null;
+  const out: Record<string, number | null> = {};
+  for (const z of Object.values(state.zones)) out[z.id] = z.simulation?.correctionM ?? null;
+  return out;
+}
+
+/** Loads the simulation once and redraws the water canvas whenever the hour, mode or corrections change. */
+function useFloodCanvas(geo: GeoView | null, state: BoardState | null, hour: number, mode: SimMode) {
+  const [sim, setSim] = useState<Sim | null>(null);
+  const canvas = useRef<HTMLCanvasElement>(document.createElement("canvas"));
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (geo) loadSim(geo.zones).then(setSim, () => undefined);
+  }, [geo]);
+  const corr = useMemo(() => corrections(state, mode), [state, mode]);
+  useEffect(() => {
+    if (!sim) return;
+    if (mode === "off") {
+      canvas.current.width = 1;
+      canvas.current.height = 1;
+    } else drawFlood(canvas.current, sim, hour, corr);
+    setTick((t) => t + 1);
+  }, [sim, hour, corr, mode]);
+  return { sim, canvas: canvas.current, tick };
 }
 
 function zoneFill(state: BoardState | null, id: string): string {
@@ -45,7 +77,9 @@ export function BoardMap(props: Props) {
   return <GoogleBoard maps={maps} {...props} />;
 }
 
-function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus }: Props & { maps: Maps }) {
+function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simHour, simMode }: Props & { maps: Maps }) {
+  const flood = useFloodCanvas(geo, state, simHour, simMode);
+  const overlay = useRef<Maps>(null);
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<Maps>(null);
   const zones = useRef<Maps>(null);
@@ -72,6 +106,35 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus }: Pr
     marks.current = new maps.Data({ map: map.current });
   }, [maps, geo]);
 
+  // the water: a canvas stretched over the simulation's grid, under the dots
+  useEffect(() => {
+    if (!map.current || !flood.sim) return;
+    if (!overlay.current) {
+      const [w, s, e, n] = flood.sim.meta.bbox;
+      const cv = flood.canvas;
+      cv.className = "v2-flood-canvas";
+      const O = class extends maps.OverlayView {
+        onAdd() {
+          this.getPanes().overlayLayer.appendChild(cv);
+        }
+        draw() {
+          const p = this.getProjection();
+          const sw = p.fromLatLngToDivPixel(new maps.LatLng(s, w));
+          const ne = p.fromLatLngToDivPixel(new maps.LatLng(n, e));
+          cv.style.left = `${sw.x}px`;
+          cv.style.top = `${ne.y}px`;
+          cv.style.width = `${ne.x - sw.x}px`;
+          cv.style.height = `${sw.y - ne.y}px`;
+        }
+        onRemove() {
+          cv.remove();
+        }
+      };
+      overlay.current = new O();
+      overlay.current.setMap(map.current);
+    }
+  }, [maps, flood.sim, flood.canvas]);
+
   useEffect(() => {
     if (!zones.current) return;
     const line = cssVar("--depth-line");
@@ -81,13 +144,13 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus }: Pr
       const known = !!z?.level;
       return {
         fillColor: zoneFill(state, id),
-        fillOpacity: known ? 0.55 : 0.28,
+        fillOpacity: simMode !== "off" ? 0.04 : known ? 0.55 : 0.28,
         strokeColor: id === selected ? cssVar("--house-me") : line,
         strokeWeight: id === selected ? 3 : 1,
         strokeOpacity: 0.9,
       };
     });
-  }, [state, selected]);
+  }, [state, selected, simMode]);
 
   useEffect(() => {
     const d = dots.current;
@@ -138,7 +201,9 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus }: Pr
 }
 
 /** No Maps key: the same zones, dots and houses drawn as SVG over a dark ground. */
-function DrawnMap({ geo, state, selected, onSelect, houses }: Props) {
+function DrawnMap({ geo, state, selected, onSelect, houses, simHour, simMode }: Props) {
+  const flood = useFloodCanvas(geo, state, simHour, simMode);
+  const href = useMemo(() => (flood.sim && simMode !== "off" ? flood.canvas.toDataURL() : null), [flood.tick, flood.sim, simMode, flood.canvas]);
   const box = useMemo(() => {
     if (!geo) return null;
     let x0 = 180, y0 = 90, x1 = -180, y1 = -90;
@@ -168,6 +233,17 @@ function DrawnMap({ geo, state, selected, onSelect, houses }: Props) {
           </g>
         );
       })}
+      {href && flood.sim ? (
+        <image
+          href={href}
+          x={px(flood.sim.meta.bbox[0])}
+          y={py(flood.sim.meta.bbox[3])}
+          width={px(flood.sim.meta.bbox[2]) - px(flood.sim.meta.bbox[0])}
+          height={py(flood.sim.meta.bbox[1]) - py(flood.sim.meta.bbox[3])}
+          preserveAspectRatio="none"
+          className="v2-flood-image"
+        />
+      ) : null}
       {state?.households.map((h) => (
         <circle key={h.id} cx={px(h.lon)} cy={py(h.lat)} r={h.urgent ? 4 : 3} className={`v2-dot is-${h.status}${h.urgent ? " is-urgent" : ""}`} />
       ))}

@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from api.v2 import pipeline as P  # noqa: E402
+from api.v2 import geo as G, pipeline as P  # noqa: E402
 from api.v2.reader import read_rules  # noqa: E402
 
 BANDS = [0.1, 0.5, 1.0, 2.0]
@@ -77,6 +77,15 @@ def main() -> None:
     planted = {m["id"] for m in sc["messages"] if m["truth"].get("planted")}
     honest = {o.message_id for o in w.obs if o.message_id not in planted}
     doubtful = {o.message_id for o in w.obs if o.label == "doubtful"}
+    # depth at households: the local estimate at each first-hand report vs the true depth there and then
+    house_err = []
+    for m in sc["messages"]:
+        if m["kind"] in ("self", "reply") and m["atH"] <= 140 and m["truth"].get("trueDepthM") is not None and m.get("pin"):
+            x, y = G.to_m(m["pin"]["lon"], m["pin"]["lat"])
+            lv = P.local_level(w, x, y, m["atH"])
+            b = G.load().snap(m["pin"]["lon"], m["pin"]["lat"], 40)
+            if lv.wse_m is not None and b and b.ground_m is not None:
+                house_err.append(abs(max(0.0, lv.wse_m - b.ground_m) - m["truth"]["trueDepthM"]))
     truth = {z: dict(v) for z, v in sc["truth"]["wseByZone"].items()}
     errs = defaultdict(list)
     for h in (60, 72, 84, 99, 111, 126):
@@ -101,7 +110,9 @@ def main() -> None:
         ("Neighbour words matched to the exact building", pct(nb_build, nb_build_n), "≥ 85%"),
         ("Planted wrong reports flagged doubtful", pct(len(planted & doubtful), len(planted & {o.message_id for o in w.obs})), "≥ 80%"),
         ("Honest reports wrongly flagged doubtful", pct(len(honest & doubtful), len(honest)), "low"),
-        ("Most likely level vs the true level (mean error, 6 moments × zones)", f"{sum(allerr) / len(allerr):.2f} m over {len(allerr)} zone-moments", "≤ 0.2 m"),
+        ("Most likely depth at a household vs the true depth there (mean error)",
+         f"{sum(house_err) / len(house_err):.2f} m over {len(house_err)} reports (median {sorted(house_err)[len(house_err) // 2]:.2f} m)", "≤ 0.2 m"),
+        ("Zone water surface vs the true zone surface (mean error, 6 moments)", f"{sum(allerr) / len(allerr):.2f} m over {len(allerr)} zone-moments", "—"),
     ]
     md = ["# v2 evaluation: Hat Yai scenario, 21–28 Nov 2025", "",
           "Run by `python api/scripts/eval_v2.py`. The scenario uses real water data (gauge X.44, rain, satellite, terrain,",

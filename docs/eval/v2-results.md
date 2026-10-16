@@ -6,24 +6,25 @@ not field accuracy. Reference readings for depth are the rule reader's band for 
 
 | Measure | Result | Target |
 |---|---|---|
-| Messages read by Gemini (batch) | 0% (0/993) | — |
+| Messages read by Gemini (batch) | 0% (0/1016) | — |
 | Facts shown with the person's exact words | 100% (enforced: a fact whose quote isn't in the message is dropped) | ≥ 95% |
 | Depth from words in the same band as the reference reading | — | ≥ 85% |
 | People count read correctly (first-hand reports) | — | — |
 | Neighbour side read correctly (left, right, across) | — | — |
 | "Still safe" replies wrongly marked urgent | — | low |
-| Households counted vs real families heard about | 276–280 vs 272 (the range keeps possible duplicates apart) | truth inside the range |
-| Households wrongly merged (two families as one) | 0% (1/280) | ≤ 3% |
-| Neighbour words matched to the exact building | 91% (61/67) | ≥ 85% |
-| Planted wrong reports flagged doubtful | 100% (6/6) | ≥ 80% |
-| Honest reports wrongly flagged doubtful | 1% (8/825) | low |
-| Most likely level vs the true level (mean error, 6 moments × zones) | 0.17 m over 66 zone-moments | ≤ 0.2 m |
+| Households counted vs real families heard about | 272–275 vs 265 (the range keeps possible duplicates apart) | truth inside the range |
+| Households wrongly merged (two families as one) | 1% (4/275) | ≤ 3% |
+| Neighbour words matched to the exact building | 88% (44/50) | ≥ 85% |
+| Planted wrong reports flagged doubtful | 93% (13/14) | ≥ 80% |
+| Honest reports wrongly flagged doubtful | 3% (23/836) | low |
+| Most likely depth at a household vs the true depth there (mean error) | 0.14 m over 752 reports (median 0.12 m) | ≤ 0.2 m |
+| Zone water surface vs the true zone surface (mean error, 6 moments) | 0.32 m over 45 zone-moments | — |
 
 Level error by moment (mean absolute, metres):
 
-- 23 Nov 18:00: 0.10 m across 11 zones
-- 24 Nov 06:00: 0.13 m across 11 zones
-- 24 Nov 18:00: 0.25 m across 11 zones
-- 25 Nov 09:00: 0.09 m across 11 zones
-- 25 Nov 21:00: 0.15 m across 11 zones
-- 26 Nov 12:00: 0.29 m across 11 zones
+- 23 Nov 18:00: 0.12 m across 4 zones
+- 24 Nov 06:00: 0.32 m across 4 zones
+- 24 Nov 18:00: 0.29 m across 8 zones
+- 25 Nov 09:00: 0.33 m across 10 zones
+- 25 Nov 21:00: 0.34 m across 10 zones
+- 26 Nov 12:00: 0.41 m across 9 zones

@@ -6,8 +6,8 @@ Real: river gauge X.44 (RID), rain (IMERG), zones and population estimate, Open 
 Synthetic: households on real buildings, the messages they and others send, volunteer plans, and bulletins
 reconstructed from the real gauge readings. Fixed seed, so every build is identical.
 
-The true water surface per zone follows the real gauge: the canal tops its bank (7.4 m) on 23 Nov and peaks at
-9.97 m on 25 Nov 10:00. Each zone floods to its own depth (from the modelled flooded share) with its own delay.
+The true water comes from the v2 flood simulation (real gauge, rain and terrain) plus two local effects the
+simulation can't know: blocked drains in B-3 after the peak (+0.5 m) and pumps in part of B-12 (-0.3 m).
 The truth is stored for the evaluation and is never read by the pipeline.
 """
 
@@ -71,26 +71,61 @@ def main() -> None:
         est = zones[zid]["estimate"]
         mid = lambda r: (r[0] + r[1]) / 2 if r else 0
         share = min(1.0, mid(est.get("modelledFlooded")) / max(1, mid(est.get("everyone"))))
-        zt[zid] = {"groundP50": round(p50, 2), "peakDepthM": round(0.35 + 2.0 * share, 2), "lagH": round(rnd.uniform(0, 8), 1)}
+        zt[zid] = {"groundP50": round(p50, 2), "modelShare": round(share, 2), "lagH": 0}
 
-    def wse(zid, h):
-        z = zt[zid]
-        frac = (interp(gauge, h - z["lagH"]) - BANK_M) / (PEAK_M - BANK_M)
-        if frac <= 0:
-            return None
-        return round(z["groundP50"] + z["peakDepthM"] * min(1.2, frac) - 0.6 * (1 - min(1, frac)), 2)
+    # the true water: the physics simulation (v2-sim), plus local effects it can't know about, which the
+    # reports have to reveal: blocked drains make B-3 deeper after the peak; pumps keep part of B-12 shallower.
+    sim = json.loads((PKG / "v2-sim.json").read_text())
+    import gzip
+    with gzip.open(PKG / "v2-sim.bin.gz", "rb") as fh:
+        raw = fh.read()
+    R, C, FB = sim["rows"], sim["cols"], sim["frameBytes"]
+    w0, s0, e0, n0 = sim["bbox"]
+    LOCAL = {"B-3": (90, +0.5), "B-12": (70, -0.3)}
+
+    def sim_depth(b, h):
+        i = int((n0 - b.lat) / (n0 - s0) * R)
+        j = int((b.lon - w0) / (e0 - w0) * C)
+        if not (0 <= i < R and 0 <= j < C):
+            return 0.0
+        h0 = max(0, min(sim["hours"], int(h)))
+        h1 = min(sim["hours"], h0 + 1)
+        f = h - int(h)
+        d0, d1 = raw[h0 * FB + i * C + j], raw[h1 * FB + i * C + j]
+        return (d0 + (d1 - d0) * f) * sim["stepM"]
+
+    def local(zid, h):
+        if zid in LOCAL and h >= LOCAL[zid][0]:
+            return LOCAL[zid][1] * min(1.0, (h - LOCAL[zid][0]) / 6)
+        return 0.0
+
+    # smooth differences between the simulation and reality (unmapped drains, walls, low roads): a few broad bumps
+    bumps = [(rnd.uniform(-2500, 2500), rnd.uniform(-2500, 2500), rnd.uniform(-0.35, 0.35), rnd.uniform(500, 900))
+             for _ in range(6)]
+
+    def smooth(b):
+        return sum(a * math.exp(-((b.x - x) ** 2 + (b.y - y) ** 2) / (2 * r * r)) for x, y, a, r in bumps)
 
     def depth(b, h):
-        w = wse(b.zone_id, h)
-        return 0.0 if w is None else max(0.0, w - b.ground_m)
+        d = sim_depth(b, h)
+        return max(0.0, d + local(b.zone_id, h) + smooth(b)) if d > 0.05 else 0.0
+
+    def wse(zid, h):
+        ser = sim["zones"].get(zid)
+        if not ser:
+            return None
+        v = ser[max(0, min(sim["hours"], int(round(h))))][1]
+        return None if v is None else round(v + local(zid, h), 2)
 
     # --- truth households on real buildings, weighted toward deeper zones
     weights = []
     cand = []
     for zid, bs in by_zone.items():
-        peak = zt[zid]["peakDepthM"]
         for b in bs:
             if b.area_m2 < 40:
+                continue
+            peak = max(sim_depth(b, h) for h in (96, 104, 112))
+            if peak < 0.2:
                 continue
             cand.append(b)
             weights.append(peak * min(b.area_m2, 300))
@@ -267,7 +302,7 @@ def main() -> None:
                      "pin": None, "truth": {"gaugeM": round(lv, 2), "rateMh": round(rate, 3), "reconstructed": True}})
 
     # --- volunteer plans (one line each)
-    deep = sorted(zt, key=lambda z: -zt[z]["peakDepthM"])
+    deep = sorted(zt, key=lambda z: -max((r[2] for r in sim["zones"].get(z, [[0, None, 0]])), default=0))
     teams = [("ทีมเรือกู้ภัยหาดใหญ่ 1", "เรือ", 8, "อพยพ"), ("มูลนิธิช่วยเหลือ ทีม 2", "เรือ", 6, "อพยพผู้ป่วย"),
              ("อาสาบ้านพรุ", "รถยกสูง", 12, "อพยพ"), ("ครัวอาสา", "รถกระบะ", 0, "อาหารและน้ำ"),
              ("ทีมแพทย์อาสา", "เรือ", 4, "การแพทย์"), ("เจ็ทสกีอาสา", "เจ็ทสกี", 2, "อพยพ"),
@@ -291,10 +326,12 @@ def main() -> None:
         if m.get("thread"):
             m["thread"] = renum[m["thread"]]
     truth_wse = {zid: [[h, wse(zid, h)] for h in range(0, HOURS + 1, 3)] for zid in zt}
+    out_local = {z: {"fromH": a, "deltaM": d} for z, (a, d) in LOCAL.items()}
     out = {"package": "hy-2025-11", "start": START.isoformat(), "hours": HOURS,
            "label": "Real gauge, rain, satellite, terrain and buildings; synthetic people, messages and plans.",
            "zones": zt, "messages": msgs, "plans": plans,
-           "truth": {"households": households, "wseByZone": truth_wse}}
+           "truth": {"households": households, "wseByZone": truth_wse, "localEffects": out_local,
+                     "basis": "v2 flood simulation + local effects"}}
     (PKG / "v2-scenario.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
     kinds = {}
     for m in msgs:

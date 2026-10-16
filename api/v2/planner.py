@@ -51,20 +51,20 @@ def plan_outreach(w, geo: G.Geo) -> None:
             w.outbound.append({"atH": missed[1] + 0.25, "householdId": hh.id, "kind": "lostCall", "text": say("lostCall")})
 
     # prediction and early warning from the gauge
+    from api.v2 import sim as S
     b = w.bulletin
     if b and b.get("gaugeM") and b["gaugeM"] > 7.0 and (b.get("rateMh") or 0) > 0.01:
-        for zid, lvl in w.levels.items():
-            est = meta[zid]["estimate"]
-            share = _mid(est.get("modelledFlooded")) / max(1, _mid(est.get("everyone")))
-            depth = lvl.depth_at(_ground_p50(geo, zid)) if lvl.wse_m is not None else None
-            if share > 0.5 and (depth is None or depth[0] < 0.3):
+        for zid in w.levels:
+            _, wet_now = S.zone_at(zid, now)
+            _, wet_next = S.zone_at(zid, now + 6)
+            if wet_next - wet_now >= 0.08 and wet_next >= 0.15:
                 w.predicted.append(zid)
         if w.predicted:
             vulnerable = [h for h in w.households.values() if h.zone_id in w.predicted and (h.elderly or h.cannot_walk or h.children)]
             w.activity.append({"atH": b["atH"], "at": label_time(b["atH"]), "agent": "Analyst",
-                               "text": f"Gauge rising past the bank: water likely in {', '.join(w.predicted)} within about 6 hours "
-                                       f"(terrain + modelled flood share). Early warning to {len(vulnerable)} vulnerable households.",
-                               "tool": "gauge trend · terrain model", "ref": None, "key": "predict"})
+                               "text": f"Flood simulation: water spreading into {', '.join(w.predicted)} within about 6 hours "
+                                       f"(gauge X.44 rising, terrain). Early warning to {len(vulnerable)} vulnerable households first.",
+                               "tool": "flood simulation · gauge · terrain", "ref": None, "key": "predict"})
             for h in vulnerable:
                 w.outbound.append({"atH": b["atH"] + 0.1, "householdId": h.id, "kind": "earlyWarning", "text": say("earlyWarning")})
 

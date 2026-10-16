@@ -286,3 +286,30 @@
 .v2-planbox button { min-height: 40px; padding: 0 var(--space-4); border: 0; border-radius: var(--radius-sm); background: var(--color-ink); color: var(--color-on-ink); font: inherit; font-size: var(--text-sm); cursor: pointer; }
 .v2-planbox button:disabled { opacity: 0.5; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* flood simulation layer */
+.v2-flood-canvas { position: absolute; image-rendering: auto; pointer-events: none; }
+.v2-flood-image { pointer-events: none; }
+.v2-simswitch {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--v2-map-scrim);
+}
+.v2-simswitch button {
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  color: var(--v2-ink-on-map);
+  font: inherit;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+.v2-simswitch button[aria-checked="true"] { background: var(--color-surface); color: var(--color-ink); }
+.v2-sources li.is-simulation { border-color: var(--color-ai); }

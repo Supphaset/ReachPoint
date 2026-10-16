@@ -21,11 +21,13 @@ from functools import lru_cache
 from pathlib import Path
 
 from api.v2 import geo as G
+from api.v2 import sim as S
 from api.v2.level import Level, Obs, estimate
 from api.v2.reader import Read, read_rules
 
 PKG = G.PKG
 CHECK_HOURS = (7, 19)
+LOCAL_M = 400.0  # reports this close share roughly one water surface
 SOURCE_WEIGHT = {"self": 1.0, "reply": 1.0, "neighbour": 0.7, "relative": 0.5, "post": 0.5, "forward": 0.2}
 PRECISION_WEIGHT = {"address": 1.0, "landmark": 0.6, "area": 0.3}
 SATELLITE_PASSES = [("2025-11-23T06:20+07:00", "extent-2025-11-23-o164.geojson"),
@@ -79,6 +81,9 @@ class Observation:
     source: str
     quote: str
     label: str = "unconfirmed"
+    x: float = 0.0
+    y: float = 0.0
+    sim_wse: float | None = None   # what the physics says the water surface is here, then
 
 
 @dataclass
@@ -373,12 +378,44 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
             ground = sorted(continue_ground)[len(continue_ground) // 2] if continue_ground else None
         if ground is not None:
             wt = SOURCE_WEIGHT[kind] * PRECISION_WEIGHT.get(precision, 0.3)
+            ox, oy = G.to_m(pin["lon"], pin["lat"])
+            sd = S.depth(pin["lon"], pin["lat"], at)
             o = Observation(f"O{len(w.obs) + 1}", msg["id"], hh.id, hh.zone_id, at, ground, d[0], d[1], round(wt, 2), kind,
-                            r.quote("depthRange") or "")
+                            r.quote("depthRange") or "", x=ox, y=oy,
+                            sim_wse=None if sd is None or sd < 0.05 else ground + sd)
             if kind == "forward":
                 o.at_h = msg.get("truth", {}).get("staleFromH", at - 24) if not live else at
             w.obs.append(o)
             hh.last_depth = d
+
+
+def local_level(w: World, x: float, y: float, at_h: float, r_m: float = LOCAL_M, pool: list | None = None) -> Level:
+    """The water surface at a point, around one moment: the simulation corrected by the gaps of the reports nearby
+    (falls back to the reports alone where the simulation is dry or missing)."""
+    lon, lat = G.to_ll(x, y)
+    sd = S.depth(lon, lat, at_h)
+    geo = G.load()
+    b = _SNAPS.get((round(lon, 6), round(lat, 6), "local"))
+    if b is None:
+        b = _SNAPS[(round(lon, 6), round(lat, 6), "local")] = geo.snap(lon, lat, 40)
+    ground = b.ground_m if b and b.ground_m is not None else None
+    if sd is not None and sd >= 0.05 and ground is not None:
+        for r in (r_m, r_m * 2):
+            gaps = [o for o in (pool if pool is not None else w.obs) if o.label != "doubtful" and o.sim_wse is not None and abs(o.at_h - at_h) <= 6
+                    and o.at_h <= w.now_h and (o.x - x) ** 2 + (o.y - y) ** 2 <= r * r]
+            if len(gaps) >= 2:
+                lv = estimate([Obs(o.id, at_h, 0.0, o.lo + o.ground_m - o.sim_wse, o.hi + o.ground_m - o.sim_wse, o.weight)
+                               for o in gaps], at_h)
+                base = ground + sd
+                return Level(round(base + lv.wse_m, 2), round(base + lv.lo_m, 2), round(base + lv.hi_m, 2), lv.n, lv.n_eff,
+                             [], lv.trend_cm_h, lv.certainty)
+    for r in (r_m, r_m * 2):
+        near = [Obs(o.id, at_h, o.ground_m, o.lo, o.hi, o.weight) for o in (pool if pool is not None else w.obs)
+                if o.label != "doubtful" and abs(o.at_h - at_h) <= 6 and o.at_h <= w.now_h
+                and (o.x - x) ** 2 + (o.y - y) ** 2 <= r * r]
+        if len(near) >= 2:
+            return estimate(near, at_h)
+    return Level(None, None, None)
 
 
 def estimate_around(obs: list[Obs], at_h: float) -> Level:
@@ -401,18 +438,35 @@ def zone_levels(w: World, geo: G.Geo) -> dict[str, Level]:
         # leave-one-out: each report against the others within 3 hours either side (as far as we know now)
         bad: set[str] = set()
         by_id = {x.id: x for x in all_obs}
-        first = [(o.at_h, by_id[o.id]) for o in os_ if o.source in ("self", "reply")]
-        times = [t for t, _ in first]
+        first = [(o.at_h, by_id[o.id], o) for o in os_ if o.source in ("self", "reply")]
+        times = [t for t, _, _ in first]
         for o in os_:
             mine = by_id[o.id]
             i0, i1 = bisect_left(times, o.at_h - 6), bisect_right(times, min(o.at_h + 6, w.now_h))
-            around = [x for _, x in first[i0:i1] if x.id != o.id and x.id not in bad]
-            then = estimate_around(around, o.at_h)
-            wse_o = mine.wse
-            if then.wse_m is not None and then.n >= 2 and abs(wse_o - then.wse_m) > mine.half_range + (then.hi_m - then.lo_m) / 2 + 0.4:
+            # nearby water: other first-hand reports within LOCAL_M and six hours
+            around = [x for _, x, ob in first[i0:i1] if x.id != o.id and x.id not in bad
+                      and (ob.x - o.x) ** 2 + (ob.y - o.y) ** 2 <= LOCAL_M ** 2]
+            # compare gaps from the simulation where we can (the physics explains slopes across the neighbourhood)
+            gap = lambda ob, x: x.wse - ob.sim_wse if ob.sim_wse is not None else None
+            obs_of = {ob.id: ob for _, _, ob in first}
+            mine_gap = gap(o, mine)
+            near_gaps = [gap(obs_of[x.id], x) for x in around if obs_of[x.id].sim_wse is not None]
+            if mine_gap is not None and len(near_gaps) >= 2:
+                ref = sorted(near_gaps)[len(near_gaps) // 2]
+                spread = sorted(abs(g - ref) for g in near_gaps)[len(near_gaps) // 2]
+                diff = abs(mine_gap - ref)
+                limit = mine.half_range + spread + 0.45
+            else:
+                then = estimate_around(around, o.at_h)
+                if then.wse_m is None or then.n < 2:
+                    o.label = "unconfirmed"
+                    continue
+                diff = abs(mine.wse - then.wse_m)
+                limit = mine.half_range + (then.hi_m - then.lo_m) / 2 + 0.45
+            if diff > limit:
                 bad.add(o.id)
                 o.label = "doubtful"
-            elif then.wse_m is not None and o.source in ("self", "reply") and then.n >= 2 and abs(wse_o - then.wse_m) <= 0.5:
+            elif o.source in ("self", "reply") and diff <= 0.5:
                 o.label = "confirmed"
             else:
                 o.label = "unconfirmed"

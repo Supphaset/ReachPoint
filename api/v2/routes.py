@@ -13,7 +13,7 @@ from api.v2 import ai, board as B, geo as G, intake as I, pipeline as P
 from api.v2.reader import Fact, Read
 
 router = APIRouter(prefix="/api/v2")
-DEFAULT_NOW_H = 80.0  # 24 Nov 14:00: the water is rising fast, before the peak
+DEFAULT_NOW_H = 96.0  # 25 Nov 06:00: the water is rising toward the peak (9.97 m at 10:00)
 _rooms_ref = None
 
 
@@ -84,6 +84,22 @@ def buildings_near(lon: float, lat: float, r: float = 70):
     geo = G.load()
     x, y = G.to_m(lon, lat)
     return {"buildings": [{"id": b.id, "outline": b.outline, "groundM": b.ground_m} for b in geo.near(x, y, min(r, 150))[:80]]}
+
+
+@router.get("/sim")
+def sim_meta():
+    from api.v2 import sim as S
+    m = dict(S.meta())
+    m.pop("zones", None)
+    return m
+
+
+@router.get("/sim.bin")
+def sim_frames():
+    from fastapi.responses import Response
+    data = (G.PKG / "v2-sim.bin.gz").read_bytes()
+    return Response(data, media_type="application/octet-stream",
+                    headers={"Content-Encoding": "gzip", "Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/timeline")
@@ -237,11 +253,16 @@ def chat_turn(sid: str, body: TurnIn):
         hh = w.households.get(s.household_id) if s.household_id else None
         zone = st["zones"].get(hh.zone_id) if hh and hh.zone_id else None
         effects["household"] = hh.view() if hh else None
-        if hh and zone and zone.get("level"):
-            from api.v2.planner import _ground_p50  # noqa
+        if hh and hh.lon is not None:
             b = geo.buildings.get(hh.building_id) if hh.building_id else None
-            lvl = w.levels[hh.zone_id]
-            effects["depthHere"] = lvl.depth_at(b.ground_m) if b and b.ground_m is not None else None
+            x, y = G.to_m(hh.lon, hh.lat)
+            lv = P.local_level(w, x, y, v.now_h)
+            if lv.wse_m is not None and b and b.ground_m is not None:
+                f = lambda wse: round(max(0.0, wse - b.ground_m), 2)
+                effects["depthHere"] = [f(lv.wse_m), f(lv.lo_m), f(lv.hi_m)]
+            from api.v2 import sim as S
+            sd = S.depth(hh.lon, hh.lat, v.now_h)
+            effects["simHere"] = None if sd is None else round(sd, 2)
         return {"session": s.view(), "reply": reply, "effects": effects, "zone": zone,
                 "overall": st["overall"], "activity": st["activity"][:8]}
 

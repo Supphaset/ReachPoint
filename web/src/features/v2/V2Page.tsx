@@ -4,7 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiMode } from "../../data/mode";
-import { BoardMap, type HouseMark } from "./BoardMap";
+import { BoardMap, type HouseMark, type SimMode } from "./BoardMap";
 import { ActivityList, PlanBox, TimeBar, ZoneCard } from "./Panels";
 import { Phone } from "./Phone";
 import { v2, type BoardState, type GeoView, type Timeline, type TurnResult } from "./api";
@@ -22,9 +22,11 @@ export function V2Page() {
   const [tab, setTab] = useState<"zone" | "activity">("zone");
   const [lang, setLang] = useState<"th" | "en">("th");
   const [chatVersion, setChatVersion] = useState(0);
+  const [simMode, setSimMode] = useState<SimMode>("corrected");
+  const [simHour, setSimHour] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const live = useRef(true);
-  const nowH = state?.now.atH ?? 80;
+  const nowH = state?.now.atH ?? 96;
 
   const load = useCallback((at?: number) => {
     return v2.state(at).then((s) => {
@@ -55,21 +57,26 @@ export function V2Page() {
     let h = viewH !== null && viewH < nowH - 1 ? viewH : 0;
     live.current = false;
     const t = window.setInterval(() => {
-      h = Math.min(nowH, h + 3);
-      setViewH(h);
-      load(h);
+      h = Math.min(nowH, h + 1);
+      setSimHour(h);
+      if (h % 3 === 0 || h >= nowH) {
+        setViewH(h);
+        load(h);
+      }
       if (h >= nowH) {
         setPlaying(false);
         live.current = true;
         setViewH(null);
+        setSimHour(null);
       }
-    }, 700);
+    }, 260);
     return () => window.clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing]);
 
   const scrub = (h: number) => {
     setPlaying(false);
+    setSimHour(h >= nowH - 0.5 ? null : h);
     if (h >= nowH - 0.5) {
       live.current = true;
       setViewH(null);
@@ -162,7 +169,22 @@ export function V2Page() {
             </div>
           ) : null}
           <div className="v2-mapwrap">
-            <BoardMap geo={geo} state={state} selected={selected} onSelect={(z) => { setSelected(z); setTab("zone"); }} houses={houses} focus={focus} lang={lang} />
+            <BoardMap
+              geo={geo}
+              state={state}
+              selected={selected}
+              onSelect={(z) => { setSelected(z); setTab("zone"); }}
+              houses={houses}
+              focus={focus}
+              lang={lang}
+              simHour={simHour ?? viewing}
+              simMode={simMode}
+            />
+            <div className="v2-simswitch" role="radiogroup" aria-label="Water layer">
+              {([["corrected", "Simulation + reports"], ["physics", "Physics only"], ["off", "Zones"]] as [SimMode, string][]).map(([m, label]) => (
+                <button key={m} type="button" role="radio" aria-checked={simMode === m} onClick={() => setSimMode(m)}>{label}</button>
+              ))}
+            </div>
             <div className="v2-map-legend" aria-hidden="true">
               <span><i className="is-unknown" />unknown</span>
               <span><i className="is-1" />&lt; 0.5 m</span>
