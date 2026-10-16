@@ -1,144 +1,113 @@
 # ReachPoint
 
-**ReachPoint turns flood reports, and gaps in reporting, into accountable rescue work, with status families can trust.**
+**A flood picture that builds itself from what people say.** Victims talk to an AI agent; public posts, official
+bulletins, the river gauge and satellite passes come in on their own. A team of agents turns all of it into one live
+map for volunteers: who needs help, how deep the water is street by street, where it is heading, and who plans to
+come. Then it tells every household what is happening.
 
-AI Builder Cup 2026 (Google Cloud JAPAC) · Sustainability & Social Impact · built 12–17 Oct 2026 by a team of two.
+AI Builder Cup 2026 (Google Cloud JAPAC) · Sustainability & Social Impact · built 12–18 Oct 2026 by a team of two.
 
-- **Live demo:** _link added at deploy_ · open `/demo` for the three phones side by side
-- **Video (under 3 min):** _link added on submission_ · **Deck (PDF):** _link added on submission_
+- **Live demo:** _link added at deploy_ · **Video (under 3 min):** _link added on submission_ · **Deck (PDF):** _link added on submission_
+- Product spec: [`docs/product/v2-spec.md`](docs/product/v2-spec.md) · Evaluation: [`docs/eval/v2-results.md`](docs/eval/v2-results.md)
 
 ## The problem
 
-In the Nov 2025 Hat Yai flood, over 20,000 requests for help came in during 23–29 Nov. The government's own review
-found no unified command and no single action plan. Intake forms often had no callback number or GPS location. Nobody
-tracked where boats were or where food had already gone.
-Rescuers arrived at houses that had already been emptied, while people who never called were not checked at all
-([sources](docs/research/real-rescue-practice.md)).
-
-## What ReachPoint does
-
-One app with three roles, in Thai and English, built for phones:
-
-| Who | What they do | Screen |
-|---|---|---|
-| **Person asking for help** | Chats or talks (Gemini Live voice) in Thai or English. The assistant asks only what's missing, and nothing is sent until they confirm the summary. They can pin their spot instead of describing it (GPS, a tap on the Google map, or an address) | `/call` |
-| **Coordinator** | Checks what Gemini read from the message, every fact with the caller's quote, and approves it. A person always decides | `/desk` |
-| **Volunteer team** | Takes a whole family (first team wins), sets an arrival window, reports progress | `/team/list` |
-| **Family** | Sees honest status: who is coming and when, or that a promised time was withdrawn | `/status/…` |
-
-Two moments show what is different:
-
-1. **"The map is quiet. The family isn't safe."** A zone with no calls is still marked unchecked, never "safe". A team
-   checks it street by street and finds people who never called; their report becomes a reviewed rescue case.
-2. **The boat breaks down.** Every arrival time it carried is withdrawn on every screen, unfinished work goes back on
-   the list, and the family sees who will update them next, instead of a time that is no longer true.
+In the November 2025 Hat Yai flood, tens of thousands of requests for help came in through phone lines, Facebook
+groups, LINE and word of mouth ([sources](docs/research/real-rescue-practice.md)). The same family was posted many
+times; others never posted at all. Nobody could say how many people were in which street, how deep the water was
+there, or whether anyone was on the way. Volunteers drove to houses that had already emptied, while people who never
+called were not checked.
 
 ## Try it in 60 seconds
 
-1. Open **`/demo`**. You get your own private demo room: nobody else sees your requests, and Reset only resets yours.
-2. On the left phone, paste the sample message (Thai) and send it.
-3. In the middle, open the request: Gemini's facts each quote the caller's words. Approve.
-4. On the right phone, the boat team takes the family and sets an arrival window. The family's status page updates.
-5. Try a tricky message: *"Nobody is unconscious, we are 2 adults"*. No false danger alarm is raised.
+Open the site. You get your own private demo room (nobody else sees your reports; Reset only resets yours).
 
-## How the AI is used
+1. **Report as a victim** on the phone on the left, in Thai or English, by typing or holding the mic. Try the sample:
+   *"น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"*.
+   The agent asks only what is missing; under each answer you see what it understood, with your own words.
+2. **Watch your house appear** on the satellite map, and the zone's numbers change.
+3. **Answer "is anyone in the house on your left?"** The system finds that house on the map. If it already reported,
+   it isn't counted twice; if not, it is added as a household reported by a neighbour.
+4. **Post a plan as a volunteer** ("เรือเรา 8 ที่ จะเข้า B-3 ราวบ่ายสอง") and see your phone told that a boat is coming.
+5. **Press "Play the flood"** to watch 21–28 Nov 2025: the flood simulation spreads from the canal as the real gauge
+   rises, reports arrive, duplicates merge, quiet zones get asked, and the picture sharpens.
 
-| Part | What it does | Where |
-|---|---|---|
-| **Gemini talks with the caller** | Text chat and Gemini Live voice (`gemini-3.8-live`) ask one missing thing at a time, in the caller's language. They give the 1669/1784 numbers when someone is in danger, and read a summary back for the caller to confirm. Voice confirms only on the exact phrase, checked on the server | [`api/intake/conversation.py`](api/intake/conversation.py), [`live_voice.py`](api/intake/live_voice.py) |
-| **Gemini reads the request** | Structured output, every fact with a quote copied from the caller. Thai and English | [`api/intake/extract.py`](api/intake/extract.py) |
-| **Checks on what Gemini proposes** | Drops a fact whose quote isn't in the text, a danger the caller denies, says is over or only fears ("ไม่มีใครหมดสติ"), and counts that don't match the caller's numbers. A danger word Gemini left out is added back for the coordinator to confirm | same file |
-| **Triage agent (Google ADK)** | Uses 5 allowed tools: reads new requests, finds similar cases nearby, proposes a duplicate link or a question to ask the caller ("is this your household, or another family at the temple?"), and gives a reason. The desk shows the tools the agent called | [`api/ai/triage.py`](api/ai/triage.py) |
-| **Zone briefings** | Gemini writes 2–3 sentences per zone from computed facts. Shown only if every number matches the fact it counts, with no route, safety or priority claims | [`api/ai/briefing_text.py`](api/ai/briefing_text.py) |
-
-Rules that protect people sit in code, not in the prompt:
-- requests with a danger sign come first;
-- the agent can only link cases at the same place and time, and a new danger is never linked away;
-- caller text is data ("rank me first" changes nothing).
-
-If Gemini is unavailable, a labelled keyword stand-in keeps the desk working.
-
-Not AI: the **split solver** (OR-Tools CP-SAT) shares boats and seats between whole families. The **flood extent** comes
-from Sentinel-1 radar (Google Earth Engine), and the **rain** from NASA IMERG satellite estimates.
-
-## Measured, not claimed
-
-[`docs/eval/results.md`](docs/eval/results.md) holds a labelled evaluation: 36 Thai/English intake cases and 14 triage
-cases, Gemini run 3 times against the keyword baseline, with every failure listed.
-Reproduce it with `python api/scripts/eval.py --mode gemini --runs 3 --triage`.
-
-Latest run (13 Oct, `gemini-flash-lite-latest`). Gemini numbers count only readings Gemini actually answered:
-
-| On 36 labelled requests | Keyword baseline | Gemini |
-|---|---:|---:|
-| Real dangers missed (6 danger cases) | 2 of 6 | **0** |
-| False danger alarms (denials, past or feared dangers, injection) | 0 | **0** |
-| People counts exactly right (6 count cases) | 0 of 6 | **6 of 6** |
-| Request kind right (own household / someone else / neighbour) | 33% | **100%** |
-| Place found | 0% | **97%** |
-| Typical time to read a request | under 1 ms | 1.5 s (95% within 2.0 s) |
-
-**What the evaluation found and changed:**
-- The agent linked two different families at the same landmark as duplicates, so it now sees each request's people
-  and can ask the caller a question instead.
-- Gemini sometimes skipped a real danger, so a danger word the caller used is now added back for the coordinator
-  to confirm.
-
-**Still open:**
-- In this run, 31% of readings hit the free-tier Gemini quota and fell back to the keyword baseline. The triage agent
-  run also fell back to the rules.
-- The run will be repeated on a paid key before submission.
-
-## Architecture (what actually runs)
+## How it works
 
 ```mermaid
 flowchart LR
-  P["Phones and laptops<br/>React + Vite, Thai/English"] -->|HTTPS| R["Cloud Run: one service<br/>FastAPI + the built web app"]
-  R --> G["Vertex AI Gemini<br/>chat, request reading, briefings"]
-  R --> L["Vertex AI Gemini Live<br/>voice, us-central1"]
-  R --> A["Google ADK triage agent<br/>5 allowlisted tools"]
-  A --> G
-  R --> O["OR-Tools CP-SAT<br/>split solver"]
-  R --> SM["Secret Manager<br/>Pinpoint and Maps keys"]
-  P --> M["Google Maps JavaScript API<br/>caller pin"]
-  R --> PP["Pinpoint geocoder (being connected)<br/>Thai addresses, server side"]
-  D["Data package (built offline)<br/>Earth Engine Sentinel-1 extent, IMERG rain,<br/>OSM streets, zones and landmarks"] --> R
+  V["Victims: chat or voice"] --> I["Intake agent"]
+  P["Public posts"] --> RD["Reader"]
+  B["Bulletins, gauge X.44"] --> RD
+  S["Sentinel-1, IMERG rain, FABDEM terrain"] --> SIM["Flood simulation"]
+  I --> L["Locator: address → building,<br/>'house on my left' → building"]
+  RD --> L
+  L --> D["Dedupe: households, not reports"]
+  D --> A["Analyst: words → depth,<br/>simulation corrected by reports,<br/>doubtful reports"]
+  SIM --> A
+  A --> PL["Planner: whom to ask,<br/>whom to warn first, lost contact"]
+  PL --> N["Notifier: plain Thai messages"]
+  VP["Volunteer: one-line plan"] --> PL
+  A --> BD["Board: zones, depth map,<br/>time-lapse, AI activity"]
 ```
 
-Records live in memory, one demo room per visitor, starting from synthetic seed data
-([`contract/seed`](contract/seed)). A restart resets the demo. The routes, rules and views are written so a database
-can replace the in-memory store without changing them.
+| Step | What it does | Code |
+|---|---|---|
+| **Intake agent** | One question at a time, only what is missing: where, how many, who is vulnerable, how deep (with a concrete check: "above or below your door handle?"), then the neighbours side by side. Skips the neighbour questions when life is at risk | [`api/v2/intake.py`](api/v2/intake.py) |
+| **Reader** | A language model turns any message into facts. Every fact must quote the person's exact words or it is dropped. Rules take over if the model is unavailable, and say so | [`api/v2/ai.py`](api/v2/ai.py), [`reader.py`](api/v2/reader.py) |
+| **Locator** | Address → Pinpoint → the Google Open Buildings outline under it. "The house on my left" → the building on that side, as seen from the door looking at the street (OSM street direction) | [`api/v2/geo.py`](api/v2/geo.py) |
+| **Dedupe** | Counts households, not messages. Replies stay in their conversation; a relative's post merges only when exactly one nearby family has the same makeup; otherwise it is kept apart and counted as a range | [`api/v2/pipeline.py`](api/v2/pipeline.py) |
+| **Flood simulation** | Diffusive shallow-water model on the 30 m FABDEM terrain: the canal at the real gauge X.44 level hour by hour, the real IMERG rain, drainage | [`data/scripts/build_v2_flood_sim.py`](data/scripts/build_v2_flood_sim.py) |
+| **Analyst** | Words → depth ranges; each report is compared with the simulation at its own house; nearby reports' gaps correct the simulation ("reports say 0.6 m deeper here: likely blocked drains"); a report whose gap disagrees with its neighbours is marked doubtful, never deleted | [`api/v2/pipeline.py`](api/v2/pipeline.py), [`level.py`](api/v2/level.py) |
+| **Planner, Notifier** | Daily and alert check-ins, early warnings to vulnerable households where the simulated water spreads next, "lost contact" after two missed checks, plan updates to every household in a zone, gaps such as "nobody plans medical help" | [`api/v2/planner.py`](api/v2/planner.py), [`messages.py`](api/v2/messages.py) |
+
+**Which model reads:** Gemini on Vertex AI in the deployed build (`REACHPOINT_LLM=gemini`, the default). During
+development the same reader can run on Claude through the Claude Code CLI (`REACHPOINT_LLM=claude`). Every
+reading is labelled with the model that made it.
+
+## Measured, not claimed
+
+[`docs/eval/v2-results.md`](docs/eval/v2-results.md), reproduced with `python api/scripts/eval_v2.py`, on the Hat Yai
+scenario (real water data, synthetic people and messages, with deliberately wrong reports planted):
+
+| Measure | Result | Target |
+|---|---|---|
+| Depth at a household, against the true depth there | 0.14 m mean error (median 0.12 m) | ≤ 0.2 m |
+| Planted wrong reports flagged doubtful | 13 of 14 | ≥ 80% |
+| Honest reports wrongly flagged | 3% | low |
+| Two families wrongly merged into one | 1% | ≤ 3% |
+| "The house on my left" matched to the exact building | 88% | ≥ 85% |
+
+The scenario's "true" flood is the simulation plus local effects it can't know (blocked drains, pumps, smooth
+differences), so these numbers show how well physics and reports combine, not field accuracy.
+
+## Data
+
+| Real | Synthetic |
+|---|---|
+| River gauge X.44 (RID), IMERG rain, Sentinel-1 flood extent (Earth Engine), FABDEM terrain, Google Open Buildings outlines (30,086 in the city), OSM streets and canals, WorldPop and DOPA population | Every household, message, post, reply and volunteer plan. Bulletins are reconstructed from the real gauge readings and labelled as such |
+
+Never enter real personal data.
 
 ## Honest limits
 
-- **Synthetic people.** The flood, rain, streets and places are real. Every family, team, call and count is made up.
-  Never enter real personal data.
-- **Not validated with responders yet.** The design draws on published accounts of the Hat Yai response and other
-  volunteer rescue groups. It hasn't been tried in a drill with a rescue team.
-- **The evaluation is small** (50 synthetic cases, written by the team): a development check, not a benchmark.
-- **Planned, not built:** a database (Firestore) and sign-in for coordinators and teams. The demo rooms stand in
-  for sign-in. Phone-line calls aren't connected; voice works in the browser.
-
-More on these limits: [honest judge Q&A](docs/submission/judge-qa.md).
+- **Not a hydraulic model.** The simulation has no buildings, pipes, pumps or dykes. It is a first guess that reports
+  correct, and it is labelled that way.
+- **Synthetic people.** The scenario was written by the team; the evaluation measures behaviour, not field accuracy.
+- **Not tried with responders yet.** No drill with a rescue team so far.
+- **Messages are simulated.** Check-ins appear in the app; SMS, LINE and phone calls are not connected.
+- **Pinpoint:** where the key is not configured, addresses fall back to a street-name match in the city.
 
 ## Run it locally
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -r api/requirements-dev.txt
 (cd web && npm ci && VITE_DATA=api npm run build)
-.venv/bin/python -m uvicorn api.main:app --port 8080     # http://localhost:8080/demo
+.venv/bin/python -m uvicorn api.main:app --port 8093     # http://localhost:8093
 .venv/bin/python -m pytest -q api/tests && (cd web && npm test)
 ```
 
-Locally, Gemini uses the key in `~/.config/reachpoint/env` (`GEMINI_API_KEY=…`, outside the repo), or Vertex AI
-after `gcloud auth application-default login`. With neither, the keyword stand-in is used. Voice needs
-`REACHPOINT_VOICE=on` and Vertex credentials. Deploy: `scripts/put-secrets.sh` (Pinpoint and Maps keys), then
-`scripts/deploy.sh`. On Cloud Run, Gemini runs on Vertex AI with the service's own identity.
-
-## For the team
-
-Project documents start at [docs/START-HERE.md](docs/START-HERE.md). The plan for the rest of the week is the
-[finish plan](docs/planning/finish-plan.md); how it all fits together is in the [overview](docs/OVERVIEW.md).
-
-The proposed [operator and business case](docs/product/business-case.md) covers a first drill and cost assumptions;
-[how we differ](docs/research/competitors.md#how-reachpoint-differs) compares documented capabilities and unknowns.
+Rebuild the data: `data/scripts/build_v2_buildings.py`, `fetch_v2_streets.py`, `build_v2_terrain.py` (Earth Engine),
+then `build_v2_flood_sim.py`, `build_v2_scenario.py`, `api/scripts/v2_batch_read.py`, `python -m api.v2.board`
+(time-lapse summary) and `api/scripts/eval_v2.py`. The earlier role screens (coordinator desk, team screens) are
+still in the code at `/classic`.

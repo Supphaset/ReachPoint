@@ -35,7 +35,8 @@ def main() -> None:
     facts = P.cached_facts()
     hh = {h["id"]: h for h in sc["truth"]["households"]}
     msgs = [m for m in sc["messages"] if m["channel"] != "bulletin"]
-    gem = [m for m in msgs if str(facts.get(m["id"], {}).get("reader", "")).startswith("gemini")]
+    gem = [m for m in msgs if str(facts.get(m["id"], {}).get("reader", "rules")) != "rules"]
+    model = sorted({facts[m["id"]]["reader"] for m in gem}) or ["none"]
 
     # --- Reader
     depth_ok = depth_n = people_ok = people_n = nb_ok = nb_n = urgent_fp = urgent_n = 0
@@ -97,7 +98,7 @@ def main() -> None:
     allerr = [e for v in errs.values() for e in v]
 
     rows = [
-        ("Messages read by Gemini (batch)", pct(len(gem), len(msgs)), "—"),
+        (f"Messages read by the model in batch ({', '.join(model)})", pct(len(gem), len(msgs)), "—"),
         ("Facts shown with the person's exact words", "100% (enforced: a fact whose quote isn't in the message is dropped)", "≥ 95%"),
         ("Depth from words in the same band as the reference reading", pct(depth_ok, depth_n), "≥ 85%"),
         ("People count read correctly (first-hand reports)", pct(people_ok, people_n), "—"),

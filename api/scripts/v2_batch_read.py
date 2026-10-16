@@ -1,4 +1,5 @@
-"""Gemini reads every scenario message once (the Reader agent in batch), and the facts are cached for the board.
+"""The model reads every scenario message once (the Reader agent in batch), and the facts are cached for the board.
+REACHPOINT_LLM picks Gemini (default) or Claude.
 
     python api/scripts/v2_batch_read.py [--workers 8]
 
@@ -29,7 +30,7 @@ def main() -> None:
     msgs = [m for m in scenario()["messages"] if m["channel"] != "bulletin"]
     out_path = PKG / "v2-facts.json"
     done = json.loads(out_path.read_text())["facts"] if out_path.exists() else {}
-    todo = [m for m in msgs if not str(done.get(m["id"], {}).get("reader", "")).startswith("gemini")]
+    todo = [m for m in msgs if str(done.get(m["id"], {}).get("reader", "rules")) == "rules"]
     print(len(msgs), "messages;", len(todo), "to read", flush=True)
 
     def one(m):
@@ -44,8 +45,8 @@ def main() -> None:
                 out_path.write_text(json.dumps({"package": "hy-2025-11", "facts": done}, ensure_ascii=False))
                 print(i, "read", round(time.time() - t0), "s", flush=True)
     out_path.write_text(json.dumps({"package": "hy-2025-11", "facts": done}, ensure_ascii=False))
-    g = sum(1 for v in done.values() if v["reader"].startswith("gemini"))
-    print("done:", g, "by Gemini,", len(done) - g, "by rules")
+    g = sum(1 for v in done.values() if v["reader"] != "rules")
+    print("done:", g, "by the model,", len(done) - g, "by rules")
 
 
 if __name__ == "__main__":
