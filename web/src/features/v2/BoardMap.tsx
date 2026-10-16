@@ -6,7 +6,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../data/googleMaps";
 import { cssVar, depthBand, type BoardState, type GeoView, type HouseholdView } from "./api";
-import { drawFlood, loadSim, type Sim } from "./floodLayer";
+import { drawFlood, loadSim, type Analysis, type Sim } from "./floodLayer";
+import { demoRoom } from "../../data/room";
 
 export type SimMode = "corrected" | "physics" | "off";
 
@@ -27,11 +28,21 @@ interface Props {
   simMode: SimMode;
 }
 
-function corrections(state: BoardState | null, mode: SimMode): Record<string, number | null> | null {
-  if (mode !== "corrected" || !state) return null;
-  const out: Record<string, number | null> = {};
-  for (const z of Object.values(state.zones)) out[z.id] = z.simulation?.correctionM ?? null;
-  return out;
+function useAnalysis(state: BoardState | null, hour: number, mode: SimMode) {
+  const [a, setA] = useState<Analysis | null>(null);
+  const at = state ? Math.min(hour, state.now.atH) : null;
+  useEffect(() => {
+    if (mode !== "corrected" || at === null) return setA(null);
+    let live = true;
+    fetch(`/api/v2/analysis?at=${Math.round(at)}`, { headers: { "X-Demo-Room": demoRoom() } })
+      .then((r) => r.json())
+      .then((j) => live && setA(j))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [mode, at === null ? null : Math.round(at), state?.overall.messages]);
+  return a;
 }
 
 /** Loads the simulation once and redraws the water canvas whenever the hour, mode or corrections change. */
@@ -42,7 +53,7 @@ function useFloodCanvas(geo: GeoView | null, state: BoardState | null, hour: num
   useEffect(() => {
     if (geo) loadSim(geo.zones).then(setSim, () => undefined);
   }, [geo]);
-  const corr = useMemo(() => corrections(state, mode), [state, mode]);
+  const corr = useAnalysis(state, hour, mode);
   useEffect(() => {
     if (!sim) return;
     if (mode === "off") {

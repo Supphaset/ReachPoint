@@ -22,6 +22,7 @@ from pathlib import Path
 
 from api.v2 import geo as G
 from api.v2 import sim as S
+from api.v2 import assim as A
 from api.v2.level import Level, Obs, estimate
 from api.v2.reader import Read, read_rules
 
@@ -30,8 +31,8 @@ CHECK_HOURS = (7, 19)
 LOCAL_M = 400.0  # reports this close share roughly one water surface
 SOURCE_WEIGHT = {"self": 1.0, "reply": 1.0, "neighbour": 0.7, "relative": 0.5, "post": 0.5, "forward": 0.2}
 PRECISION_WEIGHT = {"address": 1.0, "landmark": 0.6, "area": 0.3}
-SATELLITE_PASSES = [("2025-11-23T06:20+07:00", "extent-2025-11-23-o164.geojson"),
-                    ("2025-11-29T06:20+07:00", "extent-2025-11-29-o164.geojson")]
+SATELLITE_PASSES = [("2025-11-24T06:03+07:00", "extent-2025-11-23-o164.geojson"),   # file names keep the UTC date
+                    ("2025-11-30T06:01+07:00", "extent-2025-11-29-o164.geojson")]
 
 
 @dataclass
@@ -84,6 +85,7 @@ class Observation:
     x: float = 0.0
     y: float = 0.0
     sim_wse: float | None = None   # what the physics says the water surface is here, then
+    prior: float = 0.0             # the model's depth here, then
 
 
 @dataclass
@@ -155,6 +157,7 @@ def label_time(h: float) -> str:
 
 
 _READS: dict = {}
+_CHECKED: dict = {}  # observation id -> (doubtful, expectation), for settled scenario reports
 _SNAPS: dict = {}
 
 
@@ -390,40 +393,38 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
             sd = S.depth(pin["lon"], pin["lat"], at)
             o = Observation(f"O{len(w.obs) + 1}", msg["id"], hh.id, hh.zone_id, at, ground, d[0], d[1], round(wt, 2), kind,
                             r.quote("depthRange") or "", x=ox, y=oy,
-                            sim_wse=None if sd is None or sd < 0.05 else ground + sd)
+                            sim_wse=None if sd is None or sd < 0.05 else ground + sd, prior=sd or 0.0)
             if kind == "forward":
                 o.at_h = msg.get("truth", {}).get("staleFromH", at - 24) if not live else at
             w.obs.append(o)
             hh.last_depth = d
 
 
+def local_depth(w: World, lon: float, lat: float, at_h: float) -> tuple[float, float, int, float]:
+    """(most likely depth, its standard deviation, reports used, model depth) at a point: the flood model corrected
+    by the reports around it (api/v2/assim.py)."""
+    prior = S.depth(lon, lat, at_h) or 0.0
+    idx = getattr(w, "assim_index", None)
+    if idx is None:
+        return round(prior, 2), A.SB, 0, round(prior, 2)
+    x, y = G.to_m(lon, lat)
+    d, sd, n = A.analyse(idx, x, y, at_h, prior)
+    return round(d, 2), round(sd, 2), n, round(prior, 2)
+
+
 def local_level(w: World, x: float, y: float, at_h: float, r_m: float = LOCAL_M, pool: list | None = None) -> Level:
-    """The water surface at a point, around one moment: the simulation corrected by the gaps of the reports nearby
-    (falls back to the reports alone where the simulation is dry or missing)."""
+    """Water surface at a point (for callers that work in surfaces): ground + local_depth, with a +-1 sd range."""
     lon, lat = G.to_ll(x, y)
-    sd = S.depth(lon, lat, at_h)
     geo = G.load()
     b = _SNAPS.get((round(lon, 6), round(lat, 6), "local"))
     if b is None:
         b = _SNAPS[(round(lon, 6), round(lat, 6), "local")] = geo.snap(lon, lat, 40)
-    ground = b.ground_m if b and b.ground_m is not None else None
-    if sd is not None and sd >= 0.05 and ground is not None:
-        for r in (r_m, r_m * 2):
-            gaps = [o for o in (pool if pool is not None else w.obs) if o.label != "doubtful" and o.sim_wse is not None and abs(o.at_h - at_h) <= 6
-                    and o.at_h <= w.now_h and (o.x - x) ** 2 + (o.y - y) ** 2 <= r * r]
-            if len(gaps) >= 2:
-                lv = estimate([Obs(o.id, at_h, 0.0, o.lo + o.ground_m - o.sim_wse, o.hi + o.ground_m - o.sim_wse, o.weight)
-                               for o in gaps], at_h)
-                base = ground + sd
-                return Level(round(base + lv.wse_m, 2), round(base + lv.lo_m, 2), round(base + lv.hi_m, 2), lv.n, lv.n_eff,
-                             [], lv.trend_cm_h, lv.certainty)
-    for r in (r_m, r_m * 2):
-        near = [Obs(o.id, at_h, o.ground_m, o.lo, o.hi, o.weight) for o in (pool if pool is not None else w.obs)
-                if o.label != "doubtful" and abs(o.at_h - at_h) <= 6 and o.at_h <= w.now_h
-                and (o.x - x) ** 2 + (o.y - y) ** 2 <= r * r]
-        if len(near) >= 2:
-            return estimate(near, at_h)
-    return Level(None, None, None)
+    if b is None or b.ground_m is None:
+        return Level(None, None, None)
+    d, sd, n, _ = local_depth(w, lon, lat, at_h)
+    if n == 0 and d < 0.05:
+        return Level(None, None, None)
+    return Level(round(b.ground_m + d, 2), round(b.ground_m + max(0.0, d - sd), 2), round(b.ground_m + d + sd, 2), n, float(n), [], None, 0.0)
 
 
 def estimate_around(obs: list[Obs], at_h: float) -> Level:
@@ -433,7 +434,39 @@ def estimate_around(obs: list[Obs], at_h: float) -> Level:
     return estimate([Obs(o.id, at_h, o.ground_m, o.lo_m, o.hi_m, o.base_weight) for o in obs], at_h)
 
 
+def w_burst(o) -> bool:
+    return bool(getattr(o, "burst", False))
+
+
+def assimilate(w: World) -> None:
+    """Check every report against the model and the reports around it, then index them for local estimates."""
+    obs = []
+    for o in w.obs:
+        if o.at_h > w.now_h or o.source == "forward":  # a forwarded copy adds no independent evidence
+            continue
+        obs.append(A.Ob(o.message_id, o.x, o.y, o.at_h, o.lo, o.hi, o.source, o.prior))  # keyed by message: stable across runs
+    # a report's verdict depends only on reports within 2 T_H of it, so once those are all in the past it is final
+    settled = {o.message_id for o in w.obs if not o.message_id.startswith("L") and not w_burst(o) and o.at_h < w.now_h - 2 * A.T_H}
+    known = {k: v for k, v in _CHECKED.items() if k in settled}
+    expect = A.check(obs, known=known)
+    for a in obs:
+        if a.id in settled and a.id not in _CHECKED:
+            _CHECKED[a.id] = (a.doubtful, expect[a.id])
+    by = {a.id: a for a in obs}
+    for o in w.obs:
+        a = by.get(o.message_id)
+        if a is None:
+            o.label = "unchecked"
+        elif a.doubtful:
+            o.label = "doubtful"
+        else:
+            e, sd, n = expect.get(o.message_id, (None, None, 0))
+            o.label = "consistent" if (n >= 2 and o.source in ("self", "reply") and abs(a.mid - e) <= max(0.4, 1.5 * a.sigma)) else "unchecked"
+    w.assim_index = A.Index(obs)
+
+
 def zone_levels(w: World, geo: G.Geo) -> dict[str, Level]:
+    assimilate(w)
     out = {}
     by_zone: dict[str, list[Observation]] = {}
     for o in w.obs:
@@ -442,42 +475,7 @@ def zone_levels(w: World, geo: G.Geo) -> dict[str, Level]:
         zid = z["properties"]["id"]
         os_ = sorted(by_zone.get(zid, []), key=lambda o: o.at_h)
         all_obs = [Obs(o.id, o.at_h, o.ground_m, o.lo, o.hi, o.weight) for o in os_]
-        # judge each report against the water around it at its own time, not today's
-        # leave-one-out: each report against the others within 3 hours either side (as far as we know now)
-        bad: set[str] = set()
-        by_id = {x.id: x for x in all_obs}
-        first = [(o.at_h, by_id[o.id], o) for o in os_ if o.source in ("self", "reply")]
-        times = [t for t, _, _ in first]
-        for o in os_:
-            mine = by_id[o.id]
-            i0, i1 = bisect_left(times, o.at_h - 6), bisect_right(times, min(o.at_h + 6, w.now_h))
-            # nearby water: other first-hand reports within LOCAL_M and six hours
-            around = [x for _, x, ob in first[i0:i1] if x.id != o.id and x.id not in bad
-                      and (ob.x - o.x) ** 2 + (ob.y - o.y) ** 2 <= LOCAL_M ** 2]
-            # compare gaps from the simulation where we can (the physics explains slopes across the neighbourhood)
-            gap = lambda ob, x: x.wse - ob.sim_wse if ob.sim_wse is not None else None
-            obs_of = {ob.id: ob for _, _, ob in first}
-            mine_gap = gap(o, mine)
-            near_gaps = [gap(obs_of[x.id], x) for x in around if obs_of[x.id].sim_wse is not None]
-            if mine_gap is not None and len(near_gaps) >= 2:
-                ref = sorted(near_gaps)[len(near_gaps) // 2]
-                spread = sorted(abs(g - ref) for g in near_gaps)[len(near_gaps) // 2]
-                diff = abs(mine_gap - ref)
-                limit = mine.half_range + spread + 0.45
-            else:
-                then = estimate_around(around, o.at_h)
-                if then.wse_m is None or then.n < 2:
-                    o.label = "unconfirmed"
-                    continue
-                diff = abs(mine.wse - then.wse_m)
-                limit = mine.half_range + (then.hi_m - then.lo_m) / 2 + 0.45
-            if diff > limit:
-                bad.add(o.id)
-                o.label = "doubtful"
-            elif o.source in ("self", "reply") and diff <= 0.5:
-                o.label = "confirmed"
-            else:
-                o.label = "unconfirmed"
+        bad = {o.id for o in os_ if o.label == "doubtful"}
         lvl = estimate(all_obs, w.now_h, exclude=bad)
         lvl.doubtful = sorted(bad & {o.id for o in os_ if w.now_h - 12 <= o.at_h <= w.now_h})
         out[zid] = lvl

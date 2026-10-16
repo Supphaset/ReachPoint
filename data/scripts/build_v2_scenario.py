@@ -75,9 +75,14 @@ def main() -> None:
 
     # the true water: the physics simulation (v2-sim), plus local effects it can't know about, which the
     # reports have to reveal: blocked drains make B-3 deeper after the peak; pumps keep part of B-12 shallower.
-    sim = json.loads((PKG / "v2-sim.json").read_text())
+    # truth from a different model run than the one the board uses (publish_v2_sim.py RUN --truth), so the
+    # evaluation is not the model scored against itself
     import gzip
-    with gzip.open(PKG / "v2-sim.bin.gz", "rb") as fh:
+    base = ROOT / "data" / ".cache" / "v2-truth-sim"
+    if not Path(str(base) + ".json").exists():
+        base = PKG / "v2-sim"
+    sim = json.loads(Path(str(base) + ".json").read_text())
+    with gzip.open(str(base) + ".bin.gz", "rb") as fh:
         raw = fh.read()
     R, C, FB = sim["rows"], sim["cols"], sim["frameBytes"]
     w0, s0, e0, n0 = sim["bbox"]

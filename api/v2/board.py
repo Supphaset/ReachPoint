@@ -33,37 +33,27 @@ def zone_view(w, geo: G.Geo, zid: str) -> dict:
     est = meta["estimate"]
     # most likely depth where people are: the simulation corrected by nearby reports, at each household
     geo_b = geo.buildings
-    here = []
-    # reports near this zone in the last six hours (the only ones a local estimate can use)
-    pool = [o for o in w.obs if abs(o.at_h - w.now_h) <= 6 and o.label != "doubtful"]
-    zx = [G.to_m(h.lon, h.lat) for h in hh if h.lon is not None]
-    if zx:
-        x0, x1 = min(a for a, _ in zx) - 800, max(a for a, _ in zx) + 800
-        y0, y1 = min(b for _, b in zx) - 800, max(b for _, b in zx) + 800
-        pool = [o for o in pool if x0 <= o.x <= x1 and y0 <= o.y <= y1]
+    # most likely depth where people are: the flood model corrected by the reports around each household
+    here, incs = [], []
     for h in hh[-40:]:
         if h.lon is None or h.status == "evacuated":
             continue
-        x, y = G.to_m(h.lon, h.lat)
-        lv = P.local_level(w, x, y, w.now_h, pool=pool)
-        b = geo_b.get(h.building_id) if h.building_id else None
-        g = b.ground_m if b and b.ground_m is not None else p50
-        if lv.wse_m is not None:
-            here.append((max(0.0, lv.wse_m - g), max(0.0, lv.lo_m - g), max(0.0, lv.hi_m - g)))
+        d, sd, n, prior = P.local_depth(w, h.lon, h.lat, w.now_h)
+        here.append((d, max(0.0, d - sd), d + sd))
+        if n:
+            incs.append(d - prior)
     depth = None
     if here:
-        ds = sorted(d for d, _, _ in here)
-        depth = (round(ds[len(ds) // 2], 2), round(sorted(d for _, d, _ in here)[len(here) // 4], 2),
-                 round(sorted(d for _, _, d in here)[(3 * len(here)) // 4], 2))
+        ds = sorted(x for x, _, _ in here)
+        depth = (round(ds[len(ds) // 2], 2), round(sorted(x for _, x, _ in here)[len(here) // 4], 2),
+                 round(sorted(x for _, _, x in here)[(3 * len(here)) // 4], 2))
     elif lvl.wse_m is not None:
         depth = lvl.depth_at(p50)
     sim_surf, sim_wet = S.zone_at(zid, w.now_h)
-    gaps = [o.lo + o.ground_m - o.sim_wse + (o.hi - o.lo) / 2 for o in obs
-            if o.sim_wse is not None and o.label != "doubtful" and w.now_h - o.at_h <= 6]
-    correction = round(sorted(gaps)[len(gaps) // 2], 2) if len(gaps) >= 2 else None
+    correction = round(sorted(incs)[len(incs) // 2], 2) if len(incs) >= 2 else None
     sources = []
     if obs:
-        labels = {k: sum(1 for o in obs if o.label == k) for k in ("confirmed", "unconfirmed", "doubtful")}
+        labels = {k: sum(1 for o in obs if o.label == k) for k in ("consistent", "unchecked", "doubtful")}
         first = [o for o in obs if o.source in ("self", "reply")]
         others = [o for o in obs if o.source not in ("self", "reply")]
         if first:
@@ -82,10 +72,10 @@ def zone_view(w, geo: G.Geo, zid: str) -> dict:
         sources.append({"kind": "gauge", "text": f"River gauge X.44: {b['gaugeM']:.2f} m (bank 7.40), "
                                                  f"{'rising' if (b['rateMh'] or 0) > 0.01 else 'falling' if (b['rateMh'] or 0) < -0.01 else 'steady'}",
                         "lastH": b["atH"], "reconstructed": True})
-    sources.append({"kind": "simulation", "text": f"Flood simulation (gauge + rain + terrain): {round(sim_wet * 100)}% of the zone under water"
-                                                 + (f"; reports say {abs(correction):.1f} m {'deeper' if correction > 0 else 'shallower'} than simulated"
+    sources.append({"kind": "simulation", "text": f"Flood model (rain, runoff from the hills, canals, terrain): {round(sim_wet * 100)}% of the zone under water"
+                                                 + (f"; nearby reports put it {abs(correction):.1f} m {'deeper' if correction > 0 else 'shallower'} at households"
                                                     if correction is not None and abs(correction) >= 0.15 else
-                                                    "; reports agree" if correction is not None else ""),
+                                                    "; reports agree with it" if correction is not None else ""),
                     "lastH": w.now_h, "correctionM": correction, "wetShare": sim_wet})
     sources.append({"kind": "terrain", "text": f"Terrain: typical ground {p50:.1f} m above sea level", "lastH": None})
     gap = w.gaps.get(zid)
@@ -119,8 +109,7 @@ def summary_text(zid, lvl, depth, hh, plans, gap, w, correction=None) -> str:
          f"{f', {len(lvl.doubtful)} doubtful' if lvl.doubtful else ''}. {len(open_)} households still need help"
          f"{f', {urgent} urgent' if urgent else ''}.")
     if correction is not None and abs(correction) >= 0.3:
-        s += f" Reports put the water {abs(correction):.1f} m {'above' if correction > 0 else 'below'} the simulation here" + \
-             (" (likely blocked drains or a local low point)." if correction > 0 else " (likely pumping or local drainage).")
+        s += f" Reports put the water {abs(correction):.1f} m {'above' if correction > 0 else 'below'} the flood model here."
     if plans:
         p = plans[-1]
         s += f" {p.get('team') or 'A team'} plans to come{' about ' + p['eta'] if p.get('eta') else ''}."

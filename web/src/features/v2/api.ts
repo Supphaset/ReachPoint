@@ -19,7 +19,7 @@ export interface Level {
 export interface Source {
   kind: "victims" | "posts" | "satellite" | "gauge" | "terrain" | "simulation";
   text: string;
-  labels?: { confirmed: number; unconfirmed: number; doubtful: number };
+  labels?: { consistent: number; unchecked: number; doubtful: number };
   lastH: number | null;
   flooded?: boolean;
   reconstructed?: boolean;

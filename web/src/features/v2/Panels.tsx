@@ -59,7 +59,7 @@ export function ZoneCard({ zone, state }: { zone: ZoneView | null; state: BoardS
             <div className="v2-level">
               <span className="v2-level-big">≈ {l.depthM.toFixed(1)} m</span>
               <span>likely {l.depthLoM.toFixed(1)}–{l.depthHiM.toFixed(1)} m{l.trendCmH !== null ? ` · ${l.trendCmH > 1 ? "rising" : l.trendCmH < -1 ? "falling" : "steady"} ${Math.abs(l.trendCmH).toFixed(0)} cm/h` : ""}</span>
-              <span className="v2-muted">from {l.n} recent reports · certainty {(l.certainty * 100).toFixed(0)}%</span>
+              <span className="v2-muted">flood model corrected by {l.n} recent reports · certainty {(l.certainty * 100).toFixed(0)}%</span>
             </div>
           ) : (
             <div className="v2-level is-unknown"><span className="v2-level-big">Unknown</span><span className="v2-muted">No reports yet. Unknown, not dry.</span></div>
@@ -67,7 +67,7 @@ export function ZoneCard({ zone, state }: { zone: ZoneView | null; state: BoardS
           <ul className="v2-sources">
             {zone.sources.map((s, i) => (
               <li key={i} className={`is-${s.kind}`}>
-                <span>{s.text}{s.labels ? ` (${s.labels.confirmed} confirmed, ${s.labels.doubtful} doubtful)` : ""}{s.reconstructed ? " · reconstructed bulletin" : ""}</span>
+                <span>{s.text}{s.labels ? ` (${s.labels.consistent} fit the reports around them, ${s.labels.doubtful} doubtful)` : ""}{s.reconstructed ? " · reconstructed bulletin" : ""}</span>
                 <time>{timeOf(state, s.lastH)}</time>
               </li>
             ))}

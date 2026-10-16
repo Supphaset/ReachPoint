@@ -102,6 +102,34 @@ def sim_frames():
                     headers={"Content-Encoding": "gzip", "Cache-Control": "public, max-age=86400"})
 
 
+@router.get("/terrain")
+def terrain():
+    """The 30 m ground heights under the flood layer (decimetres), so the map can let reported water follow the ground."""
+    import json as _j
+    t = _j.loads((G.PKG / "v2-terrain.json").read_text())
+    return {"rows": t["rows"], "cols": t["cols"], "bbox": t["bbox"],
+            "zDm": [-9999 if v is None else int(round(v * 10)) for r in t["z"] for v in r]}
+
+
+@router.get("/analysis")
+def analysis(at: float | None = None):
+    """Corrections from the reports for the map at a moment (a 150 m lattice over the city)."""
+    from api.v2 import assim as A
+    v = room()
+    st = _state(v, at)
+    w = st["world"]
+    m = (G.PKG / "v2-sim.json")
+    import json as _j
+    meta = _j.loads(m.read_text())
+    rows, cols = max(1, meta["rows"] // 5), max(1, meta["cols"] // 5)
+    idx = getattr(w, "assim_index", None)
+    obs = [o for o in (idx.obs if idx else []) if not o.doubtful]
+    ground = {o.message_id: o.ground_m for o in w.obs}
+    to_m = lambda lon, lat: ((lon - G.LON0) * G.MX, (lat - G.LAT0) * G.MY)
+    f = A.field(obs, [ground.get(o.id, 0.0) for o in obs], meta["bbox"], rows, cols, st["atH"], to_m)
+    return {"atH": st["atH"], "bbox": meta["bbox"], "rows": rows, "cols": cols, "incStepM": 0.05, "wseStepM": 0.1, **f}
+
+
 @router.get("/timeline")
 def timeline():
     return B.timeline()
@@ -255,14 +283,10 @@ def chat_turn(sid: str, body: TurnIn):
         effects["household"] = hh.view() if hh else None
         if hh and hh.lon is not None:
             b = geo.buildings.get(hh.building_id) if hh.building_id else None
-            x, y = G.to_m(hh.lon, hh.lat)
-            lv = P.local_level(w, x, y, v.now_h)
-            if lv.wse_m is not None and b and b.ground_m is not None:
-                f = lambda wse: round(max(0.0, wse - b.ground_m), 2)
-                effects["depthHere"] = [f(lv.wse_m), f(lv.lo_m), f(lv.hi_m)]
-            from api.v2 import sim as S
-            sd = S.depth(hh.lon, hh.lat, v.now_h)
-            effects["simHere"] = None if sd is None else round(sd, 2)
+            d, sd, n, prior = P.local_depth(w, hh.lon, hh.lat, v.now_h)
+            if n:
+                effects["depthHere"] = [d, round(max(0.0, d - sd), 2), round(d + sd, 2)]
+            effects["simHere"] = prior
         return {"session": s.view(), "reply": reply, "effects": effects, "zone": zone,
                 "overall": st["overall"], "activity": st["activity"][:8]}
 

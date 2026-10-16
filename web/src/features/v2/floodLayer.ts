@@ -16,9 +16,21 @@ export interface SimMeta {
   model: string;
 }
 
+export interface Analysis {
+  atH: number;
+  rows: number;
+  cols: number;
+  incStepM: number;
+  wseStepM: number;
+  inc: number[];
+  wse: number[];
+  support: number[];
+}
+
 export interface Sim {
   meta: SimMeta;
   frames: Uint8Array;
+  zDm: Int16Array; // 30 m ground, decimetres
   zoneOf: Int16Array; // cell → zone index, -1 outside the city zones
   zoneIds: string[];
 }
@@ -40,6 +52,8 @@ export function loadSim(zones: GeoJSON.FeatureCollection): Promise<Sim> {
     const meta = (await fetch("/api/v2/sim").then((r) => r.json())) as SimMeta;
     const buf: ArrayBuffer = await fetch("/api/v2/sim.bin").then((r) => r.arrayBuffer());
     const frames = new Uint8Array(buf);
+    const terr = (await fetch("/api/v2/terrain").then((r) => r.json())) as { zDm: number[] };
+    const zDm = Int16Array.from(terr.zDm);
     const [w, s, e, n] = meta.bbox;
     const zoneIds: string[] = [];
     const polys: { idx: number; rings: number[][][]; box: number[] }[] = [];
@@ -66,7 +80,7 @@ export function loadSim(zones: GeoJSON.FeatureCollection): Promise<Sim> {
         }
       }
     }
-    return { meta, frames, zoneOf, zoneIds };
+    return { meta, frames, zoneOf, zoneIds, zDm };
   })().catch((e) => {
     loading = null;
     throw e;
@@ -84,7 +98,7 @@ export function drawFlood(
   canvas: HTMLCanvasElement,
   sim: Sim,
   hour: number,
-  corrections: Record<string, number | null> | null,
+  analysis: Analysis | null,
 ): { wetCells: number } {
   const { rows, cols, hours, frameBytes, stepM } = sim.meta;
   canvas.width = cols;
@@ -96,13 +110,18 @@ export function drawFlood(
   const h1 = Math.min(hours, h0 + 1);
   const f = Math.max(0, Math.min(1, hour - h0));
   const pal = ["--depth-1", "--depth-2", "--depth-3", "--depth-4"].map((v) => toRgb(cssVar(v)));
-  const corr = sim.zoneIds.map((z) => (corrections ? corrections[z] ?? 0 : 0) ?? 0);
+  const a = analysis && analysis.rows > 0 ? analysis : null;
   let wet = 0;
   for (let k = 0; k < rows * cols; k++) {
     let d = (sim.frames[h0 * frameBytes + k] * (1 - f) + sim.frames[h1 * frameBytes + k] * f) * stepM;
-    if (d > 0.05) {
-      const z = sim.zoneOf[k];
-      if (z >= 0) d = Math.max(0, d + corr[z]);
+    if (a) {
+      // the lattice cell this 30 m cell sits in
+      const li = Math.min(a.rows - 1, Math.floor(((k / cols) | 0) * a.rows / rows));
+      const lj = Math.min(a.cols - 1, Math.floor((k % cols) * a.cols / cols));
+      const q = li * a.cols + lj;
+      const sup = a.support[q] / 100;
+      if (d > 0.05) d = Math.max(0, d + a.inc[q] * a.incStepM * sup);
+      else if (sup > 0.35 && a.wse[q] > 0 && sim.zDm[k] > -9999) d = Math.min(6, Math.max(0, a.wse[q] * a.wseStepM - sim.zDm[k] / 10));
     }
     if (d <= 0.08) continue;
     wet++;

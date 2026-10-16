@@ -79,14 +79,18 @@ def main() -> None:
     honest = {o.message_id for o in w.obs if o.message_id not in planted}
     doubtful = {o.message_id for o in w.obs if o.label == "doubtful"}
     # depth at households: the local estimate at each first-hand report vs the true depth there and then
-    house_err = []
+    house_err, model_err = [], []
     for m in sc["messages"]:
         if m["kind"] in ("self", "reply") and m["atH"] <= 140 and m["truth"].get("trueDepthM") is not None and m.get("pin"):
-            x, y = G.to_m(m["pin"]["lon"], m["pin"]["lat"])
-            lv = P.local_level(w, x, y, m["atH"])
-            b = G.load().snap(m["pin"]["lon"], m["pin"]["lat"], 40)
-            if lv.wse_m is not None and b and b.ground_m is not None:
-                house_err.append(abs(max(0.0, lv.wse_m - b.ground_m) - m["truth"]["trueDepthM"]))
+            # the estimate there from the OTHER reports (this one left out), the way a neighbour's house is estimated
+            own = [o for o in w.assim_index.obs if o.id == m["id"]]
+            for o in own:
+                o.t += 1e6  # hide it
+            d, sd, n, prior = P.local_depth(w, m["pin"]["lon"], m["pin"]["lat"], m["atH"])
+            for o in own:
+                o.t -= 1e6
+            house_err.append(abs(d - m["truth"]["trueDepthM"]))
+            model_err.append(abs(prior - m["truth"]["trueDepthM"]))
     truth = {z: dict(v) for z, v in sc["truth"]["wseByZone"].items()}
     errs = defaultdict(list)
     for h in (60, 72, 84, 99, 111, 126):
@@ -111,8 +115,9 @@ def main() -> None:
         ("Neighbour words matched to the exact building", pct(nb_build, nb_build_n), "≥ 85%"),
         ("Planted wrong reports flagged doubtful", pct(len(planted & doubtful), len(planted & {o.message_id for o in w.obs})), "≥ 80%"),
         ("Honest reports wrongly flagged doubtful", pct(len(honest & doubtful), len(honest)), "low"),
-        ("Most likely depth at a household vs the true depth there (mean error)",
-         f"{sum(house_err) / len(house_err):.2f} m over {len(house_err)} reports (median {sorted(house_err)[len(house_err) // 2]:.2f} m)", "≤ 0.2 m"),
+        ("Depth at a household from the model + OTHER reports (this one left out), mean error",
+         f"{sum(house_err) / len(house_err):.2f} m over {len(house_err)} reports (median {sorted(house_err)[len(house_err) // 2]:.2f} m); "
+         f"model alone {sum(model_err) / len(model_err):.2f} m", "better than the model alone"),
         ("Zone water surface vs the true zone surface (mean error, 6 moments)", f"{sum(allerr) / len(allerr):.2f} m over {len(allerr)} zone-moments", "—"),
     ]
     md = ["# v2 evaluation: Hat Yai scenario, 21–28 Nov 2025", "",

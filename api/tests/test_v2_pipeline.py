@@ -21,11 +21,27 @@ def test_scenario_households_are_counted_once_and_levels_track_the_truth():
     assert sure <= len(true_heard) * 1.1
 
 
-def test_most_reports_are_confirmed_and_few_are_doubtful():
+def test_most_reports_fit_their_neighbours_and_few_are_doubtful():
     w = P.run(100)
     labels = [o.label for o in w.obs]
     assert labels.count("doubtful") / len(labels) < 0.08
-    assert labels.count("confirmed") > labels.count("unconfirmed")
+    assert labels.count("consistent") > labels.count("unchecked")
+
+
+def test_reports_correct_the_model_locally_not_everywhere():
+    from api.v2 import assim as A
+    obs = [A.Ob("a", 0, 0, 10, 0.9, 1.1, "self", 0.4), A.Ob("b", 60, 0, 10, 0.9, 1.1, "self", 0.4)]
+    near, sd_near, n1 = A.analyse(obs, 30, 0, 10, 0.4)
+    far, sd_far, n2 = A.analyse(obs, 3000, 0, 10, 0.4)
+    assert near > 0.8 and sd_near < sd_far
+    assert far == 0.4 and n2 == 0  # no report nearby: the model alone, with its full uncertainty
+
+
+def test_a_report_the_neighbours_contradict_is_doubtful():
+    from api.v2 import assim as A
+    obs = [A.Ob(str(i), i * 40, 0, 10, 0.4, 0.6, "self", 0.5) for i in range(4)] + [A.Ob("odd", 80, 20, 10, 2.5, 3.2, "self", 0.5)]
+    A.check(obs)
+    assert [o.id for o in obs if o.doubtful] == ["odd"]
 
 
 def test_planted_wrong_reports_are_mostly_flagged():
