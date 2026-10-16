@@ -361,3 +361,15 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--color-focus
 .v2-scene-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
 .v2-scene-head b { font-size: var(--text-sm); }
 .v2-scene-head span { font-size: var(--text-xs); color: var(--color-ink-3); }
+
+.v2-confirm { display: grid; gap: var(--space-2); width: 100%; max-width: 100%; box-sizing: border-box; }
+.v2-nbpic { width: 100%; min-height: 200px; aspect-ratio: 4 / 3; max-width: 100%; border-radius: var(--radius-md); overflow: hidden; background: var(--color-surface-sunken); display: block; }
+.v2-nb-me { fill: var(--house-me); fill-opacity: 0.3; stroke: var(--house-me); stroke-width: 3; }
+.v2-nb-cand { fill: var(--house-new); fill-opacity: 0.3; stroke: var(--house-new); stroke-width: 3; }
+.v2-nb-legend { display: flex; gap: var(--space-2); align-items: center; font-size: var(--text-2xs); }
+.v2-nb-legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.v2-nb-legend .is-me { background: var(--house-me); }
+.v2-nb-legend .is-cand { background: var(--house-new); }
+.v2-confirm-btns { display: flex; gap: var(--space-2); }
+.v2-confirm-btns button { flex: 1; min-height: 40px; border-radius: var(--radius-md); border: var(--border-thin) solid var(--color-line-strong); background: var(--color-surface); font: inherit; font-weight: var(--weight-bold); cursor: pointer; }
+.v2-confirm-btns button:first-child { background: var(--color-brand); color: var(--color-brand-ink); border-color: var(--color-brand); }

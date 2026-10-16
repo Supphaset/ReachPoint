@@ -74,6 +74,11 @@ def test_neighbour_reader_takes_the_direction_and_the_people():
     assert r.get("depthRange") == [0.4, 0.6]
     # without a compass direction the side is unknown, and the agent asks
     assert read_rules("บ้านข้างๆ มียายอยู่คนเดียว").get("neighbour")["side"] == "unknown"
+    # several houses in one message, each with its own direction and people
+    two = [f.value for f in read_rules("บ้านทางทิศตะวันออกมียายอยู่คนเดียว ทางทิศตะวันตกมีครอบครัว 4 คน").all("neighbour")]
+    assert two == [{"side": "east", "people": 1, "elderly": 1}, {"side": "west", "people": 4}]
+    # a direction that isn't about a house is not a neighbour
+    assert not read_rules("น้ำไหลมาทางทิศเหนือ อยู่กัน 2 คน").all("neighbour")
 
 
 def test_compass_neighbours_point_the_right_way():
@@ -105,8 +110,11 @@ def test_judge_conversation_lands_on_the_board():
         x = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "ไม่มี"}, headers=h).json()
     assert x["session"]["pending"] == "nb_dir"
     x = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "ทิศตะวันออกค่ะ"}, headers=h).json()
+    # the agent shows the house that way on the satellite picture and asks to confirm
+    assert x["session"]["pending"] == "nb_confirm" and x["effects"]["nbConfirm"]["side"] == "east"
+    x = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "ใช่ค่ะ"}, headers=h).json()
     nb = x["effects"]["neighbour"]
-    assert nb and nb["side"] == "east"
+    assert nb and nb["side"] == "east" and x["session"]["neighbours"][-1]["confirmed"]
     # matched to a known house (count unchanged) or added as one new house; the judge is never counted twice
     after = c.get("/api/v2/state", headers=h).json()["overall"]["households"]
     assert after == before + 1 + (0 if nb["known"] else 1)

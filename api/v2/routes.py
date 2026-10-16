@@ -200,32 +200,51 @@ def _household_of(w, session) -> str | None:
 
 
 def _hold_neighbour(s, r):
-    """A neighbour mentioned without a direction waits for the agent's question instead of being matched now."""
-    nb = r.get("neighbour")
-    if nb and nb.get("side") == "unknown":
-        s.nb_pending = {"nb": nb, "quote": r.quote("neighbour")}
-        r.facts = [f for f in r.facts if f.field != "neighbour"]
+    """In a live chat every neighbour waits in a queue: the agent asks its direction if missing, then shows the house
+    on the satellite picture to confirm, before it is matched."""
+    for f in r.all("neighbour"):
+        if isinstance(f.value, dict) and not any(q["quote"] == f.quote for q in s.nb_queue):
+            s.nb_queue.append({"nb": dict(f.value), "quote": f.quote, "cands": None, "i": 0})
+    r.facts = [f for f in r.facts if f.field != "neighbour"]
     return r
 
 
-def _add_neighbour(v, s, side: str, channel: str, lang: str):
-    """The neighbour's house goes in as its own message, matched to the building in that direction."""
-    held, s.nb_pending = s.nb_pending, None
-    nb = {**held["nb"], "side": side}
+def _candidates(s, item) -> list[str]:
+    geo = G.load()
+    b = geo.buildings.get(s.building_id) if s.building_id else None
+    if b is None or item["nb"].get("side") not in G.DIRECTIONS:
+        return []
+    return geo.neighbours(b)[item["nb"]["side"]][:3]
+
+
+def _confirm_effect(s, item) -> dict:
+    geo = G.load()
+    me = geo.buildings.get(s.building_id)
+    c = geo.buildings.get(item["cands"][item["i"]])
+    return {"side": item["nb"]["side"], "quote": item["quote"], "candidate": {"id": c.id, "outline": c.outline, "lon": c.lon, "lat": c.lat},
+            "me": me and {"id": me.id, "outline": me.outline, "lon": me.lon, "lat": me.lat}, "n": item["i"] + 1, "of": len(item["cands"])}
+
+
+def _add_neighbour(v, s, channel: str, lang: str, building_id: str | None = None):
+    """The first queued neighbour goes in as its own message, matched to the confirmed building (or the nearest one
+    in its direction, marked not sure)."""
+    held = s.nb_queue.pop(0)
+    nb = held["nb"]
     v.seq += 1
     msg = {"id": f"L{v.seq}", "atH": v.now_h, "channel": channel, "text": held["quote"], "live": True, "pin": s.pin,
-           "sessionId": s.id, "householdHint": s.household_id, "neighbourOnly": True,
+           "sessionId": s.id, "householdHint": s.household_id, "neighbourOnly": True, "neighbourBuildingId": building_id,
            "_read": Read([Fact("neighbour", nb, held["quote"])], reader="rules")}
     v.messages.append(msg)
     st = _state(v)
     eff = msg.get("_effects", {}).get("neighbour")
-    s.neighbour_results.append({"side": side, "result": "known" if eff and eff["known"] else "new" if eff else "unmatched",
-                                "buildingId": eff and eff["buildingId"]})
+    s.neighbour_results.append({"side": nb.get("side"), "result": "known" if eff and eff["known"] else "new" if eff else "unmatched",
+                                "buildingId": eff and eff["buildingId"], "confirmed": bool(building_id)})
     if not eff:
         return None, ""
     nz = st["world"].households[eff["householdId"]].zone_id
     has_plan = any(nz in p.get("zones", []) for p in st["world"].plans)
-    return eff, (I.say("known" if has_plan else "known_noplan", lang) if eff["known"] else I.say("new", lang)) + " "
+    where = (I.side_word(nb.get("side"), lang) + ": ") if nb.get("side") in G.DIRECTIONS else ""
+    return eff, where + (I.say("known" if has_plan else "known_noplan", lang) if eff["known"] else I.say("new", lang)) + " "
 
 
 @router.post("/chat/sessions/{sid}/turn")
@@ -256,10 +275,24 @@ def chat_turn(sid: str, body: TurnIn):
             else:
                 effects["shelter"] = {**s.shelter_offer, "going": False}
                 prefix = I.say("shelter_stay", lang) + " "
-        elif pending == "nb_dir" and s.nb_pending:
+        elif pending == "nb_dir" and s.nb_queue:
             from api.v2.reader import direction_of
-            side = direction_of(text) or "unknown"
-            effects["neighbour"], prefix = _add_neighbour(v, s, side, body.channel, lang)
+            side = direction_of(text)
+            item = s.nb_queue[0]
+            if side:
+                item["nb"]["side"] = side
+            else:  # they don't know which way: match the nearest building, marked not sure
+                effects["neighbour"], prefix = _add_neighbour(v, s, body.channel, lang)
+        elif pending == "nb_confirm" and s.nb_queue:
+            item = s.nb_queue[0]
+            yes = re.search(r"^\s*(ใช่|ถูก|yes|yeah|yep|correct|ใช่ค่ะ|ใช่ครับ)", text, re.I) and not re.search(r"ไม่ใช่|^\s*no\b|not", text, re.I)
+            if yes:
+                effects["neighbour"], prefix = _add_neighbour(v, s, body.channel, lang, item["cands"][item["i"]])
+            elif item["i"] + 1 < len(item["cands"]):
+                item["i"] += 1  # show the next building that way
+            else:
+                effects["neighbour"], prefix = _add_neighbour(v, s, body.channel, lang)
+                prefix = I.say("nb_unsure", lang) + " " + prefix
         else:
             from concurrent.futures import ThreadPoolExecutor
             with ThreadPoolExecutor(2) as ex:  # Gemini reads while Pinpoint looks up the address
@@ -268,7 +301,6 @@ def chat_turn(sid: str, body: TurnIn):
                 r = f_read.result()
                 pre_loc = f_loc.result() if f_loc else None
             if pending == "people" and r.get("people") is None:
-                import re
                 m = re.search(r"\d+", text)
                 if m:
                     r.facts.append(Fact("people", int(m.group(0)), m.group(0)))
@@ -295,13 +327,6 @@ def chat_turn(sid: str, body: TurnIn):
         st = _state(v)
         w = st["world"]
         s.household_id = _household_of(w, s) or s.household_id
-        if main_msg and (main_msg.get("_effects") or {}).get("neighbour"):  # a neighbour named with its direction
-            eff = main_msg["_effects"]["neighbour"]
-            effects["neighbour"] = eff
-            s.neighbour_results.append({"side": eff["side"], "result": "known" if eff["known"] else "new", "buildingId": eff["buildingId"]})
-            nz = w.households[eff["householdId"]].zone_id
-            has_plan = any(nz in p.get("zones", []) for p in w.plans)
-            prefix = (I.say("known" if has_plan else "known_noplan", lang) if eff["known"] else I.say("new", lang)) + " "
         if s.finished:
             reply = I.say("reply_ok", lang)
             s.pending = None
@@ -312,21 +337,35 @@ def chat_turn(sid: str, body: TurnIn):
                 walk = [o for o in opts if o["walkable"]]
                 s.shelter_offer = walk[0] if walk else {}
                 s.shelter_nearest = opts[0] if opts else None
+            while s.nb_queue and s.pin and s.nb_queue[0]["nb"].get("side") in G.DIRECTIONS and not s.nb_queue[0]["cands"]:
+                s.nb_queue[0]["cands"] = _candidates(s, s.nb_queue[0])
+                if not s.nb_queue[0]["cands"]:  # no building that way within 60 m: nearest one, not sure
+                    effects["neighbour"], p2 = _add_neighbour(v, s, body.channel, lang)
+                    prefix += p2
+                    st = _state(v)
+                    w = st["world"]
             nxt = I._next(s)
+            if nxt == "nb_confirm":
+                effects["nbConfirm"] = _confirm_effect(s, s.nb_queue[0])
             if nxt:
                 s.asked.append(nxt)
                 s.pending = nxt
                 o = s.shelter_offer or {}
-                reply = prefix + (I.say(nxt, lang, name=o.get("name"), km=o.get("km"), minutes=o.get("minutes"), deep=o.get("deepestM"))
-                                  if nxt == "shelter" else I.say(nxt, lang))
+                if nxt == "shelter":
+                    reply = prefix + I.say(nxt, lang, name=o.get("name"), km=o.get("km"), minutes=o.get("minutes"), deep=o.get("deepestM"))
+                elif nxt == "nb_confirm":
+                    side = s.nb_queue[0]["nb"]["side"]
+                    reply = prefix + I.say("nb_confirm" if s.nb_queue[0]["i"] == 0 else "nb_confirm_next", lang, side=I.side_word(side, lang))
+                else:
+                    reply = prefix + I.say(nxt, lang)
             else:
                 s.pending = None
                 s.finished = True
                 near = getattr(s, "shelter_nearest", None)
                 if s.shelter_offer == {} and near and s.facts.get("urgent", {}).get("value") is not True:
                     prefix += I.say("shelter_none", lang, name=near["name"], deep=near["deepestM"]) + " "
-                if s.nb_pending and s.pin:  # urgent: no more questions; the neighbour goes in without a direction
-                    effects["neighbour"], _ = _add_neighbour(v, s, "unknown", body.channel, lang)
+                while s.nb_queue and s.pin:  # urgent: no more questions; neighbours go in unconfirmed
+                    effects["neighbour"], _ = _add_neighbour(v, s, body.channel, lang)
                     st = _state(v)
                     w = st["world"]
                 reply = prefix + I.say("urgent_done" if s.facts.get("urgent", {}).get("value") is True else "done", lang)

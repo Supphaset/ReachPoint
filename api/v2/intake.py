@@ -24,6 +24,10 @@ Q = {
     "vulnerable": ("มีผู้สูงอายุ เด็กเล็ก คนป่วย หรือคนที่เดินไม่ได้ไหมคะ", "Is anyone elderly, a small child, sick, or unable to walk?"),
     "depth": ("ตอนนี้น้ำสูงแค่ไหนคะ เทียบกับร่างกายก็ได้ เช่น ถึงเข่า ถึงเอว", "How high is the water now? Compared with your body is fine, like knee or waist."),
     "askBack": ("น้ำอยู่สูงกว่าหรือต่ำกว่าลูกบิดประตูคะ", "Is the water above or below your door handle?"),
+    "nb_confirm": ("บ้าน{side}ของคุณ คือหลังที่ขอบสีส้มในรูปนี้ใช่ไหมคะ (บ้านคุณสีเหลือง) ตอบ ใช่ / ไม่ใช่",
+                   "Is your neighbour's house to the {side} the one outlined orange in this picture? (Yours is yellow.) Reply yes / no"),
+    "nb_confirm_next": ("แล้วหลังนี้ล่ะคะ ใช่ไหม", "What about this one?"),
+    "nb_unsure": ("ไม่เป็นไรค่ะ เราจะใช้บ้านที่ใกล้ที่สุดทางนั้นไว้ก่อน และทีมจะตรวจอีกที", "That's fine. We'll use the nearest house that way for now, and a team will check."),
     "nb_dir": ("บ้านที่คุณพูดถึง อยู่ทิศไหนของบ้านคุณคะ เหนือ ใต้ ตะวันออก หรือตะวันตก",
                "Which direction is the house you mentioned from yours: north, south, east or west?"),
     "shelter": ("ถ้าออกจากบ้านเองได้ ศูนย์พักพิงที่ใกล้ที่สุดคือ {name} ห่างราว {km} กม. (เดินราว {minutes} นาที) ทางที่ลึกที่สุดราว {deep} ม. ไปเองได้ไหมคะ ตอบ \"ไป\" หรือ \"อยู่บ้าน\"",
@@ -46,6 +50,13 @@ Q = {
 NONE_WORDS = re.compile(r"^(ไม่มี|ไม่|ว่าง|ไม่รู้|ไม่ทราบ|ไม่แน่ใจ|ออกไปแล้ว|no|none|nobody|empty|don'?t know|not sure|left already)\b", re.I)
 VAGUE = re.compile(r"เยอะ|มาก|สูง(มาก)?$|ท่วม(หนัก)?$|a lot|deep|high", re.I)
 CITY_HINT = " หาดใหญ่ สงขลา"
+
+
+SIDE_TH = {"north": "ทางทิศเหนือ", "south": "ทางทิศใต้", "east": "ทางทิศตะวันออก", "west": "ทางทิศตะวันตก"}
+
+
+def side_word(side: str, lang: str) -> str:
+    return SIDE_TH.get(side, "") if lang == "th" else side
 
 
 def say(key: str, lang: str, **kw) -> str:
@@ -74,7 +85,7 @@ class Session:
     transcript: list[dict] = field(default_factory=list)
     neighbour_results: list[dict] = field(default_factory=list)
     shelter_offer: dict | None = None  # the walkable shelter the agent suggested
-    nb_pending: dict | None = None   # a neighbour mentioned without a direction: {"nb": {...}, "quote": "..."}
+    nb_queue: list = field(default_factory=list)   # neighbours mentioned, waiting for direction / picture confirmation
     finished: bool = False
 
     def view(self):
@@ -143,8 +154,8 @@ def _next(s: Session) -> str | None:
     if f.get("urgent", {}).get("value") is True:
         return None
     # neighbours only come up when the person mentions one: then ask which way that house is
-    if s.nb_pending and "nb_dir" not in s.asked:
-        return "nb_dir"
+    if s.nb_queue:
+        return "nb_dir" if s.nb_queue[0]["nb"].get("side") not in G.DIRECTIONS else "nb_confirm"
     # people who can leave on their own: offer the nearest shelter they can walk to
     if s.shelter_offer and "shelter" not in s.asked and not f.get("cannotWalk", {}).get("value"):
         return "shelter"

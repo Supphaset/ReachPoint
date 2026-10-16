@@ -1,13 +1,13 @@
 /**
  * A Hat Yai shophouse in side view with the water at its real modelled depth, drawn to scale (36 px per metre).
  * The judge's own house in the demo ("you"), or a family's house on the case page (their people as figures).
- * Body marks are for a 1.65 m adult standing on the ground floor, which sits 0.3 m above the street.
+ * Body marks are for a 1.65 m adult standing on the ground floor, which sits a step (0.1 m) above the street.
  */
 import type { ReactNode } from "react";
 
 const PX = 36;           // px per metre
 const STREET = 268;      // y of the street (depth is measured from here)
-const FLOOR = 0.3;       // ground floor above the street, m
+const FLOOR = 0.1;       // ground floor a step above the street, m (reported depths are above the ground)
 const UPPER = 3.5;       // upper floor above the street, m
 const y = (m: number) => STREET - m * PX;
 

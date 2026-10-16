@@ -63,7 +63,8 @@ Fields:
 - address: the address or landmark words.
 - neighbour: {side: north|south|east|west|unknown, people?, elderly?, children?} when they mention a neighbouring
   house. side is the compass direction from the writer's house, only if they say it; "next door", "beside us", left,
-  right or across are "unknown". Quote the words about the neighbour. When the whole message is about a neighbour's
+  right or across are "unknown". One neighbour fact per neighbouring house (a message may name several, e.g. east and
+  west). Quote the words about that house. When the whole message is about a neighbour's
   family (the writer is not reporting their own household), use about: "relative" instead.
 Return {"facts": [...]}."""
 

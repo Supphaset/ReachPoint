@@ -4,13 +4,15 @@
  * understood, with the person's own words. Check-ins, warnings and plan updates arrive here too.
  */
 import { useEffect, useRef, useState } from "react";
-import { v2, type Fact, type Session, type TurnResult } from "./api";
+import { v2, type Fact, type NbConfirm, type Session, type TurnResult } from "./api";
+import { NeighbourPicture } from "./NeighbourPicture";
 
 type Item =
   | { kind: "agent"; text: string }
   | { kind: "person"; text: string; voice?: boolean }
   | { kind: "understood"; facts: Fact[]; reader?: string; extra?: string }
-  | { kind: "notice"; text: string; at: string; type: string };
+  | { kind: "notice"; text: string; at: string; type: string }
+  | { kind: "confirm"; c: NbConfirm };
 
 const FIELD: Record<string, [string, string]> = {
   depthRange: ["ระดับน้ำ", "Water"],
@@ -110,6 +112,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
       setSession(r.session);
       const extra: string[] = [];
       if (r.effects.located) extra.push(lang === "th" ? `พบบ้าน · โซน ${r.effects.located.zoneId}` : `House found · zone ${r.effects.located.zoneId}`);
+      if (r.effects.shelter?.going) extra.push(lang === "th" ? `กำลังไป ${r.effects.shelter.name}` : `Walking to ${r.effects.shelter.name}`);
       if (r.effects.neighbour)
         extra.push(r.effects.neighbour.known ? (lang === "th" ? "บ้านนี้มีในระบบแล้ว · ไม่นับซ้ำ" : "Already known · not counted twice") : lang === "th" ? "เพิ่มบ้านใหม่" : "New household added");
       if (r.effects.depthHere) extra.push(lang === "th" ? `น้ำที่บ้านคุณน่าจะ ≈ ${r.effects.depthHere[0]} ม.` : `Water at your house most likely ≈ ${r.effects.depthHere[0]} m`);
@@ -120,6 +123,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
         ...xs,
         ...(facts.length || extra.length ? [{ kind: "understood" as const, facts, reader: r.effects.reader, extra: extra.join(" · ") }] : []),
         { kind: "agent", text: r.reply },
+        ...(r.effects.nbConfirm ? [{ kind: "confirm" as const, c: r.effects.nbConfirm }] : []),
       ]);
       say(r.reply);
       onTurn(r);
@@ -130,6 +134,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
     }
   };
 
+  const lastConfirm = items.reduce((k, it, i) => (it.kind === "confirm" ? i : k), -1);
   const SR = (window as Rec).SpeechRecognition || (window as Rec).webkitSpeechRecognition;
   const holdStart = () => {
     if (!SR || busy) return;
@@ -155,11 +160,23 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
         </span>
       </header>
       <div className="v2-chat" role="log" aria-live="polite">
+        {/* the Yes/No buttons stay on the latest picture even when a notice arrives after it */}
         {items.map((it, i) =>
           it.kind === "agent" ? (
             <p key={i} className="v2-msg is-agent">{it.text}</p>
           ) : it.kind === "person" ? (
             <p key={i} className="v2-msg is-person">{it.voice ? "🎙 " : ""}{it.text}</p>
+          ) : it.kind === "confirm" ? (
+            <div key={i} className="v2-msg is-agent v2-confirm">
+              <NeighbourPicture c={it.c} lang={lang} />
+              <span className="v2-nb-legend"><i className="is-me" />{lang === "th" ? "บ้านคุณ" : "your house"} <i className="is-cand" />{lang === "th" ? `บ้านที่ถาม (${it.c.n}/${it.c.of})` : `asked about (${it.c.n}/${it.c.of})`}</span>
+              {i === lastConfirm && session?.pending === "nb_confirm" ? (
+                <span className="v2-confirm-btns">
+                  <button type="button" onClick={() => send(lang === "th" ? "ใช่" : "Yes", "chat")} disabled={busy}>{lang === "th" ? "ใช่ หลังนี้" : "Yes, this one"}</button>
+                  <button type="button" onClick={() => send(lang === "th" ? "ไม่ใช่" : "No", "chat")} disabled={busy}>{lang === "th" ? "ไม่ใช่" : "No"}</button>
+                </span>
+              ) : null}
+            </div>
           ) : it.kind === "notice" ? (
             <div key={i} className="v2-msg is-notice">
               <span className="v2-notice-kind">{(KIND[it.type] ?? [it.type, it.type])[lang === "th" ? 0 : 1]} · {it.at}</span>

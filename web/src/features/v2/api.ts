@@ -163,11 +163,22 @@ export interface TurnResult {
     reader?: string;
     located?: { by: string; label?: string; zoneId: string; buildingId: string };
     neighbour?: { side: string; known: boolean; householdId: string; buildingId: string; sure: boolean } | null;
+    nbConfirm?: NbConfirm;
+    shelter?: { name: string; km: number; deepestM: number; walkable: boolean; going: boolean; minutes: number };
     household?: HouseholdView | null;
     depthHere?: [number, number, number] | null;
     simHere?: number | null;
   };
   zone: ZoneView | null;
+}
+
+export interface NbConfirm {
+  side: string;
+  quote: string;
+  candidate: { id: string; outline: [number, number][]; lon: number; lat: number };
+  me: { id: string; outline: [number, number][]; lon: number; lat: number } | null;
+  n: number;
+  of: number;
 }
 
 export interface Inbox {

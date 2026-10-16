@@ -34,6 +34,9 @@ class Read:
                 return f.value
         return default
 
+    def all(self, name) -> list[Fact]:
+        return [f for f in self.facts if f.field == name]
+
     def quote(self, name) -> str | None:
         for f in self.facts:
             if f.field == name:
@@ -52,12 +55,14 @@ def _num(s: str) -> int | None:
 
 
 # a neighbouring house: by compass direction when the person gives one, otherwise "unknown" (the agent then asks)
-NEIGHBOUR = re.compile(
-    r"(บ้าน(?:ที่อยู่)?(?:ทาง|ด้าน|ฝั่ง)?(?:ทิศ)?(?P<th>เหนือ|ใต้|ตะวันออก|ตะวันตก)"
-    r"|บ้าน(?:ข้าง ?ๆ|ข้างบ้าน|ติดกัน|ซ้ายมือ|ขวามือ|ทางซ้าย|ทางขวา|ฝั่งตรงข้าม|ตรงข้าม|ข้างหลัง|ด้านหลัง)|ข้างบ้าน"
-    r"|the house (?:to the |on the )?(?P<en>north|south|east|west)(?: side)?(?: of (?:us|ours|mine))?"
-    r"|the house (?:next door|on (?:our|my) (?:left|right)|across the street|behind (?:us|ours))|next door|(?:my|our) neighbou?r(?:'s house)?)"
-    r"(.{0,80})", re.I)
+_NB = (r"บ้าน(?:ที่อยู่)?(?:ทาง|ด้าน|ฝั่ง)?(?:ทิศ)?(?P<th>เหนือ|ใต้|ตะวันออก|ตะวันตก)"
+       r"|บ้าน(?:ข้าง ?ๆ|ข้างบ้าน|ติดกัน|ซ้ายมือ|ขวามือ|ทางซ้าย|ทางขวา|ฝั่งตรงข้าม|ตรงข้าม|ข้างหลัง|ด้านหลัง)|ข้างบ้าน"
+       r"|the house (?:to the |on the )?(?P<en>north|south|east|west)(?: side)?(?: of (?:us|ours|mine))?"
+       r"|the house (?:next door|on (?:our|my) (?:left|right)|across the street|behind (?:us|ours))|next door|(?:my|our) neighbou?r(?:'s house)?")
+NEIGHBOUR = re.compile("(" + _NB + r")(.{0,80})", re.I)
+# a later neighbour in the same message often drops "the house": "ทางทิศตะวันตกมีครอบครัว 4 คน", "to the west a family of 4"
+NB_HEAD = re.compile(_NB + r"|(?:ทาง|ด้าน|ฝั่ง)?ทิศ(?P<th2>เหนือ|ใต้|ตะวันออก|ตะวันตก)|\b(?:to the|on the) (?P<en2>north|south|east|west)\b", re.I)
+NB_WHO = re.compile(r"\s*[:,]?\s*(?:มี|เป็น|มีคน)?\s*(?:ครอบครัว|ยาย|ตา|เด็ก|ผู้สูงอายุ|\d|a family|an old|family|old|\d)", re.I)
 DIRECTION_WORDS = {"เหนือ": "north", "ใต้": "south", "ตะวันออก": "east", "ตะวันตก": "west",
                    "north": "north", "south": "south", "east": "east", "west": "west"}
 DIRECTION = re.compile(r"(ตะวันออก|ตะวันตก|เหนือ|ใต้|north|south|east|west)", re.I)
@@ -78,9 +83,16 @@ def read_rules(text: str, channel: str = "chat") -> Read:
     r = Read()
     low = t.lower()
     own, nb_text = t, None
-    m = NEIGHBOUR.search(t)
-    if m:
-        own, nb_text = t[:m.start()], t[m.start():]
+    heads = [h for h in NB_HEAD.finditer(t)]
+    segs = []
+    for i, h in enumerate(heads):
+        end = heads[i + 1].start() if i + 1 < len(heads) else min(len(t), h.start() + 90)
+        seg = t[h.start():end]
+        if (h.group("th2") or h.group("en2")) and not NB_WHO.match(seg[len(h.group(0)):]):
+            continue  # "water came from the north" is not a neighbour
+        segs.append((h, seg))
+    if segs:
+        own, nb_text = t[:segs[0][0].start()], True
     d = depth_from_words(own)
     if d:
         r.facts.append(Fact("depthRange", [d[0], d[1]], d[2]))
@@ -129,20 +141,18 @@ def read_rules(text: str, channel: str = "chat") -> Read:
     m9 = re.search(r"(บ้านเลขที่\s*[0-9/]+[^ใ]*?)(?=\s*ใกล้|$)|(house [0-9/]+[^.]*)", own)
     if m9:
         r.facts.append(Fact("address", (m9.group(1) or m9.group(2)).strip(), (m9.group(1) or m9.group(2)).strip()))
-    if nb_text:
-        side_word = m.group("th") or m.group("en") or ""
-        side = DIRECTION_WORDS.get(side_word.lower(), "unknown")
-        nb = {"side": side}
-        rest = m.group(0)
-        if re.search(r"ยาย|old lady|grandma", rest, re.I) and re.search(r"คนเดียว|alone", rest, re.I):
+    for h, seg in segs:
+        side_word = h.group("th") or h.group("en") or h.group("th2") or h.group("en2") or ""
+        nb = {"side": DIRECTION_WORDS.get(side_word.lower(), "unknown")}
+        if re.search(r"ยาย|ตา|old lady|old man|grandma|grandpa", seg, re.I) and re.search(r"คนเดียว|alone", seg, re.I):
             nb.update(people=1, elderly=1)
-        mm = re.search(r"ครอบครัว\s*([0-9]+)\s*คน|family of (\d+)", rest, re.I)
+        mm = re.search(r"(?:ครอบครัว|อยู่กัน|มี)\s*([0-9]+)\s*คน|family of (\d+)|(\d+) people", seg, re.I)
         if mm:
-            nb["people"] = int(mm.group(1) or mm.group(2))
-        mk = re.search(r"เด็ก\s*([0-9]+)\s*คน|(\d+) kids", rest, re.I)
+            nb["people"] = int(mm.group(1) or mm.group(2) or mm.group(3))
+        mk = re.search(r"เด็ก\s*([0-9]+)\s*คน|(\d+) kids", seg, re.I)
         if mk:
             nb["children"] = int(mk.group(1) or mk.group(2))
-        r.facts.append(Fact("neighbour", nb, rest.strip()))
+        r.facts.append(Fact("neighbour", nb, seg.strip()))
     return r
 
 

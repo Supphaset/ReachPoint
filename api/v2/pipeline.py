@@ -300,6 +300,39 @@ def _outcome(w: World, msg: dict):
          "volunteer tap", at, msg["id"], kind)
 
 
+def _neighbour(w: World, geo: G.Geo, msg: dict, hh: Household, b, nb: dict, quote: str, at: float):
+    side = nb.get("side")
+    if msg.get("neighbourBuildingId") in geo.buildings:     # the family confirmed the house on the picture
+        nbid, sure = msg["neighbourBuildingId"], True
+    else:
+        nbid, sure = geo.neighbour_on(b, side)
+        if not nbid:  # no building that way within 60 m: the nearest one, not sure
+            nbid, sure = geo.neighbour_on(b, "unknown")
+    if not nbid:
+        return
+    known = w.by_building.get(nbid)
+    if known:
+        _log(w, "Locator", f"\"{quote}\" → the building {_way(side)} {hh.id}: already household {known}. Count unchanged.",
+             "compass direction · building outlines", at, msg["id"], "neighbourKnown")
+        nh = w.households[known]
+        if nb.get("elderly") and not nh.elderly:
+            nh.elderly = nb["elderly"]
+    else:
+        nbld = geo.buildings[nbid]
+        nh = _new_household(w, nbld, nbld.lon, nbld.lat, "address", at)
+        nh.people = nb.get("people")
+        nh.elderly = nb.get("elderly", 0)
+        nh.children = nb.get("children", 0)
+        w.by_building[nbid] = nh.id
+        _log(w, "Locator", f"\"{quote}\" → the building {_way(side)} {hh.id}: nobody had reported. New household {nh.id}, "
+             "reported by a neighbour.", "compass direction · building outlines", at, msg["id"], "neighbourNew")
+    w.nb_links.append({"from": hh.id, "to": known or nh.id, "side": side, "sure": sure, "messageId": msg["id"],
+                       "atH": at, "quote": quote, "known": bool(known)})
+    msg.setdefault("_effects", {}).setdefault("neighbours", []).append(
+        {"side": side, "known": bool(known), "householdId": known or nh.id, "buildingId": nbid, "sure": sure})
+    msg["_effects"]["neighbour"] = msg["_effects"]["neighbours"][0]
+
+
 def _way(side: str | None) -> str:
     return f"{side} of" if side in G.DIRECTIONS else "nearest to"
 
@@ -413,33 +446,13 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
     elif hh.status == "lostContact" or r.get("urgent"):
         hh.status = "open"
 
-    # --- neighbour words → building → known or new household
-    nb = r.get("neighbour")
-    if nb and nb.get("side") not in G.DIRECTIONS and kind not in ("self", "reply"):
-        nb = None  # "my neighbour, a family of 5" in a post is about that family itself, like a relative's post
-    if nb and b:
-        side = nb.get("side")
-        nbid, sure = geo.neighbour_on(b, side)
-        if nbid:
-            known = w.by_building.get(nbid)
-            if known:
-                _log(w, "Locator", f"\"{r.quote('neighbour')}\" → the building {_way(side)} {hh.id}: already household "
-                                   f"{known}. Count unchanged.", "compass direction · building outlines", at, msg["id"], "neighbourKnown")
-                nh = w.households[known]
-                if nb.get("elderly") and not nh.elderly:
-                    nh.elderly = nb["elderly"]
-            else:
-                nbld = geo.buildings[nbid]
-                nh = _new_household(w, nbld, nbld.lon, nbld.lat, "address", at)
-                nh.people = nb.get("people")
-                nh.elderly = nb.get("elderly", 0)
-                nh.children = nb.get("children", 0)
-                _log(w, "Locator", f"\"{r.quote('neighbour')}\" → the building {_way(side)} {hh.id}: nobody had reported. "
-                                   f"New household {nh.id}, reported by a neighbour.", "compass direction · building outlines", at, msg["id"], "neighbourNew")
-            w.nb_links.append({"from": hh.id, "to": known or nh.id, "side": side, "sure": sure, "messageId": msg["id"],
-                               "atH": at, "quote": r.quote("neighbour"), "known": bool(known)})
-            msg.setdefault("_effects", {})["neighbour"] = {"side": side, "known": bool(known), "householdId": known or nh.id,
-                                                           "buildingId": nbid, "sure": sure}
+    # --- neighbour words → building → known or new household (one message may name several houses)
+    for nf in r.all("neighbour"):
+        nb = nf.value
+        if not isinstance(nb, dict) or (nb.get("side") not in G.DIRECTIONS and kind not in ("self", "reply")):
+            continue  # "my neighbour, a family of 5" in a post is about that family itself, like a relative's post
+        if b:
+            _neighbour(w, geo, msg, hh, b, nb, nf.quote, at)
 
     # --- Analyst: a depth observation
     d = r.get("depthRange")
