@@ -102,6 +102,18 @@ class CallerSchemaTests(unittest.TestCase):
                 row = self.rows()[-1]
                 self.assertEqual(row, {"report_id": result.json()["sent"]["reportId"], "channel": channel, **DETAILS})
 
+    def test_changed_form_cannot_silently_reuse_submitted_session(self):
+        session = self.start()
+        path = f"/api/callers/sessions/{session['sessionId']}/form"
+        body = {**DETAILS, "submissionId": "first-form", "expectedRevision": 0}
+        first = self.client.post(path, json=body)
+        self.assertEqual(first.status_code, 200)
+        changed = self.client.post(path, json={**body, "type": "evacuation", "submissionId": "second-form"})
+        self.assertEqual(changed.status_code, 409, "A different form must not report the previous request as a new success.")
+        self.assertEqual(len(self.rows()), 1)
+        self.assertEqual(self.rows()[0]["type"], DETAILS["type"])
+        self.assertEqual(self.client.post(path, json=body).json(), first.json())
+
     def test_invalid_form_does_not_save(self):
         session = self.start()
         base = {"phone_number": DETAILS["phone_number"], "type": "food", "submissionId": "bad", "expectedRevision": 0}

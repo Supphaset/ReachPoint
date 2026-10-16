@@ -6,6 +6,8 @@ import copy
 from typing import Callable
 
 from api.ai import desk_review
+from api.location.google_maps import ReviewLocation, maps_url
+from api.rules.preparation import compact_preparation_notes
 from api.server.memory import NotFound, Refused
 
 
@@ -20,6 +22,17 @@ def caller(memory, database, report_id: str) -> dict:
     return row
 
 
+def approval_time(memory, database, report_id: str) -> str | None:
+    """Read current approval under the caller's records lock, checking canonical input."""
+    review = memory.store.seed.get("callerReviews", {}).get(report_id)
+    if not review or not review.get("approved") or review.get("checked_by") != "Human":
+        return None
+    row = next((r for r in callers(memory, database) if r["report_id"] == report_id), None)
+    if row and review.get("input_revision") == desk_review.input_revision(row):
+        return review.get("approved_at")
+    return None
+
+
 def view(memory, database) -> dict:
     with memory.lock:
         reports = {r["reportId"]: r for r in memory.store.seed.get("reports", [])}
@@ -31,11 +44,13 @@ def view(memory, database) -> dict:
             r = reports.get(rid, {})
             revision = desk_review.input_revision(c)
             review = copy.deepcopy(reviews.get(rid))
+            if review:
+                review["volunteer_summary"] = compact_preparation_notes(review.get("volunteer_summary"))
             stale = bool(review and review["input_revision"] != revision)
             floor = desk_review.safety_evidence(c) if not review or stale else []
             floor_level = "1a" if any(e.kind == "medical_emergency" for e in floor) else "1b" if floor else None
             if stale:
-                review.update(checked_by=None, review_status="human_review_required")
+                review.update(checked_by=None, review_status="human_review_required", approved=False, approved_by=None, approved_at=None)
                 if floor_level:
                     review.update(emergency_level=floor_level, immediate_danger=True)
             rows.append({**c, "received_at": r.get("receivedAt"), "report_status": r.get("status", "reported"),
@@ -48,7 +63,7 @@ def view(memory, database) -> dict:
                 "counts": {"total": len(rows),
                            "ai_read": sum((r["review"] or {}).get("checked_by") == "AI" for r in rows),
                            "human_reviewed": sum((r["review"] or {}).get("checked_by") == "Human" for r in rows),
-                           "needs_review": sum(not r["review"] or r["review"]["review_status"] == "human_review_required" for r in rows)}}
+                           "needs_review": sum(not (r["review"] or {}).get("approved", False) for r in rows)}}
 
 
 def _save(memory, report_id: str, review: dict) -> dict:
@@ -93,16 +108,32 @@ def human_review(memory, database, report_id: str, data: dict) -> dict:
         raise Refused("VERSION_CONFLICT", "The caller or review changed. Refresh before saving.")
     if not data["reason"].strip() or not data["reviewed_by"].strip():
         raise Refused("INVALID", "Record who reviewed this case and why.")
-    if data["immediate_danger"] and data["emergency_level"] not in ("1a", "1b"):
+    if data["immediate_danger"] and data["emergency_level"] is not None and data["emergency_level"] not in ("1a", "1b"):
         raise Refused("INVALID", "Immediate danger must remain an emergency level (1a or 1b).")
-    result = {**(previous or {}), "transport_recommendation": data["transport_recommendation"],
+    transport = data.get("transport_recommendation") or "needs_assessment"
+    previous_location = (previous or {}).get("resolved_location") or {}
+    location = data.get("resolved_location") or previous_location
+    location = ReviewLocation.model_validate(location).model_dump()
+    location["address"] = (location["address"] or "").strip() or None
+    has_point = location["latitude"] is not None and location["longitude"] is not None
+    location["status"] = "resolved" if location["address"] and has_point else "partial" if location["address"] or has_point else "unresolved"
+    changed_location = any(location[k] != previous_location.get(k) for k in ("address", "latitude", "longitude"))
+    location["source"] = "human" if changed_location else previous_location.get("source", "unresolved")
+    location["map_url"] = c.get("location") if maps_url(c.get("location") or "") else None
+    approved = bool(data.get("approve"))
+    if approved and any(not (c.get(field) or "").strip() for field in ("phone_number", "type", "location")):
+        raise Refused("INCOMPLETE_REVIEW", "Phone number, help type and submitted location are required for approval.")
+    result = {**(previous or {}), "transport_recommendation": transport,
               "emergency_level": data["emergency_level"], "immediate_danger": data["immediate_danger"],
               "volunteer_summary": (data["volunteer_summary"].strip() or None) if data["volunteer_summary"] is not None else None,
               "checked_by": "Human", "reviewed_by": data["reviewed_by"].strip(), "source": "human",
-              "review_status": "human_reviewed" if data["emergency_level"] and data["transport_recommendation"] != "needs_assessment" else "human_review_required",
+              "resolved_location": location, "approved": approved,
+              "approved_by": data["reviewed_by"].strip() if approved else None,
+              "approved_at": memory.clock.iso() if approved else None,
+              "review_status": "human_reviewed" if approved or (data["emergency_level"] and transport != "needs_assessment") else "human_review_required",
               "clinical_assessment": "not_assessed", "input_revision": revision,
               "rules_version": desk_review.RULES_VERSION, "reasons": [data["reason"].strip()],
               "evidence": (previous or {}).get("evidence", []),
               "missing_information": (["Confirm current urgency."] if data["emergency_level"] is None else []) +
-                                     (["Confirm suitable access and rescue capability."] if data["transport_recommendation"] == "needs_assessment" else [])}
+                                     (["Confirm suitable access and rescue capability."] if transport == "needs_assessment" else [])}
     return _save(memory, report_id, result)

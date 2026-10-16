@@ -63,6 +63,11 @@ class MemoryStore:
         base = views_store.load(package)
         self.store = views_store.Store(copy.deepcopy(seed or base.seed), base.catalogue, base.exposure, base.register)
         self.store.seed.setdefault("allocations", [])
+        report_ids = [r["reportId"] for r in self.store.seed.get("reports", [])]
+        report_ids.extend(self.store.seed.get("callers", {}))
+        report_ids.extend(ref["reportId"] for ref in self.store.seed.get("statusTokens", {}).values())
+        numbers = [int(rid[2:]) for rid in report_ids if rid.startswith("R-") and rid[2:].isdigit()]
+        self.store.seed["reportSequence"] = max([self.store.seed.get("reportSequence", 0), *numbers])
         self.clock = clock or Clock()
         self.lock = threading.Lock()
         self.done: dict[str, dict] = {}  # submissionId → first result
@@ -256,7 +261,8 @@ class MemoryStore:
         if not (text or "").strip() or len(text) > 12000:
             raise Refused("INVALID", "Write what is happening and where")
         reports = self.store.seed.setdefault("reports", [])
-        rid = f"R-{len(reports) + 1:03d}"
+        self.store.seed["reportSequence"] += 1
+        rid = f"R-{self.store.seed['reportSequence']:03d}"
         token = secrets.token_urlsafe(16)  # 128 bits; carries no personal data
         reports.append({"reportId": rid, "receivedAt": self.clock.iso(), "channel": channel, "text": text.strip(),
                         "proposal": proposal, "status": "proposed", "statusToken": token,

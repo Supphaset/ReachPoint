@@ -29,11 +29,19 @@ The API uses in-memory demo state unless `REACHPOINT_DB_PATH` is set. To keep sy
 REACHPOINT_DB_PATH=local/reachpoint.sqlite3 REACHPOINT_VOICE=on uvicorn api.main:app --port 8081
 ```
 
+To load local credentials from an ignored `.env`, add `--env-file .env` to the Uvicorn command, or give an explicit path when the file is in another checkout. The server reads `GEMINI_API_KEY`, `PINPOINT_API_KEY` and `GOOGLE_MAPS_API_KEY` from its environment. Set `REACHPOINT_MAPS_GEOCODING=on` to enable full-address lookup with the configured Maps key. Restart after changing the file; never commit keys.
+
 The ignored SQLite file is local to one server process; `/api/demo/reset` clears it. A confirmed form, chat or voice request adds one row to `callers` with the caller-reviewed fields; unfinished chats remain in `call_sessions`. Existing `help_requests` tables migrate to `callers` on startup without changing retained fields. Do not put real household information in this demo. A local Cloud Run filesystem does not provide durable shared storage, so the selected Firestore deployment work remains separate. See [decision 0011](docs/decisions/0011-local-sqlite-interim.md).
 
 Open `/desk` for caller reviews: transport candidates, emergency recommendations (1a, 1b, 2, 3), AI/Human provenance, evidence, history and an optional volunteer preparation summary. Production builds default to API data; `?data=api` remains available as an explicit override for development. New submissions and unreviewed rows loaded by the desk receive background review when `REACHPOINT_AI` is enabled, using the existing Gemini configuration. Disabled/unavailable AI leaves requests for human review, never automatically routine. Human changes cannot be overwritten by AI reruns. Summaries appear only in the responding team's active accepted job. Operational review is separate from case approval, clinical assessment and team commitment. These are synthetic demo endpoints with existing demo identities, not production authentication. See [decision 0014](docs/decisions/0014-desk-caller-ai-review.md) and [API contract](contract/api.md).
 
+For local Gemini desk reviews, start the server with `REACHPOINT_AI=on` and the existing Gemini credentials. Chat/voice availability alone does not enable background caller review. The local testing budget, including desk reviews, is recorded in [0015](docs/decisions/0015-local-gemini-demo-budget.md).
+
 Use the [call conversation review script](docs/planning/call-conversation-test.md) to check chat, hands-free voice, corrections and confirmation with synthetic examples.
+
+To append six synthetic requests matching the five-field caller form, run `python3 scripts/seed_callers.py` against the local demo. Existing requests are preserved and repeat runs skip identical examples. See the [form fixtures and seeding notes](contract/fixtures/callers.form.synthetic.md).
+
+Local Gemini chat/voice testing has a [USD 20 operating budget](docs/decisions/0015-local-gemini-demo-budget.md), using the existing billing project and payer. `REACHPOINT_CONVERSATION=on` enables caller conversations independently of background desk AI; `REACHPOINT_VOICE=on` also enables browser voice. With no conversation override, the existing `REACHPOINT_AI` setting controls conversation availability. The recorded budget is not an automatic billing cutoff.
 
 The public [ReachPoint repository](https://github.com/Supphaset/ReachPoint) has a minimal README on `main`. The project documentation and static review artifacts are published on `codex/project-foundation` in [draft PR #1](https://github.com/Supphaset/ReachPoint/pull/1); a human reviews and merges them. See [decision 0008](docs/decisions/0008-reachpoint-name-and-public-repository.md) for the approved name and publication boundary.
 

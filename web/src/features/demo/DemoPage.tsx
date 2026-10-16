@@ -82,7 +82,7 @@ export function DemoPage() {
       </div>
       {apiMode() && (
         <div className="demo-stage">
-          <Screen k={k} name={S.demo.victim} src={q("/call", "th", "resident:demo")} />
+          <Screen k={k} name={S.demo.victim} src={q("/callers", "th", "resident:demo")} />
           <Screen k={k} name={S.demo.desk} src={q("/desk", "en", "coordinator:demo-1")} wide />
           <Screen k={k} name={S.demo.volunteer} src={q("/team/list", "th", "team:T-S")} />
         </div>

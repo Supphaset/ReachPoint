@@ -7,7 +7,6 @@ import { useView } from "../../data/useView";
 import { Banner, BigButton, Skeleton } from "../../ui/components";
 import { Icon } from "../../ui/Icon";
 import { pickSnapshot, useMinute } from "../briefing/Rain";
-import { ReviewQueue } from "./ReviewQueue";
 import { CallerDesk } from "./CallerDesk";
 import { SuggestedChecks } from "./SuggestedChecks";
 import { ResourceFailure } from "./ResourceFailure";
@@ -146,7 +145,6 @@ export function DeskPage() {
     </div>
     <div hidden={tab !== "review"}>
       <CallerDesk onCount={setReviewCount} />
-      <details><summary>{t(S.desk.caseCreation)}</summary><ReviewQueue /></details>
     </div>
     <div hidden={tab !== "water"}><RisingWaterPanel onCount={setWaterCount} /></div>
     <div hidden={tab !== "boat"}><ResourceFailure /></div>

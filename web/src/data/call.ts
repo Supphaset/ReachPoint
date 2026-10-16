@@ -56,18 +56,19 @@ export interface CallSession {
     label?: string;
   };
   canConfirm: boolean;
+  canSkipDetails?: boolean;
   summary: string | null;
   sent: { reportId: string; statusToken: string; statusUrl: string; aiSource: string } | null;
 }
 
 export interface CallConfig { chat: boolean; voice: boolean }
 
-export const callConfig = () => get<CallConfig>("/api/call/config");
-export const startCall = () => post<CallSession>("/api/call/sessions", {});
-export const readCall = (id: string) => get<CallSession>(`/api/call/sessions/${id}`);
+export const callConfig = () => get<CallConfig>("/api/callers/config");
+export const startCall = () => post<CallSession>("/api/callers/sessions", {});
+export const readCall = (id: string) => get<CallSession>(`/api/callers/sessions/${id}`);
 export const sendCallTurn = (id: string, text: string, turnId = submissionId()) =>
-  post<CallSession>(`/api/call/sessions/${id}/turn`, { text, turnId });
+  post<CallSession>(`/api/callers/sessions/${id}/turn`, { text, turnId });
 export const chooseCallLocation = (id: string, query: string, action: "select" | "reject", locationId?: string) =>
-  post<CallSession>(`/api/call/sessions/${id}/location`, { query, action, locationId });
+  post<CallSession>(`/api/callers/sessions/${id}/location`, { query, action, locationId });
 export const confirmCall = (id: string, expectedRevision: number, idempotencyKey = submissionId()) =>
-  post<CallSession>(`/api/call/sessions/${id}/confirm`, { submissionId: idempotencyKey, expectedRevision });
+  post<CallSession>(`/api/callers/sessions/${id}/confirm`, { submissionId: idempotencyKey, expectedRevision });

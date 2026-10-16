@@ -65,14 +65,14 @@ def _family_line(store: Store, need: dict, gid: str) -> dict:
             "th": f"{thai.team(t)} รับคำขอของคุณแล้ว ยังไม่ได้กำหนดเวลา"}
 
 
-def resident_status(store: Store, token: str, now: str) -> dict | None:
+def resident_status(store: Store, token: str, now: str, desk_approved_at: str | None = None) -> dict | None:
     ref = store.seed.get("statusTokens", {}).get(token)
     if ref is None:
         return None
     report = next((r for r in store.seed.get("reports", []) if r["reportId"] == ref["reportId"]), None)
     responses = store.seed.get("receiptResponses", {}).get(ref["reportId"], [])
     receipt = responses[-1] if responses else None
-    times = [(report or {}).get("receivedAt"), (report or {}).get("reviewedAt"), None,
+    times = [(report or {}).get("receivedAt"), desk_approved_at or (report or {}).get("reviewedAt"), None,
              receipt["at"] if receipt and receipt["answer"] == "yes" else None]
     base = {"reportId": ref["reportId"], "generatedAt": now, "label": "Your request (ReachPoint demo, synthetic)",
             "receipt": receipt, "completedAt": times}
@@ -82,6 +82,10 @@ def resident_status(store: Store, token: str, now: str) -> dict | None:
             return {**base, "state": "closed", "lines": [{"state": "closed",
                     "text": "A coordinator closed this request: " + why + ". Call again if you still need help.",
                     "th": f"ผู้ประสานงานปิดคำขอนี้แล้ว: {why} หากยังต้องการความช่วยเหลือให้โทรอีกครั้ง"}]}
+        if desk_approved_at:
+            return {**base, "state": "reviewed", "lines": [{"state": "reviewed",
+                    "text": "Your request has been reviewed. Awaiting response planning; no team has accepted yet.",
+                    "th": "คำขอของคุณได้รับการตรวจสอบแล้ว กำลังรอวางแผนช่วยเหลือ ยังไม่มีทีมรับคำขอ"}]}
         return {**base, "state": "received", "lines": [{"state": "received", "text": "We received your request. A coordinator is reading it now.",
                                                         "th": "เราได้รับคำขอของคุณแล้ว ผู้ประสานงานกำลังอ่านอยู่"}]}
     case = next(c for c in store.cases if c["caseId"] == ref["caseId"])

@@ -35,13 +35,16 @@ describe("desk inbox", () => {
   });
   it("renders Thai desk tools and review controls while preserving caller quotes", () => {
     setup([report("R-2", "Please help our family")]);
-    const out = renderToStaticMarkup(<LangProvider lang="th"><DeskPage /></LangProvider>);
-    expect(out).toContain("โต๊ะประสานงาน");
+    const out = renderToStaticMarkup(<LangProvider lang="th"><ReviewQueue /></LangProvider>);
     expect(out).toContain("อนุมัติ: 2 คน");
     expect(out).toContain("ปฏิเสธ");
     expect(out).toContain("ข้อเสนอจาก AI ต้องให้คุณอนุมัติ");
     expect(out).toContain("Please help our family");
     expect(out).not.toContain("Coordinator desk");
+    const desk = renderToStaticMarkup(<LangProvider lang="th"><DeskPage /></LangProvider>);
+    expect(desk).toContain("โต๊ะประสานงาน");
+    expect(desk).not.toContain("สร้างเคสให้ทีมจากคำขอที่ตรวจสอบแล้ว");
+    expect(desk).not.toContain("Please help our family");
   });
   it("retains duplicate controls and refuses to link a new danger away", () => {
     const r = report("R-3", "Help");

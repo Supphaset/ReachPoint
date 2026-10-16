@@ -34,7 +34,7 @@ export class GeminiLiveVoice {
   private nextPlaybackTime = 0;
   private stopped = false;
 
-  constructor(private sessionId: string, private callbacks: LiveCallbacks, private apiBase = "/api/call") {}
+  constructor(private sessionId: string, private callbacks: LiveCallbacks, private apiBase = "/api/callers") {}
 
   async start(): Promise<void> {
     this.context = new AudioContext();

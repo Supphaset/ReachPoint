@@ -1,0 +1,44 @@
+[
+  {
+    "phone_number": "0000000000",
+    "type": "food",
+    "location": "https://www.google.com/maps/place/Synthetic+School/data=!3d7.0000!4d100.5000",
+    "people_details": "Synthetic example: two adults and one child. Everyone can walk independently.",
+    "situation_details": "We need food and drinking water. Everyone is safe upstairs. The access road is dry, and water is not rising near the building. No urgent medical needs reported."
+  },
+  {
+    "phone_number": "0000000000",
+    "type": "evacuation",
+    "location": "https://www.google.com/maps/place/Synthetic+Community+Hall/data=!3d7.0100!4d100.5100",
+    "people_details": "Synthetic example: two adults and one older adult who cannot walk without assistance. The older adult's regular medication has run out; the name is unknown.",
+    "situation_details": "Water is chest deep on the access path and rising into our last refuge. There is no higher refuge. The road is cut off by water. We need urgent rescue."
+  },
+  {
+    "phone_number": "0000000000",
+    "type": "evacuation",
+    "location": "https://www.google.com/maps/place/Synthetic+Market/data=!3d7.0200!4d100.5200",
+    "people_details": "Synthetic example: two adults. One adult is unresponsive. We do not know their medical history.",
+    "situation_details": "We need urgent medical help and evacuation. We have not checked the water depth or the access road."
+  },
+  {
+    "phone_number": "0000000000",
+    "type": "evacuation",
+    "location": "https://www.google.com/maps/place/Synthetic+Library/data=!3d7.0300!4d100.5300",
+    "people_details": "Synthetic example: one adult and one older adult who uses a wheelchair. Please prepare assistance for moving the wheelchair user.",
+    "situation_details": "We are safe on a dry second floor for now, but need assisted evacuation. Knee-deep water blocks the access road. Water has stayed at the same level for the last two hours. No injury or immediate danger reported."
+  },
+  {
+    "phone_number": "0000000000",
+    "type": "food",
+    "location": "https://www.google.com/maps/place/Synthetic+Meeting+Point/data=!3d7.0400!4d100.5400",
+    "people_details": null,
+    "situation_details": null
+  },
+  {
+    "phone_number": "0000000000",
+    "type": "food",
+    "location": "https://www.google.com/maps/place/Synthetic+Shelter/data=!3d7.0500!4d100.5500",
+    "people_details": "Synthetic example: three adults and one infant. We need infant supplies along with food and drinking water.",
+    "situation_details": "Everyone is safe on the upper floor. There is fast-moving water outside and debris across the access road. We cannot estimate its depth. We do not know whether a vehicle or boat can reach us."
+  }
+]

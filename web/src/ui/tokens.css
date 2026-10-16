@@ -71,6 +71,11 @@
   --color-brand: #0f4c81;
   --color-brand-ink: #ffffff;
 
+  /* Desk approval: a quiet teal, separate from priority colours. */
+  --color-desk-approved: #23695f;
+  --color-desk-approved-bg: #f0f7f6;
+  --color-desk-approved-line: #b8d2cd;
+
   /* Priority (shared tiers, D9): one colour each */
   --color-red: #b42318;
   --color-red-bg: #fdecea;

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
-import { ApiError } from "../../data/api";
-import { callConfig, chooseCallLocation, confirmCall, readCall, sendCallTurn, startCall, type CallConfig, type CallSession, type HelpRequestDetails, EMPTY_REQUEST_DETAILS, REQUEST_DETAIL_FIELDS, submitCallerForm } from "../../data/callers";
+import { ApiError, submissionId } from "../../data/api";
+import { callConfig, chooseCallLocation, confirmCall, readCall, streamCallTurn, startCall, type CallConfig, type CallSession, type HelpRequestDetails, EMPTY_REQUEST_DETAILS, submitCallerForm } from "../../data/callers";
 import type { Sent } from "../../data/intake";
 import { apiMode } from "../../data/mode";
 import { useLang } from "../../i18n/lang";
@@ -15,6 +15,7 @@ import "./callers.css";
 
 const SESSION_KEY = "reachpoint.callers.session";
 type CallerMode = "chat" | "voice" | "form";
+const FORM_FIELDS = ["phone_number", "type", "location", "people_details", "situation_details"] as const;
 const MODES = {
   chat: { en: "Chat", th: "แชต" },
   voice: { en: "Voice", th: "เสียง" },
@@ -32,12 +33,14 @@ export function CallersPage() {
   const [config, setConfig] = useState<CallConfig | null>(null);
   const [session, setSession] = useState<CallSession | null>(null);
   const [message, setMessage] = useState("");
+  const [pending, setPending] = useState<{ user: string; reply: string } | null>(null);
   const [form, setForm] = useState<HelpRequestDetails>({ ...EMPTY_REQUEST_DETAILS });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [voiceState, setVoiceState] = useState<"off" | "connecting" | "active">("off");
   const [heard, setHeard] = useState("");
   const voice = useRef<GeminiLiveVoice | null>(null);
+  const retryTurn = useRef<{ sessionId: string; text: string; id: string } | null>(null);
   const messagesEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,7 +66,7 @@ export function CallersPage() {
     return () => { cancelled = true; voice.current?.stop(); voice.current = null; };
   }, []);
 
-  useEffect(() => { messagesEnd.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [session?.messages.length]);
+  useEffect(() => { messagesEnd.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [session?.messages.length, pending]);
   useEffect(() => {
     if (!session?.revision) return;
     const { phone_number, type, people_details, n_children, n_elders, n_pets, location, coordinates,
@@ -100,15 +103,25 @@ export function CallersPage() {
     catch (cause) { stopVoice(); setError(errorMessage(cause)); }
   };
 
+  const sendChatText = async (text: string) => {
+    if (!session || !text || busy) return;
+    const turn = retryTurn.current;
+    const turnId = turn?.sessionId === session.sessionId && turn.text === text ? turn.id : submissionId();
+    retryTurn.current = { sessionId: session.sessionId, text, id: turnId };
+    setBusy(true); setError("");
+    setPending({ user: text, reply: "" }); setMessage("");
+    try {
+      setSession(await streamCallTurn(session.sessionId, text, (delta) => {
+        setPending((current) => current && { ...current, reply: current.reply + delta });
+      }, turnId));
+      retryTurn.current = null;
+    } catch (cause) { setMessage(text); setError(errorMessage(cause)); }
+    finally { setPending(null); setBusy(false); }
+  };
+
   const sendMessage = async (event: FormEvent) => {
     event.preventDefault();
-    if (!session || !message.trim() || busy) return;
-    setBusy(true); setError("");
-    try {
-      setSession(await sendCallTurn(session.sessionId, message.trim()));
-      setMessage("");
-    } catch (cause) { setError(errorMessage(cause)); }
-    finally { setBusy(false); }
+    await sendChatText(message.trim());
   };
 
   const onMessageKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -143,10 +156,21 @@ export function CallersPage() {
     if (busy) return;
     setBusy(true); setError("");
     try {
-      const current = session ?? await startCall();
+      let current = session ?? await startCall();
       sessionStorage.setItem(SESSION_KEY, current.sessionId);
       setSession(current);
-      setSession(await submitCallerForm(current.sessionId, form, current.revision));
+      let submitted: CallSession;
+      try {
+        submitted = await submitCallerForm(current.sessionId, form, current.revision);
+      } catch (cause) {
+        if (!(cause instanceof ApiError) || cause.code !== "CALL_ALREADY_SUBMITTED") throw cause;
+        // Another tab may have submitted this session since the form was opened.
+        current = await startCall();
+        sessionStorage.setItem(SESSION_KEY, current.sessionId);
+        setSession(current);
+        submitted = await submitCallerForm(current.sessionId, form, current.revision);
+      }
+      setSession(submitted);
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 409 && session) {
         try { setSession(await readCall(session.sessionId)); } catch { /* Keep the visible error. */ }
@@ -157,6 +181,7 @@ export function CallersPage() {
 
   const newConversation = async () => {
     stopVoice(); setError(""); setBusy(true);
+    retryTurn.current = null;
     if (!config?.chat) { setSession(null); setForm({ ...EMPTY_REQUEST_DETAILS }); setMode("form"); setBusy(false); return; }
     try {
       const current = await startCall();
@@ -210,6 +235,12 @@ export function CallersPage() {
                 <span className="fine-print">{item.role === "user" ? (lang === "th" ? "คุณ" : "You") : (lang === "th" ? "ผู้ช่วย" : "Assistant")}</span>
                 <p>{item.text}</p>
               </div>)}
+              {pending && <>
+                <div className="call-message call-message-user"><span className="fine-print">{lang === "th" ? "คุณ" : "You"}</span><p>{pending.user}</p></div>
+                <div className="call-message call-message-assistant" aria-busy="true"><span className="fine-print">{lang === "th" ? "ผู้ช่วย" : "Assistant"}</span>
+                  <p>{pending.reply || (lang === "th" ? "กำลังอ่านข้อความ…" : "Reading your message…")}</p>
+                </div>
+              </>}
             </div>
             {session.locationLookup.status === "candidates" && <section className="call-location" aria-label={t(S.call.conversation.locationTitle)}>
               <h2>{t(S.call.conversation.locationTitle)}</h2>
@@ -222,22 +253,22 @@ export function CallersPage() {
           <div className="call-composer">
             {mode === "chat" && <form className="call-reply" onSubmit={sendMessage}>
               <label className="visually-hidden" htmlFor="call-reply">{t(S.call.conversation.type)}</label>
-              <textarea id="call-reply" rows={2} value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={onMessageKeyDown} maxLength={500} placeholder={t(S.call.conversation.placeholder)} />
+              <textarea id="call-reply" rows={2} value={message} disabled={busy} onChange={(event) => setMessage(event.target.value)} onKeyDown={onMessageKeyDown} maxLength={500} placeholder={t(S.call.conversation.placeholder)} />
               <BigButton type="submit" disabled={busy || !message.trim()}>{busy ? t(S.call.sending) : t(S.call.conversation.send)}</BigButton>
             </form>}
+            {mode === "chat" && session.canSkipDetails && <button type="button" className="btn btn-quiet btn-md" onClick={() => void sendChatText("ข้ามรายละเอียด")} disabled={busy}>{lang === "th" ? "ข้ามรายละเอียด" : "Skip details"}</button>}
             <div className="call-composer-foot">{mode === "chat" && <span className="fine-print">{t(S.call.conversation.enterHint)}</span>}<button className="call-restart" type="button" onClick={newConversation} disabled={busy}>{t(S.call.conversation.restart)}</button></div>
           </div>
         </section>
         <CallCaseSidebar session={session} busy={busy} onConfirm={confirm} />
       </div> : mode !== "form" ? <p id="callers-panel" role="tabpanel" aria-labelledby={`callers-tab-${mode}`}>{t(S.call.conversation.unavailable)}</p> :
         <form id="callers-panel" role="tabpanel" aria-labelledby="callers-tab-form" className="intake" onSubmit={sendForm}>
-          <p>{lang === "th" ? "กรอกเบอร์โทรศัพท์และเลือกประเภทความช่วยเหลือ ตรวจทานก่อนส่ง ช่องอื่นที่เว้นว่างจะบันทึกว่ายังไม่ทราบ" : "Enter your phone number and choose a help type. Review before sending; other blank fields stay unknown."}</p>
+          <p>{lang === "th" ? "กรอกเบอร์โทรศัพท์ เลือกประเภทความช่วยเหลือ และวางลิงก์ Google Maps ของตำแหน่งที่ต้องการความช่วยเหลือ ตรวจทานก่อนส่ง" : "Enter your phone number, choose a help type, and paste a Google Maps link for the location needing help. Review before sending."}</p>
           <p className="fine-print">{lang === "th" ? "หมายเลขคำขอจะสร้างหลังส่ง · ช่องทาง: แบบฟอร์ม" : "Request ID is generated after submission · Channel: Form"}</p>
           <div className="callers-form-fields">
-            {REQUEST_DETAIL_FIELDS.map((field) => {
-              const count = field === "n_children" || field === "n_elders" || field === "n_pets";
+            {FORM_FIELDS.map((field) => {
               return <label key={field} htmlFor={`callers-${field}`}>
-                <span>{t(S.call.conversation.caseFields[field])}{(field === "phone_number" || field === "type") && " *"}</span>
+                <span>{t(S.call.conversation.caseFields[field])}{(field === "phone_number" || field === "type" || field === "location") && " *"}{field === "location" && " (Google Maps link)"}{field === "people_details" && (lang === "th" ? " (เด็ก, ผู้สูงอายุ, ผู้ป่วย, สัตว์เลี้ยง)" : " (children, older people, patients, pets)")}</span>
                 {field === "phone_number" ? <>
                   <input id="callers-phone_number" type="tel" autoComplete="tel" required maxLength={100} value={form.phone_number ?? ""} onChange={(event) => setForm((current) => ({ ...current, phone_number: event.target.value || null }))} />
                   <span className="fine-print">{lang === "th" ? "ใช้ส่งข้อความสอบถามหลังทีมอาสาสมัครเข้าช่วยเหลือ" : "For a follow-up message after volunteers visit."}</span>
@@ -245,12 +276,12 @@ export function CallersPage() {
                   <option value="">{lang === "th" ? "เลือกประเภทความช่วยเหลือ" : "Choose a help type"}</option>
                   <option value="food">{t(S.call.conversation.food)}</option>
                   <option value="evacuation">{t(S.call.conversation.evacuation)}</option>
-                </select> : count ? <input id={`callers-${field}`} type="number" min={0} step={1} value={form[field] ?? ""} onChange={(event) => setForm((current) => ({ ...current, [field]: event.target.value === "" ? null : Number(event.target.value) }))} /> :
-                  <textarea id={`callers-${field}`} rows={field === "coordinates" ? 1 : 2} maxLength={1000} value={form[field] ?? ""} placeholder={field === "coordinates" ? (lang === "th" ? "ละติจูด, ลองจิจูด" : "Latitude, longitude") : undefined} onChange={(event) => setForm((current) => ({ ...current, [field]: event.target.value || null }))} />}
+                </select> : field === "location" ? <input id="callers-location" type="url" required maxLength={1000} value={form.location ?? ""} placeholder="https://maps.app.goo.gl/..." onChange={(event) => setForm((current) => ({ ...current, location: event.target.value || null }))} /> :
+                  <textarea id={`callers-${field}`} rows={3} maxLength={1000} value={form[field] ?? ""} onChange={(event) => setForm((current) => ({ ...current, [field]: event.target.value || null }))} />}
               </label>;
             })}
           </div>
-          <div className="call-send"><BigButton type="submit" disabled={busy || !form.phone_number?.trim() || !form.type}>{busy ? t(S.call.sending) : t(S.call.conversation.confirm)}</BigButton></div>
+          <div className="call-send"><BigButton type="submit" disabled={busy || !form.phone_number?.trim() || !form.type || !form.location?.trim()}>{busy ? t(S.call.sending) : t(S.call.conversation.confirm)}</BigButton></div>
         </form>}
       <p className="fine-print">{t(S.call.privacy)}</p>
     </div>

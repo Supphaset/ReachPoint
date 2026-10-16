@@ -9,7 +9,6 @@ const p = (en: string, th: string): Pair => ({ en, th });
 
 export const S = {
   desk: {
-    caseCreation: p("Create team cases from reviewed reports", "สร้างเคสให้ทีมจากคำขอที่ตรวจสอบแล้ว"),
     textChannel: p("Text", "ข้อความ"),
     voiceChannel: p("Call", "สายโทรเข้า"),
     dangerPrompt: p("Flag urgent with a reason if a callback or the words confirm the danger.", "ระบุเร่งด่วนพร้อมเหตุผล หากการโทรกลับหรือคำพูดยืนยันอันตราย"),
@@ -17,7 +16,7 @@ export const S = {
     neighbourPrompt: p("A neighbour's report: counts are \"at least\", never added up (D29). Confirm with a callback.", "รายงานเพื่อนบ้าน: จำนวนเป็นอย่างน้อย ห้ามนำมาบวกกัน (D29) ยืนยันด้วยการโทรกลับ"),
     fieldPrompt: (id: string): Pair => p(`Field report from team ${id}: people found who hadn't called (D20).`, `รายงานจากทีม ${id}: พบคนที่ยังไม่ได้โทรแจ้ง (D20)`),
     title: p('Coordinator desk', 'โต๊ะประสานงาน'),
-    intro: p('Review the caller’s words. A person decides what becomes a case.', 'ตรวจสอบคำพูดของผู้โทร คนเป็นผู้ตัดสินใจสร้างเคส'),
+    intro: p('AI reviews each request. Check the results and approve.', 'AI ตรวจสอบคำขออัตโนมัติ ตรวจผลแล้วอนุมัติโดยคน'),
     review: p('Review', 'ตรวจสอบ'),
     waterTab: p('Water rising', 'น้ำกำลังขึ้น'),
     boatTab: p('Boat S1', 'เรือ S1'),

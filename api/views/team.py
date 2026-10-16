@@ -8,6 +8,7 @@ why it's urgent from reviewed operational facts, never transcripts or medical na
 from __future__ import annotations
 
 from api.rules.tiers import TierInput, colour, distance_m, sort_key, tier
+from api.rules.preparation import compact_preparation_notes
 from api.views.briefing import caller_water
 from api.views.missions import segment_jobs, zone_missions
 from api.views import thai
@@ -155,8 +156,9 @@ def job(store: Store, a: dict, row: dict, need: dict) -> dict:
     if (a.get("window") or {}).get("state") == "withdrawn":
         out["withdrawnWindow"] = dict(a["window"])
     review = store.seed.get("callerReviews", {}).get(case.get("fromReport"))
-    if a["state"] in ACTIVE and review and review.get("volunteer_summary"):
-        out["preparationSummary"] = {"text": review["volunteer_summary"], "checkedBy": review["checked_by"],
+    summary = compact_preparation_notes(review.get("volunteer_summary")) if review else None
+    if a["state"] in ACTIVE and review and review.get("approved") and summary:
+        out["preparationSummary"] = {"text": summary, "checkedBy": review["checked_by"],
                                      "at": review["reviewed_at"]}
     for k in ("outcome", "closedAt", "medicalRemovedAt", "owner", "holdReason", "nextStatusUpdate", "briefRevision"):
         if a.get(k):

@@ -16,7 +16,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from typing import Literal
 
@@ -37,7 +37,8 @@ from api.location.resolve import resolve as resolve_location
 from api.server.memory import Clock, MemoryStore, NotFound, Refused
 from api.server.sqlite_store import SQLiteMemoryStore, SQLiteState
 from api.server import desk as caller_desk
-from api.ai.desk_review import Level, Transport
+from api.ai.desk_review import Level, Transport, RULES_VERSION
+from api.location.google_maps import ReviewLocation
 from api.views.briefing import area_briefing
 from api.views.desk import rain_view, rising_water_view, zone_order_view
 from api.views.resident import resident_status
@@ -377,34 +378,54 @@ def intake_text(b: Intake):
 
 
 @app.get("/api/callers/config")
-@app.get("/api/call/config")
 def call_config():
-    available = USE_AI and conversation.configured()
+    available = conversation.enabled(USE_AI) and conversation.configured()
     return {"chat": available, "voice": available and os.environ.get("REACHPOINT_VOICE", "off") == "on"}
 
 
 @app.post("/api/callers/sessions")
-@app.post("/api/call/sessions")
 def start_call():
     return conversation.create().snapshot()
 
 
 @app.get("/api/callers/sessions/{session_id}")
-@app.get("/api/call/sessions/{session_id}")
 def read_call(session_id: str):
     return conversation.get(session_id).snapshot()
 
 
 @app.post("/api/callers/sessions/{session_id}/turn")
-@app.post("/api/call/sessions/{session_id}/turn")
-async def call_turn(session_id: str, b: CallTurn):
-    if not USE_AI:
+async def call_turn(session_id: str, b: CallTurn, request: Request):
+    if not conversation.enabled(USE_AI):
         raise HTTPException(503, "Conversation mode is disabled on this server.")
-    return await conversation.turn(conversation.get(session_id), b.text, b.turnId, channel="chat")
+    session = conversation.get(session_id)
+    if "text/event-stream" not in request.headers.get("accept", ""):
+        return await conversation.turn(session, b.text, b.turnId, channel="chat")
+
+    def event(name: str, data: dict) -> str:
+        return f"event: {name}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+    async def stream():
+        yield event("status", {"phase": "reading"})
+        try:
+            snapshot = await conversation.turn(session, b.text, b.turnId, channel="chat")
+        except HTTPException as exc:
+            yield event("error", {"message": exc.detail, "status": exc.status_code})
+            return
+        except Exception:
+            yield event("error", {"message": "Could not read this turn. Please try again.", "status": 500})
+            return
+        # Questions are composed from validated facts, never from partial model JSON.
+        # Send each paragraph as it is available, without an artificial typing delay.
+        reply = snapshot["messages"][-1]["text"]
+        for line in reply.splitlines(keepends=True):
+            yield event("delta", {"text": line})
+        yield event("snapshot", snapshot)
+
+    return StreamingResponse(stream(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 @app.post("/api/callers/sessions/{session_id}/location")
-@app.post("/api/call/sessions/{session_id}/location")
 async def call_location(session_id: str, b: CallLocation):
     return await conversation.choose_location(conversation.get(session_id), b.query, b.action, b.locationId)
 
@@ -470,11 +491,13 @@ async def submit_call_session(session: conversation.Conversation, _submission_id
 async def submit_caller_form(session_id: str, b: CallForm):
     session = conversation.get(session_id)
     async with session.lock:
+        details = b.model_dump(include=set(HelpRequestDetails.model_fields))
         if session.sent:
+            if details != session.case.model_dump(include=set(HelpRequestDetails.model_fields)):
+                raise Refused("CALL_ALREADY_SUBMITTED", "This session already has a saved request. Start a new request for different details.")
             return session.snapshot()
         if b.expectedRevision != session.revision:
             raise HTTPException(409, "The details changed. Review the latest details before submitting.")
-        details = b.model_dump(include=set(HelpRequestDetails.model_fields))
         if all(value is None for value in details.values()):
             raise HTTPException(422, "Enter the details of your request before submitting.")
         before = session.record()
@@ -498,7 +521,6 @@ async def submit_caller_form(session_id: str, b: CallForm):
 
 
 @app.post("/api/callers/sessions/{session_id}/confirm")
-@app.post("/api/call/sessions/{session_id}/confirm")
 async def confirm_call(session_id: str, b: CallConfirm):
     return await submit_call_session(conversation.get(session_id), b.submissionId, b.expectedRevision)
 
@@ -561,8 +583,12 @@ def desk_callers():
     result = caller_desk.view(memory, database)
     if USE_AI:
         for row in result["callers"]:
-            if not row["review"] or row["review_stale"]:
+            if not row["review"] or row["review_stale"] or (row["review"].get("checked_by") != "Human" and row["review"].get("rules_version") != RULES_VERSION):
                 _schedule_desk_review(memory, database, row["report_id"])
+    with _desk_pending_lock:
+        for row in result["callers"]:
+            row["ai_processing"] = (id(memory), row["report_id"]) in _desk_pending
+    result["ai_enabled"] = USE_AI
     return result
 
 
@@ -585,12 +611,14 @@ class DeskHumanReview(Write):
     model_config = {"extra": "forbid"}
     input_revision: str = Field(min_length=1)
     expected_revision: int = Field(ge=0)
-    transport_recommendation: Transport
-    emergency_level: Level | None
+    transport_recommendation: Transport | None = None
+    emergency_level: Level | None = None
     immediate_danger: bool
     volunteer_summary: str | None = Field(default=None, max_length=2000)
     reason: str = Field(min_length=1, max_length=1000)
     reviewed_by: str = Field(min_length=1, max_length=100)
+    approve: bool = False
+    resolved_location: ReviewLocation | None = None
 
 
 @app.post("/api/desk/{report_id}/human-review")
@@ -633,7 +661,9 @@ def not_same(report_id: str, b: LinkReport):
 @app.get("/api/status/{token}")
 def status(token: str):
     with memory.lock:
-        v = resident_status(memory.store, token, _now())
+        ref = memory.store.seed.get("statusTokens", {}).get(token)
+        approved_at = caller_desk.approval_time(memory, database, ref["reportId"]) if ref else None
+        v = resident_status(memory.store, token, _now(), desk_approved_at=approved_at)
     if v is None:
         raise NotFound("status link")
     return v

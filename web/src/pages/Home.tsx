@@ -8,7 +8,7 @@ import "./pages.css";
 const HOME: Record<Session["role"], string> = {
   team_leader: "/team/list",
   coordinator: "/desk",
-  resident: "/call",
+  resident: "/callers",
 };
 
 const STEP_ICON: IconName[] = ["water", "sparkle", "check", "hand"];

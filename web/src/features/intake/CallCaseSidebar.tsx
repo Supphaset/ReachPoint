@@ -36,7 +36,7 @@ export function CallCaseSidebar({ session, busy, onConfirm }: { session: CallSes
       </div>}
       {groups.map((group) => <section className="call-case-group" key={group.title}>
         <h3>{t(S.call.conversation[group.title])}</h3>
-        <dl>{group.fields.map((field) => {
+        <dl>{group.fields.filter((field) => ["phone_number", "type", "location", "people_details", "situation_details"].includes(field) || session.case[field] !== null).map((field) => {
           const value = session.case[field];
           const unknown = value === null;
           const declined = unknown && session.case.unavailable_fields.includes(field);

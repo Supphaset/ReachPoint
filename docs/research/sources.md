@@ -1,5 +1,12 @@
 # Source register
 
+## Desk evaluation guidance — 16 Oct 2026
+
+| Source | Finding | Limitation |
+|---|---|---|
+| [NWS: During a Flood](https://www.weather.gov/safety/flood-during) | Warns against driving into flooded roads; moving water and hidden road damage matter | Does not establish a safe truck depth; ReachPoint's user-selected 50 cm preference is a demo planning rule |
+| [NIEMS public emergency guide](https://www.niems.go.th/1/upload/migrate/file/255912201429421769_DnRyGchSR1ODAHUz.pdf) | Search-index excerpt identifies warning signs including unresponsiveness, not breathing and substantial uncontrolled bleeding | PDF fetch timed out; full document not reviewed. Public first-aid material does not validate AI triage or ReachPoint's 1a/1b/2/3 labels |
+
 Access date for rows marked checked/attempted: **2026-10-11** (Asia/Bangkok). “Pending” means a user-supplied lead, not checked evidence; no access date is claimed. Readable pages do not verify products at runtime. Recheck mutable rules and technical documentation when making decisions.
 
 ## Event and prototype

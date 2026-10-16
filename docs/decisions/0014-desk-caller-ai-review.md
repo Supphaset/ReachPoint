@@ -18,6 +18,8 @@ A fixed numeric boat/truck cutoff was rejected: indoor depth is not an access-pa
 
 ### Presentation amendment — 15 Oct 2026
 
+Transport/evaluation amendment, 16 Oct 2026: [0017](0017-desk-depth-threshold-and-evaluation.md) adds the user-selected 50 cm boat planning preference and explicit unmet-need Level 2 guideline. The numeric-cutoff rejection above remains historical; route clearance, clinical assessment and human-approval constraints remain in force.
+
 The user approved implementation of the selected “Preparation first” draft (“ok implement it”). `/desk` uses a left request-card queue with the reported area as its headline and the situation underneath. The selected request shows the optional volunteer preparation brief and key facts beside the human review form on wide screens. Original caller fields, recommendation reasons, supporting quotes and review history remain accessible through disclosure controls. Narrow screens switch between the queue and request details. Missing area information stays explicitly unknown; the UI does not infer a location or change review/dispatch semantics.
 
 Local SQLite/single-process and demo-identity limitations remain. Mocked tests do not establish live Gemini accuracy or real operational suitability. A database containing both old and new caller tables is refused without deleting either, requiring reconciliation rather than guessing which records to keep.

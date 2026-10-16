@@ -34,7 +34,13 @@ Phone formatting is normalized to 7–15 digits with an optional leading `+`, pr
 
 ## Implementation and consequences
 
-The shared Python model is in `api/intake/schema.py`; the browser contract is in `web/src/data/call.ts`. Chat and Gemini Live extract these details into a conversation with separate control state. The structured form presents these same fields, prefilled from the latest conversation details, including phone number and help type. Form submission uses the same session confirmation and persistence path, preserving one report per session on retry.
+### Amendment — concise intake, 15 Oct 2026
+
+Accepted by the user in this chat: reduce the form to phone number, help type, location (Google Maps link), people details (children, older people, patients, pets), and situation details; make chat and voice ask concise questions because callers may not have the capacity to answer many.
+
+The stored schema remains shared. Conversation asks only for missing essentials: location, food/evacuation type, and reachable phone number. A spoken place or landmark is accepted for voice; a Maps link is not required to speak. People and situation details share at most one optional prompt, with a chat skip button or spoken “ข้าม”; a partial answer is enough and missing optional values stay unknown. Reported immediate danger bypasses the optional prompt. Following the user’s water-level feedback on 15 Oct, the single optional prompt explicitly asks “ตอนนี้น้ำสูงถึงไหนคะ?” when unknown, combined with people details if needed. It remains skippable and does not add another turn. Counts, access and other details are retained when volunteered, without separate follow-up questions. Chat immediately shows the caller message and reading progress; validated reply deltas and the final snapshot use an opt-in SSE response. Place choice and unresolved contradictions can still require clarification. The brief summary includes the five form fields and any supplied additional facts, especially danger, before explicit confirmation; no team or arrival claim is added.
+
+The shared Python model is in `api/intake/schema.py`; the browser contract is in `web/src/data/call.ts`. Chat and Gemini Live extract these details into a conversation with separate control state. The structured form presents the five fields in the 15 Oct amendment, prefilled from the latest conversation details. Form submission uses the same session confirmation and persistence path, preserving one report per session on retry.
 
 On startup, the local SQLite adapter migrates the former 14-column table, preserving request IDs and all retained column values while removing `reporter_name` and accepting the `form` channel. This revises the original schema in [0011](0011-local-sqlite-interim.md). Historical messages are not rewritten. Deployed Firestore remains separate work.
 

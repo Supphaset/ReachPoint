@@ -18,7 +18,11 @@ Only explicit human approvals are accepted product decisions. AI recommendations
 | [0012](0012-shared-caller-schema.md) | Accepted by user, 13 Oct 2026 | Form, chat, voice and `help_requests` share 15 fields; no caller name; required phone and food/evacuation type |
 | [0013](0013-caller-tracking-demo.md) | Accepted by user, 13 Oct 2026 | Four-step tracking, prominent copy link and local demo controls |
 | [0014](0014-desk-caller-ai-review.md) | Accepted by user, 15 Oct 2026 | Caller table rename; AI/Human operational review, routine Level 3 and optional preparation summary |
+| [0015](0015-local-gemini-demo-budget.md) | Accepted by user, 15 Oct; amended 16 Oct 2026 | USD 20 local Gemini chat/voice and desk-review test budget; existing billing project and payer |
+| [0016](0016-automatic-desk-review-and-human-approval.md) | Accepted by user, 15 Oct 2026 | Automatic location/classification/preparation review followed by explicit human approval |
+| [0017](0017-desk-depth-threshold-and-evaluation.md) | Accepted by user, 16 Oct 2026 | 50 cm boat planning preference; quoted depths and emergency evaluation guideline |
+| [0018](0018-minimal-desk-approval.md) | Accepted by user, 16 Oct 2026 | Require only original phone, help type and location for desk approval; advance caller review tracking |
 
-For the next consequential choice create `0015-<topic>.md` with date, status (proposed/accepted/superseded), human approval reference, context/evidence, decision, rationale, alternatives, consequences and affected docs. Drafting a record does not accept it. Preserve superseded decisions and link replacements.
+For the next consequential choice create `0019-<topic>.md` with date, status (proposed/accepted/superseded), human approval reference, context/evidence, decision, rationale, alternatives, consequences and affected docs. Drafting a record does not accept it. Preserve superseded decisions and link replacements.
 
-Prototype v1 scope is accepted in 0005 and revised by 0009 (real past-event flood packages instead of a fictional locality). 0009 selects the framework, database, hosting, map and AI route, pending the friend's confirmation. Telecom provider, spend cap and any real clinical workflow are not accepted. Public repository visibility is accepted in 0008.
+Prototype v1 scope is accepted in 0005 and revised by 0009 (real past-event flood packages instead of a fictional locality). 0009 selects the framework, database, hosting, map and AI route, pending the friend's confirmation. Local Gemini testing has a USD 20 budget under 0015; the wider deployment spend cap, telecom provider and any real clinical workflow remain unapproved. Public repository visibility is accepted in 0008.
