@@ -23,6 +23,8 @@ T = {
               "Do you know if anyone is still inside on the streets near you, especially older people living alone?"),
     "lostCall": ("(สายจากผู้ช่วย AI) สวัสดีค่ะ เราไม่ได้ยินจากคุณสักพัก ทุกคนปลอดภัยไหมคะ",
                  "(AI voice call) Hello, we haven't heard from you for a while. Is everyone safe?"),
+    "rainRise": ("ฝนหนักราว {mm} มม. กำลังจะตก แบบจำลองน้ำท่วมคาดว่าน้ำที่บ้านคุณจะสูงขึ้นราว {cm} ซม. ในอีกราว {h} ชั่วโมง {advice}",
+                 "Heavy rain (about {mm} mm) is coming. The flood model expects the water at your house to rise about {cm} cm in about {h} hours. {advice}"),
     "pickedUp": ("{team} แจ้งว่ารับคุณออกมาแล้ว ขอให้ปลอดภัยนะคะ หากยังมีคนติดอยู่ ตอบกลับได้เลยค่ะ",
                  "{team} says they picked you up. Stay safe. If anyone is still inside, reply here."),
     "nobodyThere": ("{team} ไปที่บ้านคุณแต่ไม่พบใคร ตอนนี้คุณอยู่ที่ไหน ปลอดภัยไหมคะ ตอบกลับได้เลย",

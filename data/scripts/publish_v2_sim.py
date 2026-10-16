@@ -30,8 +30,8 @@ HOURS = 168
 STEP_M = 0.04
 
 
-def main(run: str, as_truth: bool = False) -> None:
-    prefix = (CACHE / "v2-truth-sim") if as_truth else (PKG / "v2-sim")
+def main(run: str, as_truth: bool = False, prefix_name: str | None = None) -> None:
+    prefix = (CACHE / prefix_name) if prefix_name else (CACHE / "v2-truth-sim") if as_truth else (PKG / "v2-sim")
     meta = json.loads((CACHE / f"v2-basin-sim-{run}.json").read_text())
     with gzip.open(CACHE / f"v2-basin-sim-{run}.bin.gz", "rb") as fh:
         coarse = np.frombuffer(fh.read(), np.uint8).reshape(meta["hours"] + 1, meta["rows"], meta["cols"]).astype(np.float32) * meta["stepM"]
@@ -108,4 +108,5 @@ def main(run: str, as_truth: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], as_truth="--truth" in sys.argv)
+    pre = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--prefix=")), None)
+    main(sys.argv[1], as_truth="--truth" in sys.argv, prefix_name=pre)

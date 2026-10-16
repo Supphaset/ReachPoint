@@ -8,7 +8,7 @@ import { FactChips } from "./FeedPage";
 import { Depth, Needs, StatusChip, VShell, useLive, useTeam } from "./shared";
 
 const SENT: Record<string, string> = {
-  check: "Safety check", morning: "Morning check", earlyWarning: "Early warning", rain: "Rain alert", river: "River alert",
+  check: "Safety check", rainRise: "Expected rise (rain)", morning: "Morning check", earlyWarning: "Early warning", rain: "Rain alert", river: "River alert",
   askBack: "Follow-up question", quiet: "Asked about neighbours", lostCall: "AI voice call", planUpdate: "Team coming",
   pickedUp: "Picked up", nobodyThere: "Nobody there",
 };

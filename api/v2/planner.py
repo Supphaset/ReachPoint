@@ -115,8 +115,34 @@ def plan_outreach(w, geo: G.Geo) -> None:
         if need_med and not has_med:
             w.gaps[zid] = f"Nobody plans medical help. {need_med} {'person' if need_med == 1 else 'people'} can't walk."
 
-    # rain and river alerts from the demo clock: a safety check to every household in the zones at risk
-    for a in getattr(w, "alerts", []):
+    # rain alerts: the flood model's expected rise at each house; warn those it affects, most in need first
+    from api.v2 import rain as RN
+    for a in [a for a in getattr(w, "alerts", []) if a["kind"] == "rain" and RN.load()]:
+        rows = []
+        for h in w.households.values():
+            if h.status not in ("open", "lostContact", "toShelter") or h.lon is None:
+                continue
+            r = RN.rise(h.lon, h.lat)
+            if r and r[0] >= RN.WARN_M:
+                need = (3 if h.cannot_walk else 0) + (2 if h.elderly else 0) + (1 if h.children else 0) + (2 if h.urgent else 0)
+                rows.append((need, r[0], r[1], h))
+        rows.sort(key=lambda x: (-x[0], -x[1]))
+        for i, (need, m, lag, h) in enumerate(rows):
+            advice_th = ("ถ้าในบ้านมีคนเดินไม่ได้ ตอบ 2 แล้วเราจะแจ้งทีมเรือให้มารับก่อน" if h.cannot_walk
+                         else "ถ้าออกได้ ให้ไปศูนย์พักพิงตอนนี้ ก่อนน้ำขึ้น ถ้าออกไม่ได้ ขึ้นที่สูงไว้ก่อน")
+            text = say("rainRise", mm=int(RN.FORECAST_MM), cm=int(round(m * 100 / 5) * 5), h=max(1, lag), advice=advice_th)
+            w.outbound.append({"atH": a["atH"], "order": i, "householdId": h.id, "kind": "rainRise", "text": text,
+                               "riseM": round(m, 2), "inH": lag})
+        top = max(rows, key=lambda x: x[1]) if rows else None
+        w.activity.append({"atH": a["atH"], "at": label_time(a["atH"]), "agent": "Planner",
+                           "text": f"Rain forecast {int(RN.FORECAST_MM)} mm in 6 h: the flood model expects at least {int(RN.WARN_M * 100)} cm more "
+                                   f"water at {len(rows)} homes" + (f", up to {top[1] * 100:.0f} cm in {top[3].zone_id} after about {top[2]} h" if top else "")
+                                   + f". Warned them first by need: {sum(1 for r in rows if r[3].cannot_walk)} with someone who can't walk, "
+                                   f"{sum(1 for r in rows if r[3].elderly)} with elderly people.",
+                           "tool": "flood model · extra-rain response · message", "ref": None, "key": "rainRise"})
+
+    # river alerts from the demo clock: a safety check to every household in the zones at risk
+    for a in [a for a in getattr(w, "alerts", []) if a["kind"] != "rain" or not RN.load()]:
         zones = [z for z, l in w.levels.items() if l.wse_m is not None] + list(w.predicted)
         told = [h for h in w.households.values() if h.zone_id in zones and h.status in ("open", "lostContact")]
         for h in told:

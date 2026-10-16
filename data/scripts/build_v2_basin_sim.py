@@ -166,6 +166,9 @@ def main() -> None:
     ap.add_argument("--out", default=None)
     ap.add_argument("--coarsen", type=int, default=2, help="1 = 75 m, 2 = 150 m")
     ap.add_argument("--urban-dem", type=float, default=0.0, help="lower built-up ground by this much (FABDEM keeps some building height in dense blocks)")
+    ap.add_argument("--extra-mm", type=float, default=0.0, help="what-if: extra rain over the whole basin (mm), for the rain-warning response map")
+    ap.add_argument("--extra-at", type=int, default=120, help="hour from START when the extra rain begins (120 = 24 Nov 00:00)")
+    ap.add_argument("--extra-hours", type=int, default=6)
     ap.add_argument("--street-ground", action="store_true", help="built-up ground = street level around the block (api/v2/ground.py)")
     ap.add_argument("--channel-width-exp", type=float, default=0.6, help="how much a narrow channel's friction is raised")
     args = ap.parse_args()
@@ -198,6 +201,9 @@ def main() -> None:
     S = 25400 / np.maximum(cn, 1) - 254                 # potential retention, mm
     built = lc == 50
     rain = rain_field(b, args.rain)
+    if args.extra_mm:
+        a0, a1 = args.extra_at, min(len(rain), args.extra_at + args.extra_hours)
+        rain[a0:a1] += args.extra_mm / max(1, a1 - a0)
     gauge = gauge_series()
     w, s, e, nn = b["bbox"]
     gi, gj = int((nn - GAUGE_LONLAT[1]) / (nn - s) * R), int((GAUGE_LONLAT[0] - w) / (e - w) * C)
@@ -317,7 +323,8 @@ def main() -> None:
             "bbox": [float(w + vj0 * (e - w) / C), float(nn - vi1 * (nn - s) / R), float(w + vj1 * (e - w) / C), float(nn - vi0 * (nn - s) / R)],
             "cellM": dx, "stepM": STEP_M, "frameBytes": int((vi1 - vi0) * (vj1 - vj0)),
             "params": {"rain": args.rain, "nUrban": args.n_urban, "inflow": args.inflow, "drainMmH": args.drain,
-                       "urbanDemM": args.urban_dem, "streetGround": args.street_ground, "channelWidthExp": args.channel_width_exp},
+                       "urbanDemM": args.urban_dem, "streetGround": args.street_ground,
+                       "extraMm": args.extra_mm, "extraAt": args.extra_at, "extraHours": args.extra_hours, "channelWidthExp": args.channel_width_exp},
             "zView": np.round(zc[vi0:vi1, vj0:vj1], 2).tolist(), "builtView": built[vi0:vi1, vj0:vj1].astype(int).tolist(),
             "gaugeCell": [gi, gj], "inflowCell": [ini, inj], "stageX44": stage, "budget": budget,
             "model": "local-inertial shallow water (Bates et al. 2010) on FABDEM 75 m; IMERG x bias, SCS-CN AMC III; "
