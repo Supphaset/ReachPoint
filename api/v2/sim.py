@@ -40,6 +40,19 @@ def depth(lon: float, lat: float, h: float) -> float | None:
     return (d0 + (d1 - d0) * f) * m["stepM"]
 
 
+def ground(lon: float, lat: float) -> float | None:
+    """The ground the simulation was downscaled to (FABDEM with street level in built-up blocks), m."""
+    m = meta()
+    g = m.get("groundDm")
+    if not g:
+        return None
+    w, s, e, n = m["bbox"]
+    i, j = int((n - lat) / (n - s) * m["rows"]), int((lon - w) / (e - w) * m["cols"])
+    if not (0 <= i < m["rows"] and 0 <= j < m["cols"]) or g[i * m["cols"] + j] <= -9999:
+        return None
+    return g[i * m["cols"] + j] / 10
+
+
 def zone_series(zid: str) -> list:
     return meta()["zones"].get(zid, [])
 

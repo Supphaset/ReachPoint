@@ -70,6 +70,15 @@ def score(run):
     zv = np.array(meta["zView"]) if "zView" in meta else None
     bv = np.array(meta["builtView"]) if "builtView" in meta else None
     off = meta["params"].get("urbanDemM", 0.0)
+    street = None
+    if meta["params"].get("streetGround"):
+        sys.path.insert(0, str(ROOT))
+        from api.v2 import ground as GR
+        t = json.loads((PKG / "v2-terrain.json").read_text())
+        with gzip.open(PKG / "v2-basin.json.gz", "rt") as fh:
+            bb = json.load(fh)
+        zt = np.array([[np.nan if v is None else v for v in r] for r in t["z"]])
+        street = (GR.street_level(zt, GR.built_on(np.array(bb["landcover"]), bb["bbox"], t["bbox"], t["rows"], t["cols"]), float(t["cellM"])), t)
     dist, rows = [], []
     for k, (lo, hi) in rng.items():
         f = rep[k]
@@ -83,6 +92,12 @@ def score(run):
         if zv is not None:
             # downscaled: the cell's water surface over the 30 m ground at the point (same urban correction)
             zp = ground[k] - (off if bv[c] else 0.0)
+            if street:
+                zs, t = street
+                tw, ts, te, tn = t["bbox"]
+                ti, tj = int((tn - lat) / (tn - ts) * t["rows"]), int((lon - tw) / (te - tw) * t["cols"])
+                if 0 <= ti < t["rows"] and 0 <= tj < t["cols"]:
+                    zp = min(zp, float(zs[ti, tj]) - (off if bv[c] else 0.0))
             ds = [max(0.0, float(zv[c] + fr[h][c]) - zp) if fr[h][c] > 0.02 else 0.0 for h in hs]
         else:
             ds = [fr[h][c] for h in hs]

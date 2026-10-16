@@ -91,6 +91,7 @@ def sim_meta():
     from api.v2 import sim as S
     m = dict(S.meta())
     m.pop("zones", None)
+    m.pop("groundDm", None)
     return m
 
 
@@ -106,9 +107,11 @@ def sim_frames():
 def terrain():
     """The 30 m ground heights under the flood layer (decimetres), so the map can let reported water follow the ground."""
     import json as _j
+    from api.v2 import sim as S
     t = _j.loads((G.PKG / "v2-terrain.json").read_text())
+    g = S.meta().get("groundDm")  # the ground the simulation used (street level in dense blocks)
     return {"rows": t["rows"], "cols": t["cols"], "bbox": t["bbox"],
-            "zDm": [-9999 if v is None else int(round(v * 10)) for r in t["z"] for v in r]}
+            "zDm": g or [-9999 if v is None else int(round(v * 10)) for r in t["z"] for v in r]}
 
 
 @router.get("/analysis")
@@ -124,9 +127,12 @@ def analysis(at: float | None = None):
     rows, cols = max(1, meta["rows"] // 5), max(1, meta["cols"] // 5)
     idx = getattr(w, "assim_index", None)
     obs = [o for o in (idx.obs if idx else []) if not o.doubtful]
+    from api.v2 import sim as S
     ground = {o.message_id: o.ground_m for o in w.obs}
     to_m = lambda lon, lat: ((lon - G.LON0) * G.MX, (lat - G.LAT0) * G.MY)
-    f = A.field(obs, [ground.get(o.id, 0.0) for o in obs], meta["bbox"], rows, cols, st["atH"], to_m)
+    # the same ground the map's water is drawn on, so a report's water surface lands at its reported depth
+    grounds = [S.ground(o.x / G.MX + G.LON0, o.y / G.MY + G.LAT0) or ground.get(o.id, 0.0) for o in obs]
+    f = A.field(obs, grounds, meta["bbox"], rows, cols, st["atH"], to_m)
     return {"atH": st["atH"], "bbox": meta["bbox"], "rows": rows, "cols": cols, "incStepM": 0.05, "wseStepM": 0.1, **f}
 
 

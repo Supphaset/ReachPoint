@@ -21,6 +21,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from api.v2 import geo as G  # noqa: E402
+from api.v2 import ground as GR  # noqa: E402
 
 PKG = ROOT / "data" / "hy-2025-11"
 CACHE = ROOT / "data" / ".cache"
@@ -40,17 +41,13 @@ def main(run: str, as_truth: bool = False) -> None:
     off = int(round((SCEN_START - datetime.fromisoformat(meta["start"])).total_seconds() / 3600))
     t = json.loads((PKG / "v2-terrain.json").read_text())
     zf = np.array([[np.nan if v is None else v for v in r] for r in t["z"]], dtype=np.float32)
-    # the same urban terrain correction as the model run, on built-up 30 m cells (WorldCover from the basin grid)
+    # the same terrain corrections as the model run, on built-up 30 m cells (WorldCover from the basin grid)
     udem = meta["params"].get("urbanDemM", 0.0)
+    built = GR.built_on(np.array(b["landcover"]), b["bbox"], t["bbox"], t["rows"], t["cols"])
+    if meta["params"].get("streetGround"):
+        zf = GR.street_level(zf, built, float(t["cellM"])).astype(np.float32)
     if udem:
-        bw, bs, be, bn = b["bbox"]
-        lcb = np.array(b["landcover"])
-        tw, ts, te, tn = t["bbox"]
-        la = tn - (np.arange(t["rows"]) + 0.5) * (tn - ts) / t["rows"]
-        lo = tw + (np.arange(t["cols"]) + 0.5) * (te - tw) / t["cols"]
-        bi = np.clip(((bn - la) / (bn - bs) * lcb.shape[0]).astype(int), 0, lcb.shape[0] - 1)
-        bj = np.clip(((lo - bw) / (be - bw) * lcb.shape[1]).astype(int), 0, lcb.shape[1] - 1)
-        zf = np.where(lcb[bi][:, bj] == 50, zf - udem, zf)
+        zf = np.where(built, zf - udem, zf)
     R, C = zf.shape
     w, s, e, n = t["bbox"]
     lat = n - (np.arange(R) + 0.5) * (n - s) / R
@@ -102,6 +99,7 @@ def main(run: str, as_truth: bool = False) -> None:
     out = {"package": "hy-2025-11", "start": SCEN_START.isoformat(), "hours": HOURS, "rows": R, "cols": C, "bbox": t["bbox"],
            "cellM": t["cellM"], "stepM": STEP_M, "frameBytes": R * C, "run": run, "params": meta["params"],
            "model": meta["model"] + "; downscaled to FABDEM 30 m by water surface", "stageX44": meta["stageX44"],
+           "groundDm": [-9999 if np.isnan(v) else int(round(float(v) * 10)) for v in zf.ravel()],
            "zones": zones}
     pathlib_out = Path(str(prefix) + ".json")
     pathlib_out.write_text(json.dumps(out, separators=(",", ":")))

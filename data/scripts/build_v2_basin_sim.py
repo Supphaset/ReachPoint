@@ -37,6 +37,9 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+from api.v2.ground import street_level  # noqa: E402
+
 PKG = ROOT / "data" / "hy-2025-11"
 TZ = timezone(timedelta(hours=7))
 START = datetime(2025, 11, 19, 0, tzinfo=TZ)   # rain starts
@@ -56,11 +59,14 @@ LC = {10: (0.10, 70), 20: (0.07, 74), 30: (0.05, 79), 40: (0.06, 81), 50: (0.12,
       70: (0.03, 98), 80: (0.03, 100), 90: (0.06, 90), 95: (0.08, 90), 100: (0.05, 80), 0: (0.05, 80)}
 
 
-def load(coarsen: int = 1):
+def load(coarsen: int = 1, street_ground: bool = False):
     with gzip.open(PKG / "v2-basin.json.gz", "rt") as fh:
         b = json.load(fh)
     z = np.array([[np.nan if v is None else v for v in r] for r in b["z"]], dtype=np.float64)
     lc = np.array(b["landcover"], dtype=np.int32)
+    if street_ground:
+        # rooftop height FABDEM keeps in dense blocks: built-up cells take the street level around them
+        z = street_level(z, lc == 50, float(b["cellM"]))
     if coarsen > 1:
         k = coarsen
         R, C = (z.shape[0] // k) * k, (z.shape[1] // k) * k
@@ -160,11 +166,12 @@ def main() -> None:
     ap.add_argument("--out", default=None)
     ap.add_argument("--coarsen", type=int, default=2, help="1 = 75 m, 2 = 150 m")
     ap.add_argument("--urban-dem", type=float, default=0.0, help="lower built-up ground by this much (FABDEM keeps some building height in dense blocks)")
+    ap.add_argument("--street-ground", action="store_true", help="built-up ground = street level around the block (api/v2/ground.py)")
     ap.add_argument("--channel-width-exp", type=float, default=0.6, help="how much a narrow channel's friction is raised")
     args = ap.parse_args()
     t0 = time.time()
 
-    b, z, lc = load(args.coarsen)
+    b, z, lc = load(args.coarsen, args.street_ground)
     R, C = z.shape
     dx = float(b["cellM"])
     nodata = np.isnan(z)
@@ -310,7 +317,7 @@ def main() -> None:
             "bbox": [float(w + vj0 * (e - w) / C), float(nn - vi1 * (nn - s) / R), float(w + vj1 * (e - w) / C), float(nn - vi0 * (nn - s) / R)],
             "cellM": dx, "stepM": STEP_M, "frameBytes": int((vi1 - vi0) * (vj1 - vj0)),
             "params": {"rain": args.rain, "nUrban": args.n_urban, "inflow": args.inflow, "drainMmH": args.drain,
-                       "urbanDemM": args.urban_dem, "channelWidthExp": args.channel_width_exp},
+                       "urbanDemM": args.urban_dem, "streetGround": args.street_ground, "channelWidthExp": args.channel_width_exp},
             "zView": np.round(zc[vi0:vi1, vj0:vj1], 2).tolist(), "builtView": built[vi0:vi1, vj0:vj1].astype(int).tolist(),
             "gaugeCell": [gi, gj], "inflowCell": [ini, inj], "stageX44": stage, "budget": budget,
             "model": "local-inertial shallow water (Bates et al. 2010) on FABDEM 75 m; IMERG x bias, SCS-CN AMC III; "
