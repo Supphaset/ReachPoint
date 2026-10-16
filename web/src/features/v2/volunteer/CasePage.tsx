@@ -19,12 +19,14 @@ export function CasePage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string | null>(null);
   const h = data?.household;
-  const tap = async (kind: "pickedUp" | "nobodyThere") => {
+  const tap = async (kind: "pickedUp" | "nobodyThere" | "atShelter", shelterId?: string) => {
     if (!team) return;
     setBusy(true);
     try {
-      await vol.outcome(id, kind, team);
-      setDone(kind === "pickedUp" ? "Recorded: picked up. The family's phone has been told." : "Recorded: nobody there. The family has been asked where they are.");
+      await vol.outcome(id, kind, team, shelterId);
+      setDone(kind === "pickedUp" ? "Recorded: picked up. The family's phone has been told."
+        : kind === "atShelter" ? "Recorded: checked in at the shelter. Teams will skip the house."
+        : "Recorded: nobody there. The family has been asked where they are.");
       reload();
     } finally {
       setBusy(false);
@@ -89,6 +91,23 @@ export function CasePage() {
                 <DepthChart c={data} />
                 {data.depth ? <p className="v-small">Now about <b>{data.depth.m.toFixed(1)} m</b> (likely {data.depth.lo.toFixed(1)}–{data.depth.hi.toFixed(1)}). The flood model alone says {data.depth.model.toFixed(1)} m; {data.depth.reports} nearby reports correct it.</p> : null}
                 {data.doubtfulWhy ? <p className="v-note">{data.doubtfulWhy}</p> : null}
+              </section>
+              <section className="v2-card v-pad">
+                <h2 className="v-h2">Shelter</h2>
+                {data.shelter && (h.status === "atShelter" || h.status === "toShelter") ? (
+                  <p><b>{h.status === "atShelter" ? "Checked in at" : "Walking to"} {data.shelter.name}</b>. {h.status === "atShelter" ? "Nobody should be at the house." : ""}</p>
+                ) : null}
+                <ul className="v-list">
+                  {data.shelterOptions.map((o) => (
+                    <li key={o.shelterId}>
+                      <b>{o.name}</b> <span className="v-muted v-small">{o.km} km · about {o.minutes} min on foot</span>{" "}
+                      {o.walkable ? <span className="v2-chip is-green">walkable now · deepest {o.deepestM.toFixed(1)} m</span>
+                        : <span className="v2-chip is-red">too deep to walk · {o.deepestM.toFixed(1)} m on the way</span>}
+                      {team && h.status !== "atShelter" ? <button type="button" className="v-linkbtn" disabled={busy} onClick={() => tap("atShelter", o.shelterId)}>Checked in here</button> : null}
+                    </li>
+                  ))}
+                </ul>
+                <p className="v-muted v-small">Checked along the direct line, flood model corrected by nearby reports; streets may differ. Walkable means no stretch deeper than 0.5 m.</p>
               </section>
               <section className="v2-card v-pad">
                 <h2 className="v-h2">Neighbours</h2>

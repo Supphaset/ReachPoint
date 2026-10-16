@@ -63,6 +63,10 @@ DIRECTION_WORDS = {"เหนือ": "north", "ใต้": "south", "ตะว�
 DIRECTION = re.compile(r"(ตะวันออก|ตะวันตก|เหนือ|ใต้|north|south|east|west)", re.I)
 
 
+AT_SHELTER = re.compile(r"(ถึง|อยู่ที่|มาอยู่ที่|พักที่)\s*(ศูนย์พักพิง|ศูนย์อพยพ|จุดอพยพ|ม\.อ\.|มหาวิทยาลัย|วัด\S*|โรงเรียน\S*)(แล้ว)?"
+                        r"|(we'?re|i'?m|we are|i am|arrived|made it)( now)? (at|to) (the )?(shelter|evacuation cent(re|er)|university|temple|school)", re.I)
+
+
 def direction_of(text: str) -> str | None:
     """A compass direction in a short answer ("ทิศเหนือ", "east"), or None."""
     m = DIRECTION.search(text or "")
@@ -80,6 +84,9 @@ def read_rules(text: str, channel: str = "chat") -> Read:
     d = depth_from_words(own)
     if d:
         r.facts.append(Fact("depthRange", [d[0], d[1]], d[2]))
+    m3 = AT_SHELTER.search(own)
+    if m3:
+        r.facts.append(Fact("atShelter", True, m3.group(0)))
     m2 = re.search(r"อยู่คนเดียว|I'?m alone|alone", own, re.I)
     if m2:
         r.facts.append(Fact("people", 1, m2.group(0)))
@@ -157,7 +164,7 @@ def normalise(field: str, value):
             if field != "people" and re.search(r"some|yes|มี|true|one|person|people", value, re.I):
                 return 1
         return None
-    if field == "urgent":
+    if field in ("urgent", "atShelter"):
         return value is True or (isinstance(value, str) and value.lower() in ("true", "yes"))
     if field == "safe":
         if isinstance(value, str):

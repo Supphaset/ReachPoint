@@ -69,9 +69,20 @@ export function OverviewPage() {
             height={480}
             onPick={(id) => nav(`/v/case/${id}`)}
             onZone={(id) => nav(`/v/zone/${id}`)}
+            shelters={data?.shelters}
             zoneTone={Object.fromEntries((data?.zones ?? []).map((z, i) => [z.id, i < 3 && z.score > 0 ? "is-gap-high" : z.open ? "is-gap-mid" : ""]))}
           />
-          <p className="v-muted v-small">Shaded zones: the three with the most help missing.</p>
+          <p className="v-muted v-small">Shaded zones: the three with the most help missing. Green squares: shelters.</p>
+          <h2 className="v-h2">Shelters</h2>
+          <table className="v-table is-compact">
+            <thead><tr><th>Shelter</th><th className="num">Checked in</th><th className="num">On the way</th><th className="num">Room for</th></tr></thead>
+            <tbody>
+              {(data?.shelters ?? []).map((s) => (
+                <tr key={s.id}><td><b>{s.name}</b> <span className="v-muted v-small">{s.kind}</span></td><td className="num">{s.people}</td><td className="num">{s.coming || "–"}</td><td className="num">≈ {s.capacity}</td></tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="v-muted v-small">Candidate shelters: real public buildings from OpenStreetMap that stay dry in the flood model all week and have no deep-water report nearby. Not the official 2025 list; room is estimated from the building size.</p>
         </section>
       </div>
     </VShell>

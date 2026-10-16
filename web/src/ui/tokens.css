@@ -149,6 +149,11 @@
   --household-safe: #4fd18b;
   --household-lost: #ffc53d;
   --house-me: #ffd60a;
+  --shelter: #2ec27e;          /* shelter marker on the satellite map */
+  --shelter-ink: #06331d;
+  --plan-line: #4cc2ff;        /* zones a team plans to come to */
+  --household-shelter: #2ec27e;
+  --household-going: #4cc2ff;
   --house-known: #4fd18b;
   --house-new: #ff9f0a;
   --v2-ink-on-map: #ffffff;

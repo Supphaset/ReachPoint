@@ -101,6 +101,8 @@ export function VShell({ title, sub, at, children }: { title: string; sub?: Reac
 export function StatusChip({ r }: { r: Pick<CaseRow, "status" | "urgent" | "outcome"> }) {
   if (r.outcome?.kind === "pickedUp") return <span className="v2-chip is-green">Picked up · {r.outcome.team}</span>;
   if (r.status === "nobodyThere") return <span className="v2-chip is-amber">Nobody there</span>;
+  if (r.status === "atShelter") return <span className="v2-chip is-green">At a shelter</span>;
+  if (r.status === "toShelter") return <span className="v2-chip is-blue">Walking to a shelter</span>;
   if (r.urgent) return <span className="v2-chip is-red">Urgent</span>;
   if (r.status === "lostContact") return <span className="v2-chip is-amber">Not answering</span>;
   if (r.status === "evacuated") return <span className="v2-chip is-green">Evacuated</span>;
@@ -129,7 +131,7 @@ export function Needs({ r }: { r: CaseRow }) {
 }
 
 /** A small drawn map: zone outlines and household dots, coloured by state. Click a dot to open its case. */
-export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTone, onZone }: {
+export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTone, onZone, shelters }: {
   geo: GeoView | null;
   zoneId?: string;
   rows: Pick<CaseRow, "id" | "lon" | "lat" | "status" | "urgent" | "outcome" | "needs" | "depth">[];
@@ -138,6 +140,7 @@ export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTon
   mark?: string;
   zoneTone?: Record<string, string>;
   onZone?: (id: string) => void;
+  shelters?: { id: string; name: string; lon: number; lat: number; people?: number }[];
 }) {
   const shapes = useMemo(() => {
     if (!geo) return null;
@@ -148,11 +151,11 @@ export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTon
       const polys = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
       for (const p of polys) rings.push({ id: (f.properties as { id: string }).id, ring: p[0] });
     }
-    const pts = rings.flatMap((r) => r.ring);
+    const pts = [...rings.flatMap((r) => r.ring), ...(zoneId ? [] : (shelters ?? []).map((s) => [s.lon, s.lat]))];
     const xs = pts.map((p) => p[0]);
     const ys = pts.map((p) => p[1]);
     return { rings, box: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
-  }, [geo, zoneId]);
+  }, [geo, zoneId, shelters?.length]);
   if (!shapes) return <div className="v-minimap is-loading" style={{ height }} />;
   const [w, s, e, n] = shapes.box;
   const k = Math.cos((((s + n) / 2) * Math.PI) / 180);
@@ -172,6 +175,11 @@ export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTon
           <title>{`Zone ${r.id}`}</title>
         </path>
       ))}
+      {(shelters ?? []).filter((s) => s.lon >= w && s.lon <= e && s.lat >= s0(shapes) && s.lat <= n).map((s) => (
+        <g key={s.id} className="v-shelter">
+          <rect x={px(s.lon) - 6} y={py(s.lat) - 6} width={12} height={12} rx={2}><title>{`${s.name}${s.people !== undefined ? ` · ${s.people} people checked in` : ""}`}</title></rect>
+        </g>
+      ))}
       {rows.filter((r) => r.lon !== null && r.lat !== null).map((r) => (
         <circle
           key={r.id}
@@ -186,6 +194,10 @@ export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTon
       ))}
     </svg>
   );
+}
+
+function s0(shapes: { box: number[] }): number {
+  return shapes.box[1];
 }
 
 export function fmtTags(tags: string[]): { key: string; label: string; tone: string }[] {

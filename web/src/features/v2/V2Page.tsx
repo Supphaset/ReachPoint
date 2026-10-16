@@ -194,6 +194,8 @@ export function V2Page() {
               <span><i className="is-3" />1–2 m</span>
               <span><i className="is-4" />&gt; 2 m</span>
               <span><i className="is-dot" />household</span>
+              <span><i className="is-shelter" />shelter</span>
+              <span><i className="is-plan" />team coming</span>
             </div>
           </div>
           <TimeBar timeline={timeline} viewH={viewing} nowH={nowH} onChange={scrub} playing={playing} onPlay={() => setPlaying((p) => !p)} />

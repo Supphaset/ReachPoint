@@ -103,7 +103,7 @@ export interface BoardState {
     people: number;
     likelyFlooded: number;
     certainty: number;
-    status: { open: number; safe: number; evacuated: number; lostContact: number };
+    status: { open: number; safe: number; evacuated: number; lostContact: number; atShelter?: number; toShelter?: number };
     estimatedHouseholdsAffected: number;
   };
   zones: Record<string, ZoneView>;
@@ -112,6 +112,20 @@ export interface BoardState {
   activity: Activity[];
   outbound: { total: number; byKind: Record<string, number> };
   bulletin: { atH: number; text: string; gaugeM: number; rateMh: number } | null;
+  shelters?: Shelter[];
+}
+
+export interface Shelter {
+  id: string;
+  name: string;
+  nameEn: string | null;
+  kind: string;
+  lon: number;
+  lat: number;
+  capacity: number;
+  households: number;
+  people: number;
+  coming: number;
 }
 
 export interface Timeline {
@@ -192,7 +206,8 @@ export interface CaseRow {
   children: number;
   cannotWalk: number;
   urgent: boolean;
-  status: "open" | "safe" | "evacuated" | "lostContact" | "nobodyThere";
+  status: "open" | "safe" | "evacuated" | "lostContact" | "nobodyThere" | "atShelter" | "toShelter";
+  shelterId?: string | null;
   needs: string[];
   depth: { m: number; lo: number; hi: number; reports: number } | null;
   boat: boolean;
@@ -233,7 +248,10 @@ export interface Overview {
   overall: BoardState["overall"];
   zones: OverviewZone[];
   points: CaseRow[];
+  shelters: Shelter[];
 }
+
+export interface ShelterOption { shelterId: string; name: string; kind: string; lon: number; lat: number; km: number; deepestM: number; walkable: boolean; minutes: number }
 
 export interface FactView { field: string; value: unknown; quote: string }
 
@@ -270,6 +288,8 @@ export interface StoryItem {
 
 export interface CaseView {
   household: CaseRow;
+  shelterOptions: ShelterOption[];
+  shelter: { id: string; name: string } | null;
   unlocked: boolean;
   address: string | null;
   building: { id: string; outline: [number, number][]; groundM: number | null } | null;
@@ -309,8 +329,8 @@ export const vol = {
   feed: (kind?: string, team?: string | null) => get<Feed>(`/api/v2/v/feed?${[kind ? `kind=${kind}` : "", q(team)].filter(Boolean).join("&")}`),
   zone: (id: string, team?: string | null) => get<ZonePage>(`/api/v2/v/zones/${encodeURIComponent(id)}?${q(team)}`),
   case: (id: string, team?: string | null) => get<CaseView>(`/api/v2/v/cases/${encodeURIComponent(id)}?${q(team)}`),
-  outcome: (id: string, outcome: "pickedUp" | "nobodyThere", team: string) =>
-    post<CaseView>(`/api/v2/v/cases/${encodeURIComponent(id)}/outcome`, { outcome, team }),
+  outcome: (id: string, outcome: "pickedUp" | "nobodyThere" | "atShelter", team: string, shelterId?: string) =>
+    post<CaseView>(`/api/v2/v/cases/${encodeURIComponent(id)}/outcome`, { outcome, team, shelterId }),
   trip: (zones: string[], team?: string | null) => get<Trip>(`/api/v2/v/trip?zones=${encodeURIComponent(zones.join(","))}&${q(team)}`),
 };
 

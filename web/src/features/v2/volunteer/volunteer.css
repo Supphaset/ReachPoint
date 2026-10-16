@@ -176,3 +176,9 @@
   min-height: 40px; border-radius: var(--radius-sm); border: var(--border-thin) solid var(--color-line-strong); padding: 0 var(--space-2);
   font: inherit; font-size: var(--text-sm); color: var(--color-ink); background: var(--color-surface); min-width: 0;
 }
+
+.v-shelter rect { fill: var(--shelter); stroke: var(--shelter-ink); stroke-width: 1.5; }
+.v-dot.is-atShelter { fill: var(--household-shelter); }
+.v-dot.is-toShelter { fill: var(--household-going); }
+.v-table.is-compact { min-width: 0; font-size: var(--text-xs); margin-bottom: var(--space-2); }
+.v-linkbtn { margin-left: var(--space-2); border: 0; background: none; color: var(--color-focus); font: inherit; font-size: var(--text-xs); font-weight: var(--weight-bold); cursor: pointer; text-decoration: underline; padding: 0; }

@@ -26,6 +26,13 @@ Q = {
     "askBack": ("น้ำอยู่สูงกว่าหรือต่ำกว่าลูกบิดประตูคะ", "Is the water above or below your door handle?"),
     "nb_dir": ("บ้านที่คุณพูดถึง อยู่ทิศไหนของบ้านคุณคะ เหนือ ใต้ ตะวันออก หรือตะวันตก",
                "Which direction is the house you mentioned from yours: north, south, east or west?"),
+    "shelter": ("ถ้าออกจากบ้านเองได้ ศูนย์พักพิงที่ใกล้ที่สุดคือ {name} ห่างราว {km} กม. (เดินราว {minutes} นาที) ทางที่ลึกที่สุดราว {deep} ม. ไปเองได้ไหมคะ ตอบ \"ไป\" หรือ \"อยู่บ้าน\"",
+                "If you can leave on your own, the nearest shelter is {name}, about {km} km away (about {minutes} min on foot). The deepest water on the way is about {deep} m. Can you go there? Reply \"go\" or \"stay\"."),
+    "shelter_go": ("ดีค่ะ เดินไปทาง {name} ช้าๆ อยู่ห่างคลองและท่อระบายน้ำ ถ้าน้ำลึกเกินเข่าให้หยุดและบอกเรา เมื่อถึงแล้วพิมพ์ว่า \"ถึงแล้ว\" นะคะ",
+                   "Good. Walk slowly towards {name}, away from canals and drains. If the water goes above your knees, stop and tell us. When you arrive, type \"arrived\"."),
+    "shelter_stay": ("ได้ค่ะ อยู่ที่บ้าน ขึ้นที่สูง ปิดไฟฟ้าชั้นล่าง เราแจ้งทีมอาสาให้แล้ว", "OK. Stay at home, go to the highest floor and switch off the power downstairs. We've told the volunteer teams."),
+    "shelter_none": ("ตอนนี้ทางไปศูนย์พักพิงที่ใกล้ที่สุด ({name}) มีน้ำลึกราว {deep} ม. ยังไม่ควรเดินไปเองค่ะ ขึ้นที่สูงไว้ก่อน เราแจ้งทีมเรือแล้ว",
+                     "The way to the nearest shelter ({name}) has water about {deep} m deep, so please don't walk there now. Go to the highest floor; we've told the boat teams."),
     "urgent_done": ("รับทราบค่ะ เป็นกรณีด่วน เรื่องของคุณขึ้นเป็นลำดับแรกแล้ว หากมีคนหายใจไม่ออกหรือบาดเจ็บ โทร 1669 ทันทีค่ะ",
                     "Understood. This is urgent, and your case is at the top now. If anyone can't breathe or is injured, call 1669 now."),
     "done": ("ขอบคุณค่ะ ข้อมูลของคุณอยู่ในระบบแล้ว เมื่อมีทีมวางแผนเข้าโซนของคุณ เราจะแจ้งทันที และจะถามไถ่เป็นระยะนะคะ",
@@ -41,8 +48,9 @@ VAGUE = re.compile(r"เยอะ|มาก|สูง(มาก)?$|ท่วม(
 CITY_HINT = " หาดใหญ่ สงขลา"
 
 
-def say(key: str, lang: str) -> str:
-    return Q[key][0 if lang == "th" else 1]
+def say(key: str, lang: str, **kw) -> str:
+    text = Q[key][0 if lang == "th" else 1]
+    return text.format(**kw) if kw else text
 
 
 def lang_of(text: str, default="th") -> str:
@@ -65,6 +73,7 @@ class Session:
     pending: str | None = "intro"
     transcript: list[dict] = field(default_factory=list)
     neighbour_results: list[dict] = field(default_factory=list)
+    shelter_offer: dict | None = None  # the walkable shelter the agent suggested
     nb_pending: dict | None = None   # a neighbour mentioned without a direction: {"nb": {...}, "quote": "..."}
     finished: bool = False
 
@@ -136,4 +145,7 @@ def _next(s: Session) -> str | None:
     # neighbours only come up when the person mentions one: then ask which way that house is
     if s.nb_pending and "nb_dir" not in s.asked:
         return "nb_dir"
+    # people who can leave on their own: offer the nearest shelter they can walk to
+    if s.shelter_offer and "shelter" not in s.asked and not f.get("cannotWalk", {}).get("value"):
+        return "shelter"
     return None

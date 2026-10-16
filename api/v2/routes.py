@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import threading
 from dataclasses import dataclass, field
 
@@ -243,7 +244,19 @@ def chat_turn(sid: str, body: TurnIn):
         effects = {}
         prefix = ""
         main_msg = None
-        if pending == "nb_dir" and s.nb_pending:
+        if pending == "shelter" and s.shelter_offer:
+            go = re.search(r"^\s*(ไป|ได้|โอเค|ok|okay|yes|go|ไปได้|ไปค่ะ|ไปครับ)", text, re.I) and not re.search(r"ไม่|อยู่บ้าน|stay|no\b", text, re.I)
+            if go:
+                v.seq += 1
+                v.messages.append({"id": f"L{v.seq}", "atH": v.now_h, "channel": body.channel, "text": text, "live": True, "pin": s.pin,
+                                   "sessionId": s.id, "householdHint": s.household_id, "toShelter": True,
+                                   "shelterId": s.shelter_offer["shelterId"], "_read": Read([], reader="rules")})
+                effects["shelter"] = {**s.shelter_offer, "going": True}
+                prefix = I.say("shelter_go", lang, name=s.shelter_offer["name"]) + " "
+            else:
+                effects["shelter"] = {**s.shelter_offer, "going": False}
+                prefix = I.say("shelter_stay", lang) + " "
+        elif pending == "nb_dir" and s.nb_pending:
             from api.v2.reader import direction_of
             side = direction_of(text) or "unknown"
             effects["neighbour"], prefix = _add_neighbour(v, s, side, body.channel, lang)
@@ -293,14 +306,25 @@ def chat_turn(sid: str, body: TurnIn):
             reply = I.say("reply_ok", lang)
             s.pending = None
         else:
+            if s.pin and s.shelter_offer is None and "shelter" not in s.asked and s.facts.get("urgent", {}).get("value") is not True:
+                from api.v2 import shelters as SH
+                opts = SH.options(w, s.pin["lon"], s.pin["lat"])
+                walk = [o for o in opts if o["walkable"]]
+                s.shelter_offer = walk[0] if walk else {}
+                s.shelter_nearest = opts[0] if opts else None
             nxt = I._next(s)
             if nxt:
                 s.asked.append(nxt)
                 s.pending = nxt
-                reply = prefix + I.say(nxt, lang)
+                o = s.shelter_offer or {}
+                reply = prefix + (I.say(nxt, lang, name=o.get("name"), km=o.get("km"), minutes=o.get("minutes"), deep=o.get("deepestM"))
+                                  if nxt == "shelter" else I.say(nxt, lang))
             else:
                 s.pending = None
                 s.finished = True
+                near = getattr(s, "shelter_nearest", None)
+                if s.shelter_offer == {} and near and s.facts.get("urgent", {}).get("value") is not True:
+                    prefix += I.say("shelter_none", lang, name=near["name"], deep=near["deepestM"]) + " "
                 if s.nb_pending and s.pin:  # urgent: no more questions; the neighbour goes in without a direction
                     effects["neighbour"], _ = _add_neighbour(v, s, "unknown", body.channel, lang)
                     st = _state(v)
@@ -391,8 +415,9 @@ def v_case(hid: str, team: str | None = None):
 
 
 class OutcomeIn(BaseModel):
-    outcome: str = Field(pattern="^(pickedUp|nobodyThere)$")
+    outcome: str = Field(pattern="^(pickedUp|nobodyThere|atShelter)$")
     team: str = Field(min_length=1, max_length=80)
+    shelterId: str | None = Field(default=None, max_length=8)
 
 
 @router.post("/v/cases/{hid}/outcome")
@@ -405,8 +430,9 @@ def v_outcome(hid: str, body: OutcomeIn):
             raise HTTPException(404, "No such household")
         v.seq += 1
         v.messages.append({"id": f"L{v.seq}", "atH": v.now_h, "channel": "team", "outcome": body.outcome, "team": body.team.strip(),
-                           "householdHint": hid, "live": True,
-                           "text": f"{body.team.strip()}: " + ("picked them up" if body.outcome == "pickedUp" else "went there, nobody there")})
+                           "householdHint": hid, "live": True, "shelterId": body.shelterId,
+                           "text": f"{body.team.strip()}: " + {"pickedUp": "picked them up", "nobodyThere": "went there, nobody there",
+                                                               "atShelter": "checked them in at the shelter"}[body.outcome]})
     return C.case(_state(v), v.messages, hid, body.team)
 
 

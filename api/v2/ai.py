@@ -58,6 +58,8 @@ Fields:
 - trend: "rising", "steady" or "falling", only when the words say so (e.g. "still rising", "น้ำขึ้น").
 - forwarded: true if the text says it is forwarded or copied.
 - about: "relative" if the writer reports someone else (a relative or friend), not themselves.
+- atShelter: true when they say they have arrived at or are staying at a shelter, evacuation centre, temple,
+  school or university away from home.
 - address: the address or landmark words.
 - neighbour: {side: north|south|east|west|unknown, people?, elderly?, children?} when they mention a neighbouring
   house. side is the compass direction from the writer's house, only if they say it; "next door", "beside us", left,
@@ -70,9 +72,9 @@ SCHEMA = {"type": "object", "properties": {"facts": {"type": "array", "items": {
     "required": ["field", "value", "quote"]}}}, "required": ["facts"]}
 
 # facts the plain words state that a model sometimes leaves out: added back from the rules, with their quote
-ADD_BACK = ("urgent", "depthRange", "cannotWalk", "people", "elderly", "children")
+ADD_BACK = ("atShelter", "urgent", "depthRange", "cannotWalk", "people", "elderly", "children")
 
-FIELDS = {"depthRange", "people", "elderly", "children", "cannotWalk", "urgent", "safe", "trend", "forwarded", "about",
+FIELDS = {"atShelter", "depthRange", "people", "elderly", "children", "cannotWalk", "urgent", "safe", "trend", "forwarded", "about",
           "address", "neighbour"}
 
 

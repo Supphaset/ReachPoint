@@ -319,3 +319,5 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--color-focus
   background: var(--color-surface); color: var(--color-ink); font-size: var(--text-xs); font-weight: var(--weight-bold); text-decoration: none;
 }
 .v2-more { margin: 0; font-size: var(--text-sm); }
+.v2-map-legend .is-shelter { background: var(--shelter); border-radius: 2px; }
+.v2-map-legend .is-plan { background: transparent; border: 2px solid var(--plan-line); }

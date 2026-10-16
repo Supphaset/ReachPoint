@@ -15,7 +15,7 @@ from api.v2 import geo as G, pipeline as P, sim as S
 BOAT_M = 0.5        # boat suggested at or above this depth at the house (Earth's desk threshold, decision 0017)
 DEEP_M = 1.2
 HOUSE_NO = re.compile(r"(บ้านเลขที่\s*|เลขที่\s*|house\s*(?:no\.?\s*)?)\d+(?:\s*/\s*\d+)*|\b\d+\s*/\s*\d+\b", re.I)
-CLOSED = ("safe", "evacuated", "nobodyThere")
+CLOSED = ("safe", "evacuated", "nobodyThere", "atShelter")
 
 
 def mask(text: str) -> str:
@@ -77,6 +77,7 @@ def row(st: dict, h) -> dict:
             "boat": d is not None and d >= BOAT_M, "priority": priority(h, d), "messages": len(h.message_ids),
             "lastHeardH": h.last_heard_h, "lastHeard": P.label_time(h.last_heard_h), "hoursSilent": round(w.now_h - h.last_heard_h, 1),
             "firstHand": h.first_hand, "possibleDuplicateOf": h.possible_duplicate_of, "outcome": h.outcome,
+            "shelterId": h.shelter_id,
             "reportedBy": "family" if h.first_hand else "others only"}
 
 
@@ -113,7 +114,8 @@ def overview(st: dict) -> dict:
     points = [{"id": h.id, "lon": h.lon, "lat": h.lat, "status": h.status, "urgent": h.urgent and h.status not in CLOSED,
                "outcome": h.outcome, "needs": needs(h), "depth": None, "zoneId": h.zone_id}
               for h in w.households.values() if h.lon is not None]
-    return {"atH": w.now_h, "at": P.label_time(w.now_h), "overall": st["overall"], "zones": zones, "points": points}
+    return {"atH": w.now_h, "at": P.label_time(w.now_h), "overall": st["overall"], "zones": zones, "points": points,
+            "shelters": st.get("shelters", [])}
 
 
 # --- live feed: what the AI did with every message ---
@@ -232,8 +234,11 @@ def case(st: dict, room_msgs: list[dict], hid: str, team: str | None = None) -> 
     building = G.load().buildings.get(h.building_id) if h.building_id else None
     zone = st["zones"].get(h.zone_id) if h.zone_id else None
     plans = [p for p in w.plans if h.zone_id in (p.get("zones") or [])]
+    from api.v2 import shelters as SH
+    shelter_opts = SH.options(w, h.lon, h.lat) if h.lon is not None else []
     return {
-        "household": row(st, h), "unlocked": show,
+        "household": row(st, h), "unlocked": show, "shelterOptions": shelter_opts,
+        "shelter": SH.by_id(h.shelter_id),
         "address": (next((f["quote"] for s in story for f in s["facts"] if f["field"] == "address"), None) if show else None),
         "building": building and {"id": building.id, "outline": building.outline, "groundM": building.ground_m},
         "story": story,

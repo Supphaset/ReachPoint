@@ -24,7 +24,7 @@ from api.v2 import geo as G
 from api.v2 import sim as S
 from api.v2 import assim as A
 from api.v2.level import Level, Obs, estimate
-from api.v2.reader import Read, read_rules
+from api.v2.reader import Fact, Read, read_rules
 
 PKG = G.PKG
 CHECK_HOURS = (7, 19)
@@ -59,6 +59,7 @@ class Household:
     last_depth: list[float] | None = None
     phone_key: str | None = None
     checks_unanswered: int = 0
+    shelter_id: str | None = None   # the shelter they are going to or checked in at
     outcome: dict | None = None     # a team's one tap: {"kind": "pickedUp" | "nobodyThere", "team", "atH"}
 
     def view(self):
@@ -67,7 +68,8 @@ class Household:
                 "cannotWalk": self.cannot_walk, "urgent": self.urgent, "status": self.status, "firstHand": self.first_hand,
                 "reportedByOthersOnly": self.reported_by_others_only, "messages": len(self.message_ids),
                 "possibleDuplicateOf": self.possible_duplicate_of, "lastDepth": self.last_depth,
-                "firstAtH": self.first_at_h, "lastHeardH": self.last_heard_h, "outcome": self.outcome}
+                "firstAtH": self.first_at_h, "lastHeardH": self.last_heard_h, "outcome": self.outcome,
+                "shelterId": self.shelter_id}
 
 
 @dataclass
@@ -260,12 +262,32 @@ def _near_first_hand(w: World, pin: dict, zone_id: str, r_m: float):
     return best[1] if best else None
 
 
+def _to_shelter(w: World, hh: Household, msg: dict, r: Read, at: float):
+    from api.v2 import shelters as SH
+    sid = msg.get("shelterId") or hh.shelter_id
+    if sid is None and hh.lon is not None and SH.load():
+        sid = min(SH.load(), key=lambda s: math.hypot(*(a - b for a, b in zip(G.to_m(hh.lon, hh.lat), G.to_m(s["lon"], s["lat"])))))["id"]
+    hh.shelter_id = sid
+    arrived = bool(r.get("atShelter"))
+    hh.status = "atShelter" if arrived else "toShelter"
+    hh.urgent = False if arrived else hh.urgent
+    name = (SH.by_id(sid) or {}).get("name", "a shelter")
+    _log(w, "Planner", f"{hh.id} ({hh.zone_id}) {'checked in at' if arrived else 'is walking to'} {name}. "
+         + ("Not at home: teams can skip the house." if arrived else "Teams see them as on the way."), "shelters · walk check", at, msg["id"],
+         "atShelter" if arrived else "toShelter")
+
+
 def _outcome(w: World, msg: dict):
     """A team's one tap on a case: picked up, or nobody there. The family's phone is told."""
     hh = w.households.get(msg.get("householdHint") or "")
     if hh is None:
         return
     kind, team, at = msg["outcome"], msg.get("team") or "A team", msg["atH"]
+    if kind == "atShelter":  # shelter staff or a team checks the family in
+        hh.message_ids.append(msg["id"])
+        w.msg_link[msg["id"]] = {"householdId": hh.id, "how": "shelter check-in", "kind": "team"}
+        _to_shelter(w, hh, {"id": msg["id"], "shelterId": msg.get("shelterId")}, Read([Fact("atShelter", True, "check-in")]), at)
+        return
     hh.outcome = {"kind": kind, "team": team, "atH": at, "at": label_time(at)}
     hh.status = "evacuated" if kind == "pickedUp" else "nobodyThere"
     if kind == "pickedUp":
@@ -380,8 +402,10 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
         w.texts.setdefault(base, hh.id)
     _merge_people(hh, r, first_hand)
     safe = r.get("safe")
-    if hh.outcome:
-        pass  # a team was there: its tap stands over later messages
+    if r.get("atShelter") or msg.get("toShelter"):
+        _to_shelter(w, hh, msg, r, at)
+    elif hh.outcome or hh.status == "atShelter":
+        pass  # a team was there, or they are at a shelter: that stands over later messages
     elif safe == "evacuated":
         hh.status = "evacuated"
     elif safe and not r.get("urgent"):

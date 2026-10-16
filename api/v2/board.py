@@ -134,7 +134,7 @@ def overall(w) -> dict:
     return {"messages": w.messages_in, "channels": w.channels, "households": len(w.households),
             "duplicatesMerged": w.duplicates, "people": people, "likelyFlooded": round(flooded),
             "certainty": round(csum / wsum, 2) if wsum else 0.0,
-            "status": {k: sum(1 for h in w.households.values() if h.status == k) for k in ("open", "safe", "evacuated", "lostContact")},
+            "status": {k: sum(1 for h in w.households.values() if h.status == k) for k in ("open", "safe", "evacuated", "lostContact", "atShelter", "toShelter")},
             "estimatedHouseholdsAffected": round(flooded / PEOPLE_PER_HOUSEHOLD)}
 
 
@@ -147,7 +147,12 @@ def state(now_h: float, extra_messages=None, extra_plans=None, alerts=None, pull
     return {"atH": now_h, "at": P.label_time(now_h), "overall": overall(w), "zones": zones,
             "households": [h.view() for h in w.households.values()], "plans": w.plans, "activity": acts[::-1],
             "outbound": {"total": len(out), "byKind": _count(out, "kind"), "recent": out[-12:][::-1]},
-            "bulletin": w.bulletin, "world": w}
+            "bulletin": w.bulletin, "shelters": _shelters(w), "world": w}
+
+
+def _shelters(w):
+    from api.v2 import shelters as SH
+    return SH.occupancy(w)
 
 
 def _count(rows, key):

@@ -71,10 +71,34 @@ function zoneFill(state: BoardState | null, id: string): string {
 }
 
 function householdColor(h: HouseholdView): string {
+  if ((h.status as string) === "atShelter") return cssVar("--household-shelter");
+  if ((h.status as string) === "toShelter") return cssVar("--household-going");
   if (h.status === "lostContact") return cssVar("--household-lost");
   if (h.status === "safe" || h.status === "evacuated") return cssVar("--household-safe");
   if (h.urgent) return cssVar("--household-urgent");
   return cssVar("--household-open");
+}
+
+function planned(state: BoardState | null, zid: string): boolean {
+  return !!state?.plans.some((p) => (p.zones ?? []).includes(zid));
+}
+
+export function zoneCenter(geo: GeoView, zid: string): [number, number] | null {
+  const f = geo.zones.features.find((x) => (x.properties as { id: string }).id === zid);
+  if (!f) return null;
+  const g = f.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
+  const ring = g.type === "Polygon" ? g.coordinates[0] : g.coordinates[0][0];
+  const xs = ring.map((p) => p[0]);
+  const ys = ring.map((p) => p[1]);
+  return [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2];
+}
+
+export function shortName(name: string): string {
+  return name.replace("มหาวิทยาลัยสงขลานครินทร์", "ม.อ.").replace(/^โรงเรียน\s*/, "รร.").slice(0, 18);
+}
+
+function vehicleWord(v: string | null): string {
+  return ({ boat: "Boat", "jet ski": "Jet ski", truck: "Truck", "high truck": "High truck", pickup: "Pickup" } as Record<string, string>)[v ?? ""] ?? "Team";
 }
 
 export function BoardMap(props: Props) {
@@ -96,6 +120,7 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
   const zones = useRef<Maps>(null);
   const dots = useRef<Maps>(null);
   const marks = useRef<Maps>(null);
+  const pins = useRef<Maps[]>([]);
   const select = useRef(onSelect);
   select.current = onSelect;
 
@@ -156,8 +181,8 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       return {
         fillColor: zoneFill(state, id),
         fillOpacity: simMode !== "off" ? 0.04 : known ? 0.55 : 0.28,
-        strokeColor: id === selected ? cssVar("--house-me") : line,
-        strokeWeight: id === selected ? 3 : 1,
+        strokeColor: id === selected ? cssVar("--house-me") : planned(state, id) ? cssVar("--plan-line") : line,
+        strokeWeight: id === selected ? 3 : planned(state, id) ? 3 : 1,
         strokeOpacity: 0.9,
       };
     });
@@ -200,6 +225,37 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       return { fillColor: c, fillOpacity: 0.75, strokeColor: c, strokeWeight: 2, zIndex: 10, clickable: false };
     });
   }, [houses]);
+
+  // shelters and team plans: labelled pins that update as people check in and teams post plans
+  useEffect(() => {
+    if (!map.current || !state || !geo) return;
+    pins.current.forEach((p) => p.setMap(null));
+    pins.current = [];
+    for (const s of state.shelters ?? []) {
+      pins.current.push(new maps.Marker({
+        map: map.current,
+        position: { lng: s.lon, lat: s.lat },
+        title: `${s.name} · ${s.people} people checked in${s.coming ? ` · ${s.coming} on the way` : ""} · room for about ${s.capacity}`,
+        icon: { path: "M -7 -7 L 7 -7 L 7 7 L -7 7 Z", fillColor: cssVar("--shelter"), fillOpacity: 1, strokeColor: cssVar("--shelter-ink"), strokeWeight: 2, scale: 1, labelOrigin: new maps.Point(0, 20) },
+        label: { text: `${shortName(s.name)} · ${s.people}`, color: cssVar("--v2-ink-on-map"), fontSize: "11px", fontWeight: "600" },
+        zIndex: 20,
+      }));
+    }
+    const latest = new Map<string, (typeof state.plans)[number]>();
+    for (const p of state.plans) for (const z of p.zones ?? []) latest.set(z, p);
+    for (const [zid, p] of latest) {
+      const c = zoneCenter(geo, zid);
+      if (!c) continue;
+      pins.current.push(new maps.Marker({
+        map: map.current,
+        position: { lng: c[0], lat: c[1] },
+        title: p.text ?? "",
+        icon: { path: maps.SymbolPath.FORWARD_CLOSED_ARROW, fillColor: cssVar("--plan-line"), fillOpacity: 1, strokeColor: cssVar("--v2-phone-bg"), strokeWeight: 1, scale: 5, labelOrigin: new maps.Point(0, 5) },
+        label: { text: `${vehicleWord(p.vehicle)}${p.eta ? ` ≈ ${p.eta.slice(-5)}` : ""}`, color: cssVar("--v2-ink-on-map"), fontSize: "11px", fontWeight: "600" },
+        zIndex: 19,
+      }));
+    }
+  }, [state, maps, geo]);
 
   useEffect(() => {
     if (focus && map.current) {

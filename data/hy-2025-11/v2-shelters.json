@@ -1,0 +1,86 @@
+{
+ "package": "hy-2025-11",
+ "source": "OpenStreetMap public buildings (ODbL); dry all week in the published flood model",
+ "note": "Candidate shelters for the demo, not the official 2025 evacuation-centre list. Capacity estimated from footprint.",
+ "shelters": [
+  {
+   "id": "S01",
+   "name": "มหาวิทยาลัยสงขลานครินทร์",
+   "nameEn": "Prince of Songkla University",
+   "kind": "University",
+   "lon": 100.495958,
+   "lat": 7.00966,
+   "zoneId": null,
+   "groundM": null,
+   "capacity": 1530,
+   "maxModelDepthM": 0.0,
+   "osm": "node/841335886",
+   "buildings": 15
+  },
+  {
+   "id": "S02",
+   "name": "โรงเรียน มอ.วิทยานุสรณ์",
+   "nameEn": null,
+   "kind": "School",
+   "lon": 100.506996,
+   "lat": 7.001082,
+   "zoneId": null,
+   "groundM": null,
+   "capacity": 200,
+   "maxModelDepthM": 0.0,
+   "osm": "way/1381687948"
+  },
+  {
+   "id": "S03",
+   "name": "วัดคลองเรียน",
+   "nameEn": "Wat Klong Rian",
+   "kind": "Temple or mosque",
+   "lon": 100.486307,
+   "lat": 6.999076,
+   "zoneId": "B-11",
+   "groundM": 11.97,
+   "capacity": 220,
+   "maxModelDepthM": 0.0,
+   "osm": "node/1680665784"
+  },
+  {
+   "id": "S04",
+   "name": "สวนธรรมสากล",
+   "nameEn": null,
+   "kind": "Temple or mosque",
+   "lon": 100.446958,
+   "lat": 6.990544,
+   "zoneId": null,
+   "groundM": null,
+   "capacity": 200,
+   "maxModelDepthM": 0.0,
+   "osm": "node/4367178493"
+  },
+  {
+   "id": "S05",
+   "name": "วัดคลองแห",
+   "nameEn": null,
+   "kind": "Temple or mosque",
+   "lon": 100.474243,
+   "lat": 7.045147,
+   "zoneId": null,
+   "groundM": null,
+   "capacity": 200,
+   "maxModelDepthM": 0.0,
+   "osm": "way/449684239"
+  },
+  {
+   "id": "S06",
+   "name": "Hatyai City Bodhisattva Guanyin",
+   "nameEn": null,
+   "kind": "Temple or mosque",
+   "lon": 100.508571,
+   "lat": 7.040466,
+   "zoneId": null,
+   "groundM": null,
+   "capacity": 200,
+   "maxModelDepthM": 0.0,
+   "osm": "way/1156247873"
+  }
+ ]
+}
