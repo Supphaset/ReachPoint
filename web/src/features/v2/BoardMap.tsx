@@ -126,7 +126,7 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       cv.className = "v2-flood-canvas";
       const O = class extends maps.OverlayView {
         onAdd() {
-          this.getPanes().overlayLayer.appendChild(cv);
+          this.getPanes().mapPane.appendChild(cv); // under the zones, dots and houses
         }
         draw() {
           const p = this.getProjection();

@@ -48,6 +48,8 @@ BED0_M = -0.5     # U-Tapao bed at the gauge (m above sea level)
 BED_SLOPE = 0.35  # bed rise upstream, m per km
 VIEW = [100.426, 6.985, 100.509, 7.051]         # the city display window (same as v2-terrain)
 STEP_M = 0.04
+CFL = 0.5
+FROUDE = 1.0
 
 # ESA WorldCover classes -> Manning n and SCS curve number (AMC II)
 LC = {10: (0.10, 70), 20: (0.07, 74), 30: (0.05, 79), 40: (0.06, 81), 50: (0.12, 95), 60: (0.035, 86),
@@ -233,7 +235,7 @@ def main() -> None:
     snapshot(0)
     while hour < args.hours:
         hmax = float(h[~fixed].max())
-        dt = min(30.0, 0.7 * dx / math.sqrt(G * max(hmax, 0.05)))
+        dt = min(30.0, CFL * dx / math.sqrt(G * max(hmax, 0.05)))
         t_next = (hour + 1) * 3600.0
         dt = min(dt, t_next - tsim)
         eta = zc + h
@@ -242,10 +244,14 @@ def main() -> None:
         wet = hf > 1e-3
         slope = (eta[:, 1:] - eta[:, :-1]) / dx
         qx = np.where(wet, (qx - G * hf * dt * slope) / (1 + G * nx2 * dt * np.abs(qx) / np.maximum(hf, 1e-3) ** (7 / 3)), 0.0)
+        cap = FROUDE * hf * np.sqrt(G * hf)  # no faster than critical flow (keeps steep slopes stable)
+        qx = np.clip(qx, -cap, cap)
         hf = np.maximum(np.maximum(eta[:-1, :], eta[1:, :]) - zy, 0.0)
         wet = hf > 1e-3
         slope = (eta[1:, :] - eta[:-1, :]) / dx
         qy = np.where(wet, (qy - G * hf * dt * slope) / (1 + G * ny2 * dt * np.abs(qy) / np.maximum(hf, 1e-3) ** (7 / 3)), 0.0)
+        cap = FROUDE * hf * np.sqrt(G * hf)
+        qy = np.clip(qy, -cap, cap)
         # limit outgoing volume to what each cell holds
         out = np.zeros((R, C), np.float32)
         out[:, :-1] += np.maximum(qx, 0)

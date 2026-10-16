@@ -41,8 +41,8 @@ def main(run: str, as_truth: bool = False) -> None:
     t = json.loads((PKG / "v2-terrain.json").read_text())
     zf = np.array([[np.nan if v is None else v for v in r] for r in t["z"]], dtype=np.float32)
     # the same urban terrain correction as the model run, on built-up 30 m cells (WorldCover from the basin grid)
-    off = meta["params"].get("urbanDemM", 0.0)
-    if off:
+    udem = meta["params"].get("urbanDemM", 0.0)
+    if udem:
         bw, bs, be, bn = b["bbox"]
         lcb = np.array(b["landcover"])
         tw, ts, te, tn = t["bbox"]
@@ -50,7 +50,7 @@ def main(run: str, as_truth: bool = False) -> None:
         lo = tw + (np.arange(t["cols"]) + 0.5) * (te - tw) / t["cols"]
         bi = np.clip(((bn - la) / (bn - bs) * lcb.shape[0]).astype(int), 0, lcb.shape[0] - 1)
         bj = np.clip(((lo - bw) / (be - bw) * lcb.shape[1]).astype(int), 0, lcb.shape[1] - 1)
-        zf = np.where(lcb[bi][:, bj] == 50, zf - off, zf)
+        zf = np.where(lcb[bi][:, bj] == 50, zf - udem, zf)
     R, C = zf.shape
     w, s, e, n = t["bbox"]
     lat = n - (np.arange(R) + 0.5) * (n - s) / R

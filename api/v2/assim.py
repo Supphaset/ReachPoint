@@ -19,7 +19,8 @@ from dataclasses import dataclass
 import numpy as np
 
 L_M = 300.0       # how far one report's information spreads
-T_H = 4.0         # how long it stays relevant
+T_H = 12.0        # how long it stays relevant (floodwater stayed for days; check-ins come every 12 h)
+CHECK_H = 8.0     # the doubtful check compares reports within this many hours
 SB = 0.75         # how wrong the model may be (m)
 SOURCE_MULT = {"self": 1.0, "reply": 1.0, "neighbour": 1.5, "relative": 1.5, "post": 2.0}
 MAX_NEAR = 25
@@ -73,7 +74,7 @@ class Index:
 def analyse(obs, x: float, y: float, t: float, prior: float) -> tuple[float, float, int]:
     """(analysis depth, standard deviation, reports used) at one point and time, from past reports only."""
     pool = obs.near(x, y) if isinstance(obs, Index) else obs
-    near = [o for o in pool if o.t <= t + 1e-6 and t - o.t <= 3 * T_H and (o.x - x) ** 2 + (o.y - y) ** 2 <= (3 * L_M) ** 2]
+    near = [o for o in pool if o.t <= t + 1e-6 and t - o.t <= 2 * T_H and (o.x - x) ** 2 + (o.y - y) ** 2 <= (3 * L_M) ** 2]
     if not near:
         return max(0.0, prior), SB, 0
     near.sort(key=lambda o: (o.x - x) ** 2 + (o.y - y) ** 2 + ((t - o.t) * 100) ** 2)
@@ -100,7 +101,7 @@ def check(obs: list[Ob], z_limit: float = 2.0, known: dict | None = None) -> dic
         if known and o.id in known:
             o.doubtful, expect[o.id] = known[o.id]
             continue
-        others = [q for q in idx.near(o.x, o.y) if q is not o and abs(q.t - o.t) <= 2 * T_H
+        others = [q for q in idx.near(o.x, o.y) if q is not o and abs(q.t - o.t) <= CHECK_H
                   and (q.x - o.x) ** 2 + (q.y - o.y) ** 2 <= (3 * L_M) ** 2]
         # the others, shifted to this report's time so reports either side count
         shifted = [Ob(q.id, q.x, q.y, o.t - abs(q.t - o.t), q.lo, q.hi, q.source, q.prior, q.doubtful) for q in others]
@@ -112,7 +113,7 @@ def check(obs: list[Ob], z_limit: float = 2.0, known: dict | None = None) -> dic
         if n >= 2 and resid > 0.5 and resid > z_limit * math.sqrt(sd ** 2 + s_exp ** 2):
             o.doubtful = True
         # consensus: this report's difference from the model against the typical difference of its close neighbours
-        close = [q for q in others if (q.x - o.x) ** 2 + (q.y - o.y) ** 2 <= 400 ** 2 and abs(q.t - o.t) <= 6]
+        close = [q for q in idx.near(o.x, o.y) if q is not o and (q.x - o.x) ** 2 + (q.y - o.y) ** 2 <= 600 ** 2 and abs(q.t - o.t) <= 6]
         if len(close) >= 3:
             gaps = sorted(q.mid - q.prior for q in close)
             med = gaps[len(gaps) // 2]

@@ -445,8 +445,8 @@ def assimilate(w: World) -> None:
         if o.at_h > w.now_h or o.source == "forward":  # a forwarded copy adds no independent evidence
             continue
         obs.append(A.Ob(o.message_id, o.x, o.y, o.at_h, o.lo, o.hi, o.source, o.prior))  # keyed by message: stable across runs
-    # a report's verdict depends only on reports within 2 T_H of it, so once those are all in the past it is final
-    settled = {o.message_id for o in w.obs if not o.message_id.startswith("L") and not w_burst(o) and o.at_h < w.now_h - 2 * A.T_H}
+    # a report's verdict depends only on reports within CHECK_H of it, so once those are all in the past it is final
+    settled = {o.message_id for o in w.obs if not o.message_id.startswith("L") and not w_burst(o) and o.at_h < w.now_h - A.CHECK_H}
     known = {k: v for k, v in _CHECKED.items() if k in settled}
     expect = A.check(obs, known=known)
     for a in obs:

@@ -10,9 +10,20 @@ from api.v2.reader import read_rules  # noqa: E402
 
 def test_scenario_households_are_counted_once_and_levels_track_the_truth():
     w = P.run(100)
-    truth = {z: dict(v) for z, v in P.scenario()["truth"]["wseByZone"].items()}
-    errs = [abs(l.wse_m - truth[z][99]) for z, l in w.levels.items() if l.wse_m and truth[z].get(99)]
-    assert errs and sum(errs) / len(errs) < 0.5  # zone-wide surfaces; household depth is checked in eval_v2
+    # depth at households: the model corrected by the other reports beats the model alone (truth is a different run)
+    sample = [m for m in P.scenario()["messages"] if m["kind"] in ("self", "reply") and 60 < m["atH"] <= 100
+              and m["truth"].get("trueDepthM") is not None][::5]
+    both = model = 0.0
+    for m in sample:
+        own = [o for o in w.assim_index.obs if o.id == m["id"]]
+        for o in own:
+            o.t += 1e6
+        d, sd, n, prior = P.local_depth(w, m["pin"]["lon"], m["pin"]["lat"], m["atH"])
+        for o in own:
+            o.t -= 1e6
+        both += abs(d - m["truth"]["trueDepthM"])
+        model += abs(prior - m["truth"]["trueDepthM"])
+    assert sample and both < model
     msgs = [m for m in P.scenario()["messages"] if m["atH"] <= 100]
     true_heard = {m["truth"]["about"] for m in msgs if m["truth"].get("about")} | \
                  {m["truth"]["neighbour"]["neighbourHousehold"] for m in msgs if m["truth"].get("neighbour")}
