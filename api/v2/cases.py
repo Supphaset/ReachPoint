@@ -115,7 +115,7 @@ def overview(st: dict) -> dict:
                "outcome": h.outcome, "needs": needs(h), "depth": None, "zoneId": h.zone_id}
               for h in w.households.values() if h.lon is not None]
     return {"atH": w.now_h, "at": P.label_time(w.now_h), "overall": st["overall"], "zones": zones, "points": points,
-            "shelters": st.get("shelters", [])}
+            "shelters": st.get("shelters", []), "hotspots": [c for c in subareas(st) if c["need"] > 0][:10]}
 
 
 # --- live feed: what the AI did with every message ---
@@ -267,6 +267,7 @@ def zone(st: dict, zid: str, team: str | None = None) -> dict | None:
     open_ = [r for r in rs if r["status"] not in CLOSED]
     brief = briefing(z, open_, outlook)
     return {"zone": z, "households": rs, "outlook": outlook, "briefing": brief, "unlocked": unlocked(w, team, zid),
+            "subareas": subareas(st, zid),
             "totals": {"open": len(open_), "people": sum(r["people"] or 1 for r in open_),
                        "boat": sum(1 for r in open_ if r["boat"]), "closed": len(rs) - len(open_)},
             "now": {"atH": w.now_h, "at": P.label_time(w.now_h)}}
@@ -326,3 +327,53 @@ def trip(st: dict, zones: list[str], team: str | None = None) -> dict:
     total = sum(z["people"] for z in out)
     return {"zones": out, "people": total, "boatNeeded": any(z["boat"] for z in out),
             "now": {"atH": w.now_h, "at": P.label_time(w.now_h)}}
+
+
+# --- smaller areas: ~350 m blocks inside a zone, named after their main street ---
+SUB_M = 350.0
+
+
+def _street_of(geo, h) -> str | None:
+    b = geo.buildings.get(h.building_id) if h.building_id else None
+    if b is None:
+        return None
+    f = geo.facing(b)
+    return f and (f.street_th or f.street)
+
+
+def subareas(st: dict, zid: str | None = None) -> list[dict]:
+    """Households grouped into ~350 m blocks (zone-scoped), each with its need and a street name people know."""
+    geo = G.load()
+    w = st["world"]
+    cells: dict = {}
+    for h in w.households.values():
+        if h.lon is None or (zid and h.zone_id != zid) or not h.zone_id:
+            continue
+        x, y = G.to_m(h.lon, h.lat)
+        key = (h.zone_id, int(x // SUB_M), int(y // SUB_M))
+        cells.setdefault(key, []).append(h)
+    out = []
+    # readable, stable ids: B-7·1, B-7·2 … numbered north-west to south-east within the zone
+    order = {}
+    for z in {k[0] for k in cells}:
+        for n, k in enumerate(sorted((k for k in cells if k[0] == z), key=lambda k: (-k[2], k[1])), 1):
+            order[k] = n
+    for (z, i, j), hs in cells.items():
+        rs = [row(st, h) for h in hs]
+        open_ = [r for r in rs if r["status"] not in CLOSED]
+        streets: dict = {}
+        for h in hs:
+            n = _street_of(geo, h)
+            if n:
+                streets[n] = streets.get(n, 0) + 1
+        name = max(streets, key=streets.get) if streets else None
+        ds = sorted(r["depth"]["m"] for r in open_ if r["depth"])
+        lon0, lat0 = G.to_ll(i * SUB_M, j * SUB_M)
+        lon1, lat1 = G.to_ll((i + 1) * SUB_M, (j + 1) * SUB_M)
+        need = sum(r["priority"] for r in open_)
+        out.append({"id": f"{z}·{order[(z, i, j)]}", "zoneId": z, "name": name, "bbox": [lon0, lat0, lon1, lat1],
+                    "open": len(open_), "people": sum(r["people"] or 1 for r in open_), "urgent": sum(1 for r in open_ if r["urgent"]),
+                    "lostContact": sum(1 for r in open_ if r["status"] == "lostContact"), "cannotWalk": sum(r["cannotWalk"] for r in open_),
+                    "boat": sum(1 for r in open_ if r["boat"]), "depthM": ds[len(ds) // 2] if ds else None, "need": need,
+                    "households": [r["id"] for r in sorted(open_, key=lambda r: -r["priority"])][:8]})
+    return sorted(out, key=lambda c: -c["need"])

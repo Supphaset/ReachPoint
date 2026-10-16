@@ -33,6 +33,21 @@ export function OverviewPage() {
           <Link to={`/v/zone/${top.id}`}>Open zone {top.id} →</Link>
         </p>
       ) : null}
+      {data?.hotspots.length ? (
+        <section className="v2-card v-pad" aria-label="Smaller areas with the most help missing">
+          <h2 className="v-h2">Hotspots: smaller areas (about 350 m) with the most help missing</h2>
+          <ol className="v-hot">
+            {data.hotspots.slice(0, 8).map((c) => (
+              <li key={c.id}>
+                <Link to={`/v/zone/${c.zoneId}#${encodeURIComponent(c.id)}`}><b>{c.name ?? c.id}</b></Link>
+                <span className="v-muted v-small">{c.id}</span>
+                <span className="v-small">{c.open} waiting{c.urgent ? <> · <b className="is-red">{c.urgent} urgent</b></> : null}{c.cannotWalk ? ` · ${c.cannotWalk} can't walk` : ""}</span>
+                <Depth m={c.depthM} />
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
       <div className="v-split">
         <div className="v-tablewrap">
           <table className="v-table">

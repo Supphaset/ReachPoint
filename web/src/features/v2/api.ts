@@ -260,6 +260,23 @@ export interface Overview {
   zones: OverviewZone[];
   points: CaseRow[];
   shelters: Shelter[];
+  hotspots: SubArea[];
+}
+
+export interface SubArea {
+  id: string;
+  zoneId: string;
+  name: string | null;
+  bbox: [number, number, number, number];
+  open: number;
+  people: number;
+  urgent: number;
+  lostContact: number;
+  cannotWalk: number;
+  boat: number;
+  depthM: number | null;
+  need: number;
+  households: string[];
 }
 
 export interface ShelterOption { shelterId: string; name: string; kind: string; lon: number; lat: number; km: number; deepestM: number; walkable: boolean; minutes: number }
@@ -323,6 +340,7 @@ export interface ZonePage {
   outlook: { inH: number; wetShare: number; surfaceM: number | null }[];
   briefing: string;
   unlocked: boolean;
+  subareas: SubArea[];
   totals: { open: number; people: number; boat: number; closed: number };
   now: { atH: number; at: string };
 }

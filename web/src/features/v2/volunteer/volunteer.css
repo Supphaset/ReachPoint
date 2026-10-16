@@ -182,3 +182,14 @@
 .v-dot.is-toShelter { fill: var(--household-going); }
 .v-table.is-compact { min-width: 0; font-size: var(--text-xs); margin-bottom: var(--space-2); }
 .v-linkbtn { margin-left: var(--space-2); border: 0; background: none; color: var(--color-focus); font: inherit; font-size: var(--text-xs); font-weight: var(--weight-bold); cursor: pointer; text-decoration: underline; padding: 0; }
+
+.v-cell { fill: var(--color-red); stroke: var(--color-surface); stroke-width: 1; }
+.v-cell.is-high { fill-opacity: 0.38; }
+.v-cell.is-mid { fill-opacity: 0.2; }
+.v-cell.is-low { fill-opacity: 0.07; }
+.v-cell.is-link { cursor: pointer; }
+.v-hot { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
+.v-hot li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: var(--space-2); align-items: baseline; padding: var(--space-1) 0; border-bottom: var(--border-thin) solid var(--color-line); }
+.v-hot li.is-on { background: var(--color-waiting-bg); }
+.v-hot li:last-child { border-bottom: 0; }
+@media (max-width: 600px) { .v-hot li { grid-template-columns: minmax(0, 1fr) auto; } }

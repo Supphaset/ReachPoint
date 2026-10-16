@@ -11,9 +11,12 @@ export function ZonePage() {
   const geo = useGeo();
   const nav = useNavigate();
   const [showClosed, setShowClosed] = useState(false);
+  const [area, setArea] = useState<string | null>(() => decodeURIComponent(window.location.hash.slice(1)) || null);
   const z = data?.zone;
   const l = z?.level;
-  const rows = (data?.households ?? []).filter((r) => showClosed || !["safe", "evacuated", "nobodyThere"].includes(r.status));
+  const inArea = area ? new Set(data?.subareas.find((c) => c.id === area)?.households ?? []) : null;
+  const rows = (data?.households ?? []).filter((r) => (showClosed || !["safe", "evacuated", "nobodyThere", "atShelter"].includes(r.status))
+    && (!inArea || inArea.has(r.id)));
   return (
     <VShell title={`Zone ${id}`} sub={z?.district ?? undefined} at={data?.now.at}>
       {error ? <p className="v2-error">Couldn't load zone {id}: {error}</p> : null}
@@ -72,7 +75,7 @@ export function ZonePage() {
           <div className="v-split">
             <section className="v-tablewrap" aria-label="Families by priority">
               <div className="v-tablehead">
-                <h2 className="v-h2">Families by priority</h2>
+                <h2 className="v-h2">Families by priority{area ? <> in {data.subareas.find((c) => c.id === area)?.name ?? area} <button type="button" className="v-linkbtn" onClick={() => setArea(null)}>show all</button></> : null}</h2>
                 <label className="v-small"><input type="checkbox" checked={showClosed} onChange={(e) => setShowClosed(e.target.checked)} /> show safe and picked up</label>
               </div>
               <FamilyTable rows={rows} onOpen={(hid) => nav(`/v/case/${hid}`)} />
@@ -80,7 +83,20 @@ export function ZonePage() {
             </section>
             <section className="v2-card v-pad">
               <h2 className="v-h2">Map of zone {id}</h2>
-              <MiniMap geo={geo} zoneId={id} rows={data.households} onPick={(hid) => nav(`/v/case/${hid}`)} height={460} />
+              <MiniMap geo={geo} zoneId={id} rows={data.households} onPick={(hid) => nav(`/v/case/${hid}`)} height={460}
+                cells={data.subareas} onCell={(cid) => setArea(cid)} />
+              <p className="v-muted v-small">Squares: smaller areas of about 350 m, darker where more help is missing. Tap one to list its families.</p>
+              <h3 className="v-h2">Smaller areas</h3>
+              <ol className="v-hot">
+                {data.subareas.filter((c) => c.open).slice(0, 10).map((c) => (
+                  <li key={c.id} className={area === c.id ? "is-on" : ""}>
+                    <button type="button" className="v-linkbtn" onClick={() => setArea(area === c.id ? null : c.id)}><b>{c.name ?? c.id}</b></button>
+                    <span className="v-muted v-small">{c.id}</span>
+                    <span className="v-small">{c.open} waiting{c.urgent ? ` · ${c.urgent} urgent` : ""}{c.cannotWalk ? ` · ${c.cannotWalk} can't walk` : ""}</span>
+                    <Depth m={c.depthM} />
+                  </li>
+                ))}
+              </ol>
             </section>
           </div>
         </>

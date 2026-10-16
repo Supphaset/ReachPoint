@@ -131,7 +131,7 @@ export function Needs({ r }: { r: CaseRow }) {
 }
 
 /** A small drawn map: zone outlines and household dots, coloured by state. Click a dot to open its case. */
-export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTone, onZone, shelters }: {
+export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTone, onZone, shelters, cells, onCell }: {
   geo: GeoView | null;
   zoneId?: string;
   rows: Pick<CaseRow, "id" | "lon" | "lat" | "status" | "urgent" | "outcome" | "needs" | "depth">[];
@@ -141,6 +141,8 @@ export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTon
   zoneTone?: Record<string, string>;
   onZone?: (id: string) => void;
   shelters?: { id: string; name: string; lon: number; lat: number; people?: number }[];
+  cells?: { id: string; name: string | null; bbox: [number, number, number, number]; need: number; open: number }[];
+  onCell?: (id: string) => void;
 }) {
   const shapes = useMemo(() => {
     if (!geo) return null;
@@ -175,6 +177,16 @@ export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTon
           <title>{`Zone ${r.id}`}</title>
         </path>
       ))}
+      {(cells ?? []).map((c) => {
+        const top = Math.max(...(cells ?? []).map((x) => x.need), 1);
+        const tone = c.need >= top * 0.5 ? "is-high" : c.need >= top * 0.2 ? "is-mid" : "is-low";
+        return (
+          <rect key={c.id} x={px(c.bbox[0])} y={py(c.bbox[3])} width={px(c.bbox[2]) - px(c.bbox[0])} height={py(c.bbox[1]) - py(c.bbox[3])}
+            className={`v-cell ${tone}${onCell ? " is-link" : ""}`} onClick={onCell ? () => onCell(c.id) : undefined}>
+            <title>{`${c.id}${c.name ? ` · ${c.name}` : ""} · ${c.open} families waiting`}</title>
+          </rect>
+        );
+      })}
       {(shelters ?? []).filter((s) => s.lon >= w && s.lon <= e && s.lat >= s0(shapes) && s.lat <= n).map((s) => (
         <g key={s.id} className="v-shelter">
           <rect x={px(s.lon) - 6} y={py(s.lat) - 6} width={12} height={12} rx={2}><title>{`${s.name}${s.people !== undefined ? ` · ${s.people} people checked in` : ""}`}</title></rect>
