@@ -5,6 +5,7 @@ import { NavLink } from "react-router-dom";
 import { apiMode } from "../../../data/mode";
 import { depthBand, v2, type CaseRow, type GeoView } from "../api";
 import { StepHeader } from "../ui/Shared";
+import { useMission } from "./mission";
 import "../v2.css";
 import "./volunteer.css";
 
@@ -77,6 +78,7 @@ export const useTeamNameOpener = () => useContext(TeamNameContext);
 export function VShell({ title, sub, at, header, children }: { title: string; sub?: ReactNode; at?: string; header?: ReactNode; children: ReactNode }) {
   const t = useT();
   const [team, setTeam] = useTeam();
+  const mission = useMission();
   const [editing, setEditing] = useState(false);
   const teamInput = useRef<HTMLInputElement>(null);
   const openTeamName = () => { setEditing(true); teamInput.current?.focus(); };
@@ -89,6 +91,7 @@ export function VShell({ title, sub, at, header, children }: { title: string; su
         <span className="rp-subnav-label"><Tr th="อาสา" en="Volunteers" /></span>
         <NavLink to="/v" end><Tr th="ช่วยที่ไหน" en="Where help is missing" /></NavLink>
         <NavLink to="/v/feed"><Tr th="การตัดสินใจ" en="AI decisions" /></NavLink>
+        {mission && <NavLink to={`/v/mission/${encodeURIComponent(mission.zoneId)}`}><Tr th="ภารกิจของฉัน" en="My mission" /></NavLink>}
         <div className="v-team">
           {editing ? (
             <form onSubmit={(e) => { e.preventDefault(); setEditing(false); }}>

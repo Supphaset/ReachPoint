@@ -434,3 +434,45 @@
 .p3-zone-panel .p3-panel-footer .btn-pri { flex: 1; }
 .p3-workspace .p3-zone-panel .p4-zone-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
 @media (min-width: 761px) { .p3-workspace .p3-zone-panel { max-height: calc(100dvh - 290px); min-height: 420px; } }
+
+/* Mission: the same numbered households on the map and in the visiting list. */
+.mission-page { min-width: 0; font-size: var(--text-sm); }
+.mission-page p { margin: var(--space-2) 0; }
+.mission-page .rp-gloss, .mission-page .pill, .mission-page .v-depth { font-size: 14px; }
+.mission-strip { padding: var(--space-4); background: var(--surface); border: 1px solid var(--line); margin-bottom: var(--space-4); overflow-wrap: anywhere; }
+.mission-progress { display: grid; gap: var(--space-2); }
+.mission-progress progress { width: 100%; height: 16px; accent-color: var(--done); }
+.mission-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--space-4); align-items: start; }
+.mission-map { position: sticky; top: var(--space-3); height: calc(100dvh - 24px); min-width: 0; background: var(--sunken); overflow: hidden; border: 1px solid var(--line); }
+.mission-map-host { position: absolute; inset: 0; }
+.mission-map-controls, .mission-map-legend, .mission-map-fallback { position: absolute; z-index: 1; background: var(--surface); color: var(--ink-1); padding: var(--space-2); }
+.mission-map-controls { top: var(--space-2); left: var(--space-2); display: flex; gap: var(--space-2); }
+.mission-map-controls button[aria-pressed="true"] { background: var(--ink-1); color: var(--surface); }
+.mission-map-legend { bottom: 28px; left: var(--space-2); right: 48px; display: grid; gap: var(--space-1); font-size: 14px; pointer-events: none; }
+.mission-order-key::before { content: ""; display: inline-block; width: 24px; border-top: 2px dashed var(--ink-1); margin-right: var(--space-2); }
+.mission-map-fallback { top: 40%; left: var(--space-3); right: var(--space-3); }
+.mission-water { position: absolute; left: 0; top: 0; opacity: 0.5; pointer-events: none; }
+.mission-list { min-width: 0; display: grid; gap: var(--space-3); }
+.mission-house { padding: var(--space-4); background: var(--surface); border: 1px solid var(--line); scroll-margin-block: var(--space-4); overflow-wrap: anywhere; }
+.mission-house.is-selected { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.mission-house.is-done { background: var(--sunken); color: var(--ink-3); }
+.mission-house-select { display: flex; align-items: center; gap: var(--space-3); width: 100%; text-align: left; }
+.mission-page button, .mission-actions a, .mission-empty a { min-height: 44px; min-width: 44px; padding: var(--space-2) var(--space-3); font: inherit; border: 1px solid var(--line-2); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink-1); cursor: pointer; }
+.mission-page button:disabled { cursor: wait; opacity: 0.65; }
+.mission-actions a, .mission-empty a { display: inline-flex; align-items: center; justify-content: center; }
+.mission-needs, .mission-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.mission-depth { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+.mission-number, .mission-marker { display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-pill); font-weight: var(--weight-bold); width: 44px; height: 44px; flex-shrink: 0; }
+.mission-number.is-urgent, .mission-marker.is-urgent { background: var(--urgent); color: var(--surface); }
+.mission-number.is-waiting, .mission-marker.is-waiting { background: var(--doubt-bg); color: var(--color-yellow); }
+.mission-number.is-done, .mission-marker.is-done { background: var(--done); color: var(--surface); }
+.mission-page .mission-marker { position: absolute; padding: 0; transform: translate(-50%, -50%); border: 2px solid var(--surface); font-size: var(--text-sm); }
+.mission-page .mission-marker.is-selected { transform: translate(-50%, -50%) scale(1.25); z-index: 2; outline: 2px solid var(--ink-1); }
+.mission-confirm { margin-top: var(--space-3); padding: var(--space-3); background: var(--doubt-bg); }
+.mission-confirm button + button { margin-left: var(--space-2); }
+.mission-empty { margin-bottom: var(--space-4); }
+@media (max-width: 760px) {
+  .mission-layout { grid-template-columns: minmax(0, 1fr); }
+  .mission-map { position: relative; top: auto; height: 45vh; }
+  .mission-map-legend { right: var(--space-2); }
+}

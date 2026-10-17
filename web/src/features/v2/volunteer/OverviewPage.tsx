@@ -1,7 +1,8 @@
 import { Tr, useT } from "../ui/lang";
 /** Map and list share one sector and one zone selection. Plans never imply a rescue. */
 import { useEffect, useReducer, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { saveMission } from "./mission";
 import { v2, vol, type Overview, type WaterTrend, type ZonePage as ZoneDetail } from "../api";
 import { Depth, Trend, VShell, useGeo, useLive, useTeam } from "./shared";
 import { initialSelection, selectionReducer } from "./selection";
@@ -83,6 +84,8 @@ export function VolunteerKpis({ data }: { data: Overview | null }) {
 
 export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; team: string; water?: WaterTrend | null; onClose: () => void; onPosted: () => void }) {
   const t = useT();
+  const navigate = useNavigate();
+  const [, setTeam] = useTeam();
   const panel = useRef<HTMLElement>(null);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -95,7 +98,9 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
   const [vehicle, setVehicle] = useState("boat");
   const [planTeam, setPlanTeam] = useState(team);
   const [seats, setSeats] = useState(4);
-  const [eta, setEta] = useState(() => new Date(Date.now() + 30 * 60000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
+  // the arrival time starts an hour after the replay's clock, not the real one (the demo lives on 25 Nov)
+  const [eta, setEta] = useState("07:00");
+  const etaTouched = useRef(false);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [posted, setPosted] = useState(false);
@@ -108,15 +113,25 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
   useEffect(() => {
     if (planning) setText(t(`${planTeam} ${vehicle} ${seats} ที่นั่ง จะเข้าโซน ${id} ประมาณ ${eta}`, `${planTeam}: ${vehicle}, ${seats} seats, zone ${id}, around ${eta}`));
   }, [planning, planTeam, vehicle, seats, id, eta, t]);
+  useEffect(() => {
+    const clock = detail?.now.at?.slice(-5);
+    if (etaTouched.current || !clock || !/^\d\d:\d\d$/.test(clock)) return;
+    const hour = (Number(clock.slice(0, 2)) + 1) % 24;
+    setEta(`${String(hour).padStart(2, "0")}:${clock.slice(3)}`);
+  }, [detail?.now.at]);
   const openPlan = () => setPlanning(true);
   const post = async () => {
     if (busy || posted) return;
     setBusy(true); setError("");
     try {
-      const result = await v2.plan(text, planTeam);
+      const result = await v2.plan(text, planTeam.trim());
       setTold(result.plan.told ?? null);
       setPosted(true);
+      setTeam(planTeam.trim());
+      saveMission({ zoneId: id, team: planTeam.trim(), vehicle, seats, eta, told: result.plan.told ?? null, at: result.plan.at });
       onPosted();
+      // A successful post stays successful even if the router cannot leave this panel.
+      try { navigate(`/v/mission/${encodeURIComponent(id)}`); } catch { /* The posted state offers a direct link. */ }
     } catch (failure) { setError(String(failure)); }
     finally { setBusy(false); }
   };
@@ -161,15 +176,15 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
       <h3><Tr th="แผนเดินทาง" en="Your plan" /></h3>
       <fieldset disabled={busy || posted}><legend><Tr th="พาหนะ" en="Vehicle" /></legend><div className="p3-plan-chips">{[["boat", "เรือ", "Boat"], ["high truck", "รถสูง", "High truck"], ["on foot", "เดิน", "On foot"]].map(([value, th, en]) => <button type="button" className={`chip ${vehicle === value ? "on" : ""}`} aria-pressed={vehicle === value} key={value} onClick={() => setVehicle(value)}><Tr th={th} en={en} /></button>)}</div></fieldset>
       <fieldset disabled={busy || posted}><legend><Tr th="ที่นั่ง" en="Seats" /></legend><div className="p3-plan-chips">{[2, 4, 6, 8].map(value => <button type="button" className={`chip ${seats === value ? "on" : ""}`} aria-pressed={seats === value} key={value} onClick={() => setSeats(value)}>{value}</button>)}</div></fieldset>
-      <fieldset disabled={busy || posted}><legend><Tr th="เวลา" en="Time" /></legend><div className="p3-plan-chips">{["07:00", "12:00", "17:00"].map(value => <button type="button" key={value} className={`chip ${eta === value ? "on" : ""}`} aria-pressed={eta === value} onClick={() => setEta(value)}>{value}</button>)}</div></fieldset>
-      <label><Tr th="ถึงประมาณ" en="Arrival time" /><input type="time" required value={eta} onChange={event => setEta(event.target.value)} disabled={busy || posted} /></label>
+      <fieldset disabled={busy || posted}><legend><Tr th="เวลา" en="Time" /></legend><div className="p3-plan-chips">{["07:00", "12:00", "17:00"].map(value => <button type="button" key={value} className={`chip ${eta === value ? "on" : ""}`} aria-pressed={eta === value} onClick={() => { etaTouched.current = true; setEta(value); }}>{value}</button>)}</div></fieldset>
+      <label><Tr th="ถึงประมาณ" en="Arrival time" /><input type="time" required value={eta} onChange={event => { etaTouched.current = true; setEta(event.target.value); }} disabled={busy || posted} /></label>
       <button type="button" className="btn btn-ghost" disabled={busy || posted} onClick={() => setPlanning(false)}><Tr th="ย้อนกลับ" en="Back" /></button>
       <label><Tr th="แผนหนึ่งบรรทัด" en="One-line plan" /><textarea required value={text} onChange={event => setText(event.target.value)} disabled={busy || posted} /></label>
       <p><Tr th="ปรับข้อความให้ตรงกับทีมและพาหนะก่อนส่ง" en="Check team and vehicle in the plan before posting." /></p>
       <p className="p4-decision"><Tr th="ตัวอย่างข้อความ" en="Preview" /><br />{text}</p>
-      <footer className="p3-panel-footer"><button className="btn btn-pri" disabled={busy || posted || !planTeam.trim() || !text.trim()}>{busy ? t("กำลังส่ง · Posting…", "Posting…") : t(`จะแจ้ง ${detail?.totals.open ?? "?"} ครอบครัว`, `${detail?.totals.open ?? "?"} families will be told`)}</button></footer>
+      <footer className="p3-panel-footer"><button className="btn btn-pri" disabled={busy || posted || !planTeam.trim() || !text.trim()}>{busy ? t("กำลังส่ง · Posting…", "Posting…") : t("ส่งแผนและแจ้งครอบครัวในโซน", "Post plan and tell the families")}</button></footer>
     </form>}
-    {posted && <p role="status">{told === null ? t("บันทึกแผนแล้ว ไม่ทราบจำนวนที่แจ้ง · Plan recorded; notified family count unavailable", "Plan recorded; notified family count unavailable") : t(`แจ้งแล้ว ${told} ครอบครัว`, `${told} families told`)} <Tr th="· เป็นแผน ยังไม่ได้ช่วยออกมา" en="planned, not rescued yet" /></p>}
+    {posted && <p role="status">{told === null ? t("บันทึกแผนแล้ว ไม่ทราบจำนวนที่แจ้ง · Plan recorded; notified family count unavailable", "Plan recorded; notified family count unavailable") : t(`แจ้งแล้ว ${told} ครอบครัว`, `${told} families told`)} <Tr th="· เป็นแผน ยังไม่ได้ช่วยออกมา" en="planned, not rescued yet" /> <Link className="btn btn-pri" to={`/v/mission/${encodeURIComponent(id)}`}><Tr th="ไปที่ภารกิจ" en="Go to my mission" /></Link></p>}
   </aside>;
 }
 

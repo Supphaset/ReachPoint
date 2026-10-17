@@ -427,6 +427,8 @@ export interface CaseView {
 }
 
 export interface ZonePage {
+  /** Some zone responses may supply shelter choices; absence leaves the outcome unlinked. */
+  shelterOptions?: ShelterOption[];
   zone: ZoneView;
   households: CaseRow[];
   outlook: { inH: number; wetShare: number; surfaceM: number | null }[];
