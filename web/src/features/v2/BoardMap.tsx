@@ -127,9 +127,20 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
 
   useEffect(() => {
     if (!el.current || !geo) return;
+    // keep the map on the flooded city: no panning off to the rest of the world, no zooming out past the city
+    let w = 180, so = 90, e = -180, n = -90;
+    for (const f of geo.zones.features) {
+      const g = f.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
+      const rings = g.type === "Polygon" ? [g.coordinates[0]] : g.coordinates.map((p) => p[0]);
+      for (const r of rings) for (const [x, y] of r) { w = Math.min(w, x); e = Math.max(e, x); so = Math.min(so, y); n = Math.max(n, y); }
+    }
+    const pad = 0.012; // about 1.3 km around the zones, so shelters on the edge stay in view
     map.current = new maps.Map(el.current, {
       center: { lng: geo.center[0], lat: geo.center[1] },
       zoom: 14,
+      minZoom: 13,
+      maxZoom: 20,
+      restriction: { latLngBounds: { west: w - pad, south: so - pad, east: e + pad, north: n + pad }, strictBounds: true },
       mapTypeId: "hybrid",
       disableDefaultUI: true,
       zoomControl: true,
@@ -189,6 +200,9 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
     });
   }, [state, selected, simMode]);
 
+  // redraw dots and pins only when what they show changes (the board refreshes every few seconds)
+  const dotSig = state ? state.households.map((h) => `${h.id}${h.status[0]}${h.urgent ? 1 : 0}`).join("") : "";
+  const pinSig = state ? JSON.stringify([state.plans.map((p) => [p.id, p.zones, p.eta]), (state.shelters ?? []).map((x) => [x.id, x.people, x.coming])]) : "";
   useEffect(() => {
     const d = dots.current;
     if (!d || !state) return;
@@ -210,7 +224,8 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       },
       clickable: false,
     }));
-  }, [state, maps]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dotSig, maps]);
 
   useEffect(() => {
     const m = marks.current;
@@ -275,7 +290,8 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
         zIndex: 19,
       }));
     }
-  }, [state, maps, geo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinSig, maps, geo]);
 
   useEffect(() => {
     if (focus && map.current) {
