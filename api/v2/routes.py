@@ -486,6 +486,17 @@ def v_trip(zones: str, team: str | None = None):
     return C.trip(_state(room()), [z.strip() for z in zones.split(",") if z.strip()][:6], team)
 
 
+class CopilotIn(BaseModel):
+    question: str = Field(min_length=1, max_length=600)
+
+
+@router.post("/v/copilot")
+def v_copilot(body: CopilotIn):
+    """The volunteer copilot: Gemini answers with ReachPoint's tools; every number is checked against a tool result."""
+    from api.v2 import copilot
+    return copilot.ask(_state(room()), body.question)
+
+
 @router.get("/depth-series")
 def depth_series(lon: float, lat: float):
     """The water at one house, hour by hour from the flood model, and now corrected by nearby reports: for the

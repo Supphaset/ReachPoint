@@ -29,6 +29,7 @@ from api.v2.reader import Fact, Read, read_rules
 PKG = G.PKG
 CHECK_HOURS = (7, 19)
 LOCAL_M = 400.0  # reports this close share roughly one water surface
+WAIST_M = 0.9      # lower bound of "at the waist" in the depth bands
 POST_MATCH_M = {"landmark": 250, "area": 400}  # how far a post pinned to a landmark or an area may sit from the house
 SOURCE_WEIGHT = {"self": 1.0, "reply": 1.0, "neighbour": 0.7, "relative": 0.5, "post": 0.5, "forward": 0.2}
 PRECISION_WEIGHT = {"address": 1.0, "landmark": 0.6, "area": 0.3}
@@ -214,6 +215,9 @@ def _merge_people(hh: Household, r: Read, first_hand: bool):
         if v and (first_hand or not getattr(hh, attr)):
             setattr(hh, attr, int(v))
     if r.get("urgent"):
+        hh.urgent = True
+    # waist-deep water with someone who can't walk is urgent even when nobody says the word: they can't get out
+    if hh.cannot_walk and (r.get("depthRange") or [0, 0])[0] >= WAIST_M:
         hh.urgent = True
 
 

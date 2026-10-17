@@ -3,7 +3,8 @@
 #   gcloud auth login && gcloud config set project YOUR_PROJECT_ID
 #   scripts/put-secrets.sh   # once: copies the keys from ~/.config/reachpoint/env into Secret Manager
 # Needs on the project: Cloud Run, Cloud Build, Artifact Registry, Secret Manager and Vertex AI APIs, and billing.
-# Gemini runs on Vertex AI with the service's own identity (no Gemini key, no free-tier caps, billed to the project).
+# Gemini runs with the paid Gemini API key from Secret Manager (GEMINI_ROUTE=key, the default, tested end to end);
+# GEMINI_ROUTE=vertex uses Vertex AI with the service's own identity instead.
 # Voice (Gemini Live) is gemini-3.8-live in us-central1, the only single region that serves it; VOICE=off skips it.
 set -euo pipefail
 
@@ -11,6 +12,7 @@ PROJECT="${PROJECT:-$(gcloud config get-value project)}"
 REGION="${REGION:-asia-southeast1}"   # Singapore, closest to Hat Yai
 SERVICE="${SERVICE:-reachpoint}"
 VOICE="${VOICE:-on}"
+GEMINI_ROUTE="${GEMINI_ROUTE:-key}"
 REPO="${REPO:-reachpoint}"
 IMAGE="$REGION-docker.pkg.dev/$PROJECT/$REPO/app:$(git rev-parse --short HEAD)"
 
@@ -25,7 +27,9 @@ RUNNER="$(gcloud projects describe "$PROJECT" --format 'value(projectNumber)')-c
 gcloud projects add-iam-policy-binding "$PROJECT" --member "serviceAccount:$RUNNER" \
   --role roles/aiplatform.user --condition None >/dev/null
 SECRETS=""
-for pair in "PINPOINT_API_KEY=pinpoint-api-key" "GOOGLE_MAPS_BROWSER_KEY=maps-browser-key"; do
+PAIRS=("PINPOINT_API_KEY=pinpoint-api-key" "GOOGLE_MAPS_BROWSER_KEY=maps-browser-key")
+[ "$GEMINI_ROUTE" = key ] && PAIRS+=("GEMINI_API_KEY=gemini-api-key")
+for pair in "${PAIRS[@]}"; do
   name="${pair#*=}"
   gcloud secrets describe "$name" --project "$PROJECT" >/dev/null 2>&1 && SECRETS="${SECRETS:+$SECRETS,}${pair}:latest"
 done
@@ -41,7 +45,7 @@ gcloud builds submit --tag "$IMAGE" --project "$PROJECT" .
 # still resets the demo). No CPU throttling: the triage agent and zone briefings finish after the reply is sent.
 # A voice call is a WebSocket, which Cloud Run closes at the request timeout (default 5 min): 15 min covers the
 # 10-minute voice cap. Session affinity keeps a reconnecting caller on the same instance.
-ENV="REACHPOINT_CLOCK=demo,REACHPOINT_GEMINI=vertex,GOOGLE_CLOUD_PROJECT=$PROJECT,REACHPOINT_VOICE=$VOICE"
+ENV="REACHPOINT_CLOCK=demo,REACHPOINT_GEMINI=$GEMINI_ROUTE,GOOGLE_CLOUD_PROJECT=$PROJECT,REACHPOINT_VOICE=$VOICE"
 ENV="$ENV,GEMINI_LIVE_LOCATION=us-central1,GEMINI_LIVE_MODEL=gemini-3.8-live"
 gcloud run deploy "$SERVICE" --image "$IMAGE" --region "$REGION" --project "$PROJECT" \
   --allow-unauthenticated --max-instances 1 --min-instances 1 --no-cpu-throttling --memory 1Gi --cpu 1 \

@@ -162,3 +162,21 @@ def test_voice_call_turns_go_through_the_intake_agent():
     finally:
         R._rooms_ref.current_id.reset(out)
     assert r["reply"] and r["effects"]["household"]["zoneId"]
+
+
+def test_copilot_answers_from_tools_and_its_numbers_are_checked():
+    from api.v2 import copilot as K
+    from api.main import app
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-copilot"}
+    # without Gemini the answer is written from the same tools, so the flow never dead-ends
+    out = c.post("/api/v2/v/copilot", json={"question": "I have one boat with 6 seats. Where first?"}, headers=h).json()
+    assert out["reader"] == "rules" and [t["name"] for t in out["toolCalls"]] == ["get_overview", "get_zone", "draft_plan"]
+    plan = out["plan"]
+    assert plan["runs"] and all(r["people"] <= 6 or len(r["households"]) == 1 for r in plan["runs"])
+    assert out["cited"]["zones"] == [plan["zone"]] + ([plan["after"]["zone"]] if plan.get("after") else []) or out["cited"]["zones"]
+    # the check: a number no tool gave, or a promise of rescue, sends the answer back to the rules
+    results = [{"waiting": 7, "urgent": 3, "depthM": 1.32}]
+    assert K.check("Go to [D12]: 7 waiting, 3 urgent, 1.32 m.", results, "6 seats") is None
+    assert K.check("Go to [D12]: 9 waiting.", results, "6 seats")
+    assert K.check("A team is coming to [D12].", results, "")

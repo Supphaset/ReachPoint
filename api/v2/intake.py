@@ -128,7 +128,7 @@ def locate(text: str, geo: G.Geo) -> dict | None:
         b = geo.snap(lon, lat, 80)
         if b and b.zone_id:
             return {"lon": b.lon, "lat": b.lat, "precision": "address", "buildingId": b.id, "zoneId": b.zone_id,
-                    "label": name, "by": "street match (stand-in)"}
+                    "label": name, "by": "street name in the address"}
     return None
 
 
