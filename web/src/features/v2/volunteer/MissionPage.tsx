@@ -24,7 +24,7 @@ export function MissionPage() {
   const team = currentTeam.trim() || mission?.team || "";
   const { data, error, reload } = useLive(() => vol.zone(zoneId, team), [zoneId, team]);
   return <VShell title={t(`ภารกิจ · Mission: ${zoneId}${data?.zone.label ? ` · ${data.zone.label}` : ""}`,
-    `Mission: ${zoneId}${data?.zone.label ? ` · ${data.zone.label}` : ""}`)} at={data?.now.at}>
+    `Mission: ${zoneId}${data?.zone.label ? ` · ${data.zone.labelEn || data.zone.label}` : ""}`)} at={data?.now.at}>
     {error && <p role="alert"><Tr th="โหลดภารกิจไม่ได้ โปรดลองอีกครั้ง" en="Could not refresh the mission. Please try again." /> <button className="btn btn-ghost" onClick={reload}><Tr th="ลองอีกครั้ง" en="Retry" /></button></p>}
     {!data && !error && <p role="status"><Tr th="กำลังโหลดภารกิจ" en="Loading mission…" /></p>}
     {data && <MissionContent key={zoneId} data={data} mission={mission} team={team} reload={reload} />}

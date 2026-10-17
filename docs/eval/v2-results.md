@@ -6,13 +6,13 @@ not field accuracy. Reference readings for depth are the rule reader's band for 
 
 | Measure | Result | Target |
 |---|---|---|
-| Messages read by the model in batch (gemini:gemini-3.5-flash-lite, gemini:gemini-flash-lite-latest) | 100% (1517/1522) | — |
+| Messages read by the model in batch (gemini:gemini-3.5-flash-lite, gemini:gemini-flash-lite-latest) | 99.7% (1517/1522); hybrid reader, rules fill gaps | — |
 | Facts shown with the person's exact words | 100% (enforced: a fact whose quote isn't in the message is dropped) | ≥ 95% |
 | Depth from words in the same band as the reference reading | 100% (1405/1405) | ≥ 85% |
 | People count read correctly (first-hand reports) | 100% (176/176) | — |
 | Neighbour direction read correctly (north, south, east, west) | 100% (72/72) | — |
 | "Still safe" replies wrongly marked urgent | 0% (0/751) | low |
-| Households counted vs real families heard about | 306–309 vs 299 (the range keeps possible duplicates apart) | within 3% |
+| Households counted vs synthetic reference families heard about | 306–309 vs 299 (lower bound within 3%; upper bound 3.3% high; possible duplicates kept apart) | lower bound within 3% |
 | Households wrongly merged (two families as one) | 1% (2/309) | ≤ 3% |
 | Neighbour words matched to the exact building | 100% (72/72) | ≥ 85% |
 | Planted wrong reports flagged doubtful | 80% (4/5) | ≥ 80% |

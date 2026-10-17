@@ -7,6 +7,8 @@ route. With no street route, the direct line is used and labelled so.
 
 from __future__ import annotations
 
+from api.v2.names import bilingual_view
+
 import heapq
 import json
 import math
@@ -19,6 +21,7 @@ STEP_M = 40.0
 
 
 @lru_cache(maxsize=1)
+@bilingual_view
 def load() -> list[dict]:
     p = G.PKG / "v2-shelters.json"
     return json.loads(p.read_text())["shelters"] if p.exists() else []
@@ -109,6 +112,7 @@ def street_path(w, lon: float, lat: float, s: dict) -> list[tuple[float, float]]
     return [(lon, lat)] + [G.to_ll(*nodes[i]) for i in reversed(path)] + [(s["lon"], s["lat"])]
 
 
+@bilingual_view
 def route(w, lon: float, lat: float, s: dict) -> dict:
     line = street_path(w, lon, lat, s)
     by = "streets" if line else "direct line"
@@ -144,6 +148,7 @@ def options(w, lon: float, lat: float, k: int = 3) -> list[dict]:
     return sorted(out, key=lambda r: (not r["walkable"], r["km"]))
 
 
+@bilingual_view
 def occupancy(w) -> list[dict]:
     out = []
     for s in load():

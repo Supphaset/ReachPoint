@@ -39,7 +39,7 @@ def main() -> None:
         if w.get("type") != "way" or len(w.get("geometry", [])) < 2:
             continue
         t = w.get("tags", {})
-        feats.append({"type": "Feature", "properties": {"id": w["id"], "kind": t.get("highway"), "name": t.get("name"), "nameTh": t.get("name:th")},
+        feats.append({"type": "Feature", "properties": {"id": w["id"], "kind": t.get("highway"), "name": t.get("name"), "nameTh": t.get("name:th"), "nameEn": t.get("name:en")},
                       "geometry": {"type": "LineString",
                                    "coordinates": [[round(p["lon"], 6), round(p["lat"], 6)] for p in w["geometry"]]}})
     out = {"type": "FeatureCollection", "source": "OpenStreetMap contributors (ODbL), via Overpass", "features": feats}

@@ -153,7 +153,7 @@ def answer(v, s, w, text: str, kind: str | None, lang: str) -> dict | None:
                  f"{s.pin['lat']},{s.pin['lon']}&destination={best['lat']},{best['lon']}&travelmode=walking"}
         from api.v2 import intake as I
         key = "shelter" if best["walkable"] else "shelter_deep"
-        return {"reply": I.say(key, lang, name=best["name"], km=best["km"], minutes=best["minutes"], deep=best["deepestM"]),
+        return {"reply": I.say(key, lang, name=(best.get("nameEn") or best["name"]) if lang == "en" else best["name"], km=best["km"], minutes=best["minutes"], deep=best["deepestM"]),
                 "shelterRoute": route, **({} if s.ready_shown else {"checklist": READY}), "kind": "shelter"}
     if k in ("pickedUp", "nobodyThere"):
         if "ติด" in text or "still" in low or "inside" in low:

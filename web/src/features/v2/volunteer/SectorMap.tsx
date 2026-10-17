@@ -1,3 +1,4 @@
+import { localizeNames } from "../ui/lang";
 import { Tr, useT, useUiLang, t as translate, type UiLang } from "../ui/lang";
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../../data/googleMaps";
@@ -120,6 +121,7 @@ export function goBy(depthM: number | null | undefined): [string, string] | null
 const FILL = [0, 0.3, 0.45, 0.6];
 
 export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (name: string) => string, waterOn = false, lang: UiLang = "th") {
+  props = localizeNames(props, lang);
   const t = (th: string, en: string) => translate(th, en, lang);
   const { geo, zones, selection, onZone, onSector } = props;
   const overlays: Maps[] = [];

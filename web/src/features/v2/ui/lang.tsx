@@ -58,3 +58,16 @@ export function LanguageToggle() {
     <button type="button" lang="en" aria-pressed={lang === "en"} onClick={() => setLang("en")}>EN</button>
   </div>;
 }
+
+
+/** Select API display names on a copy. Evidence, messages and source quotes stay verbatim. */
+export function localizeNames<T>(value: T, lang: UiLang): T {
+  if (lang !== "en" || value == null || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map(item => localizeNames(item, lang)) as T;
+  const out: Record<string, unknown> = {};
+  for (const [key, item] of Object.entries(value)) out[key] = localizeNames(item, lang);
+  for (const key of ["name", "label", "sectorName", "district", "address"]) {
+    if (typeof out[key + "En"] === "string" && out[key + "En"]) out[key] = out[key + "En"];
+  }
+  return out as T;
+}

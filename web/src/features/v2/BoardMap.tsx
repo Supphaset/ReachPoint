@@ -1,3 +1,4 @@
+import { localizeNames } from "./ui/lang";
 /**
  * The live map: satellite imagery, zones coloured by the most likely water depth (grey = unknown, never "dry"),
  * a dot per household, and the judge's house with the neighbours they talked about.
@@ -113,6 +114,9 @@ function vehicleWord(v: string | null): string {
 }
 
 export function BoardMap(props: Props) {
+  const namedGeo = useMemo(() => localizeNames(props.geo, props.lang), [props.geo, props.lang]);
+  const namedState = useMemo(() => localizeNames(props.state, props.lang), [props.state, props.lang]);
+  props = { ...props, geo: namedGeo, state: namedState };
   const [maps, setMaps] = useState<Maps | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {

@@ -8,6 +8,8 @@ pipeline as every other message, so the board updates in front of the judge.
 
 from __future__ import annotations
 
+from api.v2.names import ROMAN_STREETS, bilingual_view
+
 import re
 import secrets
 from dataclasses import asdict, dataclass, field, fields
@@ -119,24 +121,7 @@ def new_session(lang: str = "th") -> Session:
     return s
 
 
-# Our street names are Thai only (OSM). English addresses use the usual romanisations of Hat Yai's streets;
-# these turn them into the Thai name so the street-name match below works in both languages.
-ROMAN_STREETS = {
-    "phetkasem": "เพชรเกษม", "petchkasem": "เพชรเกษม", "phet kasem": "เพชรเกษม",
-    "kanjanavanich": "กาญจนวณิชย์", "kanchanawanit": "กาญจนวณิชย์", "sriphuwanart": "ศรีภูวนารถ", "si phuwanat": "ศรีภูวนารถ",
-    "ratyindee": "ราษฎร์ยินดี", "rat yindi": "ราษฎร์ยินดี", "lopburi ramesuan": "ลพบุรีราเมศวร์", "lop buri ramet": "ลพบุรีราเมศวร์",
-    "sajjakul": "สัจจกุล", "thamnoonvithi": "ธรรมนูญวิถี", "thamnun withi": "ธรรมนูญวิถี", "supasarnrangsan": "ศุภสารรังสรรค์",
-    "suphasan rangsan": "ศุภสารรังสรรค์", "nuankaew uthit": "นวลแก้วอุทิศ", "niphat songkhro": "นิพัทธ์สงเคราะห์",
-    "niphat uthit": "นิพัทธ์อุทิศ", "nipat uthit": "นิพัทธ์อุทิศ", "samchai": "สามชัย", "saeng si": "แสงศรี", "saengsri": "แสงศรี",
-    "pracha yindee": "ประชายินดี", "rat uthit": "ราษฎร์อุทิศ", "punnakan": "ปุณณกัณฑ์", "phadung phakdi": "ผดุงภักดี",
-    "thung sao": "ทุ่งเสา", "chi uthit": "ชีอุทิศ", "rattakarn": "รัถการ", "rattakan": "รัถการ", "nipan songkhro": "นิพันธ์สงเคราะห์",
-    "hoi muk": "หอยมุกต์", "chuti anusorn": "จุติอนุสรณ์", "suan siri": "สวนศิริ", "khlong hae": "คลองแห", "prachathipat": "ประชาธิปัตย์",
-    "kim pradit": "กิมประดิษฐ์", "chan niwet": "จันทร์นิเวศน์", "wit withi": "วิทย์วิถี", "yen sira": "เย็นศิระ",
-    "khlong rian": "คลองเรียน", "sakhon mongkhon": "สาครมงคล", "lamai songkhro": "ละม้ายสงเคราะห์", "niyom rat": "นิยมรัฐ",
-    "ruam phatthana": "ร่วมพัฒนา", "ban cha": "บ้านจ่า", "chokesaman": "โชคสมาน", "nipatpukdee": "นิพัทธ์ภักดี",
-}
-
-
+# English input aliases share their source with the display-name romaniser.
 def thai_streets(text: str) -> str:
     """'house 52/9 Phetkasem Soi 2' → 'house 52/9 ถนนเพชรเกษม ซอย 2' (unchanged when no known street is named)."""
     out = text
@@ -147,6 +132,7 @@ def thai_streets(text: str) -> str:
     return out
 
 
+@bilingual_view
 def locate(text: str, geo: G.Geo) -> dict | None:
     """Address words → a point on a building. Pinpoint first; a street-name match in the city as the stand-in."""
     from api.location.pinpoint import geocode

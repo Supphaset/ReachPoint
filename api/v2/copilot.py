@@ -28,6 +28,7 @@ INSTRUCTION = """You are ReachPoint's copilot for flood volunteers in Hat Yai (a
 are synthetic). A volunteer asks where to go or who needs what. Use the tools to look things up; never guess.
 Rules:
 - Every number you write must come from a tool result. Do not compute new numbers except adding people for seats.
+- For English questions, use labelEn for place names; preserve Thai names for Thai questions.
 - Cite zones as [D12] and households as [HH135] exactly as the tools name them.
 - When the volunteer gives capacity (seats, vehicle), call draft_plan for the zone you recommend and follow its runs.
 - Never say a team is coming, a route is passable or a place is safe. Say "planned", not "rescued".
@@ -63,7 +64,7 @@ def _open(st: dict, zid: str | None = None) -> list[dict]:
 def get_overview(st: dict, limit: int = 6) -> dict:
     ov = C.overview(st)
     zs = [z for z in ov["zones"] if z["open"]][:max(1, min(int(limit or 6), 10))]
-    return {"zones": [{k: z[k] for k in ("id", "label", "open", "urgent", "cannotWalk", "elderly", "boat", "depthM", "plans")} for z in zs],
+    return {"zones": [{k: z[k] for k in ("id", "label", "labelEn", "open", "urgent", "cannotWalk", "elderly", "boat", "depthM", "plans")} for z in zs],
             "zonesWithFamiliesNoTeam": sum(1 for z in ov["zones"] if z["open"] and not z["plans"]), "zonesTotal": len(ov["zones"])}
 
 
@@ -76,7 +77,7 @@ def get_zone(st: dict, zone_id: str) -> dict:
     if z is None:
         return {"error": f"no zone {zone_id}"}
     fams = _open(st, zone_id)
-    return {"id": zone_id, "label": z.get("label"), "depthM": (z.get("level") or {}).get("depthM"), "waiting": len(fams),
+    return {"id": zone_id, "label": z.get("label"), "labelEn": z.get("labelEn"), "depthM": (z.get("level") or {}).get("depthM"), "waiting": len(fams),
             "urgent": sum(1 for r in fams if r["urgent"]), "people": sum(r["people"] or 1 for r in fams),
             "needBoat": sum(1 for r in fams if r["boat"]), "families": [_fam(r) for r in fams[:8]], "otherTeams": _others(st, zone_id)}
 
@@ -123,11 +124,11 @@ def draft_plan(st: dict, zone_id: str, seats: int, vehicle: str | None = None) -
     bring.append("drinking water")
     ov = C.overview(st)
     nxt = next((x for x in ov["zones"] if x["id"] != zone_id and x["open"] and not x["plans"]), None)
-    return {"zone": zone_id, "label": z.get("label"), "vehicle": vehicle or "boat", "seats": seats,
+    return {"zone": zone_id, "label": z.get("label"), "labelEn": z.get("labelEn"), "vehicle": vehicle or "boat", "seats": seats,
             "runs": [{"run": i + 1, "households": [r["id"] for r in run], "people": sum(r["people"] or 1 for r in run)} for i, run in enumerate(runs)],
             "families": [_fam(r) for run in runs for r in run], "bring": bring, "otherTeams": _others(st, zone_id),
             "depthM": (z.get("level") or {}).get("depthM"),
-            "after": nxt and {"zone": nxt["id"], "label": nxt["label"], "urgent": nxt["urgent"], "cannotWalk": nxt["cannotWalk"]}}
+            "after": nxt and {"zone": nxt["id"], "label": nxt["label"], "labelEn": nxt.get("labelEn"), "urgent": nxt["urgent"], "cannotWalk": nxt["cannotWalk"]}}
 
 
 RUN = {"get_overview": get_overview, "get_zone": get_zone, "find_households": find_households, "draft_plan": draft_plan}

@@ -127,3 +127,16 @@ describe("v2 UI language", () => {
     expect(prefill).toHaveBeenCalledWith("The house to the ");
   });
 });
+
+it("selects nested API names for English and preserves original Thai evidence", async () => {
+  const { localizeNames } = await import("./lang");
+  const data = { zones: [{ label: "ถนนละม้ายสงเคราะห์", labelEn: "Thanon Lamai Songkhro", district: "เขต 1", districtEn: "District 1" }],
+    sectors: [{ name: "ถนนรัถการ", nameEn: "Thanon Rattakan" }], quote: "แม่เดินไม่ได้" };
+  const en = localizeNames(data, "en");
+  expect(en.zones[0].label).toBe("Thanon Lamai Songkhro");
+  expect(en.zones[0].district).toBe("District 1");
+  expect(en.sectors[0].name).toBe("Thanon Rattakan");
+  expect(en.quote).toBe(data.quote);
+  expect(localizeNames(data, "th")).toBe(data);
+  expect(data.zones[0].label).toBe("ถนนละม้ายสงเคราะห์");
+});

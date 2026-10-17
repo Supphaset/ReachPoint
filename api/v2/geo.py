@@ -13,6 +13,7 @@ import math
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
+from api.v2.names import bilingual, english_name
 
 PKG = Path(__file__).resolve().parents[2] / "data" / "hy-2025-11"
 LAT0, LON0 = 7.02, 100.47
@@ -186,7 +187,7 @@ def load() -> Geo:
         raw = json.load(fh)
     blds = {r["id"]: Building(r["id"], r["zoneId"], r["c"][0], r["c"][1], r["groundM"], r["areaM2"], r["outline"])
             for r in raw["buildings"]}
-    streets = [{"name": f["properties"].get("name"), "nameTh": f["properties"].get("nameTh"), "kind": f["properties"].get("kind"), "coordinates": f["geometry"]["coordinates"]}
+    streets = [{"name": f["properties"].get("name"), "nameTh": f["properties"].get("nameTh"), "nameEn": english_name(f["properties"].get("name"), f["properties"].get("name:en") or f["properties"].get("nameEn")), "kind": f["properties"].get("kind"), "coordinates": f["geometry"]["coordinates"]}
                for f in json.loads((PKG / "v2-streets.geojson").read_text())["features"]]
     zfile, afile, bfile = PKG / "v2-zones.geojson", PKG / "v2-zoning.json", PKG / "v2-blocks.geojson"
     if zfile.exists() and afile.exists():
@@ -194,10 +195,12 @@ def load() -> Geo:
         zones = json.loads(zfile.read_text())["features"]
         assign = json.loads(afile.read_text())["assign"]
         blocks = json.loads(bfile.read_text())["features"] if bfile.exists() else []
+        zones = bilingual(zones)
+        blocks = bilingual(blocks)
         g = Geo(blds, zones, streets)
         g.blocks = blocks
         sfile = PKG / "v2-sectors.geojson"
-        g.sectors = json.loads(sfile.read_text())["features"] if sfile.exists() else []
+        g.sectors = bilingual(json.loads(sfile.read_text())["features"]) if sfile.exists() else []
         from shapely.geometry import Point, shape
         shapes = [(z["properties"]["id"], shape(z["geometry"])) for z in zones]
         for b in blds.values():

@@ -23,7 +23,7 @@ const households = [
   { ...base, id: "HH-DONE", priority: 200, status: "evacuated", outcome: { kind: "pickedUp", team: "Boat 2", at: "07:00" } },
   { ...base, id: "HH-URGENT", priority: 130, urgent: true, cannotWalk: 1 },
 ] as CaseRow[];
-const data = { zone: { id: "D1", label: "ตลาด" }, households, now: { atH: 2, at: "08:00" } } as ZoneDetail;
+const data = { zone: { id: "D1", label: "ตลาด", labelEn: "Talat" }, households, now: { atH: 2, at: "08:00" } } as ZoneDetail;
 function render(lang: "th" | "en") {
   return renderToStaticMarkup(<UiLangProvider initialLang={lang}><MemoryRouter initialEntries={["/v/mission/D1"]}><Routes><Route path="/v/mission/:zoneId" element={<MissionPage />} /></Routes></MemoryRouter></UiLangProvider>);
 }
@@ -33,7 +33,7 @@ describe("mission page", () => {
     state.data = data;
     state.mission = { zoneId: "D1", team: "Boat 1", vehicle: "boat", seats: 4, eta: "12:00", told: 2, at: "07:00" };
     const html = render(lang);
-    expect(html).toContain("D1 · ตลาด");
+    expect(html).toContain(lang === "en" ? "D1 · Talat" : "D1 · ตลาด");
     expect(html.indexOf('data-house="HH-URGENT"')).toBeLessThan(html.indexOf('data-house="HH-WAIT"'));
     expect(html.indexOf('data-house="HH-WAIT"')).toBeLessThan(html.indexOf('data-house="HH-DONE"'));
     expect(html).toContain('mission-number is-urgent">1</span>');
@@ -46,7 +46,7 @@ describe("mission page", () => {
     expect(html).toContain(lang === "th" ? "แจ้ง 2 ครอบครัวแล้วว่าทีมกำลังมา" : "2 families told a team is coming");
     for (const label of lang === "th" ? ["นำทาง", "รับตัวแล้ว", "ไม่มีคนอยู่", "พาไปศูนย์พักพิง", "เงียบ 2 ชม."] : ["Directions", "Picked up", "Nobody there", "Taken to shelter", "2 hours silent"]) expect(html).toContain(label);
     expect(html).not.toContain(lang === "th" ? ">ยืนยัน<" : ">Confirm<");
-    if (lang === "en") expect(html.replaceAll("ตลาด", "")).not.toMatch(/[฀-๿]/);
+    if (lang === "en") expect(html).not.toMatch(/[฀-๿]/);
   });
   it("shows the requested zone without a different mission's team details", () => {
     state.data = data;

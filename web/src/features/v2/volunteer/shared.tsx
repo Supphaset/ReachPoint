@@ -1,4 +1,4 @@
-import { Tr, useT } from "../ui/lang";
+import { Tr, useT, useUiLang, localizeNames } from "../ui/lang";
 /** Shared parts of the volunteer pages: the shell and navigation, the team name, live refresh, chips and a small map. */
 import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
@@ -60,7 +60,9 @@ export function useLive<T>(load: () => Promise<T>, deps: unknown[]): { data: T |
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
-  return { data, error, reload };
+  const { lang } = useUiLang();
+  const named = useMemo(() => localizeNames(data, lang), [data, lang]);
+  return { data: named, error, reload };
 }
 
 let geoCache: Promise<GeoView> | null = null;
@@ -69,7 +71,8 @@ export function useGeo(): GeoView | null {
   useEffect(() => {
     (geoCache ??= v2.geo()).then(setG, () => { geoCache = null; });
   }, []);
-  return g;
+  const { lang } = useUiLang();
+  return useMemo(() => localizeNames(g, lang), [g, lang]);
 }
 
 const TeamNameContext = createContext<() => void>(() => undefined);

@@ -1,4 +1,4 @@
-import { useT } from "./ui/lang";
+import { useT, useUiLang, localizeNames } from "./ui/lang";
 /** Zone card (three questions), AI activity, the time-lapse bar and the volunteer plan box. */
 import { useMemo, useState } from "react";
 import { v2, depthBand, type Activity, type BoardState, type Timeline, type ZoneView } from "./api";
@@ -15,6 +15,8 @@ function timeOf(state: BoardState | null, h: number | null): string {
 }
 
 export function ZoneCard({ zone, state }: { zone: ZoneView | null; state: BoardState | null }) {
+  const { lang } = useUiLang();
+  zone = localizeNames(zone, lang);
   if (!zone) return <div className="v2-card v2-empty">Tap a zone on the map.</div>;
   const l = zone.level;
   const flooded = zone.people.likelyFlooded;

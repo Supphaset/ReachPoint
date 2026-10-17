@@ -8,6 +8,8 @@ shown only to a team whose posted plan covers that zone; elsewhere house numbers
 
 from __future__ import annotations
 
+from api.v2.names import bilingual_view
+
 import re
 
 from api.v2 import geo as G, pipeline as P, rain as RN, sim as S
@@ -117,6 +119,7 @@ def trend(points: list[tuple[float, float]], now_h: float) -> dict | None:
             "trend": "rising" if change > 0.05 else "falling" if change < -0.05 else "steady"}
 
 
+@bilingual_view
 def overview(st: dict) -> dict:
     w = st["world"]
     zones = []
@@ -229,6 +232,7 @@ def feed(st: dict, room_msgs: list[dict], kind: str | None = None, limit: int = 
 
 
 # --- one family's case ---
+@bilingual_view
 def case(st: dict, room_msgs: list[dict], hid: str, team: str | None = None) -> dict | None:
     w = st["world"]
     h = w.households.get(hid)
@@ -295,6 +299,7 @@ def case(st: dict, room_msgs: list[dict], hid: str, team: str | None = None) -> 
 
 
 # --- a zone in depth ---
+@bilingual_view
 def zone(st: dict, zid: str, team: str | None = None) -> dict | None:
     w = st["world"]
     z = st["zones"].get(zid)
@@ -350,6 +355,7 @@ def briefing(z: dict, open_: list[dict], outlook: list[dict]) -> str:
 
 
 # --- plan a trip ---
+@bilingual_view
 def trip(st: dict, zones: list[str], team: str | None = None) -> dict:
     w = st["world"]
     out = []
@@ -380,6 +386,7 @@ def access_of(d: float | None) -> str:
     return "walk" if d < WALK_M else "truck" if d < TRUCK_M else "boat"
 
 
+@bilingual_view
 def blocks(st: dict, zid: str | None = None, geometry: bool = True) -> list[dict]:
     """Every block with its families' need and its access now (walk / truck / boat) from the water at its buildings."""
     geo = G.load()
@@ -420,6 +427,7 @@ def subareas(st: dict, zid: str | None = None) -> list[dict]:
     return sorted(blocks(st, zid, geometry=False), key=lambda b: -b["need"])
 
 
+@bilingual_view
 def urgent(st: dict, first: dict) -> dict:
     """Urgent open cases by zone. Inside a zone: cases a team marked "do first", then by priority (the same score
     the zone page uses: urgency, who can't walk, depth, how long they have been silent)."""

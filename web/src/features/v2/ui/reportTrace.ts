@@ -24,6 +24,7 @@ export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string
   if (effects.located)
     add("locate", {
       who: "rules",
+      whatEn: `Located your house from ${effects.located.by} · ${effects.located.labelEn ?? effects.located.label ?? effects.located.buildingId} → zone ${effects.located.zoneId}`,
       what: `Located your house from ${effects.located.by} · ${effects.located.label ?? effects.located.buildingId} → zone ${effects.located.zoneId}`,
       to: `/v/zone/${effects.located.zoneId}`,
     });

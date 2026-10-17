@@ -227,3 +227,17 @@ Access date: **2026-10-17**. Configuration instructions, not evidence of a live 
 | DH2 | [Firestore IAM](https://docs.cloud.google.com/firestore/native/docs/security/iam) | Server clients use IAM; `roles/datastore.user` grants data access | Cloud Run identity is derived from the deploy script, not a live service inspection |
 | DH3 | [Hosting Cloud Run rewrites](https://firebase.google.com/docs/hosting/cloud-run) | Hosting forwards dynamic paths to a configured service/region and has a 60-second timeout | Firebase project registration and deployed routing not tested |
 | DH4 | [Cloud Run WebSockets](https://docs.cloud.google.com/run/docs/triggering/websockets) | WebSocket streams are supported and subject to Cloud Run request timeout | Cross-origin acceptance checked in local handlers; no live microphone or network test |
+
+## v2 submission refresh — 2026-10-17
+
+Access date: **2026-10-17**. Public product documentation supports capabilities; repository code supports our usage.
+Live API checks used only synthetic demo rooms; no private cloud configuration was inspected.
+
+| Source | Use | Limitation |
+|---|---|---|
+| [Gemini function calling](https://ai.google.dev/gemini-api/docs/function-calling/) | Copilot tool-call API | Capability documentation, not evaluation of our tool choices |
+| [Gemini Live tools](https://ai.google.dev/gemini-api/docs/live-api/tools) | Browser voice/tool integration context | No live microphone quality measurement |
+| [Cloud Run minimum instances](https://docs.cloud.google.com/run/docs/configuring/min-instances) | Always-on demo configuration | Intended flags verified in deploy script, not deployed settings |
+| [Cloud Run billing settings](https://docs.cloud.google.com/run/docs/configuring/billing-settings) | CPU allocation outside requests | No cost estimate added |
+| [Secret Manager overview](https://docs.cloud.google.com/secret-manager/docs/overview) | Server credential storage | No secret values or private settings inspected |
+| [Live v2 overview](https://reachpoint-900867850704.asia-southeast1.run.app/api/v2/v/overview) and [D12](https://reachpoint-900867850704.asia-southeast1.run.app/api/v2/v/zones/D12) | 1,064 messages, 307 households; D12 7 open/18 people/3 urgent at 25 Nov 06:00 | Synthetic room state changes; not field observations |

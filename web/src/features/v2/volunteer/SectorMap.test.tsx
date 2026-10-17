@@ -202,3 +202,22 @@ describe("need labels", () => {
     expect(needLabel("wants to leave, needs a ride")[0]).toContain("ต้องการออก");
   });
 });
+
+
+it("draws English zone chips from bilingual API fields", () => {
+  const buttons: { textContent: string }[] = [];
+  vi.stubGlobal("document", { createElement: () => {
+    const button = { textContent: "", style: {}, setAttribute: vi.fn(), remove: vi.fn() };
+    buttons.push(button); return button;
+  } });
+  class Polygon { setMap = vi.fn(); addListener = vi.fn(); }
+  class OverlayView { setMap = vi.fn(); }
+  try {
+    drawSectorLayers({ Polygon, OverlayView, event: { clearInstanceListeners: vi.fn() } }, {}, {
+      geo, zones: [{ ...zone, label: "ถนนละม้ายสงเคราะห์", labelEn: "Thanon Lamai Songkhro" }],
+      selection: { sector: "D", zone: "D12", hover: null }, onZone: vi.fn(), onSector: vi.fn(),
+    }, name => name, false, "en");
+    expect(buttons[0].textContent).toBe("D12 · Thanon Lamai Songkhro");
+    expect(buttons.map(b => b.textContent).join(" ")).not.toMatch(/[\u0e00-\u0e7f]/);
+  } finally { vi.unstubAllGlobals(); }
+});

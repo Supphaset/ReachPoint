@@ -38,7 +38,16 @@ export interface Plan {
   text?: string;
 }
 
-export interface ZoneView {
+/** Both forms stay on the wire; UI selection never changes source quotes. */
+export interface PlaceNames {
+  name?: string | null;
+  nameEn?: string | null;
+  labelEn?: string | null;
+  districtEn?: string | null;
+  sectorNameEn?: string | null;
+}
+
+export interface ZoneView extends PlaceNames {
   sector?: string | null;
   sectorName?: string | null;
   id: string;
@@ -220,7 +229,7 @@ export interface TurnResult {
     checklist?: [string, string][];
     facts?: Fact[];
     reader?: string;
-    located?: { by: string; label?: string; zoneId: string; buildingId: string; lon?: number; lat?: number; precision?: string };
+    located?: { by: string; label?: string; labelEn?: string; zoneId: string; buildingId: string; lon?: number; lat?: number; precision?: string };
     askLocation?: boolean;
     /** The pin missed: "noHouse" (inside our zones, no building under it) or "outside" (beyond what we cover). */
     pinOutside?: { reason: "noHouse" | "outside" } | boolean;
@@ -300,7 +309,7 @@ export interface CaseRow {
 }
 
 export type UrgentCase = CaseRow & { markedFirst: { team: string; at: string } | null };
-export interface UrgentZone {
+export interface UrgentZone extends PlaceNames {
   id: string;
   label: string | null;
   sector: string | null;
@@ -311,7 +320,7 @@ export interface UrgentZone {
 }
 export interface UrgentView { atH: number; at: string; total: number; zones: UrgentZone[] }
 
-export interface OverviewZone {
+export interface OverviewZone extends PlaceNames {
   id: string;
   label: string | null;
   sector: string | null;
@@ -350,11 +359,11 @@ export interface Overview {
   points: CaseRow[];
   shelters: Shelter[];
   hotspots: SubArea[];
-  sectors: { id: string; name: string | null; zones: number; open: number; urgent: number; noTeam: number; boat: number }[];
+  sectors: { id: string; name: string | null; nameEn?: string | null; zones: number; open: number; urgent: number; noTeam: number; boat: number }[];
   rain?: RainOutlook | null;
 }
 
-export interface SubArea {
+export interface SubArea extends PlaceNames {
   id: string;
   zoneId: string;
   name: string | null;

@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from api.v2 import ai, board as B, geo as G, intake as I, pipeline as P, store as S
 from api.v2.reader import Fact, Read
+from api.v2.names import bilingual_view, english_name
 
 router = APIRouter(prefix="/api/v2")
 DEFAULT_NOW_H = 96.0  # 25 Nov 06:00: the water is rising toward the peak (9.97 m at 10:00)
@@ -92,9 +93,9 @@ def _public(s: dict) -> dict:
 def geo_view():
     geo = G.load()
     feats = [{"type": "Feature", "properties": {"id": z["properties"]["id"], "district": z["properties"].get("district"),
-                                                 "label": z["properties"].get("label"), "sector": z["properties"].get("sector")},
+                                                 "label": z["properties"].get("label"), "labelEn": z["properties"].get("labelEn"), "name": z["properties"].get("name"), "nameEn": z["properties"].get("nameEn"), "sector": z["properties"].get("sector")},
               "geometry": z["geometry"]} for z in geo.zones]
-    sectors = [{"type": "Feature", "properties": {"id": f["properties"]["id"], "name": f["properties"].get("name")},
+    sectors = [{"type": "Feature", "properties": {"id": f["properties"]["id"], "name": f["properties"].get("name"), "nameEn": f["properties"].get("nameEn")},
                 "geometry": f["geometry"]} for f in (geo.sectors or [])]
     return {"zones": {"type": "FeatureCollection", "features": feats}, "center": [100.4705, 7.0085],
             "sectors": {"type": "FeatureCollection", "features": sectors},
@@ -304,6 +305,7 @@ def _pin_to_house(pin: dict, geo) -> dict | None:
             "accuracyM": pin.get("accuracyM")}
 
 
+@bilingual_view
 def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, reply_to: str | None = None) -> dict:
     """One turn of the intake agent: typed, held-mic, or Gemini Live voice (api/v2/live.py)."""
     v = room()
@@ -357,7 +359,7 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
                                    "sessionId": s.id, "householdHint": s.household_id, "toShelter": True,
                                    "shelterId": s.shelter_offer["shelterId"], "_read": Read([], reader="rules")})
                 effects["shelter"] = {**s.shelter_offer, "going": True}
-                prefix = I.say("shelter_go", lang, name=s.shelter_offer["name"]) + " "
+                prefix = I.say("shelter_go", lang, name=english_name(s.shelter_offer["name"], s.shelter_offer.get("nameEn")) if lang == "en" else s.shelter_offer["name"]) + " "
             else:
                 effects["shelter"] = {**s.shelter_offer, "going": False}
                 prefix = I.say("shelter_stay", lang) + " "

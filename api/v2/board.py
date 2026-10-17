@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from api.v2.names import bilingual_view
+
 from functools import lru_cache
 
 from api.v2 import geo as G
@@ -22,6 +24,7 @@ STOPS = [
 ]
 
 
+@bilingual_view
 def zone_view(w, geo: G.Geo, zid: str) -> dict:
     meta = {z["properties"]["id"]: z["properties"] for z in geo.zones}[zid]
     lvl = w.levels[zid]

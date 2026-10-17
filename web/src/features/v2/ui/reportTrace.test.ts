@@ -68,3 +68,14 @@ it("provides English trace text for family followups", () => {
   const ride = trace.find(line => line.id.endsWith("-ride"));
   expect(ride?.whatEn).toBe("Family wants to leave; can't walk → teams see 'needs a ride'");
 });
+
+it("uses English street and shelter names in English trace text, retaining Thai", () => {
+  const result = { ...turn, effects: { ...turn.effects,
+    located: { by: "street name in the address", label: "ถนนเพชรเกษม ซอย 2", labelEn: "Thanon Phetkasem Soi 2", zoneId: "B5", buildingId: "B1" },
+    shelterRoute: { shelterId: "S1", name: "มหาวิทยาลัยสงขลานครินทร์", nameEn: "Prince of Songkla University", deepestM: 1.2, by: "streets" } as TurnResult["effects"]["shelterRoute"],
+  } };
+  const trace = buildReportTrace(result, 1, "06:00", 96);
+  expect(trace.find(line => line.id.endsWith("-locate"))?.whatEn).toContain("Thanon Phetkasem Soi 2 → zone B5");
+  expect(trace.find(line => line.id.endsWith("-locate"))?.what).toContain("ถนนเพชรเกษม");
+  expect(trace.find(line => line.id.endsWith("-shelter-route"))?.whatEn).toContain("Prince of Songkla University");
+});
