@@ -4,12 +4,14 @@
  * understood, with the person's own words. Check-ins, warnings and plan updates arrive here too.
  */
 import { useEffect, useRef, useState } from "react";
-import { v2, type Fact, type NbConfirm, type Session, type TurnResult } from "./api";
+import { v2, type LocationPin, type ShelterRoute, type Fact, type NbConfirm, type Session, type TurnResult } from "./api";
 import { NeighbourPicture } from "./NeighbourPicture";
+import { LocationCard, HouseLocation } from "./ui/LocationCard";
+import { ShelterCard } from "./ui/ShelterCard";
 import { LiveCall } from "./liveVoice";
 
 type Item =
-  | { kind: "agent"; text: string }
+  | { kind: "agent"; text: string; route?: ShelterRoute; house?: { lon: number; lat: number } }
   | { kind: "person"; text: string; voice?: boolean }
   | { kind: "understood"; facts: Fact[]; reader?: string; extra?: string }
   | { kind: "notice"; text: string; at: string; type: string }
@@ -68,6 +70,8 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
   const [session, setSession] = useState<Session | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [text, setText] = useState(DEMO_MESSAGES[lang][0]);
+  const [askLocation, setAskLocation] = useState(false);
+  const [outside, setOutside] = useState(false);
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
   const [speak, setSpeak] = useState(false);
@@ -80,6 +84,8 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
   const start = (l: "th" | "en") =>
     v2.newChat(l).then((s) => {
       setSession(s);
+      setAskLocation(!s.pin);
+      setOutside(false);
       setText(DEMO_MESSAGES[l][0]);
       seen.current = new Set();
       setItems(s.transcript.map((t) => ({ kind: "agent", text: t.text })));
@@ -114,9 +120,9 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
     window.speechSynthesis.speak(u);
   };
 
-  const send = async (t: string, channel: "chat" | "voice") => {
+  const send = async (t: string, channel: "chat" | "voice", pin?: LocationPin) => {
     if (!session || !t.trim() || busy) return;
-    if (call.current && onCall === "on") {  // on a call: typed words go to Gemini Live like speech (it echoes them back)
+    if (!pin && call.current && onCall === "on") {  // on a call: typed words go to Gemini Live like speech (it echoes them back)
       call.current.say(t);
       setText("");
       return;
@@ -125,7 +131,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
     setText("");
     setBusy(true);
     try {
-      const r = await v2.turn(session.id, t, channel);
+      const r = await v2.turn(session.id, t, channel, pin);
       apply(r);
     } catch {
       setItems((xs) => [...xs, { kind: "agent", text: lang === "th" ? "ส่งไม่สำเร็จ ลองอีกครั้งนะคะ" : "That didn't send. Please try again." }]);
@@ -138,6 +144,8 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
   const apply = (r: TurnResult) => {
     {
       setSession(r.session);
+      setAskLocation(!!r.effects.askLocation || !r.session.pin);
+      setOutside(!!r.effects.pinOutside);
       const extra: string[] = [];
       if (r.effects.located) extra.push(lang === "th" ? `พบบ้าน · โซน ${r.effects.located.zoneId}` : `House found · zone ${r.effects.located.zoneId}`);
       if (r.effects.shelter?.going) extra.push(lang === "th" ? `กำลังไป ${r.effects.shelter.name}` : `Walking to ${r.effects.shelter.name}`);
@@ -150,7 +158,9 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
       setItems((xs) => [
         ...xs,
         ...(facts.length || extra.length ? [{ kind: "understood" as const, facts, reader: r.effects.reader, extra: extra.join(" · ") }] : []),
-        { kind: "agent", text: r.reply },
+        { kind: "agent", text: r.reply, route: r.effects.shelterRoute,
+          house: r.effects.located ? (r.effects.located.lon != null && r.effects.located.lat != null
+            ? { lon: r.effects.located.lon, lat: r.effects.located.lat } : r.session.pin ?? undefined) : undefined },
         ...(r.effects.nbConfirm ? [{ kind: "confirm" as const, c: r.effects.nbConfirm }] : []),
       ]);
       if (!call.current) say(r.reply);  // on a call Gemini already speaks it
@@ -189,6 +199,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
   };
   useEffect(() => () => call.current?.stop(), []);
 
+  const lastAgent = items.reduce((last, item, index) => item.kind === "agent" ? index : last, -1);
   const lastConfirm = items.reduce((k, it, i) => (it.kind === "confirm" ? i : k), -1);
   const SR = (window as Rec).SpeechRecognition || (window as Rec).webkitSpeechRecognition;
   const holdStart = () => {
@@ -223,7 +234,12 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
         {/* the Yes/No buttons stay on the latest picture even when a notice arrives after it */}
         {items.map((it, i) =>
           it.kind === "agent" ? (
-            <p key={i} className="v2-msg is-agent">{it.text}</p>
+            <div key={i}>
+              <p className="v2-msg is-agent">{it.text}</p>
+              {it.house && <HouseLocation point={it.house} />}
+              {it.route && <ShelterCard route={it.route} busy={busy} onAnswer={reply => { void send(reply, "chat"); }} />}
+              {i === lastAgent && (askLocation || outside) && <LocationCard busy={busy || onCall !== "off"} outside={outside} onPin={pin => send(pin.method === "gps" ? "📍 ตำแหน่งจาก GPS" : "📍 ปักหมุดบ้านแล้ว", "chat", pin)} />}
+            </div>
           ) : it.kind === "person" ? (
             <p key={i} className="v2-msg is-person">{it.voice ? "🎙 " : ""}{it.text}</p>
           ) : it.kind === "confirm" ? (

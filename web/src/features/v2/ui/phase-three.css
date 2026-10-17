@@ -1,0 +1,51 @@
+.p3-shelter, .p3-location { background: var(--surface); color: var(--ink-1); padding: 12px; border: 1px solid var(--line); border-radius: 10px; margin-block: 8px; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
+.p3-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 8px; }
+.p3-actions button, .p3-actions a, .p3-sheet > button { min-height: 44px; padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink-1); font-size: 14px; }
+.p3-route-map { width: 100%; height: 240px; background: var(--sunken); }
+.p3-sheet { position: fixed; inset: 0; z-index: 200; background: var(--surface); color: var(--ink-1); padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: auto; font-size: 14px; }
+.p3-sheet > .p3-route-map { flex: 1; min-height: 50vh; }
+.p3-sheet .location-map { flex: 1; min-height: 380px; }
+.p3-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 14px; }
+.p3-legend span { display: inline-flex; gap: 6px; align-items: center; }
+.p3-legend i { display: inline-block; width: 20px; height: 14px; border: 1px solid var(--ink-3); }
+.p3-house-map { width: 100%; height: 100px; }
+.p3-picker { position: relative; flex: 1; min-height: 50vh; }
+.p3-picker-map { position: absolute; inset: 0; }
+.p3-picker > span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); font-size: 40px; pointer-events: none; }
+.p3-numbers { display: flex; flex-wrap: wrap; gap: 16px; margin-block: 12px; font-size: 14px; }
+.p3-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: 20px; }
+.p3-map-column, .p3-sector-list { min-width: 0; }
+.p3-map-column > button, .p3-zone-panel button { min-height: 44px; font-size: 14px; padding: 10px; }
+.p3-sector-map { display: block; width: 100%; height: 65vh; background: var(--sunken); }
+.p3-zone { stroke: var(--ink-3); stroke-width: 1; cursor: pointer; }
+.p3-zone.is-selected { stroke: var(--ink-1); stroke-width: 6; }
+.p3-sector { fill: none; stroke: currentColor; stroke-width: 5; pointer-events: none; }
+.p3-sector.is-highlighted { stroke-width: 10; }
+.p3-sector-badge { cursor: pointer; }
+.p3-sector-badge circle { fill: currentColor; stroke: var(--surface); stroke-width: 3; }
+.p3-sector-badge text { fill: var(--surface); font-size: 24px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.p3-zone-label { fill: var(--ink-1); font-size: 14px; text-anchor: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 4; pointer-events: none; }
+.p3-sector-row, .p3-zone-row { display: flex; width: 100%; min-height: 56px; gap: 12px; align-items: center; padding: 12px; text-align: left; font-size: 14px; background: var(--surface); color: var(--ink-1); border: 1px solid var(--line); }
+.p3-sector-row[aria-expanded=true], .p3-zone-row[aria-pressed=true] { outline: 2px solid var(--ink-1); outline-offset: -2px; background: var(--paper); }
+.p3-zone-row { display: grid; }
+.p3-letter { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; color: var(--surface); border-radius: 50%; font-size: 24px; }
+.p3-zone-panel { position: fixed; right: 16px; top: 100px; bottom: 16px; width: min(420px, calc(100vw - 32px)); padding: 20px; overflow: auto; background: var(--surface); color: var(--ink-1); border: 2px solid var(--line); box-shadow: var(--shadow-sheet); z-index: 100; font-size: 14px; }
+.p3-zone-panel label { display: grid; gap: 6px; margin-block: 12px; }
+.p3-zone-panel input, .p3-zone-panel textarea { min-width: 0; width: 100%; min-height: 44px; font-size: 14px; padding: 8px; }
+@media (max-width: 700px) {
+  .p3-workspace { grid-template-columns: minmax(0, 1fr); }
+  .p3-sector-map { height: 55vh; }
+  .p3-zone-panel { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 70dvh; border-radius: 16px 16px 0 0; }
+}
+
+.p3-workspace .v-depth, .p3-zone-panel .v-depth { font-size: 14px; }
+.p3-sector-map [role=button]:focus-visible { outline: 2px solid var(--color-focus); }
+.p3-sector-list { overflow-wrap: anywhere; }
+.p3-zone-panel form { min-width: 0; }
+/* Sheets are portalled above the phone, so they carry their own typography and sizing. */
+.p3-sheet, .p3-sheet * { box-sizing: border-box; min-width: 0; }
+.p3-sheet { font-family: var(--font-sans); line-height: 1.5; }
+.p3-sheet button { font-family: inherit; }
+.rp-report-layout .v2-phone-tools button, .rp-report-layout .v2-notice-kind, .rp-report-layout .v2-understood { font-size: 14px; }
+.rp-report-layout .v2-chat > div { min-width: 0; }
+.rp-report-layout .v2-msg { overflow-wrap: anywhere; }

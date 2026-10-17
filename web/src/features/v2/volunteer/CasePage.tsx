@@ -67,7 +67,7 @@ export function CasePage() {
               </>
                 : <span className="v-muted v-small">Exact address hidden. It shows to teams whose posted plan covers zone
                   {h.zoneId}.
-                  <Link to={`/v/plan?zones=${h.zoneId}`}>Post a plan</Link>
+                  <Link to="/v">Post a plan</Link>
                 </span>}
             </div>
 

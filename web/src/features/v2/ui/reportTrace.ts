@@ -24,9 +24,16 @@ export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string
   if (effects.located)
     add("locate", {
       who: "rules",
-      what: `Located by ${effects.located.by} · ${effects.located.label ?? effects.located.buildingId} → zone ${effects.located.zoneId}`,
+      what: `Located your house from ${effects.located.by} · ${effects.located.label ?? effects.located.buildingId} → zone ${effects.located.zoneId}`,
       to: `/v/zone/${effects.located.zoneId}`,
     });
+  if (effects.shelterRoute) {
+    const route = effects.shelterRoute;
+    add("shelter-route", {
+      who: "physics",
+      what: `Walk to ${route.name}: deepest ~${route.deepestM} m ${route.by === "streets" ? "along the streets" : "on a direct line (no street route)"}`,
+    });
+  }
   if (household?.urgent)
     add("triage", {
       who: "rules",

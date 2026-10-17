@@ -72,7 +72,6 @@ export function VShell({ title, sub, at, children }: { title: string; sub?: Reac
         <span className="rp-subnav-label">Volunteers</span>
         <NavLink to="/v" end>Where help is missing</NavLink>
         <NavLink to="/v/feed">Every AI decision</NavLink>
-        <NavLink to="/v/plan">Plan a trip</NavLink>
         <div className="v-team">
           {editing ? (
             <form onSubmit={(e) => { e.preventDefault(); setEditing(false); }}>

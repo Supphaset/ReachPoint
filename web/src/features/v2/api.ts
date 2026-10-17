@@ -157,13 +157,41 @@ export interface Session {
   finished: boolean;
 }
 
+export interface LocationPin {
+  lon: number;
+  lat: number;
+  method: "gps" | "map";
+  accuracyM?: number;
+}
+
+export interface ShelterRoute {
+  shelterId: string;
+  name: string;
+  kind: string;
+  lon: number;
+  lat: number;
+  km: number;
+  minutes: number;
+  deepestM: number;
+  walkable: boolean;
+  by: "streets" | "direct line";
+  path: [number, number][];
+  samples: [number, number, number][];
+  deepestAt: [number, number];
+  from: [number, number];
+  googleMaps: string;
+}
+
 export interface TurnResult {
   session: Session;
   reply: string;
   effects: {
     facts?: Fact[];
     reader?: string;
-    located?: { by: string; label?: string; zoneId: string; buildingId: string };
+    located?: { by: string; label?: string; zoneId: string; buildingId: string; lon?: number; lat?: number; precision?: string };
+    askLocation?: boolean;
+    pinOutside?: boolean;
+    shelterRoute?: ShelterRoute;
     neighbour?: { side: string; known: boolean; householdId: string; buildingId: string; sure: boolean } | null;
     nbConfirm?: NbConfirm;
     shelter?: { name: string; km: number; deepestM: number; walkable: boolean; going: boolean; minutes: number };
@@ -190,6 +218,7 @@ export interface Inbox {
 
 export interface GeoView {
   zones: GeoJSON.FeatureCollection;
+  sectors?: GeoJSON.FeatureCollection;
   center: [number, number];
 }
 
@@ -199,7 +228,7 @@ export const v2 = {
   state: (at?: number) => get<BoardState>(`/api/v2/state${at === undefined ? "" : `?at=${at}`}`),
   clock: (action: "advance" | "morning" | "rain" | "river" | "flood" | "reset") => post<{ now: { atH: number } }>("/api/v2/clock", { action }),
   newChat: (lang: "th" | "en") => post<Session>(`/api/v2/chat/sessions?lang=${lang}`, {}),
-  turn: (id: string, text: string, channel: "chat" | "voice") => post<TurnResult>(`/api/v2/chat/sessions/${id}/turn`, { text, channel }),
+  turn: (id: string, text: string, channel: "chat" | "voice", pin?: LocationPin) => post<TurnResult>(`/api/v2/chat/sessions/${id}/turn`, { text, channel, ...(pin ? { pin } : {}) }),
   me: (token: string) => get<Inbox>(`/api/v2/me/${token}`),
   plan: (text: string, team?: string) => post<{ plan: Plan; reader: string }>("/api/v2/plans", team ? { text, team } : { text }),
   buildings: (lon: number, lat: number, r = 45) =>

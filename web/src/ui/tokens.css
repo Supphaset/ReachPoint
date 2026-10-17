@@ -197,3 +197,22 @@
  --rules:#3e4757; --rules-bg:#eceae4; --physics:#24599b; --physics-bg:#e3eef9;
  --font-mono:"IBM Plex Mono",ui-monospace,monospace;
 }
+
+/* Route samples and volunteer need are distinct from the continuous flood layer. */
+:root {
+  --route-light: var(--water-2);
+  --route-mid: var(--water-4);
+  --route-deep: var(--urgent);
+  --route-unknown: var(--ink-3);
+  --need-0: var(--sunken);
+  --need-1: var(--water-1);
+  --need-2: var(--water-2);
+  --need-3: var(--water-4);
+  --sector-A: var(--rules);
+  --sector-B: var(--physics);
+  --sector-C: var(--done);
+  --sector-D: var(--gemini);
+  --sector-E: var(--doubt);
+  --sector-F: var(--urgent);
+  --sector-G: var(--color-moving);
+}

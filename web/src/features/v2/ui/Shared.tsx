@@ -92,7 +92,7 @@ export function StepHeader({ at, onAction }: { at?: string; onAction?: (action: 
         <nav className="rp-steps" aria-label="Demo steps">
           <NavLink to="/" end>1 Overview</NavLink>
           <NavLink to="/report" end>2 Report</NavLink>
-          <NavLink to="/v/plan" end>3 Plan</NavLink>
+          <NavLink to="/v">3 Volunteer</NavLink>
           <button onClick={() => setExplore(!explore)} aria-expanded={explore}>
             {explore ? "Guided steps" : "Explore freely"}
           </button>
@@ -103,7 +103,6 @@ export function StepHeader({ at, onAction }: { at?: string; onAction?: (action: 
         <nav className="rp-explore">
           <Link to="/v">Volunteer overview</Link>
           <Link to="/v/feed">Every AI decision</Link>
-          <Link to="/v/plan/legacy">Zone trip planner</Link>
         </nav>
       )}
       {error && <p role="alert">{error}</p>}

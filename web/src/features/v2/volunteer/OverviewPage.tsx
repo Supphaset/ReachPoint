@@ -1,123 +1,101 @@
-/** City overview: zones ranked by how much help is missing, not just by how deep the water is. */
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { vol } from "../api";
-import { Depth, MiniMap, VShell, useGeo, useLive } from "./shared";
+/** Map and list share one sector and one zone selection. Plans never imply a rescue. */
+import { useEffect, useReducer, useState } from "react";
+import { Link } from "react-router-dom";
+import { v2, vol, type ZonePage as ZoneDetail } from "../api";
+import { Depth, VShell, useGeo, useLive, useTeam } from "./shared";
+import { initialSelection, selectionReducer } from "./selection";
+import { SectorMap } from "./SectorMap";
+import "../ui/phase-three.css";
 
 export function OverviewPage() {
-  const { data, error } = useLive(() => vol.overview(), []);
+  const { data, error, reload } = useLive(() => vol.overview(), []);
   const geo = useGeo();
-  const nav = useNavigate();
-  const o = data?.overall;
-  const [sector, setSector] = useState<string | null>(null);
-  const zones = (data?.zones ?? []).filter((z) => !sector || z.sector === sector);
-  const top = data?.zones[0];
-  return (
-    <VShell
-      title="Where help is missing"
-      sub="Team zones (about 500 m, one team's shift) ranked by families still waiting, weighted by urgency, lost contact and people who can't walk. A zone with a team on the way counts half."
-      at={data?.at}
-    >
-      {error ? <p className="v2-error">Couldn't reach the server: {error}</p> : null}
-      {o ? (
-        <div className="v-stats">
-          <div><b>{o.households.toLocaleString()}</b><span>families known · {o.duplicatesMerged} duplicate messages merged</span></div>
-          <div><b>{data!.zones.reduce((a, z) => a + z.open, 0)}</b><span>still waiting at home</span></div>
-          <div><b className="is-red">{data!.zones.reduce((a, z) => a + z.urgent, 0)}</b><span>urgent</span></div>
-          <div><b className="is-amber">{data!.zones.reduce((a, z) => a + z.lostContact, 0)}</b><span>not answering</span></div>
-          <div><b>{data!.zones.filter((z) => z.open && !z.plans).length}</b><span>zones with families and no team planned</span></div>
-        </div>
-      ) : null}
-      {top ? (
-        <p className="v-callout">
-          <b>Most help missing: team zone {top.id} · {top.label}</b> ({top.district}). {top.open} families waiting
-          {top.urgent ? `, ${top.urgent} urgent` : ""}{top.cannotWalk ? `, ${top.cannotWalk} people who can't walk` : ""}.{" "}
-          {top.plans ? `${top.plans} team plan${top.plans > 1 ? "s" : ""} posted.` : "No team has posted a plan."}{" "}
-          <Link to={`/v/zone/${top.id}`}>Open zone {top.id} →</Link>
-        </p>
-      ) : null}
-      {data?.hotspots.length ? (
-        <section className="v2-card v-pad" aria-label="Smaller areas with the most help missing">
-          <h2 className="v-h2">Hotspots: blocks (by soi) with the most help missing</h2>
-          <ol className="v-hot">
-            {data.hotspots.slice(0, 8).map((c) => (
-              <li key={c.id}>
-                <Link to={`/v/zone/${c.zoneId}#${encodeURIComponent(c.id)}`}><b>{c.name ?? c.id}</b></Link>
-                <span className="v-muted v-small">{c.id}</span>
-                <span className="v-small">{c.open} waiting{c.urgent ? <> · <b className="is-red">{c.urgent} urgent</b></> : null}{c.cannotWalk ? ` · ${c.cannotWalk} can't walk` : ""}</span>
-                <Depth m={c.depthM} />
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
-      {data?.sectors.length ? (
-        <section aria-label="Sectors">
-          <h2 className="v-h2">Sectors <span className="v-muted v-small">· split along the railway, canals and main roads; each holds team zones of about 500 m that one team covers in a shift</span></h2>
-          <div className="v-sectors">
-            <button type="button" aria-pressed={!sector} onClick={() => setSector(null)}><b>All</b><span>{data.zones.length} team zones</span></button>
-            {data.sectors.map((s) => (
-              <button key={s.id} type="button" aria-pressed={sector === s.id} onClick={() => setSector(sector === s.id ? null : s.id)}>
-                <b>Sector {s.id}</b><span>{s.name}</span>
-                <span>{s.open} waiting{s.urgent ? <> · <em className="is-red">{s.urgent} urgent</em></> : null}</span>
-                <span>{s.noTeam ? <em className="is-red">{s.noTeam} zones with no team</em> : "every zone has a team"}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-      ) : null}
-      <div className="v-split">
-        <div className="v-tablewrap">
-          <table className="v-table">
-            <thead>
-              <tr>
-                <th>Team zone</th><th className="num">Waiting</th><th className="num">Urgent</th><th className="num">Not answering</th>
-                <th className="num">Can't walk</th><th className="num">Need a boat</th><th>Water</th><th>Teams</th>
-              </tr>
-            </thead>
-            <tbody>
-              {zones.map((z, i) => (
-                <tr key={z.id} onClick={() => nav(`/v/zone/${z.id}`)} className={i < 3 && z.score > 0 ? "is-top" : ""}>
-                  <td><Link to={`/v/zone/${z.id}`}><b>{z.id}</b></Link> {z.label} <span className="v-muted v-small">{z.district}</span>
-                    {z.quiet ? <span className="v2-chip is-amber">quiet</span> : null}
-                    {z.predicted ? <span className="v2-chip is-amber">water ≤ 6 h</span> : null}</td>
-                  <td className="num">{z.open}</td>
-                  <td className="num">{z.urgent ? <b className="is-red">{z.urgent}</b> : "–"}</td>
-                  <td className="num">{z.lostContact ? <b className="is-amber">{z.lostContact}</b> : "–"}</td>
-                  <td className="num">{z.cannotWalk || "–"}</td>
-                  <td className="num">{z.boat || "–"}</td>
-                  <td><Depth m={z.depthM} /></td>
-                  <td>{z.plans ? <span className="v2-chip is-green">{z.plans} planned</span> : z.open ? <span className="v2-chip is-red">none</span> : <span className="v-muted">–</span>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <section className="v2-card v-pad" aria-label="Map">
-          <h2 className="v-h2">Families waiting</h2>
-          <p className="v-muted v-small">Red urgent · amber not answering · white waiting · green safe or picked up. Tap a dot.</p>
-          <MiniMap
-            geo={geo}
-            rows={data?.points ?? []}
-            height={480}
-            onPick={(id) => nav(`/v/case/${id}`)}
-            onZone={(id) => nav(`/v/zone/${id}`)}
-            shelters={data?.shelters}
-            zoneTone={Object.fromEntries((data?.zones ?? []).map((z, i) => [z.id, i < 3 && z.score > 0 ? "is-gap-high" : z.open ? "is-gap-mid" : ""]))}
-          />
-          <p className="v-muted v-small">Shaded zones: the three with the most help missing. Green squares: shelters.</p>
-          <h2 className="v-h2">Shelters</h2>
-          <table className="v-table is-compact">
-            <thead><tr><th>Shelter</th><th className="num">Checked in</th><th className="num">On the way</th><th className="num">Room for</th></tr></thead>
-            <tbody>
-              {(data?.shelters ?? []).map((s) => (
-                <tr key={s.id}><td><b>{s.name}</b> <span className="v-muted v-small">{s.kind}</span></td><td className="num">{s.people}</td><td className="num">{s.coming || "–"}</td><td className="num">≈ {s.capacity}</td></tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="v-muted v-small">Candidate shelters: real public buildings from OpenStreetMap that stay dry in the flood model all week and have no deep-water report nearby. Not the official 2025 list; room is estimated from the building size.</p>
-        </section>
-      </div>
-    </VShell>
-  );
+  const [selection, dispatch] = useReducer(selectionReducer, initialSelection);
+  const [team] = useTeam();
+  const selectZone = (id: string) => dispatch({ type: "zone", id, sector: data?.zones.find(zone => zone.id === id)?.sector ?? null });
+  const selectSector = (id: string) => dispatch({ type: "sector", id });
+  return <VShell title="ช่วยตรงไหนก่อน · Where help is missing" sub="เลือกพื้นที่บนแผนที่หรือรายชื่อ · Select a sector or team zone to see uncovered needs." at={data?.at}>
+    {error && <p role="alert">Couldn't reach the server: {error}</p>}
+    <div className="p3-numbers">
+      <span><b>{data?.zones.reduce((sum, zone) => sum + zone.open, 0) ?? "…"}</b> ครอบครัวรอ · waiting</span>
+      <span><b>{data?.zones.reduce((sum, zone) => sum + zone.urgent, 0) ?? "…"}</b> ด่วน · urgent</span>
+      <span><b>{data?.zones.filter(zone => zone.open && !zone.plans).length ?? "…"}</b> โซนไม่มีทีม · zones with no team</span>
+    </div>
+    <div className="p3-workspace">
+      <section className="p3-map-column" aria-label="Sector map">
+        <button onClick={() => dispatch({ type: "sector", id: null })}>ทุกพื้นที่ · All sectors</button>
+        <SectorMap geo={geo} zones={data?.zones ?? []} selection={selection} onZone={selectZone} onSector={selectSector} />
+        <div className="p3-legend">{["ไม่มีครอบครัวรอ · None waiting", "น้อย · Lower", "ปานกลาง · More", "มากสุด · Most help missing"].map((label, index) => <span key={label}><i style={{ background: `var(--need-${index})` }} />{label}</span>)}</div>
+        <p>เส้นประ: มีครอบครัวรอ ไม่มีทีม · Dashed: waiting families, no team planned. Thick outlines and letters: sectors. Water unknown is never dry.</p>
+      </section>
+      <aside className="p3-sector-list" aria-label="Sectors ranked within each area">
+        {(data?.sectors ?? []).map(sector => <section key={sector.id}>
+          <button className="p3-sector-row" aria-expanded={selection.sector === sector.id} onMouseEnter={() => dispatch({ type: "hover", id: sector.id })} onMouseLeave={() => dispatch({ type: "hover", id: null })} onFocus={() => dispatch({ type: "hover", id: sector.id })} onBlur={() => dispatch({ type: "hover", id: null })} onClick={() => selectSector(sector.id)}>
+            <b className="p3-letter" style={{ background: `var(--sector-${sector.id})` }}>{sector.id}</b>
+            <span>{sector.name} · {sector.zones} zones<br />{sector.open} waiting · {sector.urgent} urgent · {sector.noTeam} no team · {sector.boat} need boat</span>
+          </button>
+          {selection.sector === sector.id && [...(data?.zones ?? [])].filter(zone => zone.sector === sector.id).sort((a, b) => b.score - a.score).map(zone => <button key={zone.id} className="p3-zone-row" aria-pressed={selection.zone === zone.id} onClick={() => selectZone(zone.id)}>
+            <strong>{zone.id} · {zone.label}</strong>
+            <span>{zone.open} waiting · {zone.urgent} urgent · <Depth m={zone.depthM} /> · {zone.plans ? `${zone.plans} teams planned` : "no team"}</span>
+          </button>)}
+        </section>)}
+      </aside>
+    </div>
+    {selection.zone && <ZonePanel key={selection.zone} id={selection.zone} team={team} onClose={() => dispatch({ type: "close" })} onPosted={reload} />}
+  </VShell>;
+}
+
+function ZonePanel({ id, team, onClose, onPosted }: { id: string; team: string; onClose: () => void; onPosted: () => void }) {
+  const [detail, setDetail] = useState<ZoneDetail | null>(null);
+  const [error, setError] = useState("");
+  const [planning, setPlanning] = useState(false);
+  const [vehicle, setVehicle] = useState("เรือ · boat");
+  const [planTeam, setPlanTeam] = useState(team);
+  const [eta] = useState(() => new Date(Date.now() + 30 * 60000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [posted, setPosted] = useState(false);
+  const [told, setTold] = useState<number | null>(null);
+  useEffect(() => {
+    let active = true;
+    vol.zone(id, team).then(result => { if (active) setDetail(result); }, failure => { if (active) setError(String(failure)); });
+    return () => { active = false; };
+  }, [id, team]);
+  useEffect(() => {
+    if (planning) setText(`${planTeam} ${vehicle} จะเข้าโซน ${id} ประมาณ ${eta}`);
+  }, [planning, planTeam, vehicle, id, eta]);
+  const openPlan = () => setPlanning(true);
+  const post = async () => {
+    if (busy || posted) return;
+    setBusy(true); setError("");
+    try {
+      const result = await v2.plan(text, planTeam);
+      setTold(result.plan.told ?? null);
+      setPosted(true);
+      onPosted();
+    } catch (failure) { setError(String(failure)); }
+    finally { setBusy(false); }
+  };
+  const zone = detail?.zone;
+  return <aside className="p3-zone-panel" role="dialog" aria-label={`Zone ${id} summary`}>
+    <button onClick={onClose}>ปิด · Close</button>
+    <h2>{id} · {zone?.label}</h2>
+    {error && <p role="alert">{error}</p>}
+    {!detail && !error && <p role="status">กำลังโหลด · Loading zone…</p>}
+    {zone && <>
+      <p>{detail?.briefing || zone.summary}<br /><span>Decision summary · {zone.gap ?? "See waiting families and planned teams below"}</span></p>
+      <p>{detail?.totals.open} ครอบครัวรอ · waiting families · {zone.people.urgent} urgent</p>
+      <p>น้ำ · Water: {zone.level ? `${zone.level.depthLoM}–${zone.level.depthHiM} m` : "ไม่ทราบ · unknown"}</p>
+      <p>ทีมอื่น · Other teams: {zone.plans.map(plan => `${plan.team ?? "unnamed"} ${plan.vehicle ?? ""} ${plan.eta ?? "time unknown"}`).join(" · ") || "ยังไม่มี · none planned"}</p>
+    </>}
+    <div className="p3-actions"><Link to={`/v/zone/${id}`}>Open zone →</Link><button onClick={openPlan} disabled={!detail || planning}>ฉันจะไปที่นี่ · I'll go here</button></div>
+    {planning && <form onSubmit={event => { event.preventDefault(); void post(); }}>
+      <label>ทีม · Team<input required value={planTeam} onChange={event => setPlanTeam(event.target.value)} disabled={busy || posted} /></label>
+      <label>พาหนะ · Vehicle<input value={vehicle} onChange={event => setVehicle(event.target.value)} disabled={busy || posted} /></label>
+      <label>แผนหนึ่งบรรทัด · One-line plan<textarea required value={text} onChange={event => setText(event.target.value)} disabled={busy || posted} /></label>
+      <p>ปรับข้อความให้ตรงกับทีมและพาหนะก่อนส่ง · Check team and vehicle in the plan before posting.</p>
+      <button disabled={busy || posted || !planTeam.trim() || !text.trim()}>แจ้งแผน · Post plan</button>
+    </form>}
+    {posted && <p role="status">{told === null ? "บันทึกแผนแล้ว ไม่ทราบจำนวนที่แจ้ง · Plan recorded; notified family count unavailable" : `แจ้งแล้ว ${told} ครอบครัว · ${told} families told`} · planned, not rescued yet</p>}
+  </aside>;
 }

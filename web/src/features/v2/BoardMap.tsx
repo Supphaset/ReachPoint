@@ -56,7 +56,7 @@ function useAnalysis(state: BoardState | null, hour: number, mode: SimMode) {
 }
 
 /** Loads the simulation once and redraws the water canvas whenever the hour, mode or corrections change. */
-function useFloodCanvas(geo: GeoView | null, state: BoardState | null, hour: number, mode: SimMode) {
+export function useFloodCanvas(geo: GeoView | null, state: BoardState | null, hour: number, mode: SimMode) {
   const [sim, setSim] = useState<Sim | null>(null);
   const canvas = useRef<HTMLCanvasElement>(document.createElement("canvas"));
   const [tick, setTick] = useState(0);

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BoardMap } from "./BoardMap";
 import { v2, vol, type BoardState, type Feed, type GeoView, type Overview, type Timeline } from "./api";
-import { HonestyLabel, Panel, questions, StepHeader, TraceLine, type ClockAction } from "./ui/Shared";
+import { HonestyLabel, Panel, StepHeader, TraceLine, type ClockAction } from "./ui/Shared";
 import { buildTraceLines } from "./ui/trace";
 import { latestRequest, playFlood } from "./ui/replay";
 import { useTween } from "./ui/useTween";
@@ -148,12 +148,7 @@ export function OverviewLanding() {
             </div>
             <p className="rp-map-caption">Recent reads and model activity · refreshed every 5 s</p>
           </Panel>
-          <Panel title="Copilot">
-            <div className="rp-pad rp-stack">
-              <p>Turn your capacity into a trip with evidence.</p>
-              {questions.map(prompt => <Link className="rp-chip" key={prompt} to={`/v/plan?question=${encodeURIComponent(prompt)}`}>{prompt}</Link>)}
-            </div>
-          </Panel>
+
         </aside>
       </div>
     </main>
@@ -166,8 +161,8 @@ function Doors() {
       <b>Report as a family →</b>
       <small>Thai with English · no microphone needed</small>
     </Link>
-    <Link className="rp-door" to="/v/plan">
-      <b>Plan as a volunteer →</b>
+    <Link className="rp-door" to="/v">
+      <b>See where help is missing →</b>
       <small>Where first, with evidence</small>
     </Link>
   </div>;

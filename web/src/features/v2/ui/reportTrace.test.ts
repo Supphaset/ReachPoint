@@ -45,4 +45,19 @@ describe("report trace builder", () => {
     expect(trace[0]).toMatchObject({ who: "rules", quote: "How many people?" });
     expect(buildReportTrace({ ...turn, reply: "", effects: {} }, 5, "06:04", 96)).toEqual([]);
   });
+  it("keeps GPS/pin provenance and distinguishes street routes from direct lines", () => {
+    const route = {
+      shelterId: "S1", name: "ศูนย์ตัวอย่าง", kind: "school", lon: 100.48, lat: 7.01,
+      km: 1.2, minutes: 18, deepestM: 0.4, walkable: true, by: "streets" as const,
+      path: [], samples: [], deepestAt: [100.48, 7.01] as [number, number],
+      from: [100.47, 7.01] as [number, number], googleMaps: "https://www.google.com/maps/dir/",
+    };
+    const trace = buildReportTrace({ ...turn, effects: { located: { by: "your GPS", zoneId: "D12", buildingId: "B1" }, shelterRoute: route } }, 6, "06:05", 96);
+    expect(trace[0]).toMatchObject({ who: "rules" });
+    expect(trace[0].what).toContain("Located your house from your GPS");
+    expect(trace[1]).toMatchObject({ who: "physics", what: "Walk to ศูนย์ตัวอย่าง: deepest ~0.4 m along the streets" });
+    const direct = buildReportTrace({ ...turn, effects: { shelterRoute: { ...route, by: "direct line" } } }, 7, "06:06", 96);
+    expect(direct[0].what).toContain("direct line (no street route)");
+  });
+
 });
