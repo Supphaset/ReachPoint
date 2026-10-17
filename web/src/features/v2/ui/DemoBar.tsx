@@ -68,12 +68,12 @@ export function DemoBar({ at, onAction, family }: {
     <div className="rp-demo-buttons">
       {family && <button className="rp-demo-primary" disabled={disabled}
         title={next && t(next.proves, next.provesEn)} onClick={() => void run(() => next ? family.onSimulate(next.event) : onAction("reset"))}>
-        {next ? t(`▶ ถัดไป · Next: ${next.label}`, `▶ Next: ${next.labelEn}`) : t("เริ่มใหม่ · Start over", "Start over")}
+        {!family.enabled ? t("แจ้งตำแหน่งในแชทก่อน · Share a location first", "Share a location first")
+          : next ? t(`▶ ถัดไป · Next: ${next.label}`, `▶ Next: ${next.labelEn}`) : t("เริ่มใหม่ · Start over", "Start over")}
       </button>}
       <button ref={trigger} className="rp-demo-more" aria-label={t("ตัวเลือกสาธิต · Demo options", "Demo options")} aria-expanded={expanded}
         onClick={() => setExpanded(value => !value)}>{family ? "⋯" : t("สาธิต · Demo ⋯", "Demo ⋯")}</button>
     </div>
-    {family && !family.enabled && <p className="rp-demo-hint" role="status"><Tr th="แจ้งตำแหน่งในแชทก่อน" en="Share a location first" /></p>}
     <section className="rp-demo-popover" hidden={!expanded} aria-label={t("ตัวเลือกสาธิต · Demo options", "Demo options")}>
       <div className="rp-demo-title"><b><Tr th="สาธิต" en="Demo" /></b><time>{at ?? t("รอเวลา · Time pending", "Time pending")}</time>
         <button aria-label={t("ปิด · Close", "Close")} onClick={() => { setExpanded(false); trigger.current?.focus(); }}>×</button></div>

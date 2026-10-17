@@ -153,7 +153,6 @@ export function V2Page() {
         <div className="rp-section-head">
           <div>
             <h1><Tr th="ข้อความเดียว ครอบครัวปรากฏบนแผนที่" en="One message. A family on the map." /></h1>
-            <p><Tr th="ครอบครัวสมมติสำหรับสาธิต" en="A synthetic demo family: real water data, made-up people" /></p>
           </div>
           <HonestyLabel />
         </div>
@@ -179,7 +178,7 @@ export function V2Page() {
             <div className="card rp-map-card">
             <div className="rp-report-map">
               <BoardMap geo={geo} state={board} selected={household?.zoneId ?? null} onSelect={() => undefined}
-                houses={houses} focus={focus} focusZoom={16} maxZoom={18} focusedHousehold={household} lang="en"
+                houses={houses} focus={focus} focusZoom={16} maxZoom={18} focusedHousehold={household} lang={lang}
                 simHour={board?.atH ?? 96} simMode={simMode} />
             </div>
             <div className="seg" role="group" aria-label="Water layer">

@@ -117,8 +117,9 @@ export function ShelterCard({ route, busy, onAnswer }: { route: ShelterRoute; bu
     <div className="p3-shelter-thumb"><ShelterMap route={route} />
       <button className="btn btn-sec p3-expand" aria-label={t("ขยายแผนที่ · Open full map", "Open full map")} onClick={() => setFull(true)}><Icon name="map" /></button>
     </div>
-    <p><Tr th="ศูนย์พักพิง" en="Shelter" /> {route.name} · {route.km} <Tr th="กม." en="km · walk about" /> {route.minutes} <Tr th="นาที" en="min · deepest" /> {route.deepestM} <Tr th="ม." en="m" /></p>
-    <p>Shelter · {route.km} km · about {route.minutes} min walking · deepest {route.deepestM} m</p>
+    {/* one sentence per language: word-by-word glosses broke the line apart */}
+    <p className="p3-shelter-line"><Tr th={`ศูนย์พักพิง ${route.name} · ${route.km} กม. · เดินราว ${route.minutes} นาที · ลึกสุด ${route.deepestM} ม.`}
+      en={`Shelter ${route.nameEn ?? route.name} · ${route.km} km · about ${route.minutes} min on foot · deepest ${route.deepestM} m`} /></p>
     <p>{route.by === "streets" ? t("ตามถนน · along streets", "along streets") : t("เส้นตรง · direct line (no street route)", "direct line (no street route)")}</p>
     {!route.walkable && <strong><Tr th="อย่าเดินลุยน้ำ" en="Don't wade" /></strong>}
     <div className="p3-actions">

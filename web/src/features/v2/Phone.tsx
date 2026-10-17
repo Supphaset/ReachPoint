@@ -372,7 +372,6 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
           <Icon name="send" label={t("ส่ง · Send", "Send")} />
         </button>
       </form>
-      {text === DEMO_MESSAGES.th[0] && <p className="rp-composer-gloss rp-gloss">{DEMO_MESSAGES.en[0]}</p>}
 
     </section>
       {judgeMode && createPortal(<DemoBar at={at} onAction={onClock} family={{

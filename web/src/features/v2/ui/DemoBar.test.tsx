@@ -16,8 +16,8 @@ describe("demo bar enablement", () => {
     expect(html.match(/disabled=""/g)).toHaveLength(6);
     expect(html).toContain("Clock");
     expect(html).not.toContain("Reset");
-    expect(html).toContain("Share a location first");
-    expect(html).toContain("Next");
+    // the disabled button says why, instead of a separate box
+    expect(html).toMatch(/rp-demo-primary" disabled="".*?>[^<]*Share a location first/);
   });
   it("enables controls after location, shows finished events and suggests the next one", () => {
     const html = renderToStaticMarkup(<DemoBar at="06:30" onAction={action} family={{ ...family, enabled: true, done: ["rain"], result: "Rain sent" }} />);

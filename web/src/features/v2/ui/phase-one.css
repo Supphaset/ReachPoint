@@ -1291,3 +1291,31 @@
   .rp-language { order: 2; }
 }
 .rp-header .rp-language button + button { border-left: 1px solid var(--line); }
+
+/* Owner, 17 Oct: the phone is a real iPhone Pro Max (430 × 932 CSS px) and the page scrolls with it;
+   columns read left to right in story order: her phone → what the AI did → her house on the map. */
+.rp-gloss { font-style: normal; }
+@media (min-width: 760px) {
+  .rp-report-app { height: auto; display: block; }
+  .rp-report-app .rp-main { display: block; }
+  .rp-report-layout { grid-template-columns: 470px minmax(0, 1.1fr) minmax(0, .9fr); grid-template-rows: auto; align-items: start; }
+  .rp-report-layout > * { min-height: auto; }
+  .rp-report-phone { grid-column: 1; }
+  .rp-report-trace { grid-column: 2; }
+  .rp-report-layout > .rp-report-aside { grid-column: 3; grid-row: 1; overflow: visible; }
+  .rp-report-layout > .rp-report-phone, .rp-report-layout > .rp-report-trace { height: auto; max-height: none; }
+  .rp-phone-stage { overflow: visible; display: flex; justify-content: center; padding: 20px; }
+  .rp-phone-stage .p4-family { flex: none; width: 430px; height: 932px; }
+  .rp-phone-stage .p4-family > .v2-phone, .rp-report-layout .v2-phone { width: 430px; height: 932px; max-height: none; }
+  /* the evidence and the map stay in view beside the tall phone */
+  .rp-report-trace, .rp-report-layout > .rp-report-aside { position: sticky; top: 12px; }
+  .rp-report-trace .rp-card { height: min(972px, calc(100dvh - 60px)); }
+}
+@media (min-width: 760px) and (max-width: 1300px) {
+  .rp-report-layout { grid-template-columns: 470px minmax(0, 1fr); }
+  .rp-report-layout > .rp-report-aside { grid-column: 2; grid-row: 2; position: static; }
+}
+@media (min-width: 760px) { .rp-report-trace > .rp-card { min-height: min(932px, calc(100dvh - 60px)); } }
+/* The English gloss sits on the same line as the Thai ("52 นาที min"), except under page titles. */
+.rp-gloss { display: inline; margin: 0 0 0 .35em; }
+h1 > .rp-gloss { display: block; margin: 4px 0 0; font-size: 15px; }

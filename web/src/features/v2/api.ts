@@ -167,6 +167,7 @@ export interface LocationPin {
 export interface ShelterRoute {
   shelterId: string;
   name: string;
+  nameEn?: string | null;
   kind: string;
   lon: number;
   lat: number;
