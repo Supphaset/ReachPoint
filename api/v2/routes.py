@@ -509,7 +509,9 @@ def me(token: str):
     inbox = sorted([o for o in w.outbound if hh and o["householdId"] == hh.id and o["atH"] <= v.now_h
                     and not (o["kind"] == "planUpdate" and o.get("team") != F.SIM_TEAM
                              and (holding or o["atH"] < v.now_h - STALE_PLAN_H))], key=lambda o: o["atH"])
+    inbox = [{**o, "text": o.get("en") or o["text"]} if s.lang == "en" else dict(o) for o in inbox]
     for o in inbox:
+        o.pop("en", None)
         o["at"] = P.label_time(o["atH"])
         # the answers the phone offers under this message, sent back with replyTo = its kind
         o["choices"] = [{"label": a, "send": b} for a, b in F.CHOICES.get(o["kind"], [])]

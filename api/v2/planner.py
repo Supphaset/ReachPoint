@@ -42,13 +42,13 @@ def plan_outreach(w, geo: G.Geo) -> None:
         missed = check_times(hh.last_heard_h, now)
         hh.checks_unanswered = len(missed)
         for t in missed:
-            w.outbound.append({"atH": t, "householdId": hh.id, "kind": "check", "text": say("check")})
+            w.outbound.append({"atH": t, "householdId": hh.id, "kind": "check", "text": say("check"), "en": say("check", "en")})
         if len(missed) >= 2 and hh.status != "lostContact":
             hh.status = "lostContact"
             w.activity.append({"atH": missed[1], "at": label_time(missed[1]), "agent": "Planner",
                                "text": f"{hh.id} in {hh.zone_id} missed two safety checks → lost contact. AI voice call queued.",
                                "tool": "check schedule", "ref": hh.id, "key": "lost"})
-            w.outbound.append({"atH": missed[1] + 0.25, "householdId": hh.id, "kind": "lostCall", "text": say("lostCall")})
+            w.outbound.append({"atH": missed[1] + 0.25, "householdId": hh.id, "kind": "lostCall", "text": say("lostCall"), "en": say("lostCall", "en")})
 
     # prediction and early warning from the gauge
     from api.v2 import sim as S
@@ -66,14 +66,14 @@ def plan_outreach(w, geo: G.Geo) -> None:
                                        f"(gauge X.44 rising, terrain). Early warning to {len(vulnerable)} vulnerable households first.",
                                "tool": "flood simulation · gauge · terrain", "ref": None, "key": "predict"})
             for h in vulnerable:
-                w.outbound.append({"atH": b["atH"] + 0.1, "householdId": h.id, "kind": "earlyWarning", "text": say("earlyWarning")})
+                w.outbound.append({"atH": b["atH"] + 0.1, "householdId": h.id, "kind": "earlyWarning", "text": say("earlyWarning"), "en": say("earlyWarning", "en")})
 
     # doubtful reports: one check question each
     asked = set()
     for o in w.obs:
         if o.label == "doubtful" and o.household_id and o.household_id not in asked and o.source in ("self", "reply"):
             asked.add(o.household_id)
-            w.outbound.append({"atH": o.at_h + 0.1, "householdId": o.household_id, "kind": "askBack", "text": say("askBack")})
+            w.outbound.append({"atH": o.at_h + 0.1, "householdId": o.household_id, "kind": "askBack", "text": say("askBack"), "en": say("askBack", "en")})
     if asked:
         w.activity.append({"atH": now, "at": label_time(now), "agent": "Planner",
                            "text": f"{len(asked)} reports don't fit the water around them. One check question sent to each "
@@ -90,7 +90,7 @@ def plan_outreach(w, geo: G.Geo) -> None:
     if w.quiet:
         targets = [h for h in w.households.values() if h.zone_id in w.quiet and h.first_hand][:6]
         for h in targets:
-            w.outbound.append({"atH": now, "householdId": h.id, "kind": "quiet", "text": say("quiet")})
+            w.outbound.append({"atH": now, "householdId": h.id, "kind": "quiet", "text": say("quiet"), "en": say("quiet", "en")})
         w.activity.append({"atH": now, "at": label_time(now), "agent": "Planner",
                            "text": f"Quiet zones {', '.join(w.quiet)}: many people likely flooded, few reports. Asking "
                                    f"{len(targets)} households there about the streets around them.", "tool": "map certainty",
@@ -108,7 +108,7 @@ def plan_outreach(w, geo: G.Geo) -> None:
                         bl = geo.buildings.get(h.building_id) if h.building_id else None
                         if not bl or bl.block_id not in blocks:
                             continue
-                    w.outbound.append({"atH": p["atH"], "householdId": h.id, "kind": "planUpdate", "text": plan_update(p, z),
+                    w.outbound.append({"atH": p["atH"], "householdId": h.id, "kind": "planUpdate", "text": plan_update(p, z), "en": plan_update(p, z, "en"),
                                        "team": p.get("team") or (p.get("_parsed") or {}).get("team")})
                     told += 1
         p["told"] = told
@@ -138,8 +138,12 @@ def plan_outreach(w, geo: G.Geo) -> None:
         for i, (need, m, lag, h) in enumerate(rows):
             advice_th = ("ถ้าในบ้านมีคนเดินไม่ได้ ตอบ 2 แล้วเราจะแจ้งทีมเรือให้มารับก่อน" if h.cannot_walk
                          else "ถ้าออกได้ ให้ไปศูนย์พักพิงตอนนี้ ก่อนน้ำขึ้น ถ้าออกไม่ได้ ขึ้นที่สูงไว้ก่อน")
-            text = say("rainRise", mm=int(RN.FORECAST_MM), cm=int(round(m * 100 / 5) * 5), h=max(1, lag), advice=advice_th)
+            advice_en = ("If someone at home can't walk, reply 2 and we will ask a boat team to come for you first." if h.cannot_walk
+                         else "If you can leave, go to a shelter now, before the water rises. If you can't, move up high.")
+            amounts = dict(mm=int(RN.FORECAST_MM), cm=int(round(m * 100 / 5) * 5), h=max(1, lag))
+            text = say("rainRise", advice=advice_th, **amounts)
             w.outbound.append({"atH": a["atH"], "order": i, "householdId": h.id, "kind": "rainRise", "text": text,
+                               "en": say("rainRise", "en", advice=advice_en, **amounts),
                                "riseM": round(m, 2), "inH": lag})
         top = max(rows, key=lambda x: x[1]) if rows else None
         w.activity.append({"atH": a["atH"], "at": label_time(a["atH"]), "agent": "Planner",
@@ -157,7 +161,7 @@ def plan_outreach(w, geo: G.Geo) -> None:
             # one warning of a kind per home every 3 hours, however many times the alert is raised
             if any(o["householdId"] == h.id and o["kind"] == a["kind"] and abs(o["atH"] - a["atH"]) < 3 for o in w.outbound):
                 continue
-            w.outbound.append({"atH": a["atH"], "householdId": h.id, "kind": a["kind"], "text": say(a["kind"])})
+            w.outbound.append({"atH": a["atH"], "householdId": h.id, "kind": a["kind"], "text": say(a["kind"]), "en": say(a["kind"], "en")})
         w.activity.append({"atH": a["atH"], "at": label_time(a["atH"]), "agent": "Notifier",
                            "text": f"{'Rain' if a['kind'] == 'rain' else 'River'} alert: safety check sent to {len(told)} households in "
                                    f"{len(set(zones))} zones.", "tool": "forecast · message", "ref": None, "key": a["kind"]})
