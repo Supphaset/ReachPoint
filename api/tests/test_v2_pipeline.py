@@ -219,3 +219,35 @@ def test_a_map_pin_locates_the_house_and_the_shelter_comes_with_a_street_route()
             break
     assert route and route["by"] == "streets" and len(route["path"]) > 2 and route["samples"]
     assert route["googleMaps"].startswith("https://www.google.com/maps/dir/")
+
+
+def test_the_agent_follows_up_until_the_family_is_safe():
+    from api.main import app
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-follow"}
+    made = c.post("/api/v2/chat/sessions", headers=h).json()
+    sid, token = made["id"], made["token"]
+
+    def say(text, reply_to=None):
+        return c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": text, "replyTo": reply_to}, headers=h).json()
+
+    say("น้ำถึงเข่า อยู่กัน 2 คน บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2")
+    say("ไม่มีค่ะ")
+    say("อยู่บ้าน")
+    # a warning we send ends in a choice, and "I need to leave" opens the evacuation flow instead of "thanks"
+    sim = c.post(f"/api/v2/chat/sessions/{sid}/simulate", json={"event": "river"}, headers=h).json()
+    assert sim["message"]["choices"]
+    walk = say("ต้องการออกจากบ้าน", "river")
+    assert [o["send"] for o in walk["effects"]["choices"]["options"]] == ["เดินได้ทุกคน", "มีคนเดินไม่ได้"]
+    ride = say("มีคนเดินไม่ได้", "evacWalk")
+    assert ride["effects"]["checklist"] and ride["status"]["wantsOut"]
+    # a team plans to come and then taps "picked up"; the family says someone is still inside: the case reopens
+    c.post(f"/api/v2/chat/sessions/{sid}/simulate", json={"event": "teamVisit"}, headers=h)
+    inbox = c.get(f"/api/v2/me/{token}", headers=h).json()["inbox"]
+    visit = [o for o in inbox if o["kind"] == "pickedUp"][-1]
+    assert [x["send"] for x in visit["choices"]][1] == "ยังมีคนติดอยู่"
+    still = say("ยังมีคนติดอยู่", "pickedUp")
+    assert still["status"]["urgent"] and still["status"]["status"] == "open"
+    # a check-in answered "safe" gets a real reply with the next check time
+    c.post(f"/api/v2/chat/sessions/{sid}/simulate", json={"event": "checkin"}, headers=h)
+    assert "08:00" in say("ปลอดภัยดี", "checkin")["reply"]

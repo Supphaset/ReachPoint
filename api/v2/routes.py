@@ -193,6 +193,7 @@ class TurnIn(BaseModel):
     text: str = Field(min_length=1, max_length=600)
     channel: str = Field(default="chat", pattern="^(chat|voice)$")
     pin: PinIn | None = None  # the phone's GPS, or a pin the person moved on the map
+    replyTo: str | None = Field(default=None, max_length=24)  # the kind of agent message a button answers
 
 
 @router.post("/chat/sessions")
@@ -261,7 +262,7 @@ def _add_neighbour(v, s, channel: str, lang: str, building_id: str | None = None
 
 @router.post("/chat/sessions/{sid}/turn")
 def chat_turn(sid: str, body: TurnIn):
-    return turn(sid, body.text, body.channel, body.pin.model_dump() if body.pin else None)
+    return turn(sid, body.text, body.channel, body.pin.model_dump() if body.pin else None, body.replyTo)
 
 
 def _pin_to_house(pin: dict, geo) -> dict | None:
@@ -275,7 +276,7 @@ def _pin_to_house(pin: dict, geo) -> dict | None:
             "accuracyM": pin.get("accuracyM")}
 
 
-def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None) -> dict:
+def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, reply_to: str | None = None) -> dict:
     """One turn of the intake agent: typed, held-mic, or Gemini Live voice (api/v2/live.py)."""
     v = room()
     s = v.sessions.get(sid)
@@ -298,9 +299,23 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None) ->
                 effects["located"] = loc
             else:
                 effects["pinOutside"] = True
+        follow = None
+        if s.household_id and not s.nb_queue and (reply_to or s.follow or s.finished) and pending != "shelter":
+            from api.v2 import followup as F
+            follow = F.answer(v, s, _state(v)["world"], text, reply_to or s.follow, lang)
+            if follow:
+                for k in ("shelterRoute", "checklist"):
+                    if follow.get(k):
+                        effects[k] = follow[k]
+                if follow.get("choices"):
+                    effects["choices"] = {"kind": follow["kind"], "options": [{"label": a, "send": b} for a, b in follow["choices"]]}
+                if follow["kind"] not in ("evacWalk", "leaveAsk"):
+                    s.follow = None
         # an answer to the shelter question only when it is one: anything else (a neighbour, a new problem) is read as usual
         shelter_answer = re.search(r"ไป|ได้|โอเค|อยู่บ้าน|ต้องการทีม|ไม่|\b(ok|okay|yes|go|stay|no|can.?t|need|i can)\b", text, re.I)
-        if pending == "shelter" and s.shelter_offer and shelter_answer and len(text) <= 40:
+        if follow:
+            pass
+        elif pending == "shelter" and s.shelter_offer and shelter_answer and len(text) <= 40:
             go = re.search(r"^\s*(ไป|ได้|โอเค|ok|okay|yes|go|ไปได้|ไปค่ะ|ไปครับ|ไปเองได้|i can)", text, re.I) and not re.search(r"ไม่|อยู่บ้าน|ต้องการทีม|stay|no\b|can.?t|need", text, re.I)
             if go:
                 v.seq += 1
@@ -312,6 +327,12 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None) ->
             else:
                 effects["shelter"] = {**s.shelter_offer, "going": False}
                 prefix = I.say("shelter_stay", lang) + " "
+                if not s.shelter_offer.get("walkable") and re.search(r"ต้องการทีม|need", text, re.I):
+                    v.seq += 1  # they can't get there on their own: teams see "wants to leave, needs a ride"
+                    v.messages.append({"id": f"L{v.seq}", "atH": v.now_h, "channel": "safetyReply", "text": text, "live": True,
+                                       "pin": s.pin, "sessionId": s.id, "householdHint": s.household_id, "wantsOut": True,
+                                       "_read": Read([], reader="rules")})
+                    effects["checklist"] = __import__("api.v2.followup", fromlist=["READY"]).READY
         elif pending == "nb_dir" and s.nb_queue:
             from api.v2.reader import direction_of
             side = direction_of(text)
@@ -364,7 +385,11 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None) ->
         st = _state(v)
         w = st["world"]
         s.household_id = _household_of(w, s) or s.household_id
-        if s.finished and not s.nb_queue:  # a neighbour mentioned after the questions still gets its own check
+        if follow:
+            reply = follow["reply"]
+            if s.pending != "shelter":
+                s.pending = None
+        elif s.finished and not s.nb_queue:  # a neighbour mentioned after the questions still gets its own check
             reply = prefix + I.say("reply_ok", lang)
             s.pending = None
         else:
@@ -424,8 +449,40 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None) ->
             if n:
                 effects["depthHere"] = [d, round(max(0.0, d - sd), 2), round(d + sd, 2)]
             effects["simHere"] = prior
-        return {"session": s.view(), "reply": reply, "effects": effects, "zone": zone,
+        from api.v2 import followup as F
+        return {"session": s.view(), "reply": reply, "effects": effects, "zone": zone, "status": F.status(v, s, st),
                 "overall": st["overall"], "activity": st["activity"][:8]}
+
+
+class SimIn(BaseModel):
+    event: str = Field(pattern="^(rain|river|teamPlan|teamVisit|checkin)$")
+
+
+@router.post("/chat/sessions/{sid}/simulate")
+def simulate(sid: str, body: SimIn):
+    """'What happens next' on the family's phone: more rain, the river rising, a team planning to come, the team's
+    visit, a check-in. Goes through the same paths as the real events, so the board changes too."""
+    from api.v2 import followup as F
+    v = room()
+    s = v.sessions.get(sid)
+    if s is None:
+        raise HTTPException(404, "No such conversation")
+    with v.lock:
+        out = F.simulate(v, s, body.event, s.lang)
+    if out.get("error"):
+        raise HTTPException(409, out["error"])
+    out["status"] = F.status(v, s, _state(v))
+    return out
+
+
+@router.get("/chat/sessions/{sid}/status")
+def session_status(sid: str):
+    from api.v2 import followup as F
+    v = room()
+    s = v.sessions.get(sid)
+    if s is None:
+        raise HTTPException(404, "No such conversation")
+    return F.status(v, s, _state(v))
 
 
 @router.get("/me/{token}")
@@ -439,8 +496,11 @@ def me(token: str):
     hh = w.households.get(s.household_id) if s.household_id else None
     zone = st["zones"].get(hh.zone_id) if hh and hh.zone_id else None
     inbox = sorted([o for o in w.outbound if hh and o["householdId"] == hh.id and o["atH"] <= v.now_h], key=lambda o: o["atH"])
+    from api.v2 import followup as F
     for o in inbox:
         o["at"] = P.label_time(o["atH"])
+        # the answers the phone offers under this message, sent back with replyTo = its kind
+        o["choices"] = [{"label": a, "send": b} for a, b in F.CHOICES.get(o["kind"], [])]
     return {"session": s.view(), "household": hh.view() if hh else None, "zone": zone, "inbox": inbox,
             "now": {"atH": v.now_h, "at": P.label_time(v.now_h)}}
 

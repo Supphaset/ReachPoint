@@ -48,6 +48,7 @@ def priority(h, depth: float | None) -> int:
     s = 100 if h.urgent else 0
     s += 60 if h.status == "lostContact" else 0
     s += 30 if h.cannot_walk else 0
+    s += 40 if getattr(h, "wants_out", False) else 0
     s += 20 if depth is not None and depth >= DEEP_M else 0
     s += 15 if h.elderly else 0
     s += 10 if h.children else 0
@@ -58,6 +59,8 @@ def needs(h) -> list[str]:
     out = []
     if h.urgent and h.status not in CLOSED:
         out.append("urgent")
+    if getattr(h, "wants_out", False) and h.status not in CLOSED:
+        out.append("wants to leave, needs a ride")
     if h.cannot_walk:
         out.append(f"{h.cannot_walk} can't walk")
     if h.elderly:

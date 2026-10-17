@@ -153,6 +153,9 @@ def plan_outreach(w, geo: G.Geo) -> None:
         zones = [z for z, l in w.levels.items() if l.wse_m is not None] + list(w.predicted)
         told = [h for h in w.households.values() if h.zone_id in zones and h.status in ("open", "lostContact")]
         for h in told:
+            # one warning of a kind per home every 3 hours, however many times the alert is raised
+            if any(o["householdId"] == h.id and o["kind"] == a["kind"] and abs(o["atH"] - a["atH"]) < 3 for o in w.outbound):
+                continue
             w.outbound.append({"atH": a["atH"], "householdId": h.id, "kind": a["kind"], "text": say(a["kind"])})
         w.activity.append({"atH": a["atH"], "at": label_time(a["atH"]), "agent": "Notifier",
                            "text": f"{'Rain' if a['kind'] == 'rain' else 'River'} alert: safety check sent to {len(told)} households in "

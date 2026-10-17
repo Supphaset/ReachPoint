@@ -89,6 +89,7 @@ class Session:
     shelter_offer: dict | None = None  # the walkable shelter the agent suggested
     nb_queue: list = field(default_factory=list)   # neighbours mentioned, waiting for direction / picture confirmation
     finished: bool = False
+    follow: str | None = None  # the agent's own follow-up question waiting for an answer (api/v2/followup.py)
 
     def view(self):
         return {"id": self.id, "token": self.token, "lang": self.lang, "householdId": self.household_id, "pin": self.pin,

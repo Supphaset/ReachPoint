@@ -62,6 +62,7 @@ class Household:
     checks_unanswered: int = 0
     shelter_id: str | None = None   # the shelter they are going to or checked in at
     outcome: dict | None = None     # a team's one tap: {"kind": "pickedUp" | "nobodyThere", "team", "atH"}
+    wants_out: bool = False         # the family said they want to leave but can't on their own
 
     def view(self):
         return {"id": self.id, "buildingId": self.building_id, "zoneId": self.zone_id, "lon": self.lon, "lat": self.lat,
@@ -70,7 +71,7 @@ class Household:
                 "reportedByOthersOnly": self.reported_by_others_only, "messages": len(self.message_ids),
                 "possibleDuplicateOf": self.possible_duplicate_of, "lastDepth": self.last_depth,
                 "firstAtH": self.first_at_h, "lastHeardH": self.last_heard_h, "outcome": self.outcome,
-                "shelterId": self.shelter_id}
+                "shelterId": self.shelter_id, "wantsOut": self.wants_out}
 
 
 @dataclass
@@ -438,8 +439,14 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
     if kind != "forward":
         w.texts.setdefault(base, hh.id)
     _merge_people(hh, r, first_hand)
+    if msg.get("wantsOut") is not None:
+        hh.wants_out = bool(msg["wantsOut"])
     safe = r.get("safe")
-    if r.get("atShelter") or msg.get("toShelter"):
+    if msg.get("stillThere"):  # after a team's visit the family says someone is still inside: the case reopens
+        hh.outcome, hh.status, hh.urgent = None, "open", True
+    elif msg.get("selfEvacuated"):  # they got out on their own (relatives, their own boat)
+        hh.status, hh.urgent, hh.wants_out = "evacuated", False, False
+    elif r.get("atShelter") or msg.get("toShelter"):
         _to_shelter(w, hh, msg, r, at)
     elif hh.outcome or hh.status == "atShelter":
         pass  # a team was there, or they are at a shelter: that stands over later messages
