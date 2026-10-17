@@ -11,6 +11,12 @@
  * - Light, high-contrast surfaces for phones used outdoors; text pairs meet WCAG AA (4.5:1).
  */
 :root {
+  /* the standard Google Maps place pin, so the location picker looks like the map app people know */
+  --gmaps-pin: #ea4335;
+  --gmaps-pin-stroke: #b31412;
+  --gmaps-pin-dot: #3c0a07;
+  --gmaps-pin-drop: rgba(0, 0, 0, 0.3);
+
   color-scheme: light;
 
   /* Type: IBM Plex Sans Thai covers Thai and Latin with one family */

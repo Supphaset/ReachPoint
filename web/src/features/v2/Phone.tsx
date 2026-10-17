@@ -107,13 +107,16 @@ export function Phone({ onTurn, onSimulation, version, lang, setLang }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
   useEffect(() => {
-    end.current?.scrollIntoView({ block: "end" });
-  }, [items]);
+    // scroll the chat itself, never the page: scrollIntoView would drag the whole page to the phone
+    const box = end.current?.parentElement;
+    if (box) box.scrollTop = box.scrollHeight;
+  }, [items.length]);
 
   const refreshInbox = async (s: Session) => {
     const m = await v2.me(s.token);
     if (currentSession.current !== s.id) return;
     const fresh = m.inbox.filter(i => !seen.current.has(`${i.kind}:${i.atH}:${i.text}`));
+    if (!fresh.length) return; // nothing new: leave the chat (and the page's scroll) alone
     fresh.forEach(i => seen.current.add(`${i.kind}:${i.atH}:${i.text}`));
     setItems(xs => [...xs, ...fresh.map(i => ({ kind: "notice" as const, text: i.text, at: i.at, type: i.kind, choices: i.choices }))]);
   };

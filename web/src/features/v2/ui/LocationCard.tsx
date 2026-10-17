@@ -66,22 +66,44 @@ function PinSheet({ start, busy, onClose, onConfirm }: { start: Point; busy: boo
   const [point, setPoint] = useState(start);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
+  const [moving, setMoving] = useState(false);
   useEffect(() => {
     let active = true;
     let listener: Maps;
+    let moveListener: Maps;
     loadGoogleMaps("th").then(api => {
       if (!active || !box.current) return;
-      const map = new api.Map(box.current, { center: { lng: start.lon, lat: start.lat }, zoom: 16, mapTypeId: "satellite", disableDefaultUI: true, zoomControl: true, gestureHandling: "greedy" });
-      listener = map.addListener("idle", () => { const center = map.getCenter(); if (center) setPoint({ lon: center.lng(), lat: center.lat() }); });
+      // hybrid: the satellite picture with street names, so people can find their soi
+      const map = new api.Map(box.current, { center: { lng: start.lon, lat: start.lat }, zoom: 17, mapTypeId: "hybrid", disableDefaultUI: true, zoomControl: true, gestureHandling: "greedy" });
+      listener = map.addListener("idle", () => {
+        setMoving(false);
+        const center = map.getCenter();
+        if (center) setPoint({ lon: center.lng(), lat: center.lat() });
+      });
+      moveListener = map.addListener("dragstart", () => setMoving(true));
       setReady(true);
     }, () => active && setError(true));
-    return () => { active = false; listener?.remove(); };
+    return () => { active = false; listener?.remove(); moveListener?.remove(); };
   }, [start.lon, start.lat]);
   return <Sheet label="Pin your house" onClose={onClose}>
     <button autoFocus onClick={onClose}>ปิด · Close</button>
     <p>เลื่อนแผนที่ให้บ้านอยู่ใต้หมุด · Move your house under the pin</p>
-    <div className="p3-picker"><div ref={box} className="p3-picker-map" /><span aria-hidden="true">📍</span></div>
+    <div className="p3-picker">
+      <div ref={box} className="p3-picker-map" />
+      <MapsPin lifted={moving} />
+    </div>
     {error && <p role="alert">โหลดแผนที่ไม่ได้ พิมพ์ที่อยู่ในแชทแทน · Map unavailable. Type your address in chat.</p>}
     <button disabled={busy || !ready} onClick={() => onConfirm(point)}>ใช้ตำแหน่งนี้ · Use this spot</button>
   </Sheet>;
+}
+
+/** The red Google Maps pin, fixed at the centre; it lifts while the map is dragged and drops onto the spot. */
+function MapsPin({ lifted }: { lifted: boolean }) {
+  return <div className={`p3-pin${lifted ? " is-lifted" : ""}`} aria-hidden="true">
+    <svg viewBox="0 0 27 43" width="36" height="57">
+      <path className="p3-pin-body" d="M13.5 0C6 0 0 6 0 13.5c0 10.1 13.5 29.5 13.5 29.5S27 23.6 27 13.5C27 6 21 0 13.5 0z" />
+      <circle className="p3-pin-dot" cx="13.5" cy="13.5" r="5" />
+    </svg>
+    <span className="p3-pin-shadow" />
+  </div>;
 }

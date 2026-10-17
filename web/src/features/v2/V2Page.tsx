@@ -137,7 +137,7 @@ export function V2Page() {
           <aside className="rp-stack">
             <div className="rp-report-map">
               <BoardMap geo={geo} state={board} selected={household?.zoneId ?? null} onSelect={() => undefined}
-                houses={houses} focus={focus} focusedHousehold={household} lang="en"
+                houses={houses} focus={focus} focusZoom={17} focusedHousehold={household} lang="en"
                 simHour={board?.atH ?? 96} simMode={simMode} />
             </div>
             <div className="rp-toggle" role="group" aria-label="Water layer">

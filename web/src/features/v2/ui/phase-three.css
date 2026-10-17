@@ -11,7 +11,14 @@
 .p3-house-map { width: 100%; height: 100px; }
 .p3-picker { position: relative; flex: 1; min-height: 50vh; }
 .p3-picker-map { position: absolute; inset: 0; }
-.p3-picker > span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); font-size: 40px; pointer-events: none; }
+.p3-pin { position: absolute; left: 50%; top: 50%; width: 36px; height: 57px; transform: translate(-50%, -100%); pointer-events: none; }
+.p3-pin svg { display: block; transition: transform 0.15s ease-out; filter: drop-shadow(0 2px 2px var(--gmaps-pin-drop)); }
+.p3-pin.is-lifted svg { transform: translateY(-12px); }
+.p3-pin-body { fill: var(--gmaps-pin); stroke: var(--gmaps-pin-stroke); stroke-width: 1; }
+.p3-pin-dot { fill: var(--gmaps-pin-dot); }
+.p3-pin-shadow { position: absolute; left: 50%; bottom: -3px; width: 14px; height: 5px; border-radius: 50%; transform: translateX(-50%); background: var(--gmaps-pin-drop); transition: opacity 0.15s; }
+.p3-pin.is-lifted .p3-pin-shadow { opacity: 0.4; }
+@media (prefers-reduced-motion: reduce) { .p3-pin svg { transition: none; } }
 .p3-numbers { display: flex; flex-wrap: wrap; gap: 16px; margin-block: 12px; font-size: 14px; }
 .p3-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: 20px; }
 .p3-map-column, .p3-sector-list { min-width: 0; }

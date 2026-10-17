@@ -322,12 +322,14 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pinSig, maps, geo, showPlans]);
 
+  // move only when the place changes, not every time the board refreshes with a new focus object
   useEffect(() => {
     if (focus && map.current) {
       map.current.panTo({ lng: focus.lon, lat: focus.lat });
       map.current.setZoom(focusZoom);
     }
-  }, [focus, focusZoom]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus?.lon, focus?.lat, focusZoom]);
 
   // Trip stops use the same satellite map and projection as households and water.
   useEffect(() => {
@@ -361,7 +363,8 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       map.current.fitBounds(bounds, 65);
     }
     return () => shapes.forEach(shape => shape.setMap(null));
-  }, [maps, tripOverlay, focusedHousehold]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maps, tripOverlay, focusedHousehold?.id]);
 
   return <div ref={el} className="v2-map" aria-label="Satellite map of Hat Yai city with flood zones" />;
 }
