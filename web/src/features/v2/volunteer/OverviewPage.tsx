@@ -1,8 +1,8 @@
 /** Map and list share one sector and one zone selection. Plans never imply a rescue. */
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { v2, vol, type ZonePage as ZoneDetail } from "../api";
-import { Depth, VShell, useGeo, useLive, useTeam } from "./shared";
+import { v2, vol, type WaterTrend, type ZonePage as ZoneDetail } from "../api";
+import { Depth, Trend, VShell, useGeo, useLive, useTeam } from "./shared";
 import { initialSelection, selectionReducer } from "./selection";
 import { displayText } from "../ui/trace";
 import { SectorMap, goBy } from "./SectorMap";
@@ -22,6 +22,9 @@ export function OverviewPage() {
       <span><b>{data?.zones.reduce((sum, zone) => sum + zone.open, 0) ?? "…"}</b> ครอบครัวรอ · waiting</span>
       <span><b>{data?.zones.reduce((sum, zone) => sum + zone.urgent, 0) ?? "…"}</b> ด่วน · urgent</span>
       <span><b>{data?.zones.filter(zone => zone.open && !zone.plans).length ?? "…"}</b> โซนไม่มีทีม · zones with no team</span>
+      {data?.rain && <span className={`p3-rain${data.rain.heavy ? " is-heavy" : ""}`} title={`${data.rain.source} · ${data.rain.kind}`}>
+        ฝน · Rain: 6 ชม.ที่ผ่านมา <b>{data.rain.past6hMm ?? "?"} มม.</b> · 6 ชม.ข้างหน้า <b>{data.rain.next6hMm ?? "?"} มม.</b>
+        <small> last 6 h / next 6 h (replay: rain that really fell, as a stand-in forecast)</small></span>}
     </div>
     <div className="p3-workspace">
       <section className="p3-map-column" aria-label="Sector map">
@@ -33,7 +36,7 @@ export function OverviewPage() {
       </section>
       <aside data-sheet={sheet} className="p3-sector-list" aria-label="Sectors ranked within each area">
         <div className="p3-sheet-sizes seg" aria-label="ขนาดรายชื่อ · List height">{[["peek", "ย่อ · Peek"], ["half", "ครึ่ง · Half"], ["full", "เต็ม · Full"]].map(([value, label]) => <button key={value} aria-pressed={sheet === value} onClick={() => setSheet(value)}>{label}</button>)}</div>
-        {selection.zone ? <ZonePanel key={selection.zone} id={selection.zone} team={team} onClose={() => dispatch({ type: "close" })} onPosted={reload} /> : <>
+        {selection.zone ? <ZonePanel key={selection.zone} id={selection.zone} water={data?.zones.find(zone => zone.id === selection.zone)?.water} team={team} onClose={() => dispatch({ type: "close" })} onPosted={reload} /> : <>
         {(data?.sectors ?? []).map(sector => <section key={sector.id}>
           <button className="p3-sector-row" aria-expanded={selection.sector === sector.id} onMouseEnter={() => dispatch({ type: "hover", id: sector.id })} onMouseLeave={() => dispatch({ type: "hover", id: null })} onFocus={() => dispatch({ type: "hover", id: sector.id })} onBlur={() => dispatch({ type: "hover", id: null })} onClick={() => selectSector(sector.id)}>
             <b className="p3-letter" style={{ background: `var(--sector-${sector.id})` }}>{sector.id}</b>
@@ -43,7 +46,7 @@ export function OverviewPage() {
           </button>
           {selection.sector === sector.id && [...(data?.zones ?? [])].filter(zone => zone.sector === sector.id).sort((a, b) => b.score - a.score).map(zone => <button key={zone.id} className="p3-zone-row" aria-pressed={selection.zone === zone.id} onClick={() => selectZone(zone.id)}>
             <strong>{zone.id} · {zone.label}</strong>
-            <span>{zone.open} รอ · waiting · {zone.urgent} ด่วน · urgent · <Depth m={zone.depthM} /> · <span className={`pill ${zone.plans ? "" : "p-doubt"}`}>{zone.plans ? `${zone.plans} ทีม · teams` : "ไม่มีทีม · NO TEAM"}</span></span>
+            <span>{zone.open} รอ · waiting · {zone.urgent} ด่วน · urgent · <Depth m={zone.depthM} /> <Trend water={zone.water} /> · <span className={`pill ${zone.plans ? "" : "p-doubt"}`}>{zone.plans ? `${zone.plans} ทีม · teams` : "ไม่มีทีม · NO TEAM"}</span></span>
           </button>)}
         </section>)}
         </>}
@@ -53,7 +56,7 @@ export function OverviewPage() {
   </VShell>;
 }
 
-export function ZonePanel({ id, team, onClose, onPosted }: { id: string; team: string; onClose: () => void; onPosted: () => void }) {
+export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; team: string; water?: WaterTrend | null; onClose: () => void; onPosted: () => void }) {
   const panel = useRef<HTMLElement>(null);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -105,7 +108,7 @@ export function ZonePanel({ id, team, onClose, onPosted }: { id: string; team: s
         const likely = zone.level?.depthM, hi = zone.level?.depthHiM;
         const go = goBy(likely);
         const deeper = hi != null && likely != null && goBy(hi)?.[0] !== go?.[0];
-        return <p className="p4-go-by"><b>ไปด้วย · Go by:</b> {go ? <>{go[0]} <small>{go[1]}</small></> : "ไม่ทราบระดับน้ำ เตรียมเรือไว้ · depth unknown, bring a boat"}
+        return <p className="p4-go-by"><b>น้ำ · Water:</b> <Trend water={water} long /><br /><b>ไปด้วย · Go by:</b> {go ? <>{go[0]} <small>{go[1]}</small></> : "ไม่ทราบระดับน้ำ เตรียมเรือไว้ · depth unknown, bring a boat"}
           {deeper && <><br />บางจุดอาจถึง {hi.toFixed(1)} ม. <small>some streets up to {hi.toFixed(1)} m</small></>}</p>;
       })()}
       <p className="p4-zone-teams">ทีมอื่น · Other teams: {zone.plans.map(plan => `${plan.team ?? "unnamed"} ${plan.vehicle ?? ""} ${plan.eta ?? "time unknown"}`).join(" · ") || "ยังไม่มี · none planned"}</p>

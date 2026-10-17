@@ -136,7 +136,9 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     overlays.push(polygon);
     }
     if (top.includes(id) || (selection.sector && zone?.sector === selection.sector)) {
-      label(feature, `${id} · ${zone?.label ?? feature.properties?.label ?? "ไม่ทราบชื่อ"}`, false, () => onZone(id));
+      // rising water is the one thing worth an arrow on the map itself
+      const arrow = zone?.water?.trend === "rising" ? " ↑" : zone?.water?.trend === "falling" ? " ↓" : "";
+      label(feature, `${id} · ${zone?.label ?? feature.properties?.label ?? "ไม่ทราบชื่อ"}${arrow}`, false, () => onZone(id));
     }
   }
   for (const feature of geo.sectors?.features ?? []) {
@@ -214,7 +216,7 @@ export function SectorMap(props: Props) {
   latest.current = props;
   const { selection } = props;
   const drawn = [props.geo?.zones.features.length ?? 0, waterOn, props.shelters?.length ?? 0, selection.zone, selection.sector, selection.hover,
-    ...props.zones.map(zone => `${zone.id}:${zone.score}:${zone.open}:${zone.plans}`)].join("|");
+    ...props.zones.map(zone => `${zone.id}:${zone.score}:${zone.open}:${zone.plans}:${zone.water?.trend}`)].join("|");
   useEffect(() => {
     if (!ready) return;
     const styles = getComputedStyle(document.documentElement);

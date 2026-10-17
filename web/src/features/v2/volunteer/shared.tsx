@@ -229,3 +229,13 @@ export function fmtTags(tags: string[]): { key: string; label: string; tone: str
   };
   return tags.filter((t) => L[t]).map((t) => ({ key: t, label: L[t][0], tone: L[t][1] }));
 }
+
+/** "↑ rising ~0.2 m in 6 h": the trend a team needs before it sets out (water rising = go sooner, bigger boat). */
+export function Trend({ water, long = false }: { water: import("../api").WaterTrend | null | undefined; long?: boolean }) {
+  if (!water) return <span className="p3-trend">แนวโน้มไม่ทราบ · trend unknown</span>;
+  const arrow = { rising: "↑", falling: "↓", steady: "→" }[water.trend];
+  const th = { rising: "น้ำขึ้น", falling: "น้ำลด", steady: "ทรงตัว" }[water.trend];
+  const change = Math.abs(water.next6hM);
+  return <span className={`p3-trend is-${water.trend}`}>{arrow} {th}<small> {water.trend}</small>
+    {long && water.trend !== "steady" && <> ~{change.toFixed(1)} ม. ใน 6 ชม.<small> ~{change.toFixed(1)} m in 6 h</small></>}</span>;
+}

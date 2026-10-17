@@ -310,3 +310,10 @@
 /* Half-strength water so street names and landmarks stay readable under it. */
 .p3-google-map .v2-flood-canvas { opacity: 0.7 !important; }
 .p3-water-key small { display: inline; }
+.p3-trend { white-space: nowrap; font-size: 14px; }
+.p3-trend small { color: var(--ink-3); font-size: 14px; }
+.p3-trend.is-rising { color: var(--urgent); font-weight: 600; }
+.p3-trend.is-falling { color: var(--done); }
+.p3-rain { flex-basis: 100%; }
+.p3-rain small { color: var(--ink-3); font-size: 14px; }
+.p3-rain.is-heavy b { color: var(--urgent); }

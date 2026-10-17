@@ -313,7 +313,14 @@ export interface OverviewZone {
   quiet: boolean;
   predicted: boolean;
   closed: number;
+  /** The model's change at the zone's houses: last 3 hours and next 6 (null outside the model). */
+  water: WaterTrend | null;
 }
+
+export interface WaterTrend { past3hM: number | null; next6hM: number; trend: "rising" | "falling" | "steady" }
+
+/** Basin rain: last 6 h observed; next 6 h is, in the replay, the rain that really fell next (no archived forecast). */
+export interface RainOutlook { past6hMm: number | null; next6hMm: number | null; heavy: boolean; source: string; kind: string }
 
 export interface Overview {
   atH: number;
@@ -324,6 +331,7 @@ export interface Overview {
   shelters: Shelter[];
   hotspots: SubArea[];
   sectors: { id: string; name: string | null; zones: number; open: number; urgent: number; noTeam: number; boat: number }[];
+  rain?: RainOutlook | null;
 }
 
 export interface SubArea {

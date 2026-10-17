@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import re
 
-from api.v2 import geo as G, pipeline as P, sim as S
+from api.v2 import geo as G, pipeline as P, rain as RN, sim as S
 
 BOAT_M = 0.5        # boat suggested at or above this depth at the house (Earth's desk threshold, decision 0017)
 DEEP_M = 1.2
@@ -90,6 +90,33 @@ def _rows(st: dict, zone_id: str | None = None) -> list[dict]:
 
 
 # --- city overview ---
+_ZONE_POINT: dict = {}
+
+
+def zone_point(zid: str) -> tuple[float, float] | None:
+    """A point inside the zone, for zones nobody has reported from yet."""
+    if zid not in _ZONE_POINT:
+        from shapely.geometry import shape
+        f = next((z for z in G.load().zones if z["properties"].get("id") == zid), None)
+        p = shape(f["geometry"]).representative_point() if f else None
+        _ZONE_POINT[zid] = (p.x, p.y) if p else None
+    return _ZONE_POINT[zid]
+
+
+def trend(points: list[tuple[float, float]], now_h: float) -> dict | None:
+    """Is the water at these houses rising or falling? The model's change over the last 3 hours and the next 6,
+    averaged over the houses (the model's shape of the flood; reports correct its level, not its timing)."""
+    def mean(h: float) -> float | None:
+        ds = [d for d in (S.depth(lon, lat, h) for lon, lat in points) if d is not None]
+        return sum(ds) / len(ds) if ds else None
+    now, before, later = mean(now_h), mean(now_h - 3), mean(now_h + 6)
+    if now is None or later is None:
+        return None
+    change = later - now
+    return {"past3hM": round(now - before, 2) if before is not None else None, "next6hM": round(change, 2),
+            "trend": "rising" if change > 0.05 else "falling" if change < -0.05 else "steady"}
+
+
 def overview(st: dict) -> dict:
     w = st["world"]
     zones = []
@@ -113,6 +140,8 @@ def overview(st: dict) -> dict:
             "likelyFlooded": lf, "heard": heard, "plans": len(plans), "nextPlan": plans[-1] if plans else None,
             "gap": z.get("gap"), "quiet": z.get("quiet"), "predicted": z.get("predicted"),
             "closed": sum(1 for r in rs if r["status"] in CLOSED),
+            "water": trend([(r["lon"], r["lat"]) for r in rs if r.get("lon") is not None][:40]
+                           or [p for p in [zone_point(zid)] if p], w.now_h),
         })
     zones.sort(key=lambda z: -z["score"])
     sectors = []
@@ -126,7 +155,8 @@ def overview(st: dict) -> dict:
                "outcome": h.outcome, "needs": needs(h), "depth": None, "zoneId": h.zone_id}
               for h in w.households.values() if h.lon is not None]
     return {"atH": w.now_h, "at": P.label_time(w.now_h), "overall": st["overall"], "zones": zones, "points": points,
-            "shelters": st.get("shelters", []), "hotspots": [c for c in subareas(st) if c["need"] > 0][:10], "sectors": sectors}
+            "shelters": st.get("shelters", []), "hotspots": [c for c in subareas(st) if c["need"] > 0][:10], "sectors": sectors,
+            "rain": RN.outlook(w.now_h)}
 
 
 # --- live feed: what the AI did with every message ---
