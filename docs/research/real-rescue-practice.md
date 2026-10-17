@@ -153,3 +153,24 @@ Research date: 11 Oct 2026. Sources are listed at the end. Where a source didn't
 - Hat Yai flood extent technical report (GISTDA-derived polygons): https://nakmuay.charity/projects/Post_Flood_Hat_Yai_Thailand_2025-12-01/reports/flood-extent-technical
 - Google Open Buildings (Thailand covered, v3): https://sites.research.google/gr/open-buildings/
 - DOPA registered population (data.go.th): https://data.go.th/en/dataset/dopa-star
+
+## Checked 17 Oct 2026: published evidence used in the README
+
+Each item was opened and its date and wording checked. Figures keep their own scope; don't add them up.
+
+| What | Source |
+|---|---|
+| A Hat Yai rescue volunteer group (Matchima Rescue Center) had thousands of calls over three days, plus thousands of Facebook appeals | [Reuters via MarketScreener, 25 Nov 2025](https://www.marketscreener.com/news/thailand-to-send-aircraft-carrier-for-flood-relief-as-rains-intensify-ce7d5edddb80f122) |
+| A mother on her roof for two days with her 4-year-old: calls answered, nobody came | [ABC News, 30 Nov 2025](https://www.abc.net.au/news/2025-11-30/thailand-floods-death-toll-rises/106082418) |
+| Crisis centre merged Traffy Fondue, HatYaiFlood and volunteer-group requests: ~40,000 cases, 77,000 people, ~3,000 urgent; incomplete because names didn't match; four operational zones | [The Nation, 27 Nov 2025 (briefing 26 Nov)](https://www.nationthailand.com/news/general/40058844) |
+| False WhatsApp requests cost a rescue team minutes each; it asked for location, number of people and contact in every request | [Bernama, 27 Nov 2025](https://www.bernama.com/en/news.php?id=2496089) |
+| Outside volunteers didn't know the small alleys or where vulnerable people were; a proposal for local zone command centres | [Matichon, 24 Nov 2025](https://www.matichon.co.th/politics/news_5472795) |
+| Phone and power outages left victims out of contact; elderly and sick people stayed in flooded houses | [Thai PBS, 25 Nov 2025](https://www.thaipbs.or.th/news/content/358821) |
+| ThaiRod on LINE showed volunteers the three nearest cases; Jitasa.Care and Traffy Fondue coordinated with military and rescue teams | [Spring News, 25 Nov 2025](https://www.springnews.co.th/news/hot-issue/860848) |
+| Jitasa.Care: volunteers and developers used AI to sort ~20,000 social-media messages by need and location | [Thairath English, 25 Nov 2025](https://en.thairath.co.th/news/politic/2897779) |
+| GISTDA satellite/HAND estimate: most of Hat Yai district 2–3 m deep; ~150,000 people and ~25,000 homes affected | [GISTDA, 25 Nov 2025](https://old.gistda.or.th/news_view.php?lang=TH&n_id=8951) (page did not load live when checked; indexed copy) |
+| 145 deaths in eight provinces, at least 110 in Songkhla (interim) | [AP, 28 Nov 2025](https://apnews.com/article/thailand-south-flood-damage-aa127ba2af6a845dc309cfc2fe99d035) |
+| White paper: no system tracked where help had reached and where it was still missing; intake forms lacked callback details and coordinates; 20,000+ cases 23–29 Nov | [ThaiPublica, 21 May 2026](https://thaipublica.org/2026/05/hatyai-flood-systemic-failure-analysis/) |
+
+Not found: a published example of the same family's forwarded posts being counted many times, or a duplicate rate.
+The README says only what these sources support.

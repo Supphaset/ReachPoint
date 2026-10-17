@@ -12,33 +12,62 @@ AI Builder Cup 2026 (Google Cloud JAPAC) · Sustainability & Social Impact · bu
 
 ## The problem
 
-In the November 2025 Hat Yai flood, tens of thousands of requests for help came in through phone lines, Facebook
-groups, LINE and word of mouth ([sources](docs/research/real-rescue-practice.md)). The same family was posted many
-times; others never posted at all. Nobody could say how many people were in which street, how deep the water was
-there, or whether anyone was on the way. Volunteers drove to houses that had already emptied, while people who never
-called were not checked.
+In the November 2025 Hat Yai flood, help requests arrived faster than anyone could sort them:
 
-## Try it in 60 seconds
+- A Hat Yai rescue volunteer group told Reuters calls had come in non-stop, in the thousands, for three days
+  ([Reuters, 25 Nov 2025](https://www.marketscreener.com/news/thailand-to-send-aircraft-carrier-for-flood-relief-as-rains-intensify-ce7d5edddb80f122)).
+- The government's crisis centre merged requests from Traffy Fondue, the HatYaiFlood site and volunteer groups into
+  about 40,000 cases covering 77,000 people, and said the data was still incomplete because names didn't match across
+  entries ([The Nation, 27 Nov 2025](https://www.nationthailand.com/news/general/40058844)).
+- Being heard was not the same as being reached. A mother who spent two days on her roof with her four-year-old said:
+  *"Every day they would pick up my calls, but nobody came to rescue us."*
+  ([ABC News, 30 Nov 2025](https://www.abc.net.au/news/2025-11-30/thailand-floods-death-toll-rises/106082418))
+- Phone lines and power failed, so many people lost contact
+  ([Thai PBS, 25 Nov 2025](https://www.thaipbs.or.th/news/content/358821)); false or incomplete messages cost rescue
+  teams time ([Bernama, 27 Nov 2025](https://www.bernama.com/en/news.php?id=2496089)); and a later white paper found no
+  system tracked which areas had been reached and which were still waiting
+  ([ThaiPublica, 21 May 2026](https://thaipublica.org/2026/05/hatyai-flood-systemic-failure-analysis/)).
 
-Open the site. You get your own private demo room (nobody else sees your reports; Reset only resets yours).
+So nobody could say how many people were in which street, how deep the water was there, or whether anyone was on the
+way. More sources: [`docs/research/real-rescue-practice.md`](docs/research/real-rescue-practice.md).
 
-1. **Play a victim.** Top left is a Hat Yai shophouse with the water at its modelled depth. Report on the phone below
-   it, in Thai or English, by typing or by pressing **📞 Call** to talk to the agent through **Gemini Live**. Try:
-   *"น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"*. The agent asks only what is missing;
-   under each answer you see what it understood, with your own words. The house scene becomes *your* house.
-2. **Mention neighbours:** *"บ้านทางทิศตะวันออกมียายอยู่คนเดียว ทางทิศตะวันตกมีครอบครัว 4 คน"*. For each one the agent
-   shows the satellite picture with that house outlined and asks "is it this one?". A house that already reported isn't
-   counted twice; a new one is added as reported by a neighbour.
-3. **Shelters:** if you can leave on your own, the agent offers the nearest shelter you can walk to (no stretch deeper
-   than 0.5 m on the way), or says plainly that walking isn't safe now. Say *"ถึงแล้ว"* at the shelter and your house is
-   marked empty for the teams.
-4. **Press "Rain alert".** The flood model's response to 60 mm more rain tells each home how much its water will rise
-   and when; homes with someone who can't walk are warned first.
-5. **Open "Volunteer pages →"**: where help is missing (zones and ~350 m hotspots), the live feed of what the AI did
-   with every message, a zone page, one family's whole case, and "Plan a trip". Post a plan and the families there are
-   told; zones with a team coming are outlined on the map. After the visit, one tap: *picked up* or *nobody there*.
-6. **Press "Play the flood"** to watch 21–28 Nov 2025 build up: water spreading from the hills and canals, reports
-   arriving, duplicates merging, the picture sharpening.
+### What existed, and what ReachPoint adds
+
+Volunteers built real tools during the flood: Traffy Fondue and the HatYaiFlood site collected requests, Jitasa.Care
+used AI to sort about 20,000 social-media posts by need and location, and ThaiRod on LINE showed rescuers the nearest
+open cases ([Thairath](https://en.thairath.co.th/news/politic/2897779),
+[Spring News](https://www.springnews.co.th/news/hot-issue/860848)). They turn requests into a list. ReachPoint turns
+them into a picture:
+
+- **One family, one dot.** Every channel's messages, forwards and relatives' posts are merged into households, with
+  the reason for each merge shown, so 1,064 messages become about 300 families instead of 1,064 cases.
+- **People's words correct a physics flood model.** "Water at my waist" becomes a measured depth that updates the
+  water street by street, and the model tells volunteers where to expect water nobody has reported.
+- **The silent are counted.** Zones the model says are flooded but nobody has reported from are flagged, and the
+  agent asks people there about their neighbours.
+- **Volunteers see what is still missing.** Zones with families and no team, a copilot that plans a trip from the
+  evidence, and every posted plan told to the families it covers.
+
+## Try it in 90 seconds
+
+Open the site. You get your own private demo room (nobody else sees your reports; Reset only resets yours). The step
+bar at the top walks you through it; **Explore freely** opens everything else.
+
+1. **Overview.** The flood week replays in 20 seconds: water spreading from the hills and canals, messages arriving,
+   duplicates merging, and the counter settling at 1,064 messages → about 300 families. The right column shows what the
+   AI is doing, each line marked by who decided: **Gemini** (reading), **rules** (matching, merging), **physics**
+   (the flood model) or **action**.
+2. **Report as a family.** Send the prefilled Thai message (or press **📞 Call** to talk through **Gemini Live**):
+   *"น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"*. Watch the AI's steps for this family:
+   what Gemini read (with your words), the building it matched, why it is urgent, and the depth at your house before
+   and after your report. Then say *"บ้านทางตะวันออก ยายอยู่คนเดียว"*: the agent shows that house on the satellite
+   picture, and after "ใช่" the grandmother is added as her own household.
+3. **Plan as a volunteer.** Ask the copilot *"I have one boat with 6 seats. Where first?"*. Gemini calls ReachPoint's
+   tools (you see each call), answers with cited zones and households, and drafts the runs, what to bring and which
+   other teams are nearby. Every number in its answer is checked against the tools. Post the plan and the families
+   are told: *planned, not rescued yet*.
+4. **Demo controls** (top right): +30 min, Rain alert (each home is told how much its water will rise), River rising,
+   Flood the system, Reset.
 
 ## How it works
 
