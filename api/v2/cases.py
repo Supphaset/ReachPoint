@@ -418,3 +418,25 @@ def blocks(st: dict, zid: str | None = None, geometry: bool = True) -> list[dict
 def subareas(st: dict, zid: str | None = None) -> list[dict]:
     """The blocks, most help missing first (kept under the old name for the pages that list them)."""
     return sorted(blocks(st, zid, geometry=False), key=lambda b: -b["need"])
+
+
+def urgent(st: dict, first: dict) -> dict:
+    """Urgent open cases by zone. Inside a zone: cases a team marked "do first", then by priority (the same score
+    the zone page uses: urgency, who can't walk, depth, how long they have been silent)."""
+    w = st["world"]
+    groups: dict[str, list] = {}
+    for h in w.households.values():
+        if not (h.urgent and h.status not in CLOSED):
+            continue
+        r = row(st, h)
+        r["markedFirst"] = first.get(h.id)
+        groups.setdefault(h.zone_id or "?", []).append(r)
+    zones = []
+    for zid, rs in groups.items():
+        rs.sort(key=lambda r: (not r["markedFirst"], -r["priority"]))
+        z = st["zones"].get(zid) or {}
+        zones.append({"id": zid, "label": z.get("label"), "sector": z.get("sector"), "plans": len(z.get("plans") or []),
+                      "depthM": (z.get("level") or {}).get("depthM"), "cases": rs,
+                      "score": sum(r["priority"] for r in rs) + (1000 if any(r["markedFirst"] for r in rs) else 0)})
+    zones.sort(key=lambda z: -z["score"])
+    return {"atH": w.now_h, "at": P.label_time(w.now_h), "total": sum(len(z["cases"]) for z in zones), "zones": zones}

@@ -108,7 +108,8 @@ def plan_outreach(w, geo: G.Geo) -> None:
                         bl = geo.buildings.get(h.building_id) if h.building_id else None
                         if not bl or bl.block_id not in blocks:
                             continue
-                    w.outbound.append({"atH": p["atH"], "householdId": h.id, "kind": "planUpdate", "text": plan_update(p, z)})
+                    w.outbound.append({"atH": p["atH"], "householdId": h.id, "kind": "planUpdate", "text": plan_update(p, z),
+                                       "team": p.get("team") or (p.get("_parsed") or {}).get("team")})
                     told += 1
         p["told"] = told
         w.activity.append({"atH": p["atH"], "at": p["at"], "agent": "Notifier",

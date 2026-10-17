@@ -26,6 +26,7 @@ class V2Room:
     alerts: list[dict] = field(default_factory=list)
     pulled: dict = field(default_factory=dict)
     sessions: dict = field(default_factory=dict)
+    first: dict = field(default_factory=dict)   # household id -> {"team", "at"}: a team marked the case "do first"
     lock: threading.Lock = field(default_factory=threading.Lock)
     seq: int = 0
 
@@ -488,6 +489,9 @@ def session_status(sid: str):
     return F.status(v, s, _state(v))
 
 
+STALE_PLAN_H = 4  # a zone plan older than this is not news to a family that has just written in (its time has passed)
+
+
 @router.get("/me/{token}")
 def me(token: str):
     v = room()
@@ -498,8 +502,13 @@ def me(token: str):
     w = st["world"]
     hh = w.households.get(s.household_id) if s.household_id else None
     zone = st["zones"].get(hh.zone_id) if hh and hh.zone_id else None
-    inbox = sorted([o for o in w.outbound if hh and o["householdId"] == hh.id and o["atH"] <= v.now_h], key=lambda o: o["atH"])
     from api.v2 import followup as F
+    # A team's plan for the zone waits until the agent has finished taking the report: a family mid-conversation
+    # should not get "a boat is coming" before it has said who is in the house. A demo "team plans" click is shown.
+    holding = not s.finished
+    inbox = sorted([o for o in w.outbound if hh and o["householdId"] == hh.id and o["atH"] <= v.now_h
+                    and not (o["kind"] == "planUpdate" and o.get("team") != F.SIM_TEAM
+                             and (holding or o["atH"] < v.now_h - STALE_PLAN_H))], key=lambda o: o["atH"])
     for o in inbox:
         o["at"] = P.label_time(o["atH"])
         # the answers the phone offers under this message, sent back with replyTo = its kind
@@ -581,6 +590,34 @@ def v_outcome(hid: str, body: OutcomeIn):
                            "text": f"{body.team.strip()}: " + {"pickedUp": "picked them up", "nobodyThere": "went there, nobody there",
                                                                "atShelter": "checked them in at the shelter"}[body.outcome]})
     return C.case(_state(v), v.messages, hid, body.team)
+
+
+@router.get("/v/urgent")
+def v_urgent():
+    """Every urgent open case, grouped by zone, most urgent zone first: what a team should pick from.
+    Teams can mark a case "do first"; every team sees the mark."""
+    from api.v2 import cases as C
+    v = room()
+    return C.urgent(_state(v), v.first)
+
+
+class FirstIn(BaseModel):
+    team: str = Field(min_length=1, max_length=80)
+    first: bool = True
+
+
+@router.post("/v/cases/{hid}/first")
+def v_first(hid: str, body: FirstIn):
+    from api.v2 import cases as C
+    v = room()
+    with v.lock:
+        if hid not in _state(v)["world"].households:
+            raise HTTPException(404, "No such household")
+        if body.first:
+            v.first[hid] = {"team": body.team.strip(), "at": P.label_time(v.now_h)}
+        else:
+            v.first.pop(hid, None)
+    return C.urgent(_state(v), v.first)
 
 
 @router.get("/v/trip")

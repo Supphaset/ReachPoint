@@ -120,6 +120,12 @@ def test_judge_conversation_lands_on_the_board():
     assert after == before + 1 + (0 if nb["known"] else 1)
     plan = c.post("/api/v2/plans", json={"text": f"ทีมเรือเรา 8 ที่นั่ง จะเข้า {x['zone']['id']} ประมาณ 15:00 อพยพ"}, headers=h).json()
     assert plan["plan"]["told"] >= 1
+    # the family hears about the plan once the agent has finished taking the report
+    for answer in ("อยู่บ้าน", "ไม่มี", "อยู่บ้าน", "ไม่มี"):
+        if x["session"]["finished"]:
+            break
+        x = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": answer}, headers=h).json()
+    assert x["session"]["finished"]
     me = c.get(f"/api/v2/me/{x['session']['token']}", headers=h).json()
     assert any(i["kind"] == "planUpdate" for i in me["inbox"])
 
@@ -264,3 +270,28 @@ def test_a_warning_button_is_answered_even_while_the_shelter_question_is_open():
     c.post(f"/api/v2/chat/sessions/{sid}/simulate", json={"event": "river"}, headers=h)
     r = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "ต้องการออกจากบ้าน", "replyTo": "river"}, headers=h).json()
     assert r["effects"]["choices"]["kind"] == "evacWalk"
+
+
+def test_urgent_cases_by_zone_and_do_first_marks():
+    from api.main import app
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-urgent"}
+    u = c.get("/api/v2/v/urgent", headers=h).json()
+    assert u["total"] > 0 and u["zones"][0]["cases"]
+    case = u["zones"][-1]["cases"][-1]
+    after = c.post(f"/api/v2/v/cases/{case['id']}/first", json={"team": "ทีมทดสอบ"}, headers=h).json()
+    top = after["zones"][0]
+    assert top["cases"][0]["id"] == case["id"] and top["cases"][0]["markedFirst"]["team"] == "ทีมทดสอบ"
+    cleared = c.post(f"/api/v2/v/cases/{case['id']}/first", json={"team": "ทีมทดสอบ", "first": False}, headers=h).json()
+    assert not any(r["markedFirst"] for z in cleared["zones"] for r in z["cases"])
+
+
+def test_zone_plan_waits_until_the_report_is_finished():
+    from api.main import app
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-plan-wait"}
+    made = c.post("/api/v2/chat/sessions", headers=h).json()
+    c.post(f"/api/v2/chat/sessions/{made['id']}/turn", json={"text": "น้ำถึงเข่า อยู่กัน 2 คน บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"}, headers=h)
+    c.post("/api/v2/plans", json={"text": "ทีมเรือ A เข้าโซน B5 07:30", "team": "ทีมเรือ A"}, headers=h)
+    inbox = c.get(f"/api/v2/me/{made['token']}", headers=h).json()["inbox"]
+    assert not [o for o in inbox if o["kind"] == "planUpdate"]
