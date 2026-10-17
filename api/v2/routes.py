@@ -309,6 +309,8 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
                 for k in ("shelterRoute", "checklist"):
                     if follow.get(k):
                         effects[k] = follow[k]
+                if follow.get("checklist"):
+                    s.ready_shown = True
                 if follow.get("choices"):
                     effects["choices"] = {"kind": follow["kind"], "options": [{"label": a, "send": b} for a, b in follow["choices"]]}
                 if follow["kind"] not in ("evacWalk", "leaveAsk"):
@@ -329,12 +331,18 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
             else:
                 effects["shelter"] = {**s.shelter_offer, "going": False}
                 prefix = I.say("shelter_stay", lang) + " "
-                if not s.shelter_offer.get("walkable") and re.search(r"ต้องการทีม|need", text, re.I):
+                if not s.shelter_offer.get("walkable") and re.search(r"ต้องการทีม|need", text, re.I) and s.ride_requested:
+                    from api.v2 import followup as F
+                    prefix = F.ride_again(s, lang)["reply"] + " "
+                elif not s.shelter_offer.get("walkable") and re.search(r"ต้องการทีม|need", text, re.I):
                     v.seq += 1  # they can't get there on their own: teams see "wants to leave, needs a ride"
                     v.messages.append({"id": f"L{v.seq}", "atH": v.now_h, "channel": "safetyReply", "text": text, "live": True,
                                        "pin": s.pin, "sessionId": s.id, "householdHint": s.household_id, "wantsOut": True,
                                        "_read": Read([], reader="rules")})
-                    effects["checklist"] = __import__("api.v2.followup", fromlist=["READY"]).READY
+                    s.ride_requested = True
+                    if not s.ready_shown:
+                        effects["checklist"] = __import__("api.v2.followup", fromlist=["READY"]).READY
+                        s.ready_shown = True
         elif pending == "nb_dir" and s.nb_queue:
             from api.v2.reader import direction_of
             side = direction_of(text)
@@ -477,6 +485,22 @@ def simulate(sid: str, body: SimIn):
         raise HTTPException(409, out["error"])
     out["status"] = F.status(v, s, _state(v))
     return out
+
+
+class ReadyIn(BaseModel):
+    done: list[int] = Field(default_factory=list, max_length=20)
+
+
+@router.post("/chat/sessions/{sid}/ready")
+def session_ready(sid: str, body: ReadyIn):
+    """The family ticked items on the get-ready card. Kept on the server so the agent knows and never asks again."""
+    from api.v2 import followup as F
+    v = room()
+    s = v.sessions.get(sid)
+    if s is None:
+        raise HTTPException(404, "No such conversation")
+    s.ready = sorted({i for i in body.done if 0 <= i < len(F.READY)})
+    return F.status(v, s, _state(v))
 
 
 @router.get("/chat/sessions/{sid}/status")

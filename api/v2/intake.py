@@ -90,6 +90,9 @@ class Session:
     nb_queue: list = field(default_factory=list)   # neighbours mentioned, waiting for direction / picture confirmation
     finished: bool = False
     follow: str | None = None  # the agent's own follow-up question waiting for an answer (api/v2/followup.py)
+    ride_requested: bool = False  # the family already asked for a team to take them out (asked once, not again)
+    ready: list = field(default_factory=list)
+    ready_shown: bool = False  # the checklist card has been shown once  # which "get ready" items the family ticked (indexes into followup.READY)
 
     def view(self):
         return {"id": self.id, "token": self.token, "lang": self.lang, "householdId": self.household_id, "pin": self.pin,

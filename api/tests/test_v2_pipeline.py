@@ -303,3 +303,31 @@ def test_an_english_address_finds_the_same_house_as_the_thai_one():
     th = I.locate("บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2", g)
     en = I.locate("house 52/9 Phetkasem Soi 2", g)
     assert en and th and en["buildingId"] == th["buildingId"]
+
+
+def test_a_second_ride_request_does_not_start_over():
+    from api.main import app
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-ride-again"}
+    made = c.post("/api/v2/chat/sessions", headers=h).json()
+    sid = made["id"]
+
+    def say(text, reply_to=None):
+        return c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": text, "replyTo": reply_to}, headers=h).json()
+
+    say("น้ำถึงเข่า อยู่กัน 2 คน บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2")
+    say("ไม่มีค่ะ")
+    say("อยู่บ้าน")
+    c.post(f"/api/v2/chat/sessions/{sid}/simulate", json={"event": "river"}, headers=h)
+    say("ต้องการออกจากบ้าน", "river")
+    first = say("มีคนเดินไม่ได้", "evacWalk")
+    assert first["effects"]["checklist"]
+    st = c.post(f"/api/v2/chat/sessions/{sid}/ready", json={"done": [0, 1, 2]}, headers=h).json()
+    assert st["ready"] == [0, 1, 2] and st["rideRequested"]
+    hid = st["householdId"]
+    posted = len(c.get(f"/api/v2/v/cases/{hid}", headers=h).json()["story"])
+    again = say("ต้องการออกจากบ้าน", "leaveAsk")
+    assert "checklist" not in again["effects"] and "choices" not in again["effects"]
+    assert "3/5" in again["reply"]
+    after = len(c.get(f"/api/v2/v/cases/{hid}", headers=h).json()["story"])
+    assert after == posted  # no duplicate request for the teams

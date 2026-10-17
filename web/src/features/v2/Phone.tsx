@@ -300,7 +300,8 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
               <Bubble at={it.at} grouped={items[i - 1]?.kind === "agent"}>{it.text}</Bubble>
               {it.choices && <ChoiceButtons {...it.choices} disabled={busy} onSend={(text, kind) => send(text, "chat", undefined, kind)} />}
               {it.boat !== undefined && <BoatRequestCard status={it.boat} />}
-              {it.checklist && <ReadyChecklist items={it.checklist} />}
+              {it.checklist && <ReadyChecklist items={it.checklist} initial={status?.ready}
+                onChange={done => { if (session) v2.ready(session.id, done).then(next => { if (currentSession.current === session.id) setStatus(next); }).catch(() => undefined); }} />}
               {it.house && <HouseLocation point={it.house} buildingId={it.house.buildingId} zoneId={it.house.zoneId} />}
               {it.route && <ShelterCard route={it.route} busy={busy} onAnswer={reply => send(reply, "chat")} />}
               {i === lastAgent && (askLocation || outside) && <LocationCard busy={busy || onCall !== "off"} outside={outside} onPin={async pin => { await send(pin.method === "gps" ? t("ตำแหน่งจาก GPS", "GPS location shared") : t("ปักหมุดบ้านแล้ว", "House pinned"), "chat", pin); }} />}

@@ -41,6 +41,8 @@ T = {
                    "OK. Stay upstairs, keep important things high and switch off the power downstairs. We'll check again around {at}. If the water rises fast, tap \"Water is rising\" any time."),
     "leave_ride": ("เราแจ้งทีมเรือและรถยกสูงแล้วว่าบ้านคุณต้องการออก{who} ระหว่างรอ เตรียมของตามรายการนี้และอยู่ชั้นบนนะคะ เมื่อมีทีมวางแผนมา เราจะบอกทันที",
                    "We've told the boat and high-truck teams your home needs to get out{who}. While you wait, get ready with this list and stay upstairs. We'll tell you as soon as a team plans to come."),
+    "ride_again": ("เราได้รับคำขอของคุณแล้วค่ะ ทีมเรือและรถยกสูงเห็นบ้านคุณในรายการ 'ต้องการรถรับ' อยู่ ไม่ต้องขอใหม่ เตรียมของแล้ว {done}/{total} อย่าง{left} เมื่อมีทีมวางแผนมา เราจะบอกทันที",
+                   "We already have your request: the boat and high-truck teams see your home as 'needs a ride'. No need to ask again. You have {done} of {total} things ready{left_en}. We'll tell you as soon as a team plans to come."),
     "check_safe": ("ดีใจที่ปลอดภัยค่ะ เราจะถามอีกครั้งราว {at}", "Glad you're safe. We'll check again around {at}."),
     "check_rising": ("น้ำที่บ้านคุณตอนนี้ราว {now} ม. แบบจำลองคาดว่าอีก 6 ชั่วโมงราว {later} ม. ต้องการออกจากบ้านไหมคะ",
                      "The water at your house is about {now} m now; the model expects about {later} m in 6 hours. Do you want to leave?"),
@@ -78,6 +80,21 @@ def kind_of(text: str, kind: str | None) -> str | None:
     return None
 
 
+def ride_again(s, lang: str) -> dict:
+    """A second "we need to leave" from a family that already asked: no new request, no second checklist."""
+    done, total = len(set(s.ready)), len(READY)
+    left = [READY[i] for i in range(total) if i not in s.ready]
+    th = f" ที่ยังเหลือ: {', '.join(x[0] for x in left[:2])}" if left else " ครบแล้ว"
+    en = f"; still to do: {', '.join(x[1] for x in left[:2])}" if left else ", all done"
+    return {"reply": say("ride_again", lang, done=done, total=total, left=th, left_en=en), "kind": "ride"}
+
+
+def _ride(s, reply: str) -> dict:
+    """The first ride request: the checklist comes with it, once."""
+    s.ride_requested = True
+    return {"reply": reply, "checklist": READY, "kind": "ride"}
+
+
 def _post(v, s, text: str, read: Read, **flags) -> dict:
     """The family's answer goes onto the board like any message, with what it means."""
     v.seq += 1
@@ -107,6 +124,8 @@ def answer(v, s, w, text: str, kind: str | None, lang: str) -> dict | None:
     low = text.lower()
     yes = any(x in low for x in ("ต้องการออก", "ออกจากบ้าน", "อยากออก", "need to leave", "want to leave", "leave")) or text.strip() in ("ต้องการ", "ต้องการค่ะ", "ต้องการครับ", "ใช่", "yes")
     if k in ("river", "rain", "rainRise", "leaveAsk", "earlyWarning"):
+        if yes and s.ride_requested:
+            return ride_again(s, lang)
         if yes:
             s.follow = "evacWalk"
             return {"reply": say("leave_walk", lang), "choices": WALK, "kind": "evacWalk"}
@@ -115,16 +134,19 @@ def answer(v, s, w, text: str, kind: str | None, lang: str) -> dict | None:
     if k == "evacWalk":
         s.follow = None
         if "ไม่ได้" in text or "can't" in low or "cannot" in low:
+            if s.ride_requested:
+                return ride_again(s, lang)
             _post(v, s, text, Read([Fact("cannotWalk", 1, text)], reader="rules"), wantsOut=True)
-            return {"reply": say("leave_ride", lang, who=" มีคนเดินไม่ได้" if lang == "th" else ", with someone who can't walk"),
-                    "checklist": READY, "kind": "ride"}
+            return _ride(s, say("leave_ride", lang, who=" มีคนเดินไม่ได้" if lang == "th" else ", with someone who can't walk"))
         if not s.pin:
             return None
         opts = SH.options(w, s.pin["lon"], s.pin["lat"])
         best = next((o for o in opts if o["walkable"]), opts[0] if opts else None)
         if best is None:
+            if s.ride_requested:
+                return ride_again(s, lang)
             _post(v, s, text, Read([], reader="rules"), wantsOut=True)
-            return {"reply": say("leave_ride", lang, who=""), "checklist": READY, "kind": "ride"}
+            return _ride(s, say("leave_ride", lang, who=""))
         s.shelter_offer, s.pending = best, "shelter"
         route = {**best, "from": [s.pin["lon"], s.pin["lat"]],
                  "googleMaps": "https://www.google.com/maps/dir/?api=1&origin="
@@ -132,7 +154,7 @@ def answer(v, s, w, text: str, kind: str | None, lang: str) -> dict | None:
         from api.v2 import intake as I
         key = "shelter" if best["walkable"] else "shelter_deep"
         return {"reply": I.say(key, lang, name=best["name"], km=best["km"], minutes=best["minutes"], deep=best["deepestM"]),
-                "shelterRoute": route, "checklist": READY, "kind": "shelter"}
+                "shelterRoute": route, **({} if s.ready_shown else {"checklist": READY}), "kind": "shelter"}
     if k in ("pickedUp", "nobodyThere"):
         if "ติด" in text or "still" in low or "inside" in low:
             _post(v, s, text, Read([Fact("urgent", True, text)], reader="rules"), stillThere=True)
@@ -180,7 +202,8 @@ def status(v, s, st: dict) -> dict:
             "team": plans[-1] and {k: plans[-1].get(k) for k in ("team", "vehicle", "seats", "eta", "at")} if plans else None,
             "outcome": hh.outcome if hh else None,
             "shelter": near and {k: near[k] for k in ("name", "km", "deepestM", "walkable", "minutes")},
-            "nextCheck": P.label_time(max(v.now_h, last_agent) + CHECKIN_H)[-5:], "now": P.label_time(v.now_h)}
+            "nextCheck": P.label_time(max(v.now_h, last_agent) + CHECKIN_H)[-5:], "now": P.label_time(v.now_h),
+            "rideRequested": s.ride_requested, "ready": sorted(set(s.ready)), "readyTotal": len(READY)}
 
 
 SIM_TEAM = "ทีมเรืออาสาจำลอง"

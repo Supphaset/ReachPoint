@@ -79,9 +79,10 @@ export function ChoiceButtons({ kind, options, disabled, onSend }: { kind: strin
   </div>;
 }
 
-export function ReadyChecklist({ items }: { items: [string, string][] }) {
+/** The get-ready card. Ticks are saved with the conversation, so a reload or a second request keeps them. */
+export function ReadyChecklist({ items, initial = [], onChange }: { items: [string, string][]; initial?: number[]; onChange?: (done: number[]) => void }) {
   const t = useT();
-  const [checked, setChecked] = useState<Set<number>>(() => new Set());
+  const [checked, setChecked] = useState<Set<number>>(() => new Set(initial));
   return <section className="card p4-checklist">
     <h3><Tr th="เตรียมตัว" en="Get ready" /> <span>{checked.size}/{items.length}</span></h3>
     <progress value={checked.size} max={items.length || 1} aria-label={t("เตรียมแล้ว · Ready checklist progress", "Ready checklist progress")} />
@@ -91,6 +92,7 @@ export function ReadyChecklist({ items }: { items: [string, string][] }) {
         if (event.target.checked) next.add(index);
         else next.delete(index);
         setChecked(next);
+        onChange?.([...next].sort((x, y) => x - y));
       }} />
       <span><Tr th={th} en={en} /></span>
     </label>)}

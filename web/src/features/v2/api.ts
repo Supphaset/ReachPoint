@@ -197,6 +197,11 @@ export interface FamilyStatus {
   shelter: { name: string; km: number; deepestM: number; walkable: boolean; minutes: number } | null;
   nextCheck: string;
   now: string;
+  /** The family already asked for a team; a second ask gets "we already have your request". */
+  rideRequested?: boolean;
+  /** Ticked get-ready items (indexes), kept on the server. */
+  ready?: number[];
+  readyTotal?: number;
 }
 export type SimEvent = "rain" | "river" | "teamPlan" | "teamVisit" | "checkin";
 export interface SimResult {
@@ -258,6 +263,7 @@ export const v2 = {
   turn: (id: string, text: string, channel: "chat" | "voice", pin?: LocationPin, replyTo?: string) => post<TurnResult>(`/api/v2/chat/sessions/${id}/turn`, { text, channel, ...(pin ? { pin } : {}), ...(replyTo ? { replyTo } : {}) }),
   status: (id: string) => get<FamilyStatus>(`/api/v2/chat/sessions/${id}/status`),
   simulate: (id: string, event: SimEvent) => post<SimResult>(`/api/v2/chat/sessions/${id}/simulate`, { event }),
+  ready: (id: string, done: number[]) => post<FamilyStatus>(`/api/v2/chat/sessions/${id}/ready`, { done }),
   me: (token: string) => get<Inbox>(`/api/v2/me/${token}`),
   plan: (text: string, team?: string) => post<{ plan: Plan; reader: string }>("/api/v2/plans", team ? { text, team } : { text }),
   buildings: (lon: number, lat: number, r = 45) =>
