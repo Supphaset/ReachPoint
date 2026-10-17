@@ -1,7 +1,7 @@
-import type { TurnResult } from "../api";
+import type { FamilyStatus, SimResult, TurnResult } from "../api";
 import { displayText, factGloss, readerLabel, type TraceEntry } from "./trace";
 /** A turn is the evidence boundary: no scripted facts or synthetic trace timestamps. */
-export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string, atH: number): TraceEntry[] {
+export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string, atH: number, previous?: FamilyStatus | null, afterTeamVisit = false): TraceEntry[] {
   const lines: TraceEntry[] = [];
   const effects = turn.effects;
   const household = effects.household;
@@ -34,6 +34,10 @@ export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string
       what: `Walk to ${route.name}: deepest ~${route.deepestM} m ${route.by === "streets" ? "along the streets" : "on a direct line (no street route)"}`,
     });
   }
+  if (turn.status?.wantsOut && household?.cannotWalk)
+    add("ride", { who: "rules", what: "ครอบครัวต้องการออก เดินไม่ได้ · Family wants to leave; can't walk → teams see 'needs a ride'", to });
+  if (turn.status?.urgent && (afterTeamVisit || turn.status.outcome?.kind === "nobodyThere" || previous?.outcome?.kind === "nobodyThere") && turn.status.status === "open")
+    add("reopened", { who: "rules", what: "ยังมีคนอยู่ในบ้าน เปิดเคสด่วนอีกครั้ง · Team visit: someone still inside → case reopened, urgent", to });
   if (household?.urgent)
     add("triage", {
       who: "rules",
@@ -80,4 +84,17 @@ function replyGloss(turn: TurnResult): string {
   if (/ที่อยู่|บ้านเลขที่|ซอย/.test(turn.reply))
     return "The agent is asking for location details.";
   return "Thai agent reply; the extracted facts above provide the English evidence summary.";
+}
+
+/** Only describe effects actually returned for this simulation. */
+export function buildFollowUpTrace(result: SimResult, index: number, at: string, atH: number): TraceEntry[] {
+  const what: Record<SimResult["event"], string> = {
+    rain: "แจ้งเตือนฝนครอบครัวนี้ · Warned this family: more rain",
+    river: "แจ้งเตือนน้ำแม่น้ำครอบครัวนี้ · Warned this family: river rising",
+    teamPlan: "แจ้งแผนทีมให้ครอบครัว · Team plan told to this family",
+    teamVisit: "ขอยืนยันผลการเยี่ยม · Team visit: asked this family to confirm",
+    checkin: "ถามไถ่ความปลอดภัยต่อ · Sent this family a safety check-in",
+  };
+  if (!result.message && !result.inbox) return [];
+  return [{ id: `followup-${index}`, who: "action", at, atH, what: what[result.event] }];
 }

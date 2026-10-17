@@ -182,10 +182,36 @@ export interface ShelterRoute {
   googleMaps: string;
 }
 
+export interface Choice { label: string; send: string }
+export interface FamilyStatus {
+  householdId: string | null;
+  zoneId: string | null;
+  status: string;
+  urgent: boolean;
+  wantsOut: boolean;
+  people: number | null;
+  water: { nowM: number; loM: number; hiM: number; in6hM: number; trend: "rising" | "falling" | "steady"; reports: number } | null;
+  team: { team: string; vehicle: string; seats: number; eta: string; at: string } | null;
+  outcome: { kind: string; team: string; at: string } | null;
+  shelter: { name: string; km: number; deepestM: number; walkable: boolean; minutes: number } | null;
+  nextCheck: string;
+  now: string;
+}
+export type SimEvent = "rain" | "river" | "teamPlan" | "teamVisit" | "checkin";
+export interface SimResult {
+  event: SimEvent;
+  message?: { text: string; kind: string; choices: [string, string][] };
+  inbox?: boolean;
+  status: FamilyStatus;
+}
+
 export interface TurnResult {
   session: Session;
   reply: string;
+  status?: FamilyStatus;
   effects: {
+    choices?: { kind: string; options: Choice[] };
+    checklist?: [string, string][];
     facts?: Fact[];
     reader?: string;
     located?: { by: string; label?: string; zoneId: string; buildingId: string; lon?: number; lat?: number; precision?: string };
@@ -212,7 +238,7 @@ export interface NbConfirm {
 }
 
 export interface Inbox {
-  inbox: { atH: number; at: string; kind: string; text: string }[];
+  inbox: { atH: number; at: string; kind: string; text: string; choices?: Choice[] }[];
   now: { atH: number; at: string };
 }
 
@@ -228,7 +254,9 @@ export const v2 = {
   state: (at?: number) => get<BoardState>(`/api/v2/state${at === undefined ? "" : `?at=${at}`}`),
   clock: (action: "advance" | "morning" | "rain" | "river" | "flood" | "reset") => post<{ now: { atH: number } }>("/api/v2/clock", { action }),
   newChat: (lang: "th" | "en") => post<Session>(`/api/v2/chat/sessions?lang=${lang}`, {}),
-  turn: (id: string, text: string, channel: "chat" | "voice", pin?: LocationPin) => post<TurnResult>(`/api/v2/chat/sessions/${id}/turn`, { text, channel, ...(pin ? { pin } : {}) }),
+  turn: (id: string, text: string, channel: "chat" | "voice", pin?: LocationPin, replyTo?: string) => post<TurnResult>(`/api/v2/chat/sessions/${id}/turn`, { text, channel, ...(pin ? { pin } : {}), ...(replyTo ? { replyTo } : {}) }),
+  status: (id: string) => get<FamilyStatus>(`/api/v2/chat/sessions/${id}/status`),
+  simulate: (id: string, event: SimEvent) => post<SimResult>(`/api/v2/chat/sessions/${id}/simulate`, { event }),
   me: (token: string) => get<Inbox>(`/api/v2/me/${token}`),
   plan: (text: string, team?: string) => post<{ plan: Plan; reader: string }>("/api/v2/plans", team ? { text, team } : { text }),
   buildings: (lon: number, lat: number, r = 45) =>

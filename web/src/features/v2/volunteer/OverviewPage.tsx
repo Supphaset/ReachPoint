@@ -79,16 +79,16 @@ function ZonePanel({ id, team, onClose, onPosted }: { id: string; team: string; 
   const zone = detail?.zone;
   return <aside className="p3-zone-panel" role="dialog" aria-label={`Zone ${id} summary`}>
     <button onClick={onClose}>ปิด · Close</button>
-    <h2>{id} · {zone?.label}</h2>
+    <header className="p4-zone-heading"><small>โซนช่วยเหลือ · Response zone</small><h2>{id} · {zone?.label}</h2></header>
     {error && <p role="alert">{error}</p>}
     {!detail && !error && <p role="status">กำลังโหลด · Loading zone…</p>}
     {zone && <>
-      <p>{detail?.briefing || zone.summary}<br /><span>Decision summary · {zone.gap ?? "See waiting families and planned teams below"}</span></p>
-      <p>{detail?.totals.open} ครอบครัวรอ · waiting families · {zone.people.urgent} urgent</p>
-      <p>น้ำ · Water: {zone.level ? `${zone.level.depthLoM}–${zone.level.depthHiM} m` : "ไม่ทราบ · unknown"}</p>
-      <p>ทีมอื่น · Other teams: {zone.plans.map(plan => `${plan.team ?? "unnamed"} ${plan.vehicle ?? ""} ${plan.eta ?? "time unknown"}`).join(" · ") || "ยังไม่มี · none planned"}</p>
+      <p className="p4-decision">{detail?.briefing || zone.summary}</p><p>จุดตัดสินใจ · Decision: {zone.gap ?? "See waiting families and planned teams below"}</p>
+      <div className="p4-zone-stats"><span>{detail?.totals.open} ครอบครัวรอ · waiting</span><span>{zone.people.urgent} ด่วน · urgent</span><span>{zone.people.cannotWalk} เดินไม่ได้ · can’t walk</span></div>
+      <p className="p4-zone-water">น้ำ · Water: <Depth m={zone.level?.depthM} lo={zone.level?.depthLoM} hi={zone.level?.depthHiM} /></p>
+      <p className="p4-zone-teams">ทีมอื่น · Other teams: {zone.plans.map(plan => `${plan.team ?? "unnamed"} ${plan.vehicle ?? ""} ${plan.eta ?? "time unknown"}`).join(" · ") || "ยังไม่มี · none planned"}</p>
     </>}
-    <div className="p3-actions"><Link to={`/v/zone/${id}`}>Open zone →</Link><button onClick={openPlan} disabled={!detail || planning}>ฉันจะไปที่นี่ · I'll go here</button></div>
+    <div className="p3-actions"><Link to={`/v/zone/${id}`}>เปิดโซน · Open zone →</Link><button onClick={openPlan} disabled={!detail || planning}>ฉันจะไปที่นี่ · I'll go here</button></div>
     {planning && <form onSubmit={event => { event.preventDefault(); void post(); }}>
       <label>ทีม · Team<input required value={planTeam} onChange={event => setPlanTeam(event.target.value)} disabled={busy || posted} /></label>
       <label>พาหนะ · Vehicle<input value={vehicle} onChange={event => setVehicle(event.target.value)} disabled={busy || posted} /></label>

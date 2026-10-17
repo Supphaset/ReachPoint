@@ -4,17 +4,19 @@
  * understood, with the person's own words. Check-ins, warnings and plan updates arrive here too.
  */
 import { useEffect, useRef, useState } from "react";
-import { v2, type LocationPin, type ShelterRoute, type Fact, type NbConfirm, type Session, type TurnResult } from "./api";
+import { v2, type LocationPin, type ShelterRoute, type Fact, type NbConfirm, type Session, type TurnResult, type FamilyStatus, type Choice, type SimEvent, type SimResult } from "./api";
 import { NeighbourPicture } from "./NeighbourPicture";
 import { LocationCard, HouseLocation } from "./ui/LocationCard";
 import { ShelterCard } from "./ui/ShelterCard";
+import { ApiError } from "../../data/api";
+import { FamilyStatusCard, ChoiceButtons, ReadyChecklist, QuickActions, SimulationPanel, SIMULATIONS, applySimulation } from "./ui/FamilyFollowUp";
 import { LiveCall } from "./liveVoice";
 
 type Item =
-  | { kind: "agent"; text: string; route?: ShelterRoute; house?: { lon: number; lat: number } }
+  | { kind: "agent"; text: string; choices?: { kind: string; options: Choice[] }; checklist?: [string, string][]; route?: ShelterRoute; house?: { lon: number; lat: number } }
   | { kind: "person"; text: string; voice?: boolean }
   | { kind: "understood"; facts: Fact[]; reader?: string; extra?: string }
-  | { kind: "notice"; text: string; at: string; type: string }
+  | { kind: "notice"; text: string; at: string; type: string; choices?: Choice[] }
   | { kind: "confirm"; c: NbConfirm };
 
 const FIELD: Record<string, [string, string]> = {
@@ -58,6 +60,7 @@ function show(f: Fact): string {
 
 interface Props {
   onTurn: (r: TurnResult) => void;
+  onSimulation: (result: SimResult) => void;
   version: number;
   lang: "th" | "en";
   setLang: (l: "th" | "en") => void;
@@ -66,8 +69,13 @@ interface Props {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rec = any;
 
-export function Phone({ onTurn, version, lang, setLang }: Props) {
+export function Phone({ onTurn, onSimulation, version, lang, setLang }: Props) {
   const [session, setSession] = useState<Session | null>(null);
+  const [status, setStatus] = useState<FamilyStatus | null>(null);
+  const [simResult, setSimResult] = useState("");
+  const requestBusy = useRef(false);
+  const statusVersion = useRef(0);
+  const currentSession = useRef<string | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [text, setText] = useState(DEMO_MESSAGES[lang][0]);
   const [askLocation, setAskLocation] = useState(false);
@@ -83,6 +91,10 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
 
   const start = (l: "th" | "en") =>
     v2.newChat(l).then((s) => {
+      currentSession.current = s.id;
+      statusVersion.current++;
+      setStatus(null);
+      setSimResult("");
       setSession(s);
       setAskLocation(!s.pin);
       setOutside(false);
@@ -98,19 +110,55 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
     end.current?.scrollIntoView({ block: "end" });
   }, [items]);
 
-  // check-ins and plan updates for this household
+  const refreshInbox = async (s: Session) => {
+    const m = await v2.me(s.token);
+    if (currentSession.current !== s.id) return;
+    const fresh = m.inbox.filter(i => !seen.current.has(`${i.kind}:${i.atH}:${i.text}`));
+    fresh.forEach(i => seen.current.add(`${i.kind}:${i.atH}:${i.text}`));
+    setItems(xs => [...xs, ...fresh.map(i => ({ kind: "notice" as const, text: i.text, at: i.at, type: i.kind, choices: i.choices }))]);
+  };
   useEffect(() => {
-    if (!session?.token) return;
-    const poll = () =>
-      v2.me(session.token).then((m) => {
-        const fresh = m.inbox.filter((i) => !seen.current.has(`${i.kind}${i.atH}`));
-        fresh.forEach((i) => seen.current.add(`${i.kind}${i.atH}`));
-        if (fresh.length && seen.current.size > fresh.length - 1)
-          setItems((xs) => [...xs, ...fresh.slice(-3).map((i) => ({ kind: "notice" as const, text: i.text, at: i.at, type: i.kind }))]);
+    if (!session) return;
+    const s = session;
+    const poll = () => refreshInbox(s).catch(() => undefined);
+    const pollStatus = () => {
+      const version = statusVersion.current;
+      return v2.status(s.id).then(result => {
+        if (currentSession.current === s.id && !requestBusy.current && statusVersion.current === version) setStatus(result);
       }).catch(() => undefined);
-    const t = window.setInterval(poll, 4000);
-    return () => window.clearInterval(t);
-  }, [session?.token]);
+    };
+    void poll();
+    void pollStatus();
+    const inboxTimer = window.setInterval(poll, 4000);
+    const statusTimer = window.setInterval(pollStatus, 10000);
+    return () => { window.clearInterval(inboxTimer); window.clearInterval(statusTimer); };
+  }, [session?.id]);
+
+  const simulate = async (event: SimEvent) => {
+    if (!session || requestBusy.current) return;
+    const s = session;
+    requestBusy.current = true;
+    statusVersion.current++;
+    setBusy(true);
+    try {
+      const result = await v2.simulate(s.id, event);
+      if (currentSession.current !== s.id) return;
+      setStatus(result.status);
+      setSimResult(result.message || result.inbox
+        ? SIMULATIONS.find(sim => sim.event === event)?.proves ?? ""
+        : "อัปเดตสถานะแล้ว ไม่มีข้อความใหม่ · Status updated; no new family message for this event.");
+      onSimulation(result);
+      await applySimulation(result, message => setItems(xs => [...xs, {
+        kind: "agent", text: message.text,
+        choices: { kind: message.kind, options: message.choices.map(([label, send]) => ({ label, send })) },
+      }]), async () => {
+        try { await refreshInbox(s); }
+        catch { setSimResult("จำลองแล้ว รอโหลดข้อความทีมอีกครั้ง · Event applied; team message pending. Inbox will retry."); }
+      });
+    } catch (error) {
+      setSimResult(error instanceof ApiError && error.status === 409 ? "แจ้งตำแหน่งก่อน · Report first" : "จำลองไม่สำเร็จ ลองอีกครั้ง · Simulation failed; try again");
+    } finally { requestBusy.current = false; setBusy(false); }
+  };
 
   const say = (t: string) => {
     if (!speak || !("speechSynthesis" in window)) return;
@@ -120,22 +168,29 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
     window.speechSynthesis.speak(u);
   };
 
-  const send = async (t: string, channel: "chat" | "voice", pin?: LocationPin) => {
-    if (!session || !t.trim() || busy) return;
-    if (!pin && call.current && onCall === "on") {  // on a call: typed words go to Gemini Live like speech (it echoes them back)
+  const send = async (t: string, channel: "chat" | "voice", pin?: LocationPin, replyTo?: string): Promise<boolean> => {
+    if (!session || !t.trim() || requestBusy.current || busy) return false;
+    if (!replyTo && !pin && call.current && onCall === "on") {  // on a call: typed words go to Gemini Live like speech (it echoes them back)
       call.current.say(t);
       setText("");
-      return;
+      return true;
     }
+    requestBusy.current = true;
+    statusVersion.current++;
+    const sid = session.id;
     setItems((xs) => [...xs, { kind: "person", text: t, voice: channel === "voice" }]);
     setText("");
     setBusy(true);
     try {
-      const r = await v2.turn(session.id, t, channel, pin);
+      const r = await v2.turn(sid, t, channel, pin, replyTo);
+      if (currentSession.current !== sid) return false;
       apply(r);
+      return true;
     } catch {
       setItems((xs) => [...xs, { kind: "agent", text: lang === "th" ? "ส่งไม่สำเร็จ ลองอีกครั้งนะคะ" : "That didn't send. Please try again." }]);
+      return false;
     } finally {
+      requestBusy.current = false;
       setBusy(false);
     }
   };
@@ -144,6 +199,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
   const apply = (r: TurnResult) => {
     {
       setSession(r.session);
+      if (r.status) { statusVersion.current++; setStatus(r.status); }
       setAskLocation(!!r.effects.askLocation || !r.session.pin);
       setOutside(!!r.effects.pinOutside);
       const extra: string[] = [];
@@ -158,7 +214,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
       setItems((xs) => [
         ...xs,
         ...(facts.length || extra.length ? [{ kind: "understood" as const, facts, reader: r.effects.reader, extra: extra.join(" · ") }] : []),
-        { kind: "agent", text: r.reply, route: r.effects.shelterRoute,
+        { kind: "agent", text: r.reply, choices: r.effects.choices, checklist: r.effects.checklist, route: r.effects.shelterRoute,
           house: r.effects.located ? (r.effects.located.lon != null && r.effects.located.lat != null
             ? { lon: r.effects.located.lon, lat: r.effects.located.lat } : r.session.pin ?? undefined) : undefined },
         ...(r.effects.nbConfirm ? [{ kind: "confirm" as const, c: r.effects.nbConfirm }] : []),
@@ -197,7 +253,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
       setItems((xs) => [...xs, { kind: "agent", text: lang === "th" ? "เริ่มสายไม่ได้ (ต้องอนุญาตไมโครโฟน) พิมพ์แทนได้ค่ะ" : `Couldn't start the call (${(e as Error).message}). Typing still works.` }]);
     }
   };
-  useEffect(() => () => call.current?.stop(), []);
+  useEffect(() => () => { currentSession.current = null; call.current?.stop(); }, []);
 
   const lastAgent = items.reduce((last, item, index) => item.kind === "agent" ? index : last, -1);
   const lastConfirm = items.reduce((k, it, i) => (it.kind === "confirm" ? i : k), -1);
@@ -216,7 +272,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
   const holdEnd = () => rec.current?.stop();
 
   return (
-    <section className="v2-phone" aria-label="Victim's phone">
+    <div className="p4-family"><section className="v2-phone" aria-label="Victim's phone">
       <header className="v2-phone-top">
         <span>ReachPoint · {lang === "th" ? "แจ้งขอความช่วยเหลือ" : "Ask for help"}</span>
         <span className="v2-phone-tools">
@@ -224,21 +280,24 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
             title="Gemini Live: talk to the agent; it answers by voice">
             {onCall === "on" ? (lang === "th" ? "วางสาย" : "Hang up") : onCall === "connecting" ? "…" : (lang === "th" ? "📞 โทร" : "📞 Call")}
           </button>
-          <button type="button" onClick={() => { const l = lang === "th" ? "en" : "th"; setLang(l); start(l); }}>{lang === "th" ? "EN" : "ไทย"}</button>
+          <button type="button" disabled={busy} onClick={() => { const l = lang === "th" ? "en" : "th"; setLang(l); start(l); }}>{lang === "th" ? "EN" : "ไทย"}</button>
           <button type="button" aria-pressed={speak} onClick={() => setSpeak(!speak)} title="Read replies aloud">{speak ? "🔊" : "🔈"}</button>
-          <button type="button" onClick={() => start(lang)}>{lang === "th" ? "เริ่มใหม่" : "Restart"}</button>
+          <button type="button" disabled={busy} onClick={() => start(lang)}>{lang === "th" ? "เริ่มใหม่" : "Restart"}</button>
         </span>
       </header>
       {onCall === "on" ? <p className="v2-oncall">{lang === "th" ? "กำลังคุยกับ ReachPoint ด้วยเสียง · Gemini Live" : "On a call with ReachPoint · Gemini Live"}</p> : null}
+      {status && <FamilyStatusCard status={status} />}
       <div className="v2-chat" role="log" aria-live="polite">
         {/* the Yes/No buttons stay on the latest picture even when a notice arrives after it */}
         {items.map((it, i) =>
           it.kind === "agent" ? (
             <div key={i}>
               <p className="v2-msg is-agent">{it.text}</p>
+              {it.choices && <ChoiceButtons {...it.choices} disabled={busy} onSend={(text, kind) => send(text, "chat", undefined, kind)} />}
+              {it.checklist && <ReadyChecklist items={it.checklist} />}
               {it.house && <HouseLocation point={it.house} />}
               {it.route && <ShelterCard route={it.route} busy={busy} onAnswer={reply => { void send(reply, "chat"); }} />}
-              {i === lastAgent && (askLocation || outside) && <LocationCard busy={busy || onCall !== "off"} outside={outside} onPin={pin => send(pin.method === "gps" ? "📍 ตำแหน่งจาก GPS" : "📍 ปักหมุดบ้านแล้ว", "chat", pin)} />}
+              {i === lastAgent && (askLocation || outside) && <LocationCard busy={busy || onCall !== "off"} outside={outside} onPin={async pin => { await send(pin.method === "gps" ? "📍 ตำแหน่งจาก GPS" : "📍 ปักหมุดบ้านแล้ว", "chat", pin); }} />}
             </div>
           ) : it.kind === "person" ? (
             <p key={i} className="v2-msg is-person">{it.voice ? "🎙 " : ""}{it.text}</p>
@@ -257,6 +316,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
             <div key={i} className="v2-msg is-notice">
               <span className="v2-notice-kind">{(KIND[it.type] ?? [it.type, it.type])[lang === "th" ? 0 : 1]} · {it.at}</span>
               {it.text}
+              {it.choices && <ChoiceButtons kind={it.type} options={it.choices} disabled={busy} onSend={(text, kind) => send(text, "chat", undefined, kind)} />}
             </div>
           ) : (
             <div key={i} className="v2-understood">
@@ -276,6 +336,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
         {busy ? <p className="v2-msg is-agent is-typing">…</p> : null}
         <div ref={end} />
       </div>
+      {status?.zoneId && <QuickActions disabled={busy} onSend={(text, kind) => send(text, "chat", undefined, kind)} onPrefill={value => { setText(value); document.getElementById("v2-chat-input")?.focus(); }} />}
       <form
         className="v2-composer"
         onSubmit={(e) => {
@@ -316,5 +377,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
         ))}
       </div>
     </section>
+      <SimulationPanel enabled={!!status?.zoneId} busy={busy} result={simResult} onSimulate={event => void simulate(event)} />
+    </div>
   );
 }

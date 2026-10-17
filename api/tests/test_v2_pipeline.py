@@ -251,3 +251,16 @@ def test_the_agent_follows_up_until_the_family_is_safe():
     # a check-in answered "safe" gets a real reply with the next check time
     c.post(f"/api/v2/chat/sessions/{sid}/simulate", json={"event": "checkin"}, headers=h)
     assert "08:00" in say("ปลอดภัยดี", "checkin")["reply"]
+
+
+def test_a_warning_button_is_answered_even_while_the_shelter_question_is_open():
+    from api.main import app
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-follow-open"}
+    sid = c.post("/api/v2/chat/sessions", headers=h).json()["id"]
+    c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "น้ำถึงเข่า อยู่กัน 2 คน บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"}, headers=h)
+    asked = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "ไม่มีค่ะ"}, headers=h).json()
+    assert asked["effects"].get("shelterRoute")  # the shelter question is open
+    c.post(f"/api/v2/chat/sessions/{sid}/simulate", json={"event": "river"}, headers=h)
+    r = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "ต้องการออกจากบ้าน", "replyTo": "river"}, headers=h).json()
+    assert r["effects"]["choices"]["kind"] == "evacWalk"

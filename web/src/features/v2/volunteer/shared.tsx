@@ -123,6 +123,7 @@ export function Depth({ m, lo, hi }: { m: number | null | undefined; lo?: number
 export function Needs({ r }: { r: CaseRow }) {
   return (
     <span className="v-needs">
+      {r.needs.filter(need => /wants.*leave|needs.*ride|ต้องการออก|ต้องการ.*รถ/i.test(need)).map(need => <span key={need} className="is-strong">ต้องการออก ต้องมีรถรับ · {need}</span>)}
       {r.people ? <span>{r.people} people</span> : <span className="v-muted">people ?</span>}
       {r.cannotWalk ? <span className="is-strong">{r.cannotWalk} can't walk</span> : null}
       {r.elderly ? <span>{r.elderly} elderly</span> : null}

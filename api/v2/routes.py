@@ -300,7 +300,8 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
             else:
                 effects["pinOutside"] = True
         follow = None
-        if s.household_id and not s.nb_queue and (reply_to or s.follow or s.finished) and pending != "shelter":
+        # a button under one of our own messages answers that message, even if an intake question is still open
+        if s.household_id and not s.nb_queue and (reply_to or (pending != "shelter" and (s.follow or s.finished))):
             from api.v2 import followup as F
             follow = F.answer(v, s, _state(v)["world"], text, reply_to or s.follow, lang)
             if follow:
@@ -387,8 +388,10 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
         s.household_id = _household_of(w, s) or s.household_id
         if follow:
             reply = follow["reply"]
-            if s.pending != "shelter":
+            if follow.get("kind") != "shelter":
                 s.pending = None
+            if "shelter" not in s.asked:
+                s.asked.append("shelter")  # the evacuation flow covered it
         elif s.finished and not s.nb_queue:  # a neighbour mentioned after the questions still gets its own check
             reply = prefix + I.say("reply_ok", lang)
             s.pending = None

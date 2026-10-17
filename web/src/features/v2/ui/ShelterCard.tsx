@@ -47,12 +47,16 @@ export function ShelterMap({ route }: { route: ShelterRoute }) {
       setMap(instance);
       setMaps(api);
       const bounds = new api.LatLngBounds();
-      const marker = (point: number[], title: string) => {
+      const marker = (point: number[], title: string, below = false) => {
         const position = { lng: point[0], lat: point[1] };
         bounds.extend(position);
-        shapes.push(new api.Marker({ map: instance, position, title, label: { text: title, color: cssVar("--ink-1"), fontSize: "14px" } }));
+        shapes.push(new api.Marker({ map: instance, position, title,
+          icon: { path: below ? "M 0 0 L 0 20" : "M 0 0 L 0 -20", strokeColor: cssVar("--surface"), strokeWeight: 3,
+            labelOrigin: new api.Point(0, below ? 32 : -32) },
+          label: { text: title, color: cssVar("--ink-1"), fontSize: "14px", className: "p4-map-label" }, zIndex: 20,
+        }));
       };
-      marker(route.from, "บ้าน · Home");
+      marker(route.from, "บ้าน · Home", true);
       marker([route.lon, route.lat], route.name);
       marker(route.deepestAt, `ลึกสุด ~${route.deepestM} ม. · deepest ~${route.deepestM} m`);
       for (const segment of routeSegments(route)) {
@@ -66,10 +70,22 @@ export function ShelterMap({ route }: { route: ShelterRoute }) {
   useEffect(() => {
     if (!map || !maps || !flood.sim) return;
     const [west, south, east, north] = flood.sim.meta.bbox;
-    const overlay = new maps.GroundOverlay(flood.canvas.toDataURL(), { west, south, east, north }, { opacity: 0.65, clickable: false });
+    // Use the board's canvas pane: flood below route polylines and labels, redrawn in place.
+    const canvas = flood.canvas;
+    canvas.className = "v2-flood-canvas";
+    const overlay = new class extends maps.OverlayView {
+      onAdd() { this.getPanes().mapPane.appendChild(canvas); }
+      draw() {
+        const projection = this.getProjection();
+        const sw = projection.fromLatLngToDivPixel(new maps.LatLng(south, west));
+        const ne = projection.fromLatLngToDivPixel(new maps.LatLng(north, east));
+        Object.assign(canvas.style, { left: `${sw.x}px`, top: `${ne.y}px`, width: `${ne.x - sw.x}px`, height: `${sw.y - ne.y}px` });
+      }
+      onRemove() { canvas.remove(); }
+    }();
     overlay.setMap(map);
     return () => overlay.setMap(null);
-  }, [map, maps, flood.tick, flood.sim]);
+  }, [map, maps, flood.canvas, flood.sim]);
   return <div className="p3-route-map" ref={box} aria-label="Shelter route and flood water">{failed && <p>โหลดแผนที่ไม่ได้ · Map unavailable. Open Google Maps for directions.</p>}</div>;
 }
 

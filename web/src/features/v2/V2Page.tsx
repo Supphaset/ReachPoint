@@ -3,9 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { BoardMap, type HouseMark, type SimMode } from "./BoardMap";
 import { Phone } from "./Phone";
-import { v2, type BoardState, type GeoView, type HouseholdView, type TurnResult } from "./api";
+import { v2, type BoardState, type GeoView, type HouseholdView, type TurnResult, type SimResult, type FamilyStatus } from "./api";
 import { DepthRange, HonestyLabel, Panel, StepHeader, type ClockAction, TraceLine } from "./ui/Shared";
-import { buildReportTrace } from "./ui/reportTrace";
+import { buildFollowUpTrace, buildReportTrace } from "./ui/reportTrace";
 import type { TraceEntry } from "./ui/trace";
 import "./v2.css";
 
@@ -25,6 +25,8 @@ export function V2Page() {
   const [error, setError] = useState("");
   const generation = useRef(0);
   const turnIndex = useRef(0);
+  const pendingVisit = useRef(false);
+  const previousStatus = useRef<FamilyStatus | null>(null);
 
   const refresh = useCallback(async () => {
     const version = generation.current;
@@ -52,7 +54,10 @@ export function V2Page() {
   function onTurn(turn: TurnResult) {
     const at = board?.at ?? "Demo time";
     const atH = board?.atH ?? 0;
-    setTrace(lines => [...lines, ...buildReportTrace(turn, ++turnIndex.current, at, atH)]);
+    const added = buildReportTrace(turn, ++turnIndex.current, at, atH, previousStatus.current, pendingVisit.current);
+    pendingVisit.current = false;
+    setTrace(lines => [...lines, ...added]);
+    previousStatus.current = turn.status ?? null;
     const reportedHousehold = turn.effects.household;
     if (reportedHousehold) setHousehold(reportedHousehold);
     if (turn.effects.simHere != null) setModelDepth(turn.effects.simHere);
@@ -78,10 +83,20 @@ export function V2Page() {
     }
   }
 
+  function onSimulation(result: SimResult) {
+    previousStatus.current = result.status;
+    if (result.event === "teamVisit") pendingVisit.current = true;
+    const added = buildFollowUpTrace(result, ++turnIndex.current, board?.at ?? "Demo time", board?.atH ?? 0);
+    setTrace(lines => [...lines, ...added]);
+    void refresh();
+  }
+
   async function act(action: ClockAction) {
     await v2.clock(action);
     generation.current++;
     if (action === "reset") {
+      previousStatus.current = null;
+      pendingVisit.current = false;
       setHousehold(null);
       setHouses([]);
       setTrace([]);
@@ -108,7 +123,7 @@ export function V2Page() {
         </div>
         {error && <p role="alert" className="rp-warning">{error}</p>}
         <div className="rp-report-layout">
-          <Phone onTurn={onTurn} version={chatVersion} lang={lang} setLang={setLang} />
+          <Phone onSimulation={onSimulation} onTurn={onTurn} version={chatVersion} lang={lang} setLang={setLang} />
           <Panel title="What the AI is doing for this family">
             <div aria-live="polite">
               {trace.length ? trace.map(line => <TraceLine key={line.id} {...line} />) : (

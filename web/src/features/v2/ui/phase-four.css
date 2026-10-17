@@ -1,0 +1,23 @@
+.p4-family, .p4-status, .p4-sim { min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
+.p4-family { display: grid; gap: 16px; }
+.p4-status { flex: none; padding: 8px 12px; background: var(--paper); border-bottom: 1px solid var(--line); max-height: 240px; overflow: auto; }
+.p4-status summary { cursor: pointer; min-height: 44px; line-height: 1.6; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.p4-status .v2-chip { display: inline-block; margin-inline-end: 6px; font-size: 14px; }
+.p4-status p { margin-block: 6px; }
+.p4-status small, .p4-checklist small, .p4-sim small { display: block; font-size: 14px; color: var(--ink-2); }
+.p4-choices { display: flex; gap: 8px; flex-wrap: wrap; margin-block: 8px; }
+.p4-choices button, .p4-quick button, .p4-quick a { min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 14px; background: var(--surface); color: var(--ink-1); white-space: normal; }
+.p4-choices button[aria-pressed=true] { background: var(--paper); border-color: var(--ink-1); }
+.p4-choices button:disabled { opacity: .65; }
+.p4-quick { display: flex; gap: 8px; padding: 8px; overflow-x: auto; min-width: 0; max-width: 100%; flex: none; }
+.p4-quick button, .p4-quick a { flex: 0 0 auto; max-width: 260px; }
+.p4-checklist, .p4-sim { padding: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+.p4-checklist h3 { font-size: 16px; margin-block: 0 8px; }
+.p4-checklist label { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
+.p4-checklist input { width: 22px; height: 22px; }
+.p4-sim h2 { font-size: 18px; margin-block: 8px; }
+.p4-sim p { margin-bottom: 0; }
+.rp-report-layout .p4-family .v2-chat { height: 480px; }
+.p4-status, .p4-status .v2-chip { font-size: 15px; }
+.p4-quick-group { min-width: 0; flex: none; }
+.p4-emergency { display: flex; align-items: center; min-height: 44px; margin: 0 8px 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink-1); font-size: 14px; }

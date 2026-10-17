@@ -49,3 +49,17 @@
 .rp-report-layout .v2-phone-tools button, .rp-report-layout .v2-notice-kind, .rp-report-layout .v2-understood { font-size: 14px; }
 .rp-report-layout .v2-chat > div { min-width: 0; }
 .rp-report-layout .v2-msg { overflow-wrap: anywhere; }
+
+.p4-zone-heading small { color: var(--ink-2); font-size: 14px; }
+.p4-zone-heading h2 { font-size: 26px; margin-block: 8px 16px; }
+.p3-zone-panel > button:first-child { float: right; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink-1); }
+.p3-zone-panel p { line-height: 1.6; }
+.p4-decision { font-weight: 600; background: var(--paper); border: 1px solid var(--line); padding: 12px; border-radius: 8px; }
+.p4-zone-stats { display: flex; flex-wrap: wrap; gap: 8px; }
+.p4-zone-stats span { background: var(--sunken); padding: 8px 10px; border-radius: 8px; }
+.p4-zone-water .v-depth { display: inline-block; border-radius: 16px; padding: 6px 10px; }
+.p4-zone-teams { padding-block: 12px; border-block: 1px solid var(--line); }
+.p3-zone-panel .p3-actions > * { flex: 1; text-align: center; text-decoration: none; }
+.p3-zone-panel .p3-actions > button { background: var(--ink-1); color: var(--surface); }
+.p3-zone-panel { overflow-wrap: anywhere; box-sizing: border-box; }
+.p4-map-label { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }
