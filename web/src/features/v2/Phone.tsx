@@ -285,7 +285,10 @@ export function Phone({ onTurn, onSimulation, version, lang, setLang, at, judgeM
     <div className="p4-family"><section className="v2-phone" aria-label="Victim's phone">
       <ChatHeader busy={busy} onCall={onCall} toggleCall={() => void toggleCall()} lang={lang}
         changeLanguage={() => { const next = lang === "th" ? "en" : "th"; setLang(next); void start(next); }}
-        speak={speak} toggleSpeak={() => setSpeak(!speak)} restart={() => void start(lang)} />
+        speak={speak} toggleSpeak={() => setSpeak(!speak)} restart={() => {
+          // In the demo a restart is a new family: reset the room too, or the old family's team messages come back.
+          if (judgeMode) void onClock("reset"); else void start(lang);
+        }} />
       {onCall === "on" ? <p className="v2-oncall">{lang === "th" ? "กำลังคุยกับ ReachPoint ด้วยเสียง · Gemini Live" : "On a call with ReachPoint · Gemini Live"}</p> : null}
       {status && <FamilyStatusCard status={status} />}
       <div className="v2-chat" role="log" aria-live="polite">

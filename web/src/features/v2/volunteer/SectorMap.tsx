@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../../data/googleMaps";
-import type { GeoView, OverviewZone } from "../api";
+import type { BoardState, GeoView, OverviewZone, Shelter } from "../api";
+import { useFloodCanvas } from "../BoardMap";
+import { bindFloodZoom } from "../floodLayer";
 import type { Selection } from "./selection";
 
 function rings(feature: GeoJSON.Feature): number[][][] {
@@ -70,13 +72,31 @@ export function DrawnSectorMap({ geo, zones, selection, onZone, onSector }: { ge
 }
 
 
-type Props = Parameters<typeof DrawnSectorMap>[0];
+type Props = Parameters<typeof DrawnSectorMap>[0] & {
+  /** The replay hour and message count: the water layer redraws (model + reports) when either changes. */
+  water?: { hour: number; messages: number };
+  shelters?: Shelter[];
+};
+
+/** What the depth means for a team: the first thing a volunteer asks is "can we get there, and with what?" */
+export const GO_BY: [string, string, string][] = [
+  ["--depth-1", "ต่ำกว่า 0.5 ม. · เดิน/รถสูงได้", "under 0.5 m · walk or high truck"],
+  ["--depth-2", "0.5–1 ม. · รถสูงเสี่ยง ใช้เรือดีกว่า", "0.5–1 m · high truck risky, boat better"],
+  ["--depth-3", "1–2 ม. · เรือเท่านั้น", "1–2 m · boat only"],
+  ["--depth-4", "เกิน 2 ม. · เรือ ระวังกระแสน้ำ", "over 2 m · boat, watch the current"],
+];
+
+export function goBy(depthM: number | null | undefined): [string, string] | null {
+  if (depthM == null) return null;
+  const row = GO_BY[depthM < 0.5 ? 0 : depthM < 1 ? 1 : depthM < 2 ? 2 : 3];
+  return [row[1], row[2]];
+}
 
 /** Keep geographic labels readable; the data layer only adds need and coverage. */
 // The need ramp is pale on purpose; on the street map it needs more alpha as need grows, and none where nobody waits.
 const FILL = [0, 0.3, 0.45, 0.6];
 
-export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (name: string) => string) {
+export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (name: string) => string, waterOn = false) {
   const { geo, zones, selection, onZone, onSector } = props;
   const overlays: Maps[] = [];
   if (!geo) return () => undefined;
@@ -109,7 +129,7 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     const paths = rings(feature).map(ring => ring.map(([lng, lat]) => ({ lng, lat })));
     const components = feature.geometry.type === "MultiPolygon" ? feature.geometry.coordinates.map(polygon => polygon.map(ring => ring.map(([lng, lat]) => ({ lng, lat })))) : [paths];
     for (const component of components) {
-    const polygon = new maps.Polygon({ map, paths: component, fillColor: token(`--need-${band}`), fillOpacity: FILL[band],
+    const polygon = new maps.Polygon({ map, paths: component, fillColor: token(`--need-${band}`), fillOpacity: waterOn ? FILL[band] * 0.45 : FILL[band],
       strokeColor: token("--ink-1"), strokeWeight: selection.zone === id ? 5 : zone?.open && !zone.plans ? 2 : 1,
       strokeOpacity: selection.zone === id ? 1 : 0.55, zIndex: selection.zone === id ? 3 : 1 });
     polygon.addListener("click", () => onZone(id));
@@ -127,6 +147,12 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     overlays.push(polygon);
     label(feature, id, true, () => onSector(id));
   }
+  // Shelters: where a team drops people off. Green dot, name on hover/tap.
+  for (const shelter of props.shelters ?? []) {
+    overlays.push(new maps.Marker({ map, position: { lat: shelter.lat, lng: shelter.lon }, zIndex: 4,
+      title: `ศูนย์พักพิง · Shelter: ${shelter.name}${shelter.capacity ? ` (${shelter.households}/${shelter.capacity})` : ""}`,
+      icon: { path: maps.SymbolPath.CIRCLE, scale: 7, fillColor: token("--shelter"), fillOpacity: 1, strokeColor: token("--shelter-ink"), strokeWeight: 2 } }));
+  }
   return () => overlays.forEach(overlay => { maps.event.clearInstanceListeners(overlay); overlay.setMap(null); });
 }
 
@@ -136,6 +162,10 @@ export function SectorMap(props: Props) {
   const [failed, setFailed] = useState(false);
   const [kind, setKind] = useState("roadmap");
   const refit = useRef<() => void>(() => undefined);
+  const [waterOn, setWaterOn] = useState(true);
+  // useAnalysis only reads the clock and the message count, so the overview's numbers stand in for the board state.
+  const clock = props.water ? { now: { atH: props.water.hour }, overall: { messages: props.water.messages } } as unknown as BoardState : null;
+  const flood = useFloodCanvas(props.geo, clock, props.water?.hour ?? 0, waterOn && props.water ? "corrected" : "off");
   useEffect(() => {
     let active = true;
     let resize: ResizeObserver | undefined;
@@ -156,12 +186,34 @@ export function SectorMap(props: Props) {
     return () => { active = false; resize?.disconnect(); if (instance) { instance.unbindAll(); } };
   }, []);
   useEffect(() => { ready?.map.setMapTypeId(kind); }, [ready, kind]);
+  // Water sits in the map pane: under the zone shapes and labels, over the streets.
+  useEffect(() => {
+    if (!ready || !flood.sim) return;
+    const { maps, map } = ready;
+    const [west, south, east, north] = flood.sim.meta.bbox;
+    const canvas = flood.canvas;
+    canvas.className = "v2-flood-canvas";
+    const water = new class extends maps.OverlayView {
+      onAdd() { this.getPanes().mapPane.appendChild(canvas); }
+      draw() {
+        const projection = this.getProjection();
+        const sw = projection.fromLatLngToDivPixel(new maps.LatLng(south, west));
+        const ne = projection.fromLatLngToDivPixel(new maps.LatLng(north, east));
+        Object.assign(canvas.style, { left: `${sw.x}px`, top: `${ne.y}px`, width: `${ne.x - sw.x}px`, height: `${sw.y - ne.y}px` });
+      }
+      onRemove() { canvas.remove(); }
+    }();
+    water.setMap(map);
+    const unbind = bindFloodZoom(map, canvas);
+    return () => { unbind(); water.setMap(null); };
+  }, [ready, flood.sim, flood.canvas]);
+
   // Polling hands us new arrays every few seconds; redraw only when what the map shows has changed,
   // so labels don't flicker and keyboard focus stays put. Clicks always reach the latest handlers.
   const latest = useRef(props);
   latest.current = props;
   const { selection } = props;
-  const drawn = [props.geo?.zones.features.length ?? 0, selection.zone, selection.sector, selection.hover,
+  const drawn = [props.geo?.zones.features.length ?? 0, waterOn, props.shelters?.length ?? 0, selection.zone, selection.sector, selection.hover,
     ...props.zones.map(zone => `${zone.id}:${zone.score}:${zone.open}:${zone.plans}`)].join("|");
   useEffect(() => {
     if (!ready) return;
@@ -170,7 +222,7 @@ export function SectorMap(props: Props) {
       ...latest.current,
       onZone: id => latest.current.onZone(id),
       onSector: id => latest.current.onSector(id),
-    }, name => styles.getPropertyValue(name).trim());
+    }, name => styles.getPropertyValue(name).trim(), waterOn && !!props.water);
   }, [ready, drawn]);
   useEffect(() => {
     if (!ready || !props.geo) return;
@@ -191,6 +243,12 @@ export function SectorMap(props: Props) {
     {ready && <div className="seg p3-map-type" role="group" aria-label="ชนิดแผนที่ · Map type">
       <button aria-pressed={kind === "roadmap"} onClick={() => setKind("roadmap")}>แผนที่<small>Map</small></button>
       <button aria-pressed={kind === "hybrid"} onClick={() => setKind("hybrid")}>ดาวเทียม<small>Satellite</small></button>
+      {props.water && <button aria-pressed={waterOn} onClick={() => setWaterOn(value => !value)}>น้ำ<small>Water</small></button>}
+    </div>}
+    {ready && waterOn && props.water && <div className="p3-water-key" aria-label="ระดับน้ำ ไปด้วยอะไร · Water depth and how to get there">
+      <b>ระดับน้ำ · ไปด้วยอะไร <small>Water · go by</small></b>
+      {GO_BY.map(([token, th, en]) => <span key={token}><i style={{ background: `var(${token})` }} />{th}<small>{en}</small></span>)}
+      <span><i className="is-shelter" />ศูนย์พักพิง<small>shelter</small></span>
     </div>}
   </div>;
 }

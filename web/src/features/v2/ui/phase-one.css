@@ -1288,3 +1288,6 @@
   .rp-demo-bar p { order: 1; }
   .rp-demo-events, .rp-demo-clock { order: 2; width: 100%; flex-wrap: nowrap; }
 }
+.rp-phone-tabs button { flex-direction: column; gap: 0; line-height: 1.2; }
+.rp-phone-tabs button small { display: block; font-size: 14px; }
+.rp-demo-bar .rp-demo-handle { background: transparent; color: var(--on-night); border: 0; width: 100%; min-height: 44px; font: 600 15px var(--font-sans); }

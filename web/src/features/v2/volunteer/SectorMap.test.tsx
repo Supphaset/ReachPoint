@@ -69,3 +69,14 @@ describe("Google map overlays", () => {
     expect(lat).toBeCloseTo((7 + 7 + 7.02) / 3, 5);
   });
 });
+
+import { goBy } from "./SectorMap";
+describe("go by", () => {
+  it("turns depth into how a team can get there, and admits when it doesn't know", () => {
+    expect(goBy(0.3)?.[1]).toContain("walk");
+    expect(goBy(0.7)?.[1]).toContain("boat better");
+    expect(goBy(1.3)?.[1]).toContain("boat only");
+    expect(goBy(2.4)?.[1]).toContain("current");
+    expect(goBy(null)).toBeNull();
+  });
+});

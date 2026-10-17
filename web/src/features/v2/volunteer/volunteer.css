@@ -297,3 +297,16 @@
   .p3-panel-footer { flex-wrap: wrap; }
 }
 .p3-google-badge { min-height: 40px; min-width: 40px; }
+/* Phone: map first — the four totals give way; the waiting/urgent line above the map stays. */
+@media (max-width: 760px) { .p3-ledger { display: none; } }
+/* Water key: depth band → how a team can get there. Sits on the map, bottom left. */
+.p3-water-key { position: absolute; left: 10px; bottom: 10px; z-index: 3; display: grid; gap: 4px; max-width: min(340px, calc(100% - 70px)); padding: 8px 10px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-ctl); box-shadow: var(--shadow-card); font-size: 14px; color: var(--ink-1); }
+.p3-water-key span { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.p3-water-key small { color: var(--ink-3); font-size: 14px; }
+.p3-water-key i { flex: none; width: 14px; height: 10px; border-radius: 2px; align-self: center; }
+.p3-water-key i.is-shelter { width: 12px; height: 12px; border-radius: 50%; background: var(--shelter); border: 2px solid var(--shelter-ink); }
+@media (max-width: 760px) { .p3-water-key { font-size: 14px; max-width: calc(100% - 64px); } .p3-water-key small { display: none; } }
+.p4-go-by { margin: 8px 0; padding: 8px 10px; border-left: 3px solid var(--depth-3); background: var(--sunken); font-size: 15px; } .p4-go-by small { color: var(--ink-3); font-size: 14px; }
+/* Half-strength water so street names and landmarks stay readable under it. */
+.p3-google-map .v2-flood-canvas { opacity: 0.7 !important; }
+.p3-water-key small { display: inline; }

@@ -5,7 +5,7 @@ import { v2, vol, type ZonePage as ZoneDetail } from "../api";
 import { Depth, VShell, useGeo, useLive, useTeam } from "./shared";
 import { initialSelection, selectionReducer } from "./selection";
 import { displayText } from "../ui/trace";
-import { SectorMap } from "./SectorMap";
+import { SectorMap, goBy } from "./SectorMap";
 import "../ui/phase-three.css";
 
 export function OverviewPage() {
@@ -26,7 +26,8 @@ export function OverviewPage() {
     <div className="p3-workspace">
       <section className="p3-map-column" aria-label="Sector map">
         <div className="p3-breadcrumb"><button className="btn btn-sec" onClick={() => dispatch({ type: "sector", id: null })}>หาดใหญ่ · Hat Yai</button>{selection.sector && <span> / {selection.sector}</span>}{selection.zone && <span> / {selection.zone}</span>}</div>
-        <SectorMap geo={geo} zones={data?.zones ?? []} selection={selection} onZone={selectZone} onSector={selectSector} />
+        <SectorMap geo={geo} zones={data?.zones ?? []} selection={selection} onZone={selectZone} onSector={selectSector}
+          water={data ? { hour: data.atH, messages: data.overall.messages } : undefined} shelters={data?.shelters} />
         <div className="p3-legend">{["ไม่มีครอบครัวรอ · None waiting", "น้อย · Lower", "ปานกลาง · More", "มากสุด · Most help missing"].map((label, index) => <span key={label}><i style={{ background: `var(--need-${index})` }} />{label}</span>)}</div>
         <p>เส้นประ / ขอบหนา: มีครอบครัวรอ ไม่มีทีม · Dashed / heavier edges: waiting, no team. Thick outlines and letters: sectors. Water unknown is never dry.</p>
       </section>
@@ -99,6 +100,14 @@ export function ZonePanel({ id, team, onClose, onPosted }: { id: string; team: s
     {zone && !planning && <>
       <p className="p4-decision">{displayText(zone.summary)}</p>
       <div className="p4-zone-stats"><span>{detail?.totals.open} ครอบครัวรอ · waiting</span><span>{zone.people.urgent} ด่วน · urgent</span><span>{zone.people.cannotWalk} เดินไม่ได้ · can’t walk</span></div>
+      {(() => {
+        // the likely depth sets the vehicle; the deep end of the range is said out loud, since a team meets the worst street
+        const likely = zone.level?.depthM, hi = zone.level?.depthHiM;
+        const go = goBy(likely);
+        const deeper = hi != null && likely != null && goBy(hi)?.[0] !== go?.[0];
+        return <p className="p4-go-by"><b>ไปด้วย · Go by:</b> {go ? <>{go[0]} <small>{go[1]}</small></> : "ไม่ทราบระดับน้ำ เตรียมเรือไว้ · depth unknown, bring a boat"}
+          {deeper && <><br />บางจุดอาจถึง {hi.toFixed(1)} ม. <small>some streets up to {hi.toFixed(1)} m</small></>}</p>;
+      })()}
       <p className="p4-zone-teams">ทีมอื่น · Other teams: {zone.plans.map(plan => `${plan.team ?? "unnamed"} ${plan.vehicle ?? ""} ${plan.eta ?? "time unknown"}`).join(" · ") || "ยังไม่มี · none planned"}</p>
     </>}
     {zone && !planning && <>
