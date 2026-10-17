@@ -196,3 +196,26 @@ def test_a_neighbour_named_after_the_questions_still_gets_the_picture_check():
     # the grandmother is her own household; the caller's family does not gain an elderly person
     me = c.get(f"/api/v2/v/cases/{done['session']['householdId']}", headers=h).json()["household"]
     assert me["elderly"] == 0
+
+
+def test_a_map_pin_locates_the_house_and_the_shelter_comes_with_a_street_route():
+    from api.main import app
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-pin"}
+    sid = c.post("/api/v2/chat/sessions", headers=h).json()["id"]
+    first = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "น้ำถึงเข่า อยู่กัน 2 คน"}, headers=h).json()
+    assert first["effects"].get("askLocation")
+    # a pin outside the city is refused; one in Hat Yai becomes the house
+    out = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "📍", "pin": {"lon": 100.0, "lat": 13.7, "method": "gps"}}, headers=h).json()
+    assert out["effects"].get("pinOutside")
+    got = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "📍", "pin": {"lon": 100.4936, "lat": 7.0222, "method": "map"}}, headers=h).json()
+    assert got["effects"]["located"]["by"] == "your pin on the map"
+    # answer until the shelter question: it comes with the route on the streets, the water along it and a Maps link
+    route = None
+    for say in ("ไม่มีค่ะ", "ไม่มี", "ไม่มีค่ะ"):
+        r = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": say}, headers=h).json()
+        route = r["effects"].get("shelterRoute") or route
+        if route:
+            break
+    assert route and route["by"] == "streets" and len(route["path"]) > 2 and route["samples"]
+    assert route["googleMaps"].startswith("https://www.google.com/maps/dir/")

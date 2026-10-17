@@ -18,8 +18,8 @@ from api.v2.reader import Fact, Read
 Q = {
     "intro": ("ฉันเป็นผู้ช่วย AI ของ ReachPoint ค่ะ ตอนนี้เกิดอะไรขึ้นบ้าง และบ้านคุณอยู่ที่ไหนคะ",
               "I'm ReachPoint's AI assistant. What's happening, and where is your house?"),
-    "where": ("บ้านอยู่ที่ไหนคะ บอกบ้านเลขที่และซอย หรือจุดสังเกตใกล้ๆ ก็ได้", "Where is your house? A house number and soi, or a nearby landmark, is fine."),
-    "where_again": ("ยังหาไม่เจอค่ะ ช่วยบอกชื่อซอยหรือถนน หรือสถานที่ใกล้ๆ เพิ่มได้ไหมคะ", "I couldn't find that yet. Can you tell me the soi or road name, or a place nearby?"),
+    "where": ("บ้านอยู่ที่ไหนคะ บอกบ้านเลขที่และซอย หรือจุดสังเกตใกล้ๆ หรือกด 📍 ปักหมุดบ้านบนแผนที่ก็ได้", "Where is your house? A house number and soi, a nearby landmark, or tap 📍 to pin it on the map."),
+    "where_again": ("ยังหาไม่เจอค่ะ ช่วยบอกชื่อซอยหรือถนน หรือกด 📍 ปักหมุดบ้านบนแผนที่ได้ไหมคะ", "I couldn't find that yet. Can you tell me the soi or road name, or tap 📍 to pin your house on the map?"),
     "people": ("ตอนนี้มีกี่คนอยู่ด้วยกันคะ", "How many people are with you?"),
     "vulnerable": ("มีผู้สูงอายุ เด็กเล็ก คนป่วย หรือคนที่เดินไม่ได้ไหมคะ", "Is anyone elderly, a small child, sick, or unable to walk?"),
     "depth": ("ตอนนี้น้ำสูงแค่ไหนคะ เทียบกับร่างกายก็ได้ เช่น ถึงเข่า ถึงเอว", "How high is the water now? Compared with your body is fine, like knee or waist."),
@@ -32,6 +32,8 @@ Q = {
                "Which direction is the house you mentioned from yours: north, south, east or west?"),
     "shelter": ("ถ้าออกจากบ้านเองได้ ศูนย์พักพิงที่ใกล้ที่สุดคือ {name} ห่างราว {km} กม. (เดินราว {minutes} นาที) ทางที่ลึกที่สุดราว {deep} ม. ไปเองได้ไหมคะ ตอบ \"ไป\" หรือ \"อยู่บ้าน\"",
                 "If you can leave on your own, the nearest shelter is {name}, about {km} km away (about {minutes} min on foot). The deepest water on the way is about {deep} m. Can you go there? Reply \"go\" or \"stay\"."),
+    "shelter_deep": ("ศูนย์พักพิงที่ใกล้ที่สุดคือ {name} ห่างราว {km} กม. แต่ทางไปมีน้ำลึกราว {deep} ม. อย่าเดินลุยน้ำนะคะ ถ้ามีเรือหรือรถยกสูงพาไปเองได้ ตอบ \"ไปได้\" ถ้าไปเองไม่ได้ ตอบ \"ต้องการทีม\"",
+                     "The nearest shelter is {name}, about {km} km away, but the water on the way is about {deep} m deep, so please don't wade. If you have a boat or a high truck to get there, reply \"I can go\". If not, reply \"need a team\"."),
     "shelter_go": ("ดีค่ะ เดินไปทาง {name} ช้าๆ อยู่ห่างคลองและท่อระบายน้ำ ถ้าน้ำลึกเกินเข่าให้หยุดและบอกเรา เมื่อถึงแล้วพิมพ์ว่า \"ถึงแล้ว\" นะคะ",
                    "Good. Walk slowly towards {name}, away from canals and drains. If the water goes above your knees, stop and tell us. When you arrive, type \"arrived\"."),
     "shelter_stay": ("ได้ค่ะ อยู่ที่บ้าน ขึ้นที่สูง ปิดไฟฟ้าชั้นล่าง เราแจ้งทีมอาสาให้แล้ว", "OK. Stay at home, go to the highest floor and switch off the power downstairs. We've told the volunteer teams."),
@@ -156,7 +158,7 @@ def _next(s: Session) -> str | None:
     # neighbours only come up when the person mentions one: then ask which way that house is
     if s.nb_queue:
         return "nb_dir" if s.nb_queue[0]["nb"].get("side") not in G.DIRECTIONS else "nb_confirm"
-    # people who can leave on their own: offer the nearest shelter they can walk to
-    if s.shelter_offer and "shelter" not in s.asked and not f.get("cannotWalk", {}).get("value"):
+    # offer the nearest shelter (walkable first) and ask whether they can get there on their own
+    if s.shelter_offer and "shelter" not in s.asked:
         return "shelter"
     return None

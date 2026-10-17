@@ -178,9 +178,17 @@ def clock(body: ClockIn):
 
 
 # --- the intake agent ---
+class PinIn(BaseModel):
+    lon: float = Field(ge=-180, le=180)
+    lat: float = Field(ge=-90, le=90)
+    method: str = Field(default="map", pattern="^(gps|map)$")
+    accuracyM: float | None = Field(default=None, ge=0, le=100000)
+
+
 class TurnIn(BaseModel):
     text: str = Field(min_length=1, max_length=600)
     channel: str = Field(default="chat", pattern="^(chat|voice)$")
+    pin: PinIn | None = None  # the phone's GPS, or a pin the person moved on the map
 
 
 @router.post("/chat/sessions")
@@ -249,10 +257,21 @@ def _add_neighbour(v, s, channel: str, lang: str, building_id: str | None = None
 
 @router.post("/chat/sessions/{sid}/turn")
 def chat_turn(sid: str, body: TurnIn):
-    return turn(sid, body.text, body.channel)
+    return turn(sid, body.text, body.channel, body.pin.model_dump() if body.pin else None)
 
 
-def turn(sid: str, said: str, channel: str = "chat") -> dict:
+def _pin_to_house(pin: dict, geo) -> dict | None:
+    """A GPS fix or a map pin → the building under it (or the nearest within 60 m); outside the city, nothing."""
+    lon, lat = pin["lon"], pin["lat"]
+    b = geo.snap(lon, lat, 60)  # zone outlines leave gaps along roads, so the building decides the zone
+    if b is None or not b.zone_id:
+        return None
+    return {"lon": b.lon, "lat": b.lat, "precision": pin.get("method", "map"), "buildingId": b.id, "zoneId": b.zone_id,
+            "label": None, "by": "your GPS" if pin.get("method") == "gps" else "your pin on the map",
+            "accuracyM": pin.get("accuracyM")}
+
+
+def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None) -> dict:
     """One turn of the intake agent: typed, held-mic, or Gemini Live voice (api/v2/live.py)."""
     v = room()
     s = v.sessions.get(sid)
@@ -268,8 +287,17 @@ def turn(sid: str, said: str, channel: str = "chat") -> dict:
         effects = {}
         prefix = ""
         main_msg = None
-        if pending == "shelter" and s.shelter_offer:
-            go = re.search(r"^\s*(ไป|ได้|โอเค|ok|okay|yes|go|ไปได้|ไปค่ะ|ไปครับ)", text, re.I) and not re.search(r"ไม่|อยู่บ้าน|stay|no\b", text, re.I)
+        if pin:  # a pin always wins over address words: it is where the phone (or the person's finger) is
+            loc = _pin_to_house(pin, geo)
+            if loc:
+                s.pin, s.building_id, s.zone_id = {"lon": loc["lon"], "lat": loc["lat"], "precision": loc["precision"]}, loc["buildingId"], loc["zoneId"]
+                effects["located"] = loc
+            else:
+                effects["pinOutside"] = True
+        # an answer to the shelter question only when it is one: anything else (a neighbour, a new problem) is read as usual
+        shelter_answer = re.search(r"ไป|ได้|โอเค|อยู่บ้าน|ต้องการทีม|ไม่|\b(ok|okay|yes|go|stay|no|can.?t|need|i can)\b", text, re.I)
+        if pending == "shelter" and s.shelter_offer and shelter_answer and len(text) <= 40:
+            go = re.search(r"^\s*(ไป|ได้|โอเค|ok|okay|yes|go|ไปได้|ไปค่ะ|ไปครับ|ไปเองได้|i can)", text, re.I) and not re.search(r"ไม่|อยู่บ้าน|ต้องการทีม|stay|no\b|can.?t|need", text, re.I)
             if go:
                 v.seq += 1
                 v.messages.append({"id": f"L{v.seq}", "atH": v.now_h, "channel": channel, "text": text, "live": True, "pin": s.pin,
@@ -340,7 +368,8 @@ def turn(sid: str, said: str, channel: str = "chat") -> dict:
                 from api.v2 import shelters as SH
                 opts = SH.options(w, s.pin["lon"], s.pin["lat"])
                 walk = [o for o in opts if o["walkable"]]
-                s.shelter_offer = walk[0] if walk else {}
+                # the nearest walkable shelter; if none, the nearest one anyway: they may have a boat or a high truck
+                s.shelter_offer = (walk or opts or [{}])[0]
                 s.shelter_nearest = opts[0] if opts else None
             while s.nb_queue and s.pin and s.nb_queue[0]["nb"].get("side") in G.DIRECTIONS and not s.nb_queue[0]["cands"]:
                 s.nb_queue[0]["cands"] = _candidates(s, s.nb_queue[0])
@@ -352,12 +381,19 @@ def turn(sid: str, said: str, channel: str = "chat") -> dict:
             nxt = I._next(s)
             if nxt == "nb_confirm":
                 effects["nbConfirm"] = _confirm_effect(s, s.nb_queue[0])
+            if nxt in ("where", "where_again"):
+                effects["askLocation"] = True  # the phone opens the map pin and GPS button
             if nxt:
                 s.asked.append(nxt)
                 s.pending = nxt
                 o = s.shelter_offer or {}
                 if nxt == "shelter":
-                    reply = prefix + I.say(nxt, lang, name=o.get("name"), km=o.get("km"), minutes=o.get("minutes"), deep=o.get("deepestM"))
+                    key = "shelter" if o.get("walkable") else "shelter_deep"
+                    reply = prefix + I.say(key, lang, name=o.get("name"), km=o.get("km"), minutes=o.get("minutes"), deep=o.get("deepestM"))
+                    # the phone shows the route on the flood map, a Google Maps link and the two answers
+                    effects["shelterRoute"] = {**o, "from": [s.pin["lon"], s.pin["lat"]],
+                                               "googleMaps": "https://www.google.com/maps/dir/?api=1&origin="
+                                               f"{s.pin['lat']},{s.pin['lon']}&destination={o['lat']},{o['lon']}&travelmode=walking"}
                 elif nxt == "nb_confirm":
                     side = s.nb_queue[0]["nb"]["side"]
                     reply = prefix + I.say("nb_confirm" if s.nb_queue[0]["i"] == 0 else "nb_confirm_next", lang, side=I.side_word(side, lang))
