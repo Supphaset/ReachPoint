@@ -1,0 +1,76 @@
+import type { TurnResult } from "../api";
+import { displayText, factGloss, readerLabel, type TraceEntry } from "./trace";
+/** A turn is the evidence boundary: no scripted facts or synthetic trace timestamps. */
+export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string, atH: number): TraceEntry[] {
+  const lines: TraceEntry[] = [];
+  const effects = turn.effects;
+  const household = effects.household;
+  const prefix = `turn-${turnIndex}`;
+  const to = household ? `/v/case/${household.id}` : undefined;
+  const add = (suffix: string, entry: Omit<TraceEntry, "id" | "at" | "atH">) => {
+    lines.push({ id: `${prefix}-${suffix}`, at, atH, ...entry });
+  };
+  for (const [index, fact] of (effects.facts ?? []).entries()) {
+    if (!fact.quote)
+      continue;
+    add(`fact-${index}`, {
+      who: readerLabel(effects.reader) === "Gemini" ? "gemini" : "rules",
+      what: `Read · ${factGloss(fact)}`,
+      quote: fact.quote,
+      gloss: factGloss(fact),
+      to,
+    });
+  }
+  if (effects.located)
+    add("locate", {
+      who: "rules",
+      what: `Located by ${effects.located.by} · ${effects.located.label ?? effects.located.buildingId} → zone ${effects.located.zoneId}`,
+      to: `/v/zone/${effects.located.zoneId}`,
+    });
+  if (household?.urgent)
+    add("triage", {
+      who: "rules",
+      what: `${household.id} flagged urgent from reported needs · volunteer attention required`,
+      to,
+    });
+  if (effects.depthHere) {
+    const [depth, low, high] = effects.depthHere;
+    const model = effects.simHere;
+    add("depth", {
+      who: "physics",
+      what: `${model == null ? "Model depth unavailable" : `Model ${model.toFixed(1)} m`} → model + reports ${depth.toFixed(1)} m · likely ${low.toFixed(1)}–${high.toFixed(1)} m`,
+    });
+  }
+  if (turn.reply)
+    add("asking", {
+      who: readerLabel(effects.reader) === "Gemini" ? "gemini" : "rules",
+      what: "Agent reply / next question",
+      quote: displayText(turn.reply),
+      gloss: replyGloss(turn),
+    });
+  if (effects.neighbour?.sure)
+    add("neighbour", {
+      who: "action",
+      what: `${effects.neighbour.householdId} · ${effects.neighbour.known ? "already known; not counted twice" : "confirmed as a separate neighbour household"}`,
+      to: `/v/case/${effects.neighbour.householdId}`,
+    });
+  return lines;
+}
+
+function replyGloss(turn: TurnResult): string {
+  if (!/[\u0e00-\u0e7f]/.test(turn.reply))
+    return turn.reply;
+  if (turn.effects.nbConfirm)
+    return "Please confirm the neighbour’s house in the satellite picture.";
+  if (turn.session.pending === "nb_confirm")
+    return "Is this the neighbour’s house?";
+  if (/กี่คน|กี่ท่าน/.test(turn.reply))
+    return "How many people are with you?";
+  if (/ข้าง|เพื่อนบ้าน|ใกล้/.test(turn.reply))
+    return "The agent is asking about nearby households.";
+  if (/น้ำ/.test(turn.reply))
+    return "The agent is discussing the reported water level and asking for details.";
+  if (/ที่อยู่|บ้านเลขที่|ซอย/.test(turn.reply))
+    return "The agent is asking for location details.";
+  return "Thai agent reply; the extracted facts above provide the English evidence summary.";
+}

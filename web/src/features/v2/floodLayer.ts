@@ -2,6 +2,7 @@
  * The flood simulation drawn over the map: one frame per hour (depth in 2 cm steps on the 30 m grid), blended
  * between hours, and corrected per zone by what the reports say ("physics + reports"). Runs in the browser.
  */
+import { demoRoom } from "../../data/room";
 import { cssVar } from "./api";
 
 export interface SimMeta {
@@ -49,10 +50,10 @@ function inside(x: number, y: number, ring: number[][]): boolean {
 
 export function loadSim(zones: GeoJSON.FeatureCollection): Promise<Sim> {
   return (loading ??= (async () => {
-    const meta = (await fetch("/api/v2/sim").then((r) => r.json())) as SimMeta;
-    const buf: ArrayBuffer = await fetch("/api/v2/sim.bin").then((r) => r.arrayBuffer());
+    const meta = (await fetch("/api/v2/sim", { headers: { "X-Demo-Room": demoRoom() } }).then((r) => r.json())) as SimMeta;
+    const buf: ArrayBuffer = await fetch("/api/v2/sim.bin", { headers: { "X-Demo-Room": demoRoom() } }).then((r) => r.arrayBuffer());
     const frames = new Uint8Array(buf);
-    const terr = (await fetch("/api/v2/terrain").then((r) => r.json())) as { zDm: number[] };
+    const terr = (await fetch("/api/v2/terrain", { headers: { "X-Demo-Room": demoRoom() } }).then((r) => r.json())) as { zDm: number[] };
     const zDm = Int16Array.from(terr.zDm);
     const [w, s, e, n] = meta.bbox;
     const zoneIds: string[] = [];

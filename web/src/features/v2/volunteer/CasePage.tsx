@@ -1,42 +1,53 @@
+import { displayText } from "../ui/trace";
 /** One family's whole story: every message with its words, why it was merged, the water at the house, neighbours,
  * what ReachPoint sent them, and the one tap a team can make. */
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { vol, type CaseView } from "../api";
 import { HouseScene } from "../HouseScene";
-import { FactChips } from "./FeedPage";
-import { Depth, Needs, StatusChip, VShell, useLive, useTeam } from "./shared";
-
+import { BoardMap } from "../BoardMap";
+import { DepthRange, TraceLine } from "../ui/Shared";
+import { factGloss } from "../ui/trace";
+import { familyTitle } from "./ZonePage";
+import { Needs, StatusChip, VShell, useGeo, useLive, useTeam } from "./shared";
 const SENT: Record<string, string> = {
   check: "Safety check", rainRise: "Expected rise (rain)", morning: "Morning check", earlyWarning: "Early warning", rain: "Rain alert", river: "River alert",
   askBack: "Follow-up question", quiet: "Asked about neighbours", lostCall: "AI voice call", planUpdate: "Team coming",
   pickedUp: "Picked up", nobodyThere: "Nobody there",
 };
-
 export function CasePage() {
   const { id = "" } = useParams();
   const [team] = useTeam();
   const { data, error, reload } = useLive(() => vol.case(id, team), [id, team]);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string | null>(null);
+  const [outcomeError, setOutcomeError] = useState("");
   const h = data?.household;
+  const geo = useGeo();
   const tap = async (kind: "pickedUp" | "nobodyThere" | "atShelter", shelterId?: string) => {
     if (!team) return;
     setBusy(true);
+    setOutcomeError("");
     try {
       await vol.outcome(id, kind, team, shelterId);
       setDone(kind === "pickedUp" ? "Recorded: picked up. The family's phone has been told."
         : kind === "atShelter" ? "Recorded: checked in at the shelter. Teams will skip the house."
-        : "Recorded: nobody there. The family has been asked where they are.");
+          : "Recorded: nobody there. The family has been asked where they are.");
       reload();
+    } catch (failure) {
+      setOutcomeError(String(failure));
     } finally {
       setBusy(false);
     }
   };
   return (
     <VShell
-      title={`Family ${id}`}
-      sub={h ? <>Zone <Link to={`/v/zone/${h.zoneId}`}>{h.zoneId}</Link>{data?.zone?.district ? ` · ${data.zone.district}` : ""} · {h.reportedBy === "family" ? "the family reported themselves" : "reported by others only"}</> : undefined}
+      title={h ? familyTitle(h) : `Family ${id}`}
+      sub={h ? <>Zone
+        <Link to={`/v/zone/${h.zoneId}`}>{h.zoneId}</Link>
+        {data?.zone?.district ? ` · ${data.zone.district}` : ""} ·
+        {h.reportedBy === "family" ? "the family reported themselves" : "reported by others only"}
+      </> : undefined}
       at={data?.now.at}
     >
       {error ? <p className="v2-error">Couldn't load this family: {error}</p> : null}
@@ -46,68 +57,89 @@ export function CasePage() {
             <div className="v-casehead-main">
               <StatusChip r={h} />
               <Needs r={h} />
-              <span>Water here <Depth m={data.depth?.m} lo={data.depth?.lo} hi={data.depth?.hi} />{h.boat ? <span className="v-boat">boat</span> : null}</span>
+              <DepthRange value={data.depth?.m ?? null} lo={data.depth?.lo} hi={data.depth?.hi} source={`model + ${data.depth?.reports ?? 0} nearby reports`} at={`as of ${data.now.at} · last heard ${h.hoursSilent} h ago`} />
               <span className="v-muted v-small">last heard {data.contact.lastHeard}</span>
             </div>
             <div className="v-address">
-              {data.unlocked ? <><span className="v-label">Address</span> <b>{data.address ?? "not given in words; use the map pin"}</b></>
-                : <span className="v-muted v-small">Exact address hidden. It shows to teams whose posted plan covers zone {h.zoneId}. <Link to={`/v/plan?zones=${h.zoneId}`}>Post a plan</Link></span>}
+              {data.unlocked ? <>
+                <span className="v-label">Address</span>
+                <b>{data.address ?? "not given in words; use the map pin"}</b>
+              </>
+                : <span className="v-muted v-small">Exact address hidden. It shows to teams whose posted plan covers zone
+                  {h.zoneId}.
+                  <Link to={`/v/plan?zones=${h.zoneId}`}>Post a plan</Link>
+                </span>}
             </div>
-            <div className="v-tap">
-              {h.outcome ? (
-                <p><b>{h.outcome.kind === "pickedUp" ? "Picked up" : "Nobody there"}</b> · {h.outcome.team} · {h.outcome.at}</p>
-              ) : team ? (
-                <>
-                  <span className="v-small">After you visit:</span>
-                  <button type="button" className="v-btn is-go" disabled={busy} onClick={() => tap("pickedUp")}>We picked them up</button>
-                  <button type="button" className="v-btn" disabled={busy} onClick={() => tap("nobodyThere")}>Nobody there</button>
-                </>
-              ) : <span className="v-muted v-small">Set your team name (top right) to record a visit.</span>}
-              {done ? <p className="v-ok" role="status">{done}</p> : null}
-            </div>
+
           </section>
 
           <div className="v-split">
             <section aria-label="Messages about this family">
-              <h2 className="v-h2">Everything we heard ({data.story.length} messages)</h2>
-              <ol className="v-story">
-                {data.story.map((s) => (
-                  <li key={s.id}>
-                    <div className="v-feed-head">
-                      <time>{s.at}</time>
-                      <span className="v-feed-src">{s.source} · {s.channel}</span>
-                      {s.depth?.label === "doubtful" ? <span className="v2-chip is-amber">Doubtful</span> : null}
-                    </div>
-                    <p className="v-feed-text">{s.text}</p>
-                    <FactChips facts={s.facts} />
-                    <p className="v-feed-did"><b>Why it's this family:</b> {s.how ?? "–"}
-                      {s.depth ? <> · <b>Water said</b> {s.depth.lo.toFixed(1)}–{s.depth.hi.toFixed(1)} m, model then {s.depth.model.toFixed(1)} m ({s.depth.label})</> : null}</p>
-                  </li>
-                ))}
-              </ol>
+              <section className="rp-card rp-pad">
+                <h2>Why this is one family</h2>
+                <p>{h.messages} messages linked to {id} · {h.firstHand ? "first-hand report" : "reported by others"}.</p>
+                {Array.from(new Set(data.story.map(item => item.how).filter(Boolean))).map(reason => <p key={reason}>{displayText(reason!)}</p>)}
+                <p>Shared phones and nearby addresses alone do not establish one household. Possible duplicates remain separate.</p>
+              </section>
+              <h2 className="v-h2">Evidence trail · {data.story.length} messages</h2>
+              <div className="rp-card">
+                {data.story.map(item => {
+                  const quotedFacts = item.facts.filter(fact => fact.quote);
+                  return <div key={item.id}>
+                    <TraceLine who={item.depth?.label === "doubtful" ? "doubt" : item.reader?.startsWith("gemini") ? "gemini" : "rules"}
+                      at={item.at} what={`Read · ${item.source} · ${item.channel}`}
+                      quote={quotedFacts.length ? quotedFacts.map(fact => fact.quote).join(" · ") : item.text}
+                      gloss={quotedFacts.length ? quotedFacts.map(factGloss).join(" · ") : "Original report; no structured English facts were extracted."} />
+                    <TraceLine who="rules" at={item.at} what={`Why this family: ${displayText(item.how ?? "Match basis not provided")}`} />
+                    {item.depth && <TraceLine who="physics" at={item.at}
+                      what={`Reported ${item.depth.lo.toFixed(1)}–${item.depth.hi.toFixed(1)} m · model then ${item.depth.model.toFixed(1)} m · ${item.depth.label}`} />}
+                  </div>;
+                })}
+              </div>
             </section>
             <div className="v-side">
+              <section className="rp-card">
+                <h2 className="rp-pad">This household · {id}</h2>
+                <div className="rp-case-map">
+                  <BoardMap geo={geo} state={null} selected={h.zoneId} onSelect={() => undefined} houses={[]}
+                    focus={h.lon != null && h.lat != null ? { lon: h.lon, lat: h.lat } : null}
+                    focusedHousehold={h.lon != null && h.lat != null ? { id, lon: h.lon, lat: h.lat } : null}
+                    lang="en" simHour={data.now.atH} simMode="physics" />
+                </div>
+                <p className="rp-pad rp-honesty">Map water: model only at {data.now.at}. Corrected household depth and evidence below.</p>
+              </section>
               <section className="v2-card v-pad">
                 <h2 className="v-h2">Water at the house</h2>
                 <HouseScene depth={data.depth?.m ?? null} lo={data.depth?.lo} hi={data.depth?.hi} lang="en"
                   family={{ people: h.people, elderly: h.elderly, children: h.children, cannotWalk: h.cannotWalk }}
                   caption={h.status === "atShelter" ? "The family has checked in at a shelter: the house should be empty." : undefined} />
                 <DepthChart c={data} />
-                {data.depth ? <p className="v-small">Now about <b>{data.depth.m.toFixed(1)} m</b> (likely {data.depth.lo.toFixed(1)}–{data.depth.hi.toFixed(1)}). The flood model alone says {data.depth.model.toFixed(1)} m; {data.depth.reports} nearby reports correct it.</p> : null}
+                {data.depth ? <p className="v-small">Now about
+                  <b>{data.depth.m.toFixed(1)} m</b> (likely
+                  {data.depth.lo.toFixed(1)}–
+                  {data.depth.hi.toFixed(1)}). The flood model alone says
+                  {data.depth.model.toFixed(1)} m;
+                  {data.depth.reports} nearby reports correct it.
+                </p> : null}
                 {data.doubtfulWhy ? <p className="v-note">{data.doubtfulWhy}</p> : null}
               </section>
               <section className="v2-card v-pad">
                 <h2 className="v-h2">Shelter</h2>
                 {data.shelter && (h.status === "atShelter" || h.status === "toShelter") ? (
-                  <p><b>{h.status === "atShelter" ? "Checked in at" : "Walking to"} {data.shelter.name}</b>. {h.status === "atShelter" ? "Nobody should be at the house." : ""}</p>
+                  <p>
+                    <b>{h.status === "atShelter" ? "Checked in at" : "Walking to"} {data.shelter.name}</b>.
+                    {h.status === "atShelter" ? "Nobody should be at the house." : ""}
+                  </p>
                 ) : null}
                 <ul className="v-list">
                   {data.shelterOptions.map((o) => (
                     <li key={o.shelterId}>
-                      <b>{o.name}</b> <span className="v-muted v-small">{o.km} km · about {o.minutes} min on foot</span>{" "}
+                      <b>{o.name}</b>
+                      <span className="v-muted v-small">{o.km} km · about {o.minutes} min on foot</span>
+                      {" "}
                       {o.walkable ? <span className="v2-chip is-green">walkable now · deepest {o.deepestM.toFixed(1)} m</span>
                         : <span className="v2-chip is-red">too deep to walk · {o.deepestM.toFixed(1)} m on the way</span>}
-                      {team && h.status !== "atShelter" ? <button type="button" className="v-linkbtn" disabled={busy} onClick={() => tap("atShelter", o.shelterId)}>Checked in here</button> : null}
+
                     </li>
                   ))}
                 </ul>
@@ -120,37 +152,79 @@ export function CasePage() {
                   <ul className="v-list">
                     {data.neighbours.map((n, i) => (
                       <li key={i}>
-                        {n.from === id ? <>This family reported <Link to={`/v/case/${n.to}`}>{n.to}</Link>, {n.side === "unknown" ? "direction not given" : `to the ${n.side}`}</>
-                          : <><Link to={`/v/case/${n.from}`}>{n.from}</Link> reported this house, {n.side === "unknown" ? "direction not given" : `to their ${n.side}`}</>}
-                        {" "}<span className="v-muted">“{n.quote}”</span> {n.sure ? null : <span className="v2-chip is-amber">not sure</span>} {n.known ? <span className="v2-chip">already known</span> : <span className="v2-chip is-blue">new house</span>}
+                        {n.from === id ? <>This family reported
+                          <Link to={`/v/case/${n.to}`}>{n.to}</Link>,
+                          {n.side === "unknown" ? "direction not given" : `to the ${n.side}`}
+                        </>
+                          : <>
+                            <Link to={`/v/case/${n.from}`}>{n.from}</Link> reported this house,
+                            {n.side === "unknown" ? "direction not given" : `to their ${n.side}`}
+                          </>}
+                        {" "}
+                        <span className="v-muted">“{n.quote}”</span>
+                        {n.sure ? null : <span className="v2-chip is-amber">not sure</span>}
+                        {n.known ? <span className="v2-chip">already known</span> : <span className="v2-chip is-blue">new house</span>}
                       </li>
                     ))}
                   </ul>
                 ) : <p className="v-muted v-small">No neighbour reports link to this house.</p>}
-                {data.possibleDuplicates.length ? <p className="v-small">May be the same family as {data.possibleDuplicates.map((d) => <Link key={d} to={`/v/case/${d}`}>{d} </Link>)}: kept apart, counted as a range.</p> : null}
+                {data.possibleDuplicates.length ? <p className="v-small">May be the same family as
+                  {data.possibleDuplicates.map((d) => <Link key={d} to={`/v/case/${d}`}>{d} </Link>)}: kept apart, counted as a range.
+                </p> : null}
               </section>
               <section className="v2-card v-pad">
                 <h2 className="v-h2">What ReachPoint sent them</h2>
                 <p className="v-muted v-small">{data.contact.replies} replies · {data.contact.unanswered} checks unanswered</p>
                 <ol className="v-list">
                   {data.contact.sent.slice(-8).map((o, i) => (
-                    <li key={i}><time className="v-muted v-small">{o.at}</time> <b>{SENT[o.kind] ?? o.kind}</b> <span className="v-small">{o.text.split("\n")[0]}</span></li>
+                    <li key={i}>
+                      <time className="v-muted v-small">{o.at}</time>
+                      <b>{SENT[o.kind] ?? o.kind}</b>
+                      <span className="v-small">{o.text.split("\n")[0]}</span>
+                    </li>
                   ))}
                 </ol>
               </section>
               <section className="v2-card v-pad">
                 <h2 className="v-h2">Teams planning to come</h2>
-                {data.plans.length ? data.plans.map((p) => <p key={p.id} className="v-small"><b>{p.team ?? "A team"}</b> {[p.eta && `≈ ${p.eta}`, p.vehicle, p.offers].filter(Boolean).join(" · ")}</p>)
+                {data.plans.length ? data.plans.map((p) => <p key={p.id} className="v-small">
+                  <b>{p.team ?? "A team"}</b>
+                  {[p.eta && `≈ ${p.eta}`, p.vehicle, p.offers].filter(Boolean).join(" · ")}
+                </p>)
                   : <p className="v-muted v-small">Nobody has posted a plan for zone {h.zoneId}.</p>}
               </section>
             </div>
           </div>
+          <section className="rp-card rp-pad">
+            <h2>After you visit</h2>
+            <div className="v-tap">
+              {h.outcome ? (
+                <p>
+                  <b>{h.outcome.kind === "pickedUp" ? "Picked up" : "Nobody there"}</b> ·
+                  {h.outcome.team} ·
+                  {h.outcome.at}
+                </p>
+              ) : team ? (
+                <>
+                  <span className="v-small">After you visit:</span>
+                  <button type="button" className="v-btn is-go" disabled={busy} onClick={() => tap("pickedUp")}>We picked them up</button>
+                  <button type="button" className="v-btn" disabled={busy} onClick={() => tap("nobodyThere")}>Nobody there</button>
+                </>
+              ) : <span className="v-muted v-small">Set your team name (top right) to record a visit.</span>}
+              {team && h.status !== "atShelter" && data.shelterOptions.map(option => (
+                <button key={option.shelterId} type="button" className="v-btn" disabled={busy} onClick={() => tap("atShelter", option.shelterId)}>
+                  Checked in at {option.name}
+                </button>
+              ))}
+              {outcomeError && <p className="rp-warning" role="alert">{outcomeError}</p>}
+              {done ? <p className="v-ok" role="status">{done}</p> : null}
+            </div>
+          </section>
         </>
       ) : null}
     </VShell>
   );
 }
-
 /** The water at the house over time: the flood model as a line, what people said as bars. */
 function DepthChart({ c }: { c: CaseView }) {
   const W = 320, H = 130, L = 26, B = 18;
@@ -164,7 +238,10 @@ function DepthChart({ c }: { c: CaseView }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="v-chart" role="img" aria-label="Water depth at the house over time">
       {ticks.map((t) => (
-        <g key={t}><line x1={L} x2={W - 6} y1={y(t)} y2={y(t)} className="v-grid" /><text x={L - 4} y={y(t) + 3} className="v-tick" textAnchor="end">{t} m</text></g>
+        <g key={t}>
+          <line x1={L} x2={W - 6} y1={y(t)} y2={y(t)} className="v-grid" />
+          <text x={L - 4} y={y(t) + 3} className="v-tick" textAnchor="end">{t} m</text>
+        </g>
       ))}
       <path d={pts.map((p, i) => `${i ? "L" : "M"}${x(p[0]).toFixed(1)} ${y(p[1]).toFixed(1)}`).join(" ")} className="v-chart-model" />
       {c.depthReports.map((r, i) => (
@@ -174,13 +251,14 @@ function DepthChart({ c }: { c: CaseView }) {
       <text x={L} y={H - 4} className="v-tick">21 Nov</text>
       <text x={W - 6} y={H - 4} className="v-tick" textAnchor="end">now</text>
       <g className="v-chart-key">
-        <line x1={W - 150} x2={W - 136} y1={10} y2={10} className="v-chart-model" /><text x={W - 132} y={13} className="v-tick">model</text>
-        <rect x={W - 90} y={6} width={5} height={8} className="v-chart-rep" /><text x={W - 82} y={13} className="v-tick">people said</text>
+        <line x1={W - 150} x2={W - 136} y1={10} y2={10} className="v-chart-model" />
+        <text x={W - 132} y={13} className="v-tick">model</text>
+        <rect x={W - 90} y={6} width={5} height={8} className="v-chart-rep" />
+        <text x={W - 82} y={13} className="v-tick">people said</text>
       </g>
     </svg>
   );
 }
-
 /** The house's outline with the compass, and an arrow to each neighbour report. */
 function Compass({ c }: { c: CaseView }) {
   const S = 150, R = 54;

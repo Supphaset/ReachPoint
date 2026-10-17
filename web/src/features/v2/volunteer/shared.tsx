@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { Link, NavLink } from "react-router-dom";
 import { apiMode } from "../../../data/mode";
 import { depthBand, v2, type CaseRow, type GeoView } from "../api";
+import { StepHeader } from "../ui/Shared";
 import "../v2.css";
 import "./volunteer.css";
 
@@ -40,7 +41,11 @@ export function useLive<T>(load: () => Promise<T>, deps: unknown[]): { data: T |
     setData(null);
     reload();
     const t = window.setInterval(reload, 6000);
-    return () => window.clearInterval(t);
+    window.addEventListener("reachpoint-clock", reload);
+    return () => {
+      window.clearInterval(t);
+      window.removeEventListener("reachpoint-clock", reload);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
   return { data, error, reload };
@@ -61,12 +66,13 @@ export function VShell({ title, sub, at, children }: { title: string; sub?: Reac
   if (!apiMode())
     return <main className="v-page"><p className="v2-card v-pad">These pages need the ReachPoint server. Open them with <code>?data=api</code>.</p></main>;
   return (
-    <main className="v-page">
+    <main className="v-page rp-app">
+      <StepHeader at={at} onAction={async action => { await v2.clock(action); window.dispatchEvent(new Event("reachpoint-clock")); }} />
       <header className="v-header">
         <Link to="/v" className="v-brand"><b>ReachPoint</b><span>Volunteers</span></Link>
         <nav className="v-nav" aria-label="Volunteer pages">
           <NavLink to="/v" end>Where help is missing</NavLink>
-          <NavLink to="/v/feed">Live feed</NavLink>
+          <NavLink to="/v/feed">Decision feed</NavLink>
           <NavLink to="/v/plan">Plan a trip</NavLink>
           <Link to="/" className="v-nav-demo">Judge demo ↗</Link>
         </nav>
@@ -90,7 +96,7 @@ export function VShell({ title, sub, at, children }: { title: string; sub?: Reac
             <h1>{title}</h1>
             {sub ? <p className="v-sub">{sub}</p> : null}
           </div>
-          {at ? <span className="v-at">{at} <span className="v2-chip is-live">live</span></span> : null}
+          {at ? <span className="v-at">{at} <span className="v2-chip">REPLAY</span></span> : null}
         </div>
         {children}
       </div>

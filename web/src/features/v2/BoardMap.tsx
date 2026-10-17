@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../data/googleMaps";
 import { blocksNow, cssVar, depthBand, type BoardState, type GeoView, type HouseholdView } from "./api";
 import { drawFlood, loadSim, type Analysis, type Sim } from "./floodLayer";
+import { locationLayers, type MapCollection } from "../../data/locationMap";
 import { demoRoom } from "../../data/room";
 
 export type SimMode = "corrected" | "physics" | "off" | "access";
@@ -16,7 +17,16 @@ export interface HouseMark {
   kind: "me" | "known" | "new";
 }
 
+export interface TripOverlay {
+  stops: { id: string; lon: number; lat: number; label: string }[];
+  runs: { run: number; points: { lon: number; lat: number }[] }[];
+}
+
 interface Props {
+  showPlans?: boolean;
+  focusZoom?: number;
+  focusedHousehold?: { id: string; lon: number; lat: number } | null;
+  tripOverlay?: TripOverlay;
   geo: GeoView | null;
   state: BoardState | null;
   selected: string | null;
@@ -112,7 +122,7 @@ export function BoardMap(props: Props) {
   return <GoogleBoard maps={maps} {...props} />;
 }
 
-function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simHour, simMode }: Props & { maps: Maps }) {
+function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simHour, simMode, showPlans = false, focusedHousehold, tripOverlay, focusZoom = 18 }: Props & { maps: Maps }) {
   const flood = useFloodCanvas(geo, state, simHour, simMode);
   const overlay = useRef<Maps>(null);
   const el = useRef<HTMLDivElement>(null);
@@ -193,12 +203,31 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       return {
         fillColor: zoneFill(state, id),
         fillOpacity: simMode !== "off" ? 0.04 : known ? 0.55 : 0.28,
-        strokeColor: id === selected ? cssVar("--house-me") : planned(state, id) ? cssVar("--plan-line") : line,
-        strokeWeight: id === selected ? 3 : planned(state, id) ? 3 : 1,
+        strokeColor: id === selected ? cssVar("--house-me") : showPlans && planned(state, id) ? cssVar("--plan-line") : line,
+        strokeWeight: id === selected ? 3 : showPlans && planned(state, id) ? 3 : 1,
         strokeOpacity: 0.9,
       };
     });
-  }, [state, selected, simMode]);
+  }, [state, selected, simMode, showPlans]);
+
+  // Dashed ink outlines retain urgency red for household markers.
+  useEffect(() => {
+    if (!map.current || !geo || !state) return;
+    const gaps: Maps[] = [];
+    for (const f of geo.zones.features) {
+      const id = f.properties?.id as string;
+      const z = state.zones[id];
+      if (!z || !(z.status.open + z.status.lostContact) || planned(state, id)) continue;
+      const g = f.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
+      const rings = g.type === "Polygon" ? [g.coordinates[0]] : g.coordinates.map(p => p[0]);
+      for (const ring of rings) gaps.push(new maps.Polyline({
+        map: map.current, path: ring.map(([lng, lat]) => ({lng, lat})),
+        strokeOpacity: 0, zIndex: 4, clickable: false,
+        icons: [{icon: {path: "M 0,-1 0,1", strokeColor: cssVar("--ink-1"), strokeOpacity: 1, scale: 2}, offset: "0", repeat: "12px"}],
+      }));
+    }
+    return () => gaps.forEach(p => p.setMap(null));
+  }, [maps, geo, state]);
 
   // redraw dots and pins only when what they show changes (the board refreshes every few seconds)
   const dotSig = state ? state.households.map((h) => `${h.id}${h.status[0]}${h.urgent ? 1 : 0}`).join("") : "";
@@ -277,7 +306,7 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       }));
     }
     const latest = new Map<string, (typeof state.plans)[number]>();
-    for (const p of state.plans) for (const z of p.zones ?? []) latest.set(z, p);
+    for (const p of showPlans ? state.plans : []) for (const z of p.zones ?? []) latest.set(z, p);
     for (const [zid, p] of latest) {
       const c = zoneCenter(geo, zid);
       if (!c) continue;
@@ -291,24 +320,78 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pinSig, maps, geo]);
+  }, [pinSig, maps, geo, showPlans]);
 
   useEffect(() => {
     if (focus && map.current) {
       map.current.panTo({ lng: focus.lon, lat: focus.lat });
-      map.current.setZoom(18);
+      map.current.setZoom(focusZoom);
     }
-  }, [focus]);
+  }, [focus, focusZoom]);
+
+  // Trip stops use the same satellite map and projection as households and water.
+  useEffect(() => {
+    if (!map.current) return;
+    const shapes: Maps[] = [];
+    const stops = tripOverlay?.stops ?? (focusedHousehold ? [{ ...focusedHousehold, label: focusedHousehold.id }] : []);
+    for (const stop of stops) {
+      shapes.push(new maps.Marker({
+        map: map.current,
+        position: { lng: stop.lon, lat: stop.lat },
+        title: stop.id,
+        label: { text: stop.label, color: cssVar("--ink-1"), fontSize: "14px", fontWeight: "600" },
+        icon: { path: maps.SymbolPath.CIRCLE, scale: 15, fillColor: cssVar("--surface"), fillOpacity: 1, strokeColor: cssVar("--urgent"), strokeWeight: 2 },
+        zIndex: 30,
+      }));
+    }
+    for (const [index, run] of (tripOverlay?.runs ?? []).entries()) {
+      shapes.push(new maps.Polyline({
+        map: map.current,
+        path: run.points.map(point => ({ lng: point.lon, lat: point.lat })),
+        strokeColor: cssVar("--ink-1"),
+        strokeWeight: 4,
+        strokeOpacity: index ? 0 : 1,
+        icons: index ? [{ icon: { path: "M 0,-1 0,1", strokeColor: cssVar("--ink-1"), strokeOpacity: 1, scale: 3 }, offset: "0", repeat: "16px" }] : [],
+        zIndex: 25,
+      }));
+    }
+    if (tripOverlay && stops.length) {
+      const bounds = new maps.LatLngBounds();
+      stops.forEach(stop => bounds.extend({ lng: stop.lon, lat: stop.lat }));
+      map.current.fitBounds(bounds, 65);
+    }
+    return () => shapes.forEach(shape => shape.setMap(null));
+  }, [maps, tripOverlay, focusedHousehold]);
 
   return <div ref={el} className="v2-map" aria-label="Satellite map of Hat Yai city with flood zones" />;
 }
 
 /** No Maps key: the same zones, dots and houses drawn as SVG over a dark ground. */
-function DrawnMap({ geo, state, selected, onSelect, houses, simHour, simMode }: Props) {
+function DrawnMap({ geo, state, selected, onSelect, houses, simHour, simMode, focus, focusedHousehold, tripOverlay, focusZoom = 18 }: Props) {
   const flood = useFloodCanvas(geo, state, simHour, simMode);
+  const [streets, setStreets] = useState<MapCollection | null>(null);
+  useEffect(() => {
+    if (!tripOverlay) return;
+    let active = true;
+    locationLayers().then(layers => {
+      if (active) setStreets(layers.lines);
+    }, () => undefined);
+    return () => { active = false; };
+  }, [!!tripOverlay]);
   const href = useMemo(() => (flood.sim && simMode !== "off" ? flood.canvas.toDataURL() : null), [flood.tick, flood.sim, simMode, flood.canvas]);
   const box = useMemo(() => {
     if (!geo) return null;
+    const stops = tripOverlay?.stops;
+    if (stops?.length) return {
+      x0: Math.min(...stops.map(stop => stop.lon)) - .002,
+      x1: Math.max(...stops.map(stop => stop.lon)) + .002,
+      y0: Math.min(...stops.map(stop => stop.lat)) - .002,
+      y1: Math.max(...stops.map(stop => stop.lat)) + .002,
+    };
+    if (focus) {
+      const padding = .0015 * 2 ** (18 - focusZoom);
+      return { x0: focus.lon - padding, x1: focus.lon + padding, y0: focus.lat - padding, y1: focus.lat + padding };
+    }
     let x0 = 180, y0 = 90, x1 = -180, y1 = -90;
     for (const f of geo.zones.features) {
       const g = f.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
@@ -316,7 +399,7 @@ function DrawnMap({ geo, state, selected, onSelect, houses, simHour, simMode }: 
       for (const r of rings) for (const [x, y] of r) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
     }
     return { x0, y0, x1, y1 };
-  }, [geo]);
+  }, [geo, focus, tripOverlay, focusZoom]);
   if (!geo || !box) return <div className="v2-map v2-map-loading">Loading map…</div>;
   const W = 1000, H = Math.round((W * (box.y1 - box.y0)) / ((box.x1 - box.x0) * Math.cos((7 * Math.PI) / 180)));
   const px = (x: number) => ((x - box.x0) / (box.x1 - box.x0)) * W;
@@ -347,9 +430,37 @@ function DrawnMap({ geo, state, selected, onSelect, houses, simHour, simMode }: 
           className="v2-flood-image"
         />
       ) : null}
+      {streets?.features.flatMap((feature, featureIndex) => {
+        const geometry = feature.geometry;
+        const lines = geometry.type === "LineString" ? [geometry.coordinates]
+          : geometry.type === "MultiLineString" ? geometry.coordinates : [];
+        return lines.map((line, lineIndex) => (
+          <path key={`street-${featureIndex}-${lineIndex}`}
+            d={line.map(([lon, lat], index) => `${index ? "L" : "M"}${px(lon)} ${py(lat)}`).join(" ")}
+            fill="none" stroke="var(--ink-3)" strokeWidth="1.5" opacity="0.7" pointerEvents="none" />
+        ));
+      })}
+      {geo.zones.features.flatMap((f) => {
+        const id = f.properties?.id as string;
+        const z = state?.zones[id];
+        if (!z || !(z.status.open + z.status.lostContact) || planned(state, id)) return [];
+        const g = f.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
+        const rings = g.type === "Polygon" ? [g.coordinates[0]] : g.coordinates.map(p => p[0]);
+        return rings.map((r,i) => <path key={`gap-${id}-${i}`} d={path(r)} fill="none" stroke="var(--ink-1)" strokeWidth="2" strokeDasharray="8 5" pointerEvents="none" />);
+      })}
       {state?.households.map((h) => (
         <circle key={h.id} cx={px(h.lon)} cy={py(h.lat)} r={h.urgent ? 4 : 3} className={`v2-dot is-${h.status}${h.urgent ? " is-urgent" : ""}`} />
       ))}
+      {(tripOverlay?.runs ?? []).map((run, index) => (
+        <path key={run.run} d={run.points.map((point, pointIndex) => `${pointIndex ? "L" : "M"}${px(point.lon)} ${py(point.lat)}`).join(" ")} fill="none" stroke="var(--ink-1)" strokeWidth="4" strokeDasharray={index ? "10 8" : undefined} />
+      ))}
+      {(tripOverlay?.stops ?? (focusedHousehold ? [{ ...focusedHousehold, label: focusedHousehold.id }] : [])).map(stop => (
+        <g key={stop.id}>
+          <circle cx={px(stop.lon)} cy={py(stop.lat)} r="14" fill="var(--surface)" stroke="var(--urgent)" strokeWidth="3" />
+          <text x={px(stop.lon) + 18} y={py(stop.lat)} fill="var(--ink-1)" fontSize="16">{stop.label}</text>
+        </g>
+      ))}
+      {(state?.shelters ?? []).map(shelter => <rect key={shelter.id} x={px(shelter.lon) - 5} y={py(shelter.lat) - 5} width="10" height="10" fill="var(--surface)" stroke="var(--done)" />)}
       {houses.map((h, i) => (
         <path key={i} d={path(h.outline)} className={`v2-house is-${h.kind}`} />
       ))}

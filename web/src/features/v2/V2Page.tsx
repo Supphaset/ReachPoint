@@ -1,277 +1,147 @@
-/**
- * ReachPoint v2 judge page: report as a victim on the left, watch the information system react on the right.
- * The board is the volunteer's view of Hat Yai city during the real 21–28 Nov 2025 flood (synthetic people).
- */
+/** The reporting loop: the family's phone, evidence from each turn, and the water at her house. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiMode } from "../../data/mode";
 import { BoardMap, type HouseMark, type SimMode } from "./BoardMap";
-import { ActivityList, PlanBox, TimeBar, ZoneCard } from "./Panels";
 import { Phone } from "./Phone";
-import { depthAt, v2, type BoardState, type DepthSeries, type GeoView, type Timeline, type TurnResult } from "./api";
-import { HouseScene } from "./HouseScene";
+import { v2, type BoardState, type GeoView, type HouseholdView, type TurnResult } from "./api";
+import { DepthRange, HonestyLabel, Panel, StepHeader, type ClockAction, TraceLine } from "./ui/Shared";
+import { buildReportTrace } from "./ui/reportTrace";
+import type { TraceEntry } from "./ui/trace";
 import "./v2.css";
 
 export function V2Page() {
   const [geo, setGeo] = useState<GeoView | null>(null);
-  const [timeline, setTimeline] = useState<Timeline | null>(null);
-  const [state, setState] = useState<BoardState | null>(null);
-  const [viewH, setViewH] = useState<number | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [board, setBoard] = useState<BoardState | null>(null);
+  const [household, setHousehold] = useState<HouseholdView | null>(null);
   const [houses, setHouses] = useState<HouseMark[]>([]);
-  const [focus, setFocus] = useState<{ lon: number; lat: number } | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [tab, setTab] = useState<"zone" | "activity">("zone");
+  const [trace, setTrace] = useState<TraceEntry[]>([]);
   const [lang, setLang] = useState<"th" | "en">("th");
   const [chatVersion, setChatVersion] = useState(0);
   const [simMode, setSimMode] = useState<SimMode>("corrected");
-  const [simHour, setSimHour] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [myHouse, setMyHouse] = useState<{ lon: number; lat: number } | null>(null);
-  const live = useRef(true);
-  const nowH = state?.now.atH ?? 96;
+  const [modelDepth, setModelDepth] = useState<number | null>(null);
+  const [correctedDepth, setCorrectedDepth] = useState<[number, number, number] | null>(null);
+  const [depthUpdatedAt, setDepthUpdatedAt] = useState<string | undefined>();
+  const [confirmed, setConfirmed] = useState(false);
+  const [error, setError] = useState("");
+  const generation = useRef(0);
+  const turnIndex = useRef(0);
 
-  const load = useCallback((at?: number) => {
-    return v2.state(at).then((s) => {
-      setState(s);
-      setSelected((sel) => sel ?? pickDeepest(s));
-      return s;
-    }, (e) => setError(String(e.message ?? e)));
+  const refresh = useCallback(async () => {
+    const version = generation.current;
+    try {
+      const snapshot = await v2.state();
+      if (version === generation.current) {
+        setBoard(snapshot);
+        setError("");
+      }
+    } catch (failure) {
+      if (version === generation.current) setError(String(failure));
+    }
   }, []);
 
   useEffect(() => {
-    if (!apiMode()) return;
-    v2.geo().then(setGeo, (e) => setError(String(e.message ?? e)));
-    v2.timeline().then(setTimeline, () => undefined);
-    load();
-  }, [load]);
+    v2.geo().then(setGeo, failure => setError(String(failure)));
+    void refresh();
+    const timer = window.setInterval(refresh, 6000);
+    return () => {
+      window.clearInterval(timer);
+      generation.current++;
+    };
+  }, [refresh]);
 
-  // live: refresh every 6 s when looking at "now"
-  useEffect(() => {
-    const t = window.setInterval(() => {
-      if (live.current && !playing) load();
-    }, 6000);
-    return () => window.clearInterval(t);
-  }, [load, playing]);
+  function onTurn(turn: TurnResult) {
+    const at = board?.at ?? "Demo time";
+    const atH = board?.atH ?? 0;
+    setTrace(lines => [...lines, ...buildReportTrace(turn, ++turnIndex.current, at, atH)]);
+    const reportedHousehold = turn.effects.household;
+    if (reportedHousehold) setHousehold(reportedHousehold);
+    if (turn.effects.simHere != null) setModelDepth(turn.effects.simHere);
+    if (turn.effects.depthHere) setCorrectedDepth(turn.effects.depthHere);
+    if (turn.effects.depthHere || turn.effects.simHere != null) setDepthUpdatedAt(at);
+    if (turn.effects.neighbour?.sure) setConfirmed(true);
+    void refresh();
 
-  // the time-lapse
-  useEffect(() => {
-    if (!playing) return;
-    let h = viewH !== null && viewH < nowH - 1 ? viewH : 0;
-    live.current = false;
-    const t = window.setInterval(() => {
-      h = Math.min(nowH, h + 1);
-      setSimHour(h);
-      if (h % 3 === 0 || h >= nowH) {
-        setViewH(h);
-        load(h);
-      }
-      if (h >= nowH) {
-        setPlaying(false);
-        live.current = true;
-        setViewH(null);
-        setSimHour(null);
-      }
-    }, 260);
-    return () => window.clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playing]);
-
-  const scrub = (h: number) => {
-    setPlaying(false);
-    setSimHour(h >= nowH - 0.5 ? null : h);
-    if (h >= nowH - 0.5) {
-      live.current = true;
-      setViewH(null);
-      load();
-    } else {
-      live.current = false;
-      setViewH(h);
-      load(h);
+    // Keep the satellite confirmation in the phone; outline these buildings on the map too.
+    if (reportedHousehold && (turn.effects.located || turn.effects.neighbour)) {
+      const version = generation.current;
+      v2.buildings(reportedHousehold.lon, reportedHousehold.lat, 60).then(nearby => {
+        if (version !== generation.current) return;
+        const marks: HouseMark[] = [];
+        const ownBuilding = nearby.buildings.find(building => building.id === reportedHousehold.buildingId);
+        if (ownBuilding) marks.push({ outline: ownBuilding.outline, kind: "me" });
+        for (const neighbour of turn.session.neighbours) {
+          const building = nearby.buildings.find(candidate => candidate.id === neighbour.buildingId);
+          if (building) marks.push({ outline: building.outline, kind: neighbour.result === "known" ? "known" : "new" });
+        }
+        setHouses(marks);
+      }, failure => setError(String(failure)));
     }
-  };
-
-  const onTurn = async (r: TurnResult) => {
-    live.current = true;
-    setViewH(null);
-    const s = await load();
-    const hh = r.effects.household;
-    if (hh?.lon && hh.lat) setMyHouse({ lon: hh.lon, lat: hh.lat });
-    if (hh?.zoneId) {
-      setSelected(hh.zoneId);
-      setTab("zone");
-    }
-    if (hh?.lon && hh.lat && (r.effects.located || r.effects.neighbour)) {
-      setFocus({ lon: hh.lon, lat: hh.lat });
-      const near = await v2.buildings(hh.lon, hh.lat, 60);
-      const marks: HouseMark[] = [];
-      const me = near.buildings.find((b) => b.id === hh.buildingId);
-      if (me) marks.push({ outline: me.outline, kind: "me" });
-      for (const n of r.session.neighbours) {
-        const b = near.buildings.find((x) => x.id === n.buildingId);
-        if (b) marks.push({ outline: b.outline, kind: n.result === "known" ? "known" : "new" });
-      }
-      setHouses(marks);
-    }
-    void s;
-  };
-
-  const act = async (a: "advance" | "morning" | "rain" | "river" | "flood" | "reset") => {
-    await v2.clock(a);
-    if (a === "reset") {
-      setHouses([]);
-      setFocus(null);
-      setMyHouse(null);
-      setChatVersion((v) => v + 1);
-    }
-    live.current = true;
-    setViewH(null);
-    load();
-  };
-
-  if (!apiMode())
-    return (
-      <main className="v2-page">
-        <p className="v2-card">This page needs the ReachPoint server. Open it with <code>?data=api</code> or use the deployed site.</p>
-      </main>
-    );
-
-  const zone = selected && state ? state.zones[selected] : null;
-  const o = state?.overall;
-  const viewing = viewH ?? nowH;
-
-  return (
-    <main className="v2-page">
-      <header className="v2-header">
-        <div className="v2-brand">
-          <b>ReachPoint</b>
-          <span>Hat Yai flood, 21–28 Nov 2025 · real water data, synthetic people</span>
-        </div>
-        <div className="v2-clock">
-          <span className="v2-clock-time">{state?.at ?? "…"}</span>
-          {viewH !== null ? <span className="v2-chip is-amber">time-lapse</span> : <span className="v2-chip is-live">live</span>}
-        </div>
-        <nav className="v2-actions" aria-label="Demo clock">
-          <button type="button" onClick={() => act("advance")}>+30 min</button>
-          <button type="button" onClick={() => act("morning")}>Next 07:00</button>
-          <button type="button" onClick={() => act("rain")}>Rain alert</button>
-          <button type="button" onClick={() => act("river")}>River rising</button>
-          <button type="button" onClick={() => act("flood")}>Flood the system</button>
-          <button type="button" onClick={() => act("reset")}>Reset</button>
-          <Link to="/v" className="v2-volunteer-link">Volunteer pages →</Link>
-        </nav>
-      </header>
-      {error ? <p className="v2-error">Couldn't reach the server: {error}</p> : null}
-      <div className="v2-layout">
-        <div className="v2-left">
-          <VictimScene house={myHouse} hour={simHour ?? viewing} nowH={nowH} lang={lang} version={state?.overall.messages ?? 0} />
-          <Phone onTurn={onTurn} version={chatVersion} lang={lang} setLang={setLang} />
-        </div>
-        <section className="v2-board" aria-label="Volunteer information board">
-          {o ? (
-            <div className="v2-stats">
-              <div><b>{o.messages.toLocaleString()}</b><span>messages in · {Object.keys(o.channels).length} channels</span></div>
-              <div><b>{o.households.toLocaleString()}</b><span>households · {o.duplicatesMerged} duplicates merged</span></div>
-              <div><b>{o.people.toLocaleString()}</b><span>people reported · ≈ {(o.likelyFlooded / 1000).toFixed(0)}k likely flooded (estimate)</span></div>
-              <div><b>{(o.certainty * 100).toFixed(0)}%</b><span>map certainty</span></div>
-              <div><b>{o.status.lostContact}</b><span>lost contact · {o.status.safe + o.status.evacuated} safe or evacuated</span></div>
-            </div>
-          ) : null}
-          <div className="v2-mapwrap">
-            <BoardMap
-              geo={geo}
-              state={state}
-              selected={selected}
-              onSelect={(z) => { setSelected(z); setTab("zone"); }}
-              houses={houses}
-              focus={focus}
-              lang={lang}
-              simHour={simHour ?? viewing}
-              simMode={simMode}
-            />
-            <div className="v2-simswitch" role="radiogroup" aria-label="Water layer">
-              {([["corrected", "Simulation + reports"], ["physics", "Physics only"], ["access", "Walk · truck · boat"], ["off", "Zones"]] as [SimMode, string][]).map(([m, label]) => (
-                <button key={m} type="button" role="radio" aria-checked={simMode === m} onClick={() => setSimMode(m)}>{label}</button>
-              ))}
-            </div>
-            {simMode === "access" ? (
-              <div className="v2-map-legend" aria-hidden="true">
-                <span><i className="is-walk" />walk out (&lt; 0.25 m)</span>
-                <span><i className="is-truck" />high truck (&lt; 0.6 m)</span>
-                <span><i className="is-boat" />boat needed</span>
-                <span>blocks follow streets · water now</span>
-              </div>
-            ) : (
-            <div className="v2-map-legend" aria-hidden="true">
-              <span><i className="is-unknown" />unknown</span>
-              <span><i className="is-1" />&lt; 0.5 m</span>
-              <span><i className="is-2" />0.5–1 m</span>
-              <span><i className="is-3" />1–2 m</span>
-              <span><i className="is-4" />&gt; 2 m</span>
-              <span><i className="is-dot" />household</span>
-              <span><i className="is-shelter" />shelter</span>
-              <span><i className="is-plan" />team coming</span>
-            </div>
-            )}
-          </div>
-          <TimeBar timeline={timeline} viewH={viewing} nowH={nowH} onChange={scrub} playing={playing} onPlay={() => setPlaying((p) => !p)} />
-          <div className="v2-tabs" role="tablist">
-            <button role="tab" aria-selected={tab === "zone"} onClick={() => setTab("zone")}>Zone {selected ?? ""}</button>
-            <button role="tab" aria-selected={tab === "activity"} onClick={() => setTab("activity")}>AI activity</button>
-          </div>
-          {tab === "zone" ? <ZoneCard zone={zone} state={state} /> : <ActivityList items={state?.activity ?? []} />}
-          {tab === "zone" && zone ? <p className="v2-more"><Link to={`/v/zone/${zone.id}`}>Open zone {zone.id}: every family, by priority →</Link></p> : null}
-          <PlanBox onPosted={() => load()} />
-        </section>
-      </div>
-    </main>
-  );
-}
-
-// before the judge reports, an example house west of the railway, where the water came first
-const EXAMPLE_HOUSE = { lon: 100.4655, lat: 7.0065 };
-
-/** The victim's view: the judge's own house (or an example one) with the water at its modelled depth, following
- * the clock and the time-lapse. At "now" the depth is the model corrected by the reports around the house. */
-function VictimScene({ house, hour, nowH, lang, version }: { house: { lon: number; lat: number } | null; hour: number; nowH: number; lang: "th" | "en"; version: number }) {
-  const p = house ?? EXAMPLE_HOUSE;
-  const [series, setSeries] = useState<DepthSeries | null>(null);
-  useEffect(() => {
-    let live = true;
-    depthAt(p.lon, p.lat).then((s) => live && setSeries(s), () => undefined);
-    return () => { live = false; };
-  }, [p.lon, p.lat, nowH, version]);
-  const atNow = hour >= nowH - 0.5;
-  const h = Math.max(0, Math.min((series?.model.length ?? 1) - 1, Math.round(hour)));
-  const depth = series ? (atNow ? series.corrected.m : series.model[h]) : null;
-  const th = lang === "th";
-  return (
-    <section className="v2-scene" aria-label={th ? "บ้านของคุณ" : "Your house"}>
-      <div className="v2-scene-head">
-        <b>{house ? (th ? "บ้านของคุณ" : "Your house") : (th ? "ลองเป็นผู้ประสบภัย: บ้านตัวอย่าง" : "Play a victim: an example house")}</b>
-        <span>{atNow ? (th ? "ตอนนี้" : "now") : (th ? "ย้อนดู" : "time-lapse")}</span>
-      </div>
-      <HouseScene
-        depth={depth}
-        lo={atNow ? series?.corrected.lo : undefined}
-        hi={atNow ? series?.corrected.hi : undefined}
-        lang={lang}
-        note={!series ? "…" : atNow
-          ? (series.corrected.reports
-            ? (th ? `แบบจำลองน้ำท่วมบอก ${series.corrected.model.toFixed(1)} ม. แก้ด้วยรายงานใกล้ๆ ${series.corrected.reports} รายการ` : `Flood model ${series.corrected.model.toFixed(1)} m, corrected by ${series.corrected.reports} nearby reports.`)
-            : (th ? "จากแบบจำลองน้ำท่วม ยังไม่มีรายงานใกล้ๆ" : "From the flood model; no reports nearby yet."))
-          : (th ? "ระดับน้ำจากแบบจำลอง ณ เวลานั้น" : "Modelled water at that hour.")}
-        caption={house ? undefined : (th ? "เห็นน้ำถึงตรงไหน ลองแจ้งผู้ช่วย AI ทางโทรศัพท์ด้านล่าง แล้วดูกระดานด้านขวาเปลี่ยน" : "See where the water is, tell the AI on the phone below, and watch the board on the right react.")}
-      />
-    </section>
-  );
-}
-
-function pickDeepest(s: BoardState): string | null {
-  let best: [number, string] | null = null;
-  for (const z of Object.values(s.zones)) {
-    const d = z.level?.depthM ?? -1;
-    if (!best || d > best[0]) best = [d, z.id];
   }
-  return best?.[1] ?? null;
+
+  async function act(action: ClockAction) {
+    await v2.clock(action);
+    generation.current++;
+    if (action === "reset") {
+      setHousehold(null);
+      setHouses([]);
+      setTrace([]);
+      setModelDepth(null);
+      setCorrectedDepth(null);
+      setDepthUpdatedAt(undefined);
+      setConfirmed(false);
+      setChatVersion(version => version + 1);
+    }
+    await refresh();
+  }
+
+  const focus = household ? { lon: household.lon, lat: household.lat } : null;
+  return (
+    <div className="rp-app">
+      <StepHeader at={board?.at} onAction={act} />
+      <main className="rp-main">
+        <div className="rp-section-head">
+          <div>
+            <h1>One message. A family on the map.</h1>
+            <p>Be a synthetic family. Follow her words through the AI’s decisions.</p>
+          </div>
+          <HonestyLabel />
+        </div>
+        {error && <p role="alert" className="rp-warning">{error}</p>}
+        <div className="rp-report-layout">
+          <Phone onTurn={onTurn} version={chatVersion} lang={lang} setLang={setLang} />
+          <Panel title="What the AI is doing for this family">
+            <div aria-live="polite">
+              {trace.length ? trace.map(line => <TraceLine key={line.id} {...line} />) : (
+                <div className="rp-pad rp-stack">
+                  <h3>Her words become evidence.</h3>
+                  <p>Send the message to watch Gemini read, rules locate, and physics correct the map.</p>
+                </div>
+              )}
+            </div>
+          </Panel>
+          <aside className="rp-stack">
+            <div className="rp-report-map">
+              <BoardMap geo={geo} state={board} selected={household?.zoneId ?? null} onSelect={() => undefined}
+                houses={houses} focus={focus} focusedHousehold={household} lang="en"
+                simHour={board?.atH ?? 96} simMode={simMode} />
+            </div>
+            <div className="rp-toggle" role="group" aria-label="Water layer">
+              <button aria-pressed={simMode === "physics"} onClick={() => setSimMode("physics")}>Model only</button>
+              <button aria-pressed={simMode === "corrected"} onClick={() => setSimMode("corrected")}>Model + reports</button>
+            </div>
+            <Panel title={household ? `Her house · ${household.id}` : "Her house · awaiting location"}>
+              <div className="rp-pad rp-stack">
+                <DepthRange value={modelDepth} source="model only · before correction" at={depthUpdatedAt} />
+                <span>↓ Reports correct the estimate</span>
+                <DepthRange value={correctedDepth?.[0] ?? null} lo={correctedDepth?.[1]} hi={correctedDepth?.[2]}
+                  source="model + reports" at={depthUpdatedAt} />
+                <p>Switch between the model and the model with reports. Depth is an estimate; unknown is not dry.</p>
+              </div>
+            </Panel>
+            {confirmed && household?.zoneId && <Link className="rp-button rp-primary" to={`/v/zone/${household.zoneId}`}>See her on the volunteer page →</Link>}
+          </aside>
+        </div>
+      </main>
+    </div>
+  );
 }

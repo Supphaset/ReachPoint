@@ -332,8 +332,8 @@ def turn(sid: str, said: str, channel: str = "chat") -> dict:
         st = _state(v)
         w = st["world"]
         s.household_id = _household_of(w, s) or s.household_id
-        if s.finished:
-            reply = I.say("reply_ok", lang)
+        if s.finished and not s.nb_queue:  # a neighbour mentioned after the questions still gets its own check
+            reply = prefix + I.say("reply_ok", lang)
             s.pending = None
         else:
             if s.pin and s.shelter_offer is None and "shelter" not in s.asked and s.facts.get("urgent", {}).get("value") is not True:

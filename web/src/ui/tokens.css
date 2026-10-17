@@ -186,3 +186,14 @@
   --v2-phone-width: 380px;
   --v2-map-height: 560px;
 }
+
+/* Approved field-log palette, 17 Oct 2026. */
+:root {
+ --paper:#f4f1ea; --surface:#ffffff; --sunken:#f0eee8;
+ --ink-1:#101a29; --ink-2:#3e4757; --ink-3:#5c6573; --line:#dcd6ca;
+ --water-1:#d7e7f6; --water-2:#a4c8ea; --water-3:#5a95d2; --water-4:#24599b;
+ --urgent:#c0352b; --urgent-bg:#fbe9e6; --doubt:#a86a00; --doubt-bg:#fdf1d8;
+ --done:#0d7466; --done-bg:#def2ee; --gemini:#5b34c9; --gemini-bg:#efeafd;
+ --rules:#3e4757; --rules-bg:#eceae4; --physics:#24599b; --physics-bg:#e3eef9;
+ --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+}

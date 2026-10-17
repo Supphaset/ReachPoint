@@ -27,6 +27,11 @@ const FIELD: Record<string, [string, string]> = {
   address: ["ที่อยู่", "Address"],
 };
 
+const DEMO_MESSAGES = {
+  th: ["น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2", "2 คน", "บ้านข้างๆ มียายอยู่คนเดียว", "ทิศตะวันออก", "ไม่มี", "มีครอบครัว เด็กเล็ก 2 คน"],
+  en: ["Water is up to my waist, I'm with my mom who can't walk, house 52/9 Phetkasem Soi 2", "2 of us", "Next door an old lady lives alone", "East", "No one", "A family with 2 small kids"],
+};
+
 const KIND: Record<string, [string, string]> = {
   check: ["ถามไถ่ความปลอดภัย", "Safety check"],
   morning: ["เช้าวันใหม่", "New day"],
@@ -62,7 +67,7 @@ type Rec = any;
 export function Phone({ onTurn, version, lang, setLang }: Props) {
   const [session, setSession] = useState<Session | null>(null);
   const [items, setItems] = useState<Item[]>([]);
-  const [text, setText] = useState("");
+  const [text, setText] = useState(DEMO_MESSAGES[lang][0]);
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
   const [speak, setSpeak] = useState(false);
@@ -75,6 +80,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
   const start = (l: "th" | "en") =>
     v2.newChat(l).then((s) => {
       setSession(s);
+      setText(DEMO_MESSAGES[l][0]);
       seen.current = new Set();
       setItems(s.transcript.map((t) => ({ kind: "agent", text: t.text })));
     });
@@ -240,7 +246,7 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
             <div key={i} className="v2-understood">
               <span className="v2-understood-title">
                 {lang === "th" ? "ระบบเข้าใจว่า" : "Understood"}
-                {it.reader ? <em> · {it.reader.startsWith("gemini") ? "Gemini" : lang === "th" ? "กฎสำรอง" : "rules"}</em> : null}
+                {it.reader ? <em> · {it.reader.startsWith("gemini") ? "Gemini" : "Rules"}</em> : null}
               </span>
               {it.facts.map((f, j) => (
                 <span key={j} className="v2-fact">
@@ -284,13 +290,12 @@ export function Phone({ onTurn, version, lang, setLang }: Props) {
           {lang === "th" ? "ส่ง" : "Send"}
         </button>
       </form>
+      {text === DEMO_MESSAGES.th[0] && <p className="rp-composer-gloss rp-gloss">{DEMO_MESSAGES.en[0]}</p>}
       <div className="v2-samples">
-        {(lang === "th"
-          ? ["น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2", "2 คน", "บ้านข้างๆ มียายอยู่คนเดียว", "ทิศตะวันออก", "ไม่มี", "มีครอบครัว เด็กเล็ก 2 คน"]
-          : ["Water is up to my waist, I'm with my mom who can't walk, house 52/9 Phetkasem Soi 2", "2 of us", "Next door an old lady lives alone", "East", "No one", "A family with 2 small kids"]
-        ).map((s) => (
+        {DEMO_MESSAGES[lang].map((s) => (
           <button key={s} type="button" onClick={() => send(s, "chat")} disabled={busy}>
             {s.length > 28 ? s.slice(0, 26) + "…" : s}
+            {lang === "th" && <span className="rp-gloss">{DEMO_MESSAGES.en[DEMO_MESSAGES.th.indexOf(s)]}</span>}
           </button>
         ))}
       </div>

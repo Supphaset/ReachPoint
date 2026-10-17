@@ -1,3 +1,4 @@
+import { readerLabel, displayText } from "../ui/trace";
 /** Live feed: every message as it arrives, and what the AI agents did with it. */
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -41,7 +42,7 @@ export function FeedPage() {
   const [team] = useTeam();
   const { data, error } = useLive(() => vol.feed(kind, team), [kind, team]);
   return (
-    <VShell title="Live feed" sub="Each message as it came in, what the AI read from it (with the person's own words) and what it did." at={data ? undefined : undefined}>
+    <VShell title="Decision feed" sub="Each message as it came in, what the AI read from it (with the person's own words) and what it did." at={data ? undefined : undefined}>
       {error ? <p className="v2-error">Couldn't reach the server: {error}</p> : null}
       <div className="v-filters" role="tablist" aria-label="Filter">
         {FILTERS.map(([k, label]) => (
@@ -62,8 +63,8 @@ export function FeedPage() {
             </div>
             <p className="v-feed-text">{it.text}</p>
             <FactChips facts={it.facts} />
-            <p className="v-feed-did"><b>AI:</b> {describe(it.how, it.householdId)}{it.label === "doubtful" ? " Marked doubtful: the model and nearby reports disagree." : ""}
-              {it.reader ? <span className="v-muted"> · read by {it.reader.startsWith("rules") ? "rules" : it.reader.replace(/^claude:|^gemini:/, "")}</span> : null}</p>
+            <p className="v-feed-did"><b>AI:</b> {displayText(describe(it.how, it.householdId))}{it.label === "doubtful" ? " Marked doubtful: the model and nearby reports disagree." : ""}
+              {it.reader ? <span className="v-muted"> · read by {readerLabel(it.reader)}</span> : null}</p>
           </li>
         ))}
       </ol>

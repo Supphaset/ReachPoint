@@ -10,6 +10,8 @@ import { DevUi } from "./pages/DevUi";
 import { FloodPage } from "./features/flood/FloodPage";
 import { Home } from "./pages/Home";
 import { DemoPage } from "./features/demo/DemoPage";
+import { OverviewLanding } from "./features/v2/OverviewLanding";
+import { PlanPage } from "./features/v2/PlanPage";
 import { V2Page } from "./features/v2/V2Page";
 import { CasePage } from "./features/v2/volunteer/CasePage";
 import { FeedPage } from "./features/v2/volunteer/FeedPage";
@@ -20,12 +22,14 @@ import { ZonePage } from "./features/v2/volunteer/ZonePage";
 export function App() {
   return (
     <Routes>
-      <Route index element={<V2Page />} />
+      <Route index element={<OverviewLanding />} />
+      <Route path="report" element={<V2Page />} />
       <Route path="v" element={<OverviewPage />} />
       <Route path="v/feed" element={<FeedPage />} />
       <Route path="v/zone/:id" element={<ZonePage />} />
       <Route path="v/case/:id" element={<CasePage />} />
-      <Route path="v/plan" element={<TripPage />} />
+      <Route path="v/plan" element={<PlanPage />} />
+      <Route path="v/plan/legacy" element={<TripPage />} />
       <Route path="demo" element={<DemoPage />} />
       <Route element={<AppShell />}>
         <Route path="classic" element={<Home />} />

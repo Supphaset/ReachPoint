@@ -376,8 +376,9 @@ export const depthAt = (lon: number, lat: number) => get<DepthSeries>(`/api/v2/d
 export const blocksNow = () => get<{ blocks: SubArea[]; thresholds: { walkM: number; truckM: number } }>("/api/v2/v/blocks");
 
 export const vol = {
+  copilot: (question: string) => post<CopilotResult>("/api/v2/v/copilot", { question }),
   overview: () => get<Overview>("/api/v2/v/overview"),
-  feed: (kind?: string, team?: string | null) => get<Feed>(`/api/v2/v/feed?${[kind ? `kind=${kind}` : "", q(team)].filter(Boolean).join("&")}`),
+  feed: (kind?: string, team?: string | null, limit?: number) => get<Feed>(`/api/v2/v/feed?${[kind ? `kind=${encodeURIComponent(kind)}` : "", q(team), limit ? `limit=${limit}` : ""].filter(Boolean).join("&")}`),
   zone: (id: string, team?: string | null) => get<ZonePage>(`/api/v2/v/zones/${encodeURIComponent(id)}?${q(team)}`),
   case: (id: string, team?: string | null) => get<CaseView>(`/api/v2/v/cases/${encodeURIComponent(id)}?${q(team)}`),
   outcome: (id: string, outcome: "pickedUp" | "nobodyThere" | "atShelter", team: string, shelterId?: string) =>
@@ -396,4 +397,22 @@ export function depthBand(d: number | null | undefined): "unknown" | "0" | "1" |
 
 export function cssVar(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+export interface CopilotFamily {
+ id: string; people: number; children: number; elderly: number; cannotWalk: number;
+ urgent: boolean; depthM: number | null; hoursSilent: number; firstHand: boolean; priority: number;
+}
+export interface CopilotPlan {
+ zone: string; label: string; vehicle: string; seats: number;
+ runs: {run: number; households: string[]; people: number}[];
+ families: CopilotFamily[]; bring: string[];
+ otherTeams: {team: string; vehicle: string | null; seats: number | null; eta: string | null; offers: string | null}[];
+ depthM: number | null;
+ after: {zone: string; label: string; urgent: number; cannotWalk: number} | null;
+}
+export interface CopilotResult {
+ answer: string; reader: string; checkFailed: boolean;
+ cited: {zones: string[]; households: string[]}; plan: CopilotPlan | null;
+ toolCalls: {name: string; args: Record<string, unknown>; summary: string; ms: number}[]; ms: number;
 }

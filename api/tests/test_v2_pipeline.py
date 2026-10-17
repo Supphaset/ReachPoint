@@ -180,3 +180,19 @@ def test_copilot_answers_from_tools_and_its_numbers_are_checked():
     assert K.check("Go to [D12]: 7 waiting, 3 urgent, 1.32 m.", results, "6 seats") is None
     assert K.check("Go to [D12]: 9 waiting.", results, "6 seats")
     assert K.check("A team is coming to [D12].", results, "")
+
+
+def test_a_neighbour_named_after_the_questions_still_gets_the_picture_check():
+    from api.main import app
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-late-neighbour"}
+    sid = c.post("/api/v2/chat/sessions", headers=h).json()["id"]
+    c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "น้ำถึงเอวแล้ว อยู่กัน 2 คน แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"}, headers=h)
+    asked = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "บ้านทางตะวันออก ยายอยู่คนเดียว"}, headers=h).json()
+    assert asked["effects"].get("nbConfirm")
+    done = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "ใช่"}, headers=h).json()
+    nb = done["effects"]["neighbour"]
+    assert nb["sure"] and nb["householdId"] != done["session"]["householdId"]
+    # the grandmother is her own household; the caller's family does not gain an elderly person
+    me = c.get(f"/api/v2/v/cases/{done['session']['householdId']}", headers=h).json()["household"]
+    assert me["elderly"] == 0
