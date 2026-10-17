@@ -50,7 +50,7 @@ Fields:
   ankle 0.05-0.2, shin 0.2-0.4, knee 0.4-0.6, thigh 0.6-0.8, waist 0.9-1.1, door handle 0.9-1.1, chest 1.2-1.4,
   neck 1.4-1.6, over head 1.8-2.3, second floor 2.5-3.2, roof 3-4. "a little below/above" shifts the band.
 - people: total people in the household the message is about (the writer's own, or the family a relative or
-  neighbour reports), only if stated or listed.
+  neighbour reports), only if stated or listed. "alone"/"อยู่คนเดียว" is 1, also when it adds "1 elderly" (that is them).
 - elderly, children, cannotWalk: counts, only if stated (cannotWalk includes bedridden or wheelchair).
 - urgent: true only for a stated current life threat (can't breathe, water still rising over people who cannot
   leave, someone injured or sick) or explicit "need help now/urgently". A plain "help" or "please help" is not urgent.
@@ -108,6 +108,18 @@ def validate(text: str, raw: dict) -> tuple[list[Fact], int]:
     return ok, dropped
 
 
+ALONE = ("อยู่คนเดียว", "alone", "by myself")
+
+
+def _alone(facts: list, rules) -> list:
+    """"อยู่คนเดียว มีผู้สูงอายุ 1 คน" is one elderly person on their own; the model sometimes adds them up to 2."""
+    rp = next((f for f in rules.facts if f.field == "people" and f.value == 1 and f.quote and
+               any(a in f.quote.lower() for a in ALONE)), None)
+    if rp is None:
+        return facts
+    return [f for f in facts if f.field != "people"] + [rp]
+
+
 def _keep_neighbours(facts: list, rules) -> list:
     """The rules' neighbour reading wins where the model missed it: "บ้านทางตะวันออก ยายอยู่คนเดียว" is a neighbour, and
     the model sometimes files it as the sender's own relative, which would add the grandmother to the caller's family."""
@@ -133,7 +145,7 @@ def read(text: str, channel: str = "chat", use_model: bool = True, timeout: floa
                 for f in rules.facts:
                     if f.field in ADD_BACK and f.field not in have:
                         facts.append(f)
-                return Read(_keep_neighbours(facts, rules), reader=f"claude:{CLAUDE_MODEL}")
+                return Read(_alone(_keep_neighbours(facts, rules), rules), reader=f"claude:{CLAUDE_MODEL}")
         return read_rules(text, channel)
     if use_model and USE_AI and gemini.available():
         body = {"systemInstruction": {"parts": [{"text": INSTRUCTION}]},
@@ -153,7 +165,7 @@ def read(text: str, channel: str = "chat", use_model: bool = True, timeout: floa
                     for f in rules.facts:
                         if f.field in ADD_BACK and f.field not in have:
                             facts.append(f)
-                    return Read(_keep_neighbours(facts, rules), reader=f"gemini:{model}")
+                    return Read(_alone(_keep_neighbours(facts, rules), rules), reader=f"gemini:{model}")
             except Exception:
                 continue
     return read_rules(text, channel)
