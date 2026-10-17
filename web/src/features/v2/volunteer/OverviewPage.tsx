@@ -15,7 +15,7 @@ export function OverviewPage() {
   return (
     <VShell
       title="Where help is missing"
-      sub="Zones ranked by families still waiting, weighted by urgency, lost contact and people who can't walk. A zone with a team on the way counts half."
+      sub="Team zones (about 500 m, one team's shift) ranked by families still waiting, weighted by urgency, lost contact and people who can't walk. A zone with a team on the way counts half."
       at={data?.at}
     >
       {error ? <p className="v2-error">Couldn't reach the server: {error}</p> : null}
@@ -30,7 +30,7 @@ export function OverviewPage() {
       ) : null}
       {top ? (
         <p className="v-callout">
-          <b>Most help missing: zone {top.id} · {top.label}</b> ({top.district}). {top.open} families waiting
+          <b>Most help missing: team zone {top.id} · {top.label}</b> ({top.district}). {top.open} families waiting
           {top.urgent ? `, ${top.urgent} urgent` : ""}{top.cannotWalk ? `, ${top.cannotWalk} people who can't walk` : ""}.{" "}
           {top.plans ? `${top.plans} team plan${top.plans > 1 ? "s" : ""} posted.` : "No team has posted a plan."}{" "}
           <Link to={`/v/zone/${top.id}`}>Open zone {top.id} →</Link>
@@ -38,7 +38,7 @@ export function OverviewPage() {
       ) : null}
       {data?.hotspots.length ? (
         <section className="v2-card v-pad" aria-label="Smaller areas with the most help missing">
-          <h2 className="v-h2">Hotspots: smaller areas (about 350 m) with the most help missing</h2>
+          <h2 className="v-h2">Hotspots: blocks (by soi) with the most help missing</h2>
           <ol className="v-hot">
             {data.hotspots.slice(0, 8).map((c) => (
               <li key={c.id}>
