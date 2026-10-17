@@ -57,9 +57,25 @@ def cut(poly, cutters, width=3e-5):
     return parts or [poly]
 
 
+NEAR = 1.2e-4     # ~13 m: pieces this close are neighbours (the road strip between them is ~3 m)
+
+
+def _join(p, q):
+    """One connected area from two neighbours: bridge the road strip between them, then shrink back."""
+    return unary_union([p.buffer(NEAR / 2), q.buffer(NEAR / 2)]).buffer(-NEAR / 2).buffer(0)
+
+
+def solid(g, min_ha=2.0):
+    """Drop slivers left between road strips: keep parts of at least min_ha (always the largest)."""
+    parts = sorted(getattr(g, "geoms", [g]), key=lambda p: -p.area)
+    ha = lambda p: p.area * 111_320 * 110_574 / 1e4
+    keep = [parts[0]] + [p for p in parts[1:] if ha(p) >= min_ha]
+    return unary_union(keep) if len(keep) > 1 else keep[0]
+
+
 def merge_small(pieces, pop_of, lo, hi):
-    """Merge the smallest piece into a touching neighbour, preferring one that stays under hi (the smallest such),
-    with the longest shared edge as tie-break, until every piece reaches lo."""
+    """Merge the smallest piece into a neighbour (within ~13 m), preferring one that stays under hi (the smallest
+    such), with the longest shared edge as tie-break, until every piece reaches lo."""
     pieces = list(pieces)
     while len(pieces) > 1:
         pops = [pop_of(p) for p in pieces]
@@ -67,15 +83,16 @@ def merge_small(pieces, pop_of, lo, hi):
         if pops[k] >= lo:
             break
         p = pieces[k]
+        pb = p.buffer(NEAR)
         cands = []
         for i, q in enumerate(pieces):
-            if i != k and p.distance(q) < 1e-7:
-                e = p.boundary.intersection(q.boundary).length
-                cands.append((pops[i] + pops[k] > hi, pops[i], -e, i))
-        if not cands:  # an island: join the nearest piece
+            if i != k and pb.intersects(q):
+                edge = pb.intersection(q).area   # how much border they share
+                cands.append((pops[i] + pops[k] > hi, pops[i], -edge, i))
+        if not cands:  # truly isolated: the nearest piece
             cands = [(False, pops[i], p.distance(q), i) for i, q in enumerate(pieces) if i != k]
         best = min(cands)[3]
-        merged = unary_union([p, pieces[best]]).buffer(0)
+        merged = _join(p, pieces[best])
         pieces = [q for i, q in enumerate(pieces) if i not in (k, best)] + [merged]
     return pieces
 
@@ -142,7 +159,7 @@ def main() -> None:
             cache[k] = float(ppl[members(poly)].sum())
         return cache[k]
 
-    zones = [z.buffer(3e-5) for z in partition(area, [t1, t2, t3], pop_of, ZONE_MIN, ZONE_MAX)]  # close the road strips again
+    zones = [solid(z.buffer(NEAR / 2).buffer(-NEAR / 2 + 3e-5).intersection(area)) for z in partition(area, [t1, t2, t3], pop_of, ZONE_MIN, ZONE_MAX)]
     # number north-west to south-east
     zones.sort(key=lambda p: (-round(p.centroid.y, 3), p.centroid.x))
     facing = {}
@@ -188,7 +205,7 @@ def main() -> None:
         used[name] += 1
         district = Counter(dist_v1.get(blds[i]["zoneId"]) for i in mem).most_common(1)[0][0] if mem else None
         pop = float(ppl[mem].sum())
-        blocks = [b.buffer(3e-5).intersection(zp) for b in partition(zp, [t2, t3, t4], pop_of, BLOCK_MIN, BLOCK_MAX)]
+        blocks = [solid(b.buffer(NEAR / 2).buffer(-NEAR / 2 + 3e-5).intersection(zp), 0.2) for b in partition(zp, [t2, t3, t4], pop_of, BLOCK_MIN, BLOCK_MAX)]
         blocks.sort(key=lambda p: (-round(p.centroid.y, 4), p.centroid.x))
         for bi, bp in enumerate(blocks, 1):
             bid = f"{zid}·{bi}"
@@ -220,6 +237,8 @@ def main() -> None:
     (PKG / "v2-zones.geojson").write_text(json.dumps({"type": "FeatureCollection", "meta": meta, "features": zf}, ensure_ascii=False))
     (PKG / "v2-blocks.geojson").write_text(json.dumps({"type": "FeatureCollection", "meta": meta, "features": bf}, ensure_ascii=False))
     (PKG / "v2-zoning.json").write_text(json.dumps({"package": "hy-2025-11", "assign": assign}, separators=(",", ":")))
+    parts = [len(getattr(shape(f["geometry"]), "geoms", [0])) for f in zf]
+    print("zone parts (1 = one connected area):", parts)
     pz = [sum(f["properties"]["estimate"]["everyone"]) / 2 for f in zf]
     pb = [f["properties"]["people"] for f in bf]
     print(f"{len(zf)} zones, people {min(pz):.0f}-{max(pz):.0f} (median {np.median(pz):.0f}); {len(bf)} blocks, "
