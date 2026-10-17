@@ -73,9 +73,13 @@ def _public(s: dict) -> dict:
 @router.get("/geo")
 def geo_view():
     geo = G.load()
-    feats = [{"type": "Feature", "properties": {"id": z["properties"]["id"], "district": z["properties"].get("district")},
+    feats = [{"type": "Feature", "properties": {"id": z["properties"]["id"], "district": z["properties"].get("district"),
+                                                 "label": z["properties"].get("label"), "sector": z["properties"].get("sector")},
               "geometry": z["geometry"]} for z in geo.zones]
+    sectors = [{"type": "Feature", "properties": {"id": f["properties"]["id"], "name": f["properties"].get("name")},
+                "geometry": f["geometry"]} for f in (geo.sectors or [])]
     return {"zones": {"type": "FeatureCollection", "features": feats}, "center": [100.4705, 7.0085],
+            "sectors": {"type": "FeatureCollection", "features": sectors},
             "sources": {"zones": "ReachPoint zones cut along roads, rail and canals (OSM)",
                         "buildings": "Google Open Buildings v3", "ground": "FABDEM v1.2"}}
 
