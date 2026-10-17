@@ -90,7 +90,7 @@ describe("v2 UI language", () => {
       }] }} zones={[]} team="Boat 2" busy={false} highlighted="HH001" onZone={() => undefined} onFirst={async () => undefined} />
     </>);
     expect(html).not.toMatch(/[฀-๿]/);
-    for (const text of ["Next: River rising", "2 teams", "Silent 12", "School", "Can&#x27;t walk", "boat only"]) expect(html).toContain(text);
+    for (const text of ["Next: River rising", "2 teams", "silent 12", "School", "Can&#x27;t walk", "boat only"]) expect(html).toContain(text);
   });
 
   it("renders dynamic card chrome, reply actions, tabs and map keys in English", () => {

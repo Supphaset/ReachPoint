@@ -161,3 +161,44 @@ describe("overlay projection and zoom", () => {
     expect(remove).toHaveBeenCalledOnce();
   });
 });
+
+describe("urgent map dots", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it("links hover and keyboard focus to the case list, preserves the star, and opens on click", () => {
+    const buttons: { className?: string; dataset: Record<string, string>; textContent: string; onmouseenter?: () => void; onmouseleave?: () => void; onfocus?: () => void; onclick?: () => void }[] = [];
+    vi.stubGlobal("document", { createElement: () => {
+      const button = { textContent: "", dataset: {}, style: {}, setAttribute: vi.fn(), remove: vi.fn() };
+      buttons.push(button); return button;
+    } });
+    class Polygon { addListener = vi.fn(); setMap = vi.fn(); }
+    class OverlayView { setMap = vi.fn(); }
+    const highlight = vi.fn(), open = vi.fn();
+    const cleanup = drawSectorLayers({ Polygon, OverlayView, event: { clearInstanceListeners: vi.fn() } }, {}, {
+      geo, zones: [zone], selection: { sector: null, zone: null, hover: null }, onZone: vi.fn(), onSector: vi.fn(),
+      urgentCases: [{ id: "HH1", lon: 100.47, lat: 7.01, markedFirst: { team: "Boat", at: "07:00" } } as import("../api").UrgentCase],
+      highlighted: "HH1", onHighlight: highlight, onCase: open,
+    }, name => name);
+    const dot = buttons.find(button => button.dataset.case === "HH1")!;
+    expect(dot.className).toContain("is-highlighted");
+    expect(dot.className).toContain("is-first");
+    expect(dot.textContent).toBe("★");
+    dot.onmouseenter?.();
+    expect(highlight).toHaveBeenLastCalledWith("HH1");
+    dot.onmouseleave?.();
+    expect(highlight).toHaveBeenLastCalledWith(null);
+    dot.onfocus?.();
+    expect(highlight).toHaveBeenLastCalledWith("HH1");
+    dot.onclick?.();
+    expect(open).toHaveBeenCalledWith("HH1");
+    cleanup();
+  });
+});
+
+import { needLabel } from "./UrgentList";
+describe("need labels", () => {
+  it("turns the server's need words into Thai and English", () => {
+    expect(needLabel("2 can't walk")).toEqual(["เดินไม่ได้ 2 คน", "2 can't walk"]);
+    expect(needLabel("1 child")[0]).toBe("เด็ก 1 คน");
+    expect(needLabel("wants to leave, needs a ride")[0]).toContain("ต้องการออก");
+  });
+});

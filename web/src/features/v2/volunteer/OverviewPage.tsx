@@ -2,12 +2,12 @@ import { Tr, useT } from "../ui/lang";
 /** Map and list share one sector and one zone selection. Plans never imply a rescue. */
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { v2, vol, type WaterTrend, type ZonePage as ZoneDetail } from "../api";
+import { v2, vol, type Overview, type WaterTrend, type ZonePage as ZoneDetail } from "../api";
 import { Depth, Trend, VShell, useGeo, useLive, useTeam } from "./shared";
 import { initialSelection, selectionReducer } from "./selection";
 import { displayText } from "../ui/trace";
 import { SectorMap, goBy } from "./SectorMap";
-import { UrgentList, useUrgent } from "./UrgentList";
+import { UrgentList, UrgentSortControl, useUrgent, type UrgentSort } from "./UrgentList";
 import "../ui/phase-three.css";
 
 export function OverviewPage() {
@@ -15,6 +15,7 @@ export function OverviewPage() {
   const { data, error, reload } = useLive(() => vol.overview(), []);
   const geo = useGeo();
   const urgent = useUrgent();
+  const [sort, setSort] = useState<UrgentSort>("priority");
   const [tab, setTab] = useState("sectors");
   const [highlighted, setHighlighted] = useState<string | null>(null);
   const [focusRequest, setFocusRequest] = useState(0);
@@ -23,33 +24,24 @@ export function OverviewPage() {
   const [team] = useTeam();
   const selectZone = (id: string) => dispatch({ type: "zone", id, sector: data?.zones.find(zone => zone.id === id)?.sector ?? null });
   const selectSector = (id: string) => dispatch({ type: "sector", id });
-  return <VShell title={t("ช่วยตรงไหนก่อน · Where help is missing", "Where help is missing")} at={data?.at} ledger={data?.overall}>
-    {error && <p role="alert">Couldn't reach the server: {error}</p>}
-    <div className="p3-numbers">
-      <span><b>{data?.zones.reduce((sum, zone) => sum + zone.open, 0) ?? "…"}</b> <Tr th="ครอบครัวรอ" en="waiting" /></span>
-      <span><b>{data?.zones.reduce((sum, zone) => sum + zone.urgent, 0) ?? "…"}</b> <Tr th="ด่วน" en="urgent" /></span>
-      <span><b>{data?.zones.filter(zone => zone.open && !zone.plans).length ?? "…"}</b> <Tr th="โซนไม่มีทีม" en="zones with no team" /></span>
-      {data?.rain && <span className={`p3-rain${data.rain.heavy ? " is-heavy" : ""}`} title={`${data.rain.source} · ${data.rain.kind}`}>
-        <Tr th="ฝน" en="Rain: past 6 h" /> <b>{data.rain.past6hMm ?? "?"} <Tr th="มม." en="mm" /></b> <Tr th="· 6 ชม.ข้างหน้า" en="· next 6 h" /> <b>{data.rain.next6hMm ?? "?"} <Tr th="มม." en="mm" /></b>
-        <small> last 6 h / next 6 h (replay: rain that really fell, as a stand-in forecast)</small></span>}
-    </div>
+  return <VShell title={t("ช่วยตรงไหนก่อน · Where help is missing", "Where help is missing")} at={data?.at} header={<VolunteerKpis data={data} />}>
+    {error && <p role="alert"><Tr th="ติดต่อเซิร์ฟเวอร์ไม่ได้" en="Could not reach the server:" /> {error}</p>}
     <div className="p3-workspace">
-      <section className="p3-map-column" aria-label="Sector map">
-        <div className="p3-breadcrumb"><button className="btn btn-sec" onClick={() => dispatch({ type: "sector", id: null })}><Tr th="หาดใหญ่" en="Hat Yai" /></button>{selection.sector && <span> / {selection.sector}</span>}{selection.zone && <span> / {selection.zone}</span>}</div>
-        <SectorMap geo={geo} zones={data?.zones ?? []} selection={selection} onZone={selectZone} onSector={selectSector}
+      <section className="p3-map-column" aria-label={t("แผนที่พื้นที่", "Sector map")}>
+        <SectorMap geo={geo} zones={data?.zones ?? []} selection={selection} onZone={selectZone} onSector={selectSector} onCity={() => dispatch({ type: "sector", id: null })} highlighted={highlighted} onHighlight={setHighlighted}
           water={data ? { hour: data.atH, messages: data.overall.messages } : undefined} shelters={data?.shelters}
-          urgentCases={tab === "urgent" ? urgent.data?.zones.flatMap(zone => zone.cases) : undefined}
+          urgentCases={tab === "urgent" ? (urgent.data?.zones.flatMap(zone => zone.cases) ?? []) : undefined}
           onCase={id => { setHighlighted(id); setFocusRequest(value => value + 1); setSheet("full"); }} />
       </section>
-      <aside data-sheet={sheet} className="p3-sector-list" aria-label="Sectors ranked within each area">
+      <aside data-sheet={sheet} className="p3-sector-list" aria-label={t("พื้นที่เรียงตามความต้องการ", "Sectors ranked within each area")}>
         <div className="p3-sheet-sizes seg" aria-label={t("ขนาดรายชื่อ · List height", "List height")}>{[["peek", t("ย่อ · Peek", "Peek")], ["half", t("ครึ่ง · Half", "Half")], ["full", t("เต็ม · Full", "Full")]].map(([value, label]) => <button key={value} aria-pressed={sheet === value} onClick={() => setSheet(value)}>{label}</button>)}</div>
-        <div className="seg v-overview-tabs" role="tablist" aria-label={t("รายการช่วยเหลือ · Assistance lists", "Assistance lists")}>
+        <div className="v-list-toolbar"><div className="seg v-overview-tabs" role="tablist" aria-label={t("รายการช่วยเหลือ · Assistance lists", "Assistance lists")}>
           <button role="tab" aria-selected={tab === "sectors"} aria-controls="v-sector-panel" id="v-sector-tab" onClick={() => setTab("sectors")}><Tr th="พื้นที่" en="Sectors" /></button>
-          <button role="tab" aria-selected={tab === "urgent"} aria-controls="v-urgent-panel" id="v-urgent-tab" onClick={() => setTab("urgent")}><Tr th="ด่วน" en="Urgent (" />{urgent.data?.total ?? "…"})</button>
-        </div>
+          <button role="tab" aria-selected={tab === "urgent"} aria-controls="v-urgent-panel" id="v-urgent-tab" onClick={() => setTab("urgent")}><Tr th="ด่วน" en="Urgent" /> ({urgent.data?.total ?? "…"})</button>
+        </div>{tab === "urgent" && <UrgentSortControl sort={sort} onChange={setSort} />}</div>
         {tab === "urgent" ? <div id="v-urgent-panel" role="tabpanel" aria-labelledby="v-urgent-tab">
           {urgent.error && <p role="alert"><Tr th="โหลดหรือบันทึกไม่สำเร็จ" en="Could not load or save:" /> {urgent.error}</p>}
-          <UrgentList data={urgent.data} zones={data?.zones ?? []} team={team} busy={urgent.busy} highlighted={highlighted} focusRequest={focusRequest} onZone={selectZone} onFirst={urgent.first} />
+          <UrgentList data={urgent.data} zones={data?.zones ?? []} team={team} busy={urgent.busy} highlighted={highlighted} focusRequest={focusRequest} sort={sort} onHighlight={setHighlighted} onZone={selectZone} onFirst={urgent.first} />
         </div> : <div id="v-sector-panel" role="tabpanel" aria-labelledby="v-sector-tab">
         {selection.zone ? <ZonePanel key={selection.zone} id={selection.zone} water={data?.zones.find(zone => zone.id === selection.zone)?.water} team={team} onClose={() => dispatch({ type: "close" })} onPosted={reload} /> : <>
         {(data?.sectors ?? []).map(sector => <section key={sector.id}>
@@ -70,6 +62,23 @@ export function OverviewPage() {
     </div>
 
   </VShell>;
+}
+
+export function VolunteerKpis({ data }: { data: Overview | null }) {
+  const t = useT();
+  const number = (value: number | null | undefined) => value == null ? "…" : value.toLocaleString("en-US");
+  const ledger = data?.overall;
+  return <div className="v-overview-summary">
+    <div className="v-kpis" aria-label={t("ภาพรวมการช่วยเหลือ", "Assistance overview")}>
+      <span className="v-kpi is-urgent"><b>{number(data?.zones.reduce((sum, zone) => sum + zone.urgent, 0))}</b><span><Tr th="ด่วน" en="urgent" /></span></span>
+      <span className="v-kpi"><b>{number(data?.zones.reduce((sum, zone) => sum + zone.open, 0))}</b><span><Tr th="รอ" en="waiting" /></span></span>
+      <span className="v-kpi"><b>{number(data?.zones.filter(zone => zone.open && !zone.plans).length)}</b><span><Tr th="โซนไม่มีทีม" en="zones with no team" /></span></span>
+      <span className={`v-kpi${data?.rain?.heavy ? " is-urgent" : ""}`} title={`${data?.rain?.source ?? t("ไม่ทราบแหล่งข้อมูล", "Source unknown")} · ${t("รีเพลย์: ฝนที่ตกจริงถัดไป ใช้แทนพยากรณ์", "replay: rain that fell next, standing in for a forecast")}`}>
+        <b>{number(data?.rain?.next6hMm)} <Tr th="มม." en="mm" /></b><span><Tr th="ฝน 6 ชม.ข้างหน้า" en="rain next 6 h" /></span>
+      </span>
+    </div>
+    <p className="v-ledger-line">{t(`Gemini อ่าน ${number(ledger?.messages)} ข้อความ → ${number(ledger?.households)} ครัวเรือน (รวมซ้ำ ${number(ledger?.duplicatesMerged)})`, `Gemini read ${number(ledger?.messages)} messages → ${number(ledger?.households)} households (${number(ledger?.duplicatesMerged)} duplicates merged)`)} · {t(`คาดว่า ${number(ledger?.estimatedHouseholdsAffected)} ครัวเรือนได้รับผลกระทบ`, `est. ${number(ledger?.estimatedHouseholdsAffected)} households affected`)}</p>
+  </div>;
 }
 
 export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; team: string; water?: WaterTrend | null; onClose: () => void; onPosted: () => void }) {

@@ -30,7 +30,7 @@ export function deoverlapLabels<T extends { x: number; y: number }>(candidates: 
 }
 
 /** Shared geometry and ids drive both outlines and the list; urgent dots use only API-provided positions. */
-export function DrawnSectorMap({ geo, zones, selection, onZone, onSector, urgentCases, onCase }: { urgentCases?: UrgentCase[]; onCase?: (id: string) => void; geo: GeoView | null; zones: OverviewZone[]; selection: Selection; onZone: (id: string) => void; onSector: (id: string) => void }) {
+export function DrawnSectorMap({ geo, zones, selection, onZone, onSector, urgentCases, onCase, highlighted, onHighlight }: { highlighted?: string | null; onHighlight?: (id: string | null) => void; urgentCases?: UrgentCase[]; onCase?: (id: string) => void; geo: GeoView | null; zones: OverviewZone[]; selection: Selection; onZone: (id: string) => void; onSector: (id: string) => void }) {
   const t = useT();
   const frame = useRef<SVGSVGElement>(null);
   const [zoom, setZoom] = useState(1);
@@ -67,11 +67,12 @@ export function DrawnSectorMap({ geo, zones, selection, onZone, onSector, urgent
         {((selection.sector && zone?.sector === selection.sector) || top.includes(id)) && <text x={x((b[0] + b[2]) / 2)} y={y((b[1] + b[3]) / 2)} className="p3-zone-label">{id} · {zone?.label ?? t("ไม่ทราบชื่อ", "Unknown place")}</text>}
       </g>;
     })}
-    {(urgentCases ?? []).filter(row => row.lon != null && row.lat != null).map(row => <g key={row.id} className="p3-drawn-urgent" role="button" tabIndex={0}
+    {(urgentCases ?? []).filter(row => row.lon != null && row.lat != null).map(row => <g key={row.id} className={`p3-drawn-urgent${highlighted === row.id ? " is-highlighted" : ""}`} onMouseEnter={() => onHighlight?.(row.id)} onMouseLeave={() => onHighlight?.(null)} onFocus={() => onHighlight?.(row.id)} onBlur={() => onHighlight?.(null)} role="button" tabIndex={0}
       aria-label={t(`ด่วน · Urgent ${row.id}`, `Urgent ${row.id}`)} onClick={() => onCase?.(row.id)}
       onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onCase?.(row.id); } }}>
       <circle cx={x(row.lon!)} cy={y(row.lat!)} r="22" className="p3-drawn-hit" />
-      <circle cx={x(row.lon!)} cy={y(row.lat!)} r="5" />
+      <circle className="p3-drawn-dot" cx={x(row.lon!)} cy={y(row.lat!)} r={highlighted === row.id ? 8 : 5} />
+      {row.markedFirst && <circle className="p3-drawn-ring" cx={x(row.lon!)} cy={y(row.lat!)} r="14" />}
       {row.markedFirst && <text x={x(row.lon!)} y={y(row.lat!) - 10}>★</text>}
     </g>)}
     {sectorFeatures.map(feature => {
@@ -95,6 +96,7 @@ type Props = Parameters<typeof DrawnSectorMap>[0] & {
   /** The replay hour and message count: the water layer redraws (model + reports) when either changes. */
   water?: { hour: number; messages: number };
   shelters?: Shelter[];
+  onCity?: () => void;
   urgentCases?: UrgentCase[];
   onCase?: (id: string) => void;
 };
@@ -201,7 +203,10 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     if (row.lon == null || row.lat == null) continue;
     const overlay = new maps.OverlayView();
     const button = document.createElement("button");
-    button.className = `p3-urgent-dot${row.markedFirst ? " is-first" : ""}`;
+    button.className = `p3-urgent-dot${row.markedFirst ? " is-first" : ""}${props.highlighted === row.id ? " is-highlighted" : ""}`;
+    button.dataset.case = row.id;
+    button.onmouseenter = button.onfocus = () => props.onHighlight?.(row.id);
+    button.onmouseleave = button.onblur = () => props.onHighlight?.(null);
     button.textContent = row.markedFirst ? "★" : "";
     button.setAttribute("aria-label", t(`ด่วน · Urgent ${row.id}${row.markedFirst ? ` · ทำก่อน · Do first ${row.markedFirst.team}` : ""}`, `Urgent ${row.id}${row.markedFirst ? ` · Do first ${row.markedFirst.team}` : ""}`));
     button.onclick = () => props.onCase?.(row.id);
@@ -211,7 +216,7 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
       const point = overlay.getProjection()?.fromLatLngToDivPixel(new maps.LatLng(row.lat, row.lon));
       if (point) { button.style.left = `${point.x}px`; button.style.top = `${point.y}px`; }
     };
-    overlay.onRemove = () => { button.onclick = null; button.remove(); };
+    overlay.onRemove = () => { button.onclick = button.onmouseenter = button.onmouseleave = button.onfocus = button.onblur = null; button.remove(); };
     overlay.setMap(map);
     overlays.push(overlay);
   }
@@ -257,6 +262,9 @@ export function SectorMap(props: Props) {
     return () => { active = false; resize?.disconnect(); if (instance) { instance.unbindAll(); } };
   }, []);
   useEffect(() => { ready?.map.setMapTypeId(kind); }, [ready, kind]);
+  useEffect(() => {
+    host.current?.querySelectorAll<HTMLElement>(".p3-urgent-dot").forEach(dot => dot.classList.toggle("is-highlighted", dot.dataset.case === props.highlighted));
+  }, [props.highlighted]);
   // Water sits in the map pane: under the zone shapes and labels, over the streets.
   useEffect(() => {
     if (!ready || !flood.sim) return;
@@ -295,6 +303,8 @@ export function SectorMap(props: Props) {
       ...latest.current,
       onZone: id => latest.current.onZone(id),
       onSector: id => latest.current.onSector(id),
+      onHighlight: id => latest.current.onHighlight?.(id),
+      onCase: id => latest.current.onCase?.(id),
     }, name => styles.getPropertyValue(name).trim(), waterOn && !!props.water, lang);
   }, [ready, drawn, lang]);
   useEffect(() => {
@@ -310,14 +320,16 @@ export function SectorMap(props: Props) {
     };
     refit.current();
   }, [ready, props.geo, props.selection.zone, props.selection.sector]);
-  return <div className="p3-map-stage">
+  return <div className={`p3-map-stage${props.urgentCases ? " is-urgent-mode" : ""}`}>
     <div ref={host} className="p3-google-map" aria-label={t("แผนที่หาดใหญ่ · Hat Yai map", "Hat Yai map")} style={{ visibility: ready ? "visible" : "hidden", position: ready ? "relative" : "absolute" }} />
     {!ready && <><p className="p3-map-status" role="status">{failed ? t("แผนที่สำรอง · Offline outline map", "Offline outline map") : t("กำลังเปิดแผนที่ · Loading map", "Loading map")}</p><DrawnSectorMap {...props} /></>}
-    {ready && <div className="seg p3-map-type" role="group" aria-label={t("ชนิดแผนที่ · Map type", "Map type")}>
-      <button aria-pressed={kind === "roadmap"} onClick={() => setKind("roadmap")}><Tr th="แผนที่" en="Map" /></button>
-      <button aria-pressed={kind === "hybrid"} onClick={() => setKind("hybrid")}><Tr th="ดาวเทียม" en="Satellite" /></button>
+    <div className="p3-map-toolbar">
+      <div className="p3-breadcrumb"><button className="btn btn-sec" onClick={props.onCity}><Tr th="หาดใหญ่" en="Hat Yai" /></button>{selection.sector && <span> / {selection.sector}</span>}{selection.zone && <span> / {selection.zone}</span>}</div>
+      <div className="seg p3-map-type" role="group" aria-label={t("ชนิดแผนที่ · Map type", "Map type")}>
+      <button disabled={!ready} aria-pressed={kind === "roadmap"} onClick={() => setKind("roadmap")}><Tr th="แผนที่" en="Map" /></button>
+      <button disabled={!ready} aria-pressed={kind === "hybrid"} onClick={() => setKind("hybrid")}><Tr th="ดาวเทียม" en="Satellite" /></button>
       {props.water && <button aria-pressed={waterOn} onClick={() => setWaterOn(value => !value)}><Tr th="น้ำ" en="Water" /></button>}
-    </div>}
+    </div></div>
     <details className="p3-map-legend">
       <summary><Tr th="คำอธิบาย" en="Legend" /></summary>
       <div className="p3-water-key" aria-label={t("ระดับน้ำและความต้องการ · Water and needs", "Water and needs")}>

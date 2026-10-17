@@ -1,9 +1,9 @@
 import { Tr, useT } from "../ui/lang";
 /** Shared parts of the volunteer pages: the shell and navigation, the team name, live refresh, chips and a small map. */
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { apiMode } from "../../../data/mode";
-import { depthBand, v2, type CaseRow, type GeoView, type BoardState } from "../api";
+import { depthBand, v2, type CaseRow, type GeoView } from "../api";
 import { StepHeader } from "../ui/Shared";
 import "../v2.css";
 import "./volunteer.css";
@@ -71,28 +71,33 @@ export function useGeo(): GeoView | null {
   return g;
 }
 
-export function VShell({ title, sub, at, ledger, children }: { title: string; sub?: ReactNode; at?: string; ledger?: BoardState["overall"]; children: ReactNode }) {
+const TeamNameContext = createContext<() => void>(() => undefined);
+export const useTeamNameOpener = () => useContext(TeamNameContext);
+
+export function VShell({ title, sub, at, header, children }: { title: string; sub?: ReactNode; at?: string; header?: ReactNode; children: ReactNode }) {
   const t = useT();
   const [team, setTeam] = useTeam();
   const [editing, setEditing] = useState(false);
+  const teamInput = useRef<HTMLInputElement>(null);
+  const openTeamName = () => { setEditing(true); teamInput.current?.focus(); };
   if (!apiMode())
     return <main className="v-page rp-app"><StepHeader showDemo={false} /><p className="v2-card v-pad">These pages need the ReachPoint server. Open them with <code>?data=api</code>.</p></main>;
   return (
-    <main className="v-page rp-app">
+    <TeamNameContext.Provider value={openTeamName}><main className="v-page rp-app">
       <StepHeader at={at} onAction={async action => { await v2.clock(action); window.dispatchEvent(new Event("reachpoint-clock")); }} />
-      <nav className="rp-subnav" aria-label="Volunteer pages">
+      <nav className="rp-subnav" aria-label={t("หน้าอาสา", "Volunteer pages")}>
         <span className="rp-subnav-label"><Tr th="อาสา" en="Volunteers" /></span>
         <NavLink to="/v" end><Tr th="ช่วยที่ไหน" en="Where help is missing" /></NavLink>
         <NavLink to="/v/feed"><Tr th="การตัดสินใจ" en="AI decisions" /></NavLink>
         <div className="v-team">
           {editing ? (
             <form onSubmit={(e) => { e.preventDefault(); setEditing(false); }}>
-              <label htmlFor="v-team-name" className="v-sr">Your team name</label>
-              <input id="v-team-name" autoFocus value={team} onChange={(e) => setTeam(e.target.value)} placeholder={t("e.g. ทีมเรือกู้ภัยหาดใหญ่ 1", "e.g. Hat Yai rescue boat 1")} />
+              <label htmlFor="v-team-name" className="v-sr"><Tr th="ชื่อทีมของคุณ" en="Your team name" /></label>
+              <input ref={teamInput} id="v-team-name" autoFocus value={team} onChange={(e) => setTeam(e.target.value)} placeholder={t("e.g. ทีมเรือกู้ภัยหาดใหญ่ 1", "e.g. Hat Yai rescue boat 1")} />
               <button type="submit"><Tr th="บันทึก" en="Save" /></button>
             </form>
           ) : (
-            <button type="button" className="v-team-btn" onClick={() => setEditing(true)} title="Teams see exact addresses in zones their own plans cover">
+            <button type="button" className="v-team-btn" onClick={openTeamName} title={t("ทีมเห็นที่อยู่ในโซนที่มีแผนของตน", "Teams see exact addresses in zones their own plans cover")}>
               {team ? <><Tr th="ทีม" en="Team:" /> <b>{team}</b></> : t("ชื่อทีม · Set team name", "Set team name")}
             </button>
           )}
@@ -105,15 +110,10 @@ export function VShell({ title, sub, at, ledger, children }: { title: string; su
             {sub ? <p className="v-sub">{sub}</p> : null}
           </div>
         </div>
-        {ledger && <div className="p3-ledger" aria-label={t("ยอดจากระบบ · API totals", "API totals")}>
-          <span><b>{ledger.messages}</b> <Tr th="ข้อความ" en="messages" /></span>
-          <span><b>{ledger.households}</b> <Tr th="ครอบครัว" en="households" /></span>
-          <span><b>{ledger.duplicatesMerged}</b> <Tr th="รวมรายการซ้ำ" en="duplicates merged" /></span>
-          <span><b>{ledger.estimatedHouseholdsAffected}</b> <Tr th="ครัวเรือนคาดว่าได้รับผลกระทบ" en="estimated households affected" /></span>
-        </div>}
+        {header}
         {children}
       </div>
-    </main>
+    </main></TeamNameContext.Provider>
   );
 }
 
@@ -130,10 +130,11 @@ export function StatusChip({ r }: { r: Pick<CaseRow, "status" | "urgent" | "outc
 }
 
 export function Depth({ m, lo, hi }: { m: number | null | undefined; lo?: number; hi?: number }) {
+  const t = useT();
   if (m === null || m === undefined) return <span className="v-depth is-unknown"><Tr th="ไม่ทราบ" en="unknown" /></span>;
   return (
-    <span className={`v-depth is-${depthBand(m)}`} title={lo !== undefined ? `likely ${lo.toFixed(1)}–${hi?.toFixed(1)} m` : undefined}>
-      {m.toFixed(1)} m
+    <span className={`v-depth is-${depthBand(m)}`} title={lo !== undefined ? t(`คาดว่า ${lo.toFixed(1)}–${hi?.toFixed(1)} ม.`, `likely ${lo.toFixed(1)}–${hi?.toFixed(1)} m`) : undefined}>
+      {m.toFixed(1)} <Tr th="ม." en="m" />
     </span>
   );
 }
