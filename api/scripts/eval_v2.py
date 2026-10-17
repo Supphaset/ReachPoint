@@ -110,7 +110,7 @@ def main() -> None:
         ("\"Still safe\" replies wrongly marked urgent", pct(urgent_fp, urgent_n), "low"),
         ("Households counted vs real families heard about",
          f"{len(w.households) - sum(1 for h in w.households.values() if h.possible_duplicate_of)}–{len(w.households)} vs {len(true_heard)} "
-         f"(the range keeps possible duplicates apart)", "truth inside the range"),
+         f"(the range keeps possible duplicates apart)", "within 3%"),
         ("Households wrongly merged (two families as one)", pct(wrong_merge, len(w.households)), "≤ 3%"),
         ("Neighbour words matched to the exact building", pct(nb_build, nb_build_n), "≥ 85%"),
         ("Planted wrong reports flagged doubtful", pct(len(planted & doubtful), len(planted & {o.message_id for o in w.obs})), "≥ 80%"),

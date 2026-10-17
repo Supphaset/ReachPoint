@@ -82,11 +82,13 @@ scenario (real water data, synthetic people and messages, with deliberately wron
 
 | Measure | Result | Target |
 |---|---|---|
-| Depth at a household, against the true depth there | 0.14 m mean error (median 0.12 m) | ≤ 0.2 m |
-| Planted wrong reports flagged doubtful | 13 of 14 | ≥ 80% |
-| Honest reports wrongly flagged | 3% | low |
+| Messages read by Gemini (every fact keeps the sender's exact words) | 1,517 of 1,522 (5 by rules) | — |
+| Depth at a household from the model + other reports (that report left out) | 0.27 m mean error; the model alone 0.46 m | better than the model alone |
+| Families counted against the real families heard about | 306–309 vs 299 | within 3% |
 | Two families wrongly merged into one | 1% | ≤ 3% |
-| "The house to the east" matched to the exact building | 88% | ≥ 85% |
+| Planted wrong reports flagged doubtful | 4 of 5 | ≥ 80% |
+| Honest reports wrongly flagged | 5% | low |
+| "The house to the east" matched to the exact building | 72 of 72 | ≥ 85% |
 
 The scenario's "true" flood is the simulation plus local effects it can't know (blocked drains, pumps, smooth
 differences), so these numbers show how well physics and reports combine, not field accuracy.
