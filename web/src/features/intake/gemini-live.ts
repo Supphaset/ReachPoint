@@ -1,3 +1,5 @@
+import { wsOrigin } from "../../data/wsOrigin";
+import { demoRoom } from "../../data/room";
 import type { CallSession } from "../../data/call";
 
 interface LiveCallbacks {
@@ -43,9 +45,8 @@ export class GeminiLiveVoice {
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
       });
-      const base = new URL((import.meta.env.VITE_API_URL as string | undefined) || window.location.origin, window.location.origin);
-      base.protocol = base.protocol === "https:" ? "wss:" : "ws:";
-      const socket = new WebSocket(new URL(`/api/call/sessions/${this.sessionId}/live`, base));
+      const base = wsOrigin(window.location.origin);
+      const socket = new WebSocket(new URL(`/api/call/sessions/${this.sessionId}/live?room=${encodeURIComponent(demoRoom())}`, base));
       this.socket = socket;
       socket.binaryType = "arraybuffer";
       await new Promise<void>((resolve, reject) => {

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import re
 import secrets
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 
 from api.v2 import geo as G
 from api.v2.reader import Fact, Read
@@ -92,11 +92,20 @@ class Session:
     neighbour_results: list[dict] = field(default_factory=list)
     shelter_offer: dict | None = None  # the walkable shelter the agent suggested
     nb_queue: list = field(default_factory=list)   # neighbours mentioned, waiting for direction / picture confirmation
+    shelter_nearest: dict | None = None
     finished: bool = False
     follow: str | None = None  # the agent's own follow-up question waiting for an answer (api/v2/followup.py)
     ride_requested: bool = False  # the family already asked for a team to take them out (asked once, not again)
     ready: list = field(default_factory=list)
     ready_shown: bool = False  # the checklist card has been shown once  # which "get ready" items the family ticked (indexes into followup.READY)
+
+    def to_dict(self):
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data):
+        names = {f.name for f in fields(cls)}
+        return cls(**{k: v for k, v in data.items() if k in names})
 
     def view(self):
         return {"id": self.id, "token": self.token, "lang": self.lang, "householdId": self.household_id, "pin": self.pin,

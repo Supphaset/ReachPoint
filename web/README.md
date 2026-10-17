@@ -16,12 +16,14 @@ npm run check      # type-check, token check, tests
 | `src/ui/states.ts` | One colour + icon + Thai/English label per state (the Thai labels need a native-speaker check) |
 | `src/data/useView.ts` | `useView(path)`: one derived view, with loading / ready (live or offline) / missing / error |
 | `src/data/source.ts` | Today: the shared fixtures in `contract/fixtures/`. Later: Firestore listeners, same return shape |
-| `src/data/api.ts` | Typed API client for the friend's FastAPI (`VITE_API_URL`); every write carries a `submissionId` |
+| `src/data/api.ts` | Typed API client for the friend's FastAPI (relative `/api` URLs); every write carries a `submissionId` |
 | `src/data/contract.ts` | Draft view types, hand-written from the fixtures until the generated types land (T2) |
 | `src/features/briefing/` | Area and zone briefing: list first, offline schematic map, zone sheet on phones |
 | `src/features/team/` | Team screens: waiting list (shared order), take families, my jobs (exact point after taking, window, progress, finish, hand back), team status |
 | `src/features/split/` | Coordinator split panel (`/desk/split`): situation line, team rows, still unmet, why (solver facts), Ask these N teams, What-if, stale diff |
 | `src/data/teamStore.ts` | Team view + actions in fixture mode, applying the C6 claim rules; becomes API calls + a listener |
+
+For the deployed demo, see [Firestore and Firebase Hosting setup](../docs/deployment/demo-persistence-and-hosting.md).
 
 ## Rules for screens
 

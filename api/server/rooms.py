@@ -67,6 +67,8 @@ class Rooms:
         return self.get(self.current_id.get())
 
     def reset(self, room_id: str) -> Room:
+        from api.v2 import store
+        store.delete(room_id)
         with self._lock:
             self._rooms[room_id] = room = _new(room_id)
             return room

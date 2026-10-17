@@ -8,6 +8,8 @@ from pathlib import Path
 
 import httpx
 
+from api.ai.budget import within
+
 TIMEOUT_S = 8
 
 
@@ -65,7 +67,7 @@ def _point(item: dict) -> tuple[float, float] | None:
     return None
 
 
-def geocode(text: str) -> dict | None:
+def _geocode(text: str) -> dict | None:
     """Best match as {at: [lon, lat], precision, label}, or None (not configured, no match, or the call failed)."""
     key = _config("PINPOINT_API_KEY")
     if not key:
@@ -80,3 +82,7 @@ def geocode(text: str) -> dict | None:
     except (httpx.HTTPError, ValueError, KeyError, TypeError):
         return None  # never the key or the address in a log line
     return None
+
+
+def geocode(text: str) -> dict | None:
+    return within(10, _geocode, text)

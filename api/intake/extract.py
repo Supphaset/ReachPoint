@@ -299,7 +299,7 @@ def _missed_dangers(text: str, facts: dict) -> list[dict]:
 RETRY_IF_DROPPED = 3  # a reading that loses this many facts to the quote rule is tried again on the next model
 
 
-def extract(text: str, use_model: bool = True) -> dict:
+def _extract(text: str, use_model: bool = True) -> dict:
     """Proposed facts for the desk, with where they came from. Never raises on model trouble. If a reading loses
     several facts to the quote rule (a model misspelling the caller's words), the next model reads it too, and the
     reading that kept the most quoted facts wins."""
@@ -326,3 +326,8 @@ def extract(text: str, use_model: bool = True) -> dict:
         best["facts"]["dangerSigns"] += missed
         best["note"] = "A danger word the AI left out was added by the keyword check"
     return best
+
+
+def extract(text: str, use_model: bool = True) -> dict:
+    from api.ai.budget import within
+    return within(20, _extract, text, use_model) or _extract(text, use_model=False)

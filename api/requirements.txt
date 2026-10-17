@@ -11,3 +11,4 @@ google-api-core==2.34.0
 ortools==9.15.6755         # split solver (api/rules/allocation.py), imported by the planning panel
 protobuf==6.33.6           # ortools and google-adk both need it; this version satisfies both
 shapely==2.2.0             # zone and sector shapes (api/v2/geo.py, api/v2/cases.py)
+google-cloud-firestore==2.21.0  # durable v2 demo rooms via Cloud Run identity

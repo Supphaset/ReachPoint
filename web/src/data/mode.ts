@@ -4,7 +4,7 @@
  *   "api"       the server: GET /api/views/..., POST /api/... (contract/api.md)
  *
  * Set at build time with VITE_DATA=api (the Cloud Run image does this), or per tab with ?data=api / ?data=fixtures.
- * VITE_API_URL points at another server; empty means the same origin, which is how Cloud Run serves it.
+ * API calls use relative /api URLs through Cloud Run or Firebase Hosting.
  */
 export type DataMode = "fixtures" | "api";
 

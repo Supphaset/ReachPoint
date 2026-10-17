@@ -15,6 +15,7 @@ import re
 import time
 
 from api.ai import gemini
+from api.ai.budget import within
 from api.v2 import cases as C
 
 MAX_STEPS = 6
@@ -264,7 +265,7 @@ def _gemini(st: dict, question: str) -> tuple[str, list[dict], dict | None, str]
 def ask(st: dict, question: str) -> dict:
     question = (question or "").strip()[:600]
     t0 = time.time()
-    g = _gemini(st, question) if os.environ.get("REACHPOINT_AI", "on") != "off" else None
+    g = within(35, _gemini, st, question) if os.environ.get("REACHPOINT_AI", "on") != "off" else None
     reader, why = "rules", None
     if g:
         answer, calls, plan, reader = g

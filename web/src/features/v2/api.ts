@@ -194,7 +194,7 @@ export interface FamilyStatus {
   water: { nowM: number; loM: number; hiM: number; in6hM: number; trend: "rising" | "falling" | "steady"; reports: number } | null;
   team: { team: string; vehicle: string; seats: number; eta: string; at: string } | null;
   outcome: { kind: string; team: string; at: string } | null;
-  shelter: { name: string; km: number; deepestM: number; walkable: boolean; minutes: number } | null;
+  shelter: { name: string; nameEn?: string | null; km: number; deepestM: number; walkable: boolean; minutes: number } | null;
   nextCheck: string;
   now: string;
   /** The family already asked for a team; a second ask gets "we already have your request". */
@@ -371,7 +371,7 @@ export interface SubArea {
   households: string[];
 }
 
-export interface ShelterOption { shelterId: string; name: string; kind: string; lon: number; lat: number; km: number; deepestM: number; walkable: boolean; minutes: number }
+export interface ShelterOption { nameEn?: string | null; shelterId: string; name: string; kind: string; lon: number; lat: number; km: number; deepestM: number; walkable: boolean; minutes: number }
 
 export interface FactView { field: string; value: unknown; quote: string }
 
@@ -409,7 +409,7 @@ export interface StoryItem {
 export interface CaseView {
   household: CaseRow;
   shelterOptions: ShelterOption[];
-  shelter: { id: string; name: string } | null;
+  shelter: { id: string; name: string; nameEn?: string } | null;
   unlocked: boolean;
   address: string | null;
   building: { id: string; outline: [number, number][]; groundM: number | null } | null;
@@ -420,7 +420,7 @@ export interface CaseView {
   doubtfulWhy: string | null;
   neighbours: { from: string; to: string; side: string; sure: boolean; quote: string; known: boolean; at?: string; atH: number }[];
   possibleDuplicates: string[];
-  contact: { sent: { atH: number; at: string; kind: string; text: string }[]; replies: number; unanswered: number; lastHeard: string };
+  contact: { sent: { atH: number; at: string; kind: string; text: string; en?: string }[]; replies: number; unanswered: number; lastHeard: string };
   zone: { id: string; district: string | null; level: Level | null; gap: string | null } | null;
   plans: Plan[];
   now: { atH: number; at: string };

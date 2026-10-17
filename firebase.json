@@ -1,0 +1,12 @@
+{
+  "hosting": {
+    "public": "web/firebase-public",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "**", "run": { "serviceId": "reachpoint", "region": "asia-southeast1" } }
+    ],
+    "headers": [
+      { "source": "**", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }
+    ]
+  }
+}

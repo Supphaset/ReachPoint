@@ -38,7 +38,7 @@ const whoLabels = {
   action: "→ Action",
   doubt: "? Doubt",
 };
-export function TraceLine({ who, at, what, quote, gloss, to }: Omit<TraceEntry, "id" | "atH">) {
+export function TraceLine({ who, at, what, whatEn, quote, gloss, to }: Omit<TraceEntry, "id" | "atH">) {
   return (
     <article className={`rp-trace rp-${who}`}>
       <div className="rp-trace-meta">
@@ -46,7 +46,7 @@ export function TraceLine({ who, at, what, quote, gloss, to }: Omit<TraceEntry, 
         <time>{at}</time>
       </div>
       <strong>
-        {to ? <Link to={to}>{displayText(what)}</Link> : displayText(what)}
+        {to ? <Link to={to}><Tr th={displayText(what)} en={displayText(whatEn ?? what)} /></Link> : <Tr th={displayText(what)} en={displayText(whatEn ?? what)} />}
       </strong>
       {quote && (
         <blockquote lang="th">

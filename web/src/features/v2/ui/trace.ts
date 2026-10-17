@@ -7,6 +7,7 @@ export interface TraceEntry {
   at: string;
   atH: number;
   what: string;
+  whatEn?: string;
   quote?: string;
   gloss?: string;
   to?: string;

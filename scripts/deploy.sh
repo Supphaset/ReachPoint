@@ -22,7 +22,7 @@ gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregi
 gcloud artifacts repositories describe "$REPO" --location "$REGION" --project "$PROJECT" >/dev/null 2>&1 ||
   gcloud artifacts repositories create "$REPO" --repository-format docker --location "$REGION" --project "$PROJECT"
 
-# The service runs as the default compute identity: it may call Vertex AI and read the keys, nothing else.
+# The service runs as the default compute identity: it may call Vertex AI, read the keys and persist demo rooms.
 RUNNER="$(gcloud projects describe "$PROJECT" --format 'value(projectNumber)')-compute@developer.gserviceaccount.com"
 gcloud projects add-iam-policy-binding "$PROJECT" --member "serviceAccount:$RUNNER" \
   --role roles/aiplatform.user --condition None >/dev/null
@@ -41,14 +41,14 @@ done
 
 gcloud builds submit --tag "$IMAGE" --project "$PROJECT" .
 
-# One instance keeps the in-memory demo rooms and conversations consistent; min 1 keeps it warm for judges (a restart
-# still resets the demo). No CPU throttling: the triage agent and zone briefings finish after the reply is sent.
+# One instance keeps active demo rooms consistent; Firestore restores v2 rooms after a restart.
+# Min 1 keeps it warm for judges. No CPU throttling: the triage agent and zone briefings finish after the reply is sent.
 # A voice call is a WebSocket, which Cloud Run closes at the request timeout (default 5 min): 15 min covers the
 # 10-minute voice cap. Session affinity keeps a reconnecting caller on the same instance.
-ENV="REACHPOINT_CLOCK=demo,REACHPOINT_GEMINI=$GEMINI_ROUTE,GOOGLE_CLOUD_PROJECT=$PROJECT,REACHPOINT_VOICE=$VOICE"
+ENV="RP_FIRESTORE=1,REACHPOINT_CLOCK=demo,REACHPOINT_GEMINI=$GEMINI_ROUTE,GOOGLE_CLOUD_PROJECT=$PROJECT,REACHPOINT_VOICE=$VOICE"
 ENV="$ENV,GEMINI_LIVE_LOCATION=us-central1,GEMINI_LIVE_MODEL=gemini-3.8-live"
 gcloud run deploy "$SERVICE" --image "$IMAGE" --region "$REGION" --project "$PROJECT" \
-  --allow-unauthenticated --max-instances 1 --min-instances 1 --no-cpu-throttling --memory 1Gi --cpu 1 \
+  --service-account "$RUNNER" --allow-unauthenticated --max-instances 1 --min-instances 1 --no-cpu-throttling --memory 1Gi --cpu 1 \
   --timeout 900 --session-affinity --set-env-vars "$ENV" ${SECRETS:+--set-secrets "$SECRETS"}
 
 URL="$(gcloud run services describe "$SERVICE" --region "$REGION" --project "$PROJECT" --format 'value(status.url)')"

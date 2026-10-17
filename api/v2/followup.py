@@ -201,7 +201,7 @@ def status(v, s, st: dict) -> dict:
             "water": water(w, s),
             "team": plans[-1] and {k: plans[-1].get(k) for k in ("team", "vehicle", "seats", "eta", "at")} if plans else None,
             "outcome": hh.outcome if hh else None,
-            "shelter": near and {k: near[k] for k in ("name", "km", "deepestM", "walkable", "minutes")},
+            "shelter": near and {k: near[k] for k in ("name", "nameEn", "km", "deepestM", "walkable", "minutes")},
             "nextCheck": P.label_time(max(v.now_h, last_agent) + CHECKIN_H)[-5:], "now": P.label_time(v.now_h),
             "rideRequested": s.ride_requested, "ready": sorted(set(s.ready)), "readyTotal": len(READY)}
 

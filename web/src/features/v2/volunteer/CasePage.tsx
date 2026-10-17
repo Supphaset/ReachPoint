@@ -1,3 +1,4 @@
+import { Tr } from "../ui/lang";
 import { displayText } from "../ui/trace";
 /** One family's whole story: every message with its words, why it was merged, the water at the house, neighbours,
  * what ReachPoint sent them, and the one tap a team can make. */
@@ -127,14 +128,14 @@ export function CasePage() {
                 <h2 className="v-h2">Shelter</h2>
                 {data.shelter && (h.status === "atShelter" || h.status === "toShelter") ? (
                   <p>
-                    <b>{h.status === "atShelter" ? "Checked in at" : "Walking to"} {data.shelter.name}</b>.
+                    <b>{h.status === "atShelter" ? "Checked in at" : "Walking to"} <Tr th={data.shelter.name} en={data.shelter.nameEn || data.shelter.name} /></b>.
                     {h.status === "atShelter" ? "Nobody should be at the house." : ""}
                   </p>
                 ) : null}
                 <ul className="v-list">
                   {data.shelterOptions.map((o) => (
                     <li key={o.shelterId}>
-                      <b>{o.name}</b>
+                      <b><Tr th={o.name} en={o.nameEn || o.name} /></b>
                       <span className="v-muted v-small">{o.km} km · about {o.minutes} min on foot</span>
                       {" "}
                       {o.walkable ? <span className="v2-chip is-green">walkable now · deepest {o.deepestM.toFixed(1)} m</span>
@@ -180,7 +181,7 @@ export function CasePage() {
                     <li key={i}>
                       <time className="v-muted v-small">{o.at}</time>
                       <b>{SENT[o.kind] ?? o.kind}</b>
-                      <span className="v-small">{o.text.split("\n")[0]}</span>
+                      <span className="v-small"><Tr th={o.text.split("\n")[0]} en={(o.en || o.text).split("\n")[0]} /></span>
                     </li>
                   ))}
                 </ol>
@@ -213,7 +214,7 @@ export function CasePage() {
               ) : <span className="v-muted v-small">Set your team name (top right) to record a visit.</span>}
               {team && h.status !== "atShelter" && data.shelterOptions.map(option => (
                 <button key={option.shelterId} type="button" className="v-btn" disabled={busy} onClick={() => tap("atShelter", option.shelterId)}>
-                  Checked in at {option.name}
+                  Checked in at <Tr th={option.name} en={option.nameEn || option.name} />
                 </button>
               ))}
               {outcomeError && <p className="rp-warning" role="alert">{outcomeError}</p>}

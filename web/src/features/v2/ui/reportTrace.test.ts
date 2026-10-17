@@ -61,3 +61,10 @@ describe("report trace builder", () => {
   });
 
 });
+
+it("provides English trace text for family followups", () => {
+  const status = { wantsOut: true } as NonNullable<TurnResult["status"]>;
+  const trace = buildReportTrace({ ...turn, status, effects: { household: { ...turn.effects.household!, cannotWalk: 1 } } }, 8, "06:07", 96);
+  const ride = trace.find(line => line.id.endsWith("-ride"));
+  expect(ride?.whatEn).toBe("Family wants to leave; can't walk → teams see 'needs a ride'");
+});

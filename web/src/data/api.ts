@@ -5,8 +5,6 @@
  */
 import { demoRoom } from "./room";
 
-const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "";
-
 export class ApiError extends Error {
   constructor(
     public code: string,
@@ -24,7 +22,7 @@ export function submissionId(): string {
 async function call<T>(method: "GET" | "POST", path: string, body?: object, token?: string): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${BASE}${path}`, {
+    res = await fetch(path, {
       method,
       headers: {
         "X-Demo-Room": demoRoom(),

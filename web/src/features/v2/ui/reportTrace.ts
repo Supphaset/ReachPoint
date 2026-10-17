@@ -31,13 +31,14 @@ export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string
     const route = effects.shelterRoute;
     add("shelter-route", {
       who: "physics",
+      whatEn: `Walk to ${route.nameEn ?? route.name}: deepest ~${route.deepestM} m ${route.by === "streets" ? "along the streets" : "on a direct line (no street route)"}`,
       what: `Walk to ${route.name}: deepest ~${route.deepestM} m ${route.by === "streets" ? "along the streets" : "on a direct line (no street route)"}`,
     });
   }
   if (turn.status?.wantsOut && household?.cannotWalk)
-    add("ride", { who: "rules", what: "ครอบครัวต้องการออก เดินไม่ได้ · Family wants to leave; can't walk → teams see 'needs a ride'", to });
+    add("ride", { who: "rules", what: "ครอบครัวต้องการออก เดินไม่ได้ · Family wants to leave; can't walk → teams see 'needs a ride'", whatEn: "Family wants to leave; can't walk → teams see 'needs a ride'", to });
   if (turn.status?.urgent && (afterTeamVisit || turn.status.outcome?.kind === "nobodyThere" || previous?.outcome?.kind === "nobodyThere") && turn.status.status === "open")
-    add("reopened", { who: "rules", what: "ยังมีคนอยู่ในบ้าน เปิดเคสด่วนอีกครั้ง · Team visit: someone still inside → case reopened, urgent", to });
+    add("reopened", { who: "rules", what: "ยังมีคนอยู่ในบ้าน เปิดเคสด่วนอีกครั้ง · Team visit: someone still inside → case reopened, urgent", whatEn: "Team visit: someone still inside → case reopened, urgent", to });
   if (household?.urgent)
     add("triage", {
       who: "rules",
@@ -100,5 +101,5 @@ export function buildFollowUpTrace(result: SimResult, index: number, at: string,
     checkin: "ถามไถ่ความปลอดภัยต่อ · Sent this family a safety check-in",
   };
   if (!result.message && !result.inbox) return [];
-  return [{ id: `followup-${index}`, who: "action", at, atH, turn: index, what: what[result.event] }];
+  return [{ id: `followup-${index}`, who: "action", at, atH, turn: index, what: what[result.event], whatEn: what[result.event].split(" · ")[1] }];
 }

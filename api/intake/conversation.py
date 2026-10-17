@@ -160,7 +160,7 @@ def _models() -> list[str]:
     return list(dict.fromkeys([m for m in [_FIRST] if m] + list(gemini.models(KEY_MODELS))))
 
 
-def _extract(words: list[str]) -> FloodCase:
+def _extract_models(words: list[str]) -> FloodCase:
     """The whole current record from every caller message. The next model is tried when one is busy or fails."""
     for model in _models():
         try:
@@ -177,7 +177,7 @@ def _extract(words: list[str]) -> FloodCase:
     raise HTTPException(503, "Could not read this turn. Please try again or use the one-message form.")
 
 
-def _reply(case: FloodCase, topic: str, words: list[str], lang: str, pinned: bool = False) -> str:
+def _reply_models(case: FloodCase, topic: str, words: list[str], lang: str, pinned: bool = False) -> str:
     fallback = say("danger_where", lang) if case.immediate_danger and not case.location else say("more", lang)
     instruction = REPLY_INSTRUCTION.format(language="Thai" if lang == "th" else "English")
     for model in _models():
@@ -196,6 +196,20 @@ def _reply(case: FloodCase, topic: str, words: list[str], lang: str, pinned: boo
         except Exception:
             continue
     return fallback
+
+
+def _extract(words: list[str]) -> FloodCase:
+    from api.ai.budget import within
+    case = within(20, _extract_models, words)
+    if case is None:
+        raise HTTPException(503, "Could not read this turn. Please try again or use the one-message form.")
+    return case
+
+
+def _reply(case: FloodCase, topic: str, words: list[str], lang: str, pinned: bool = False) -> str:
+    from api.ai.budget import within
+    return within(10, _reply_models, case, topic, words, lang, pinned) or say(
+        "danger_where" if case.immediate_danger and not case.location else "more", lang)
 
 
 async def _search(query: str) -> dict:

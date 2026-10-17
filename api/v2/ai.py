@@ -13,6 +13,7 @@ import os
 import re
 
 from api.ai import gemini
+from api.ai.budget import within
 from api.intake.extract import MODELS as KEY_MODELS
 from api.v2.reader import Fact, Read, normalise, read_rules
 
@@ -132,7 +133,7 @@ def _keep_neighbours(facts: list, rules) -> list:
     return keep + nb
 
 
-def read(text: str, channel: str = "chat", use_model: bool = True, timeout: float = 9.0, models: int = 1) -> Read:
+def _read(text: str, channel: str = "chat", use_model: bool = True, timeout: float = 9.0, models: int = 1) -> Read:
     """Gemini's reading when it works, else the rules. Never raises."""
     key = gemini.api_key()
     if use_model and USE_AI and LLM == "claude":
@@ -180,7 +181,7 @@ PLAN_SCHEMA = {"type": "object", "properties": {"team": {"type": "string"}, "veh
                "eta": {"type": "string", "nullable": True}, "offers": {"type": "string"}}, "required": ["zones"]}
 
 
-def read_plan(text: str) -> dict:
+def _read_plan(text: str) -> dict:
     from api.v2.plans import parse_plan
     rules = parse_plan(text)
     if USE_AI and LLM == "claude":
@@ -209,3 +210,12 @@ def read_plan(text: str) -> dict:
         except Exception:
             continue
     return {**rules, "reader": "rules"}
+
+
+def read(text: str, channel: str = "chat", use_model: bool = True, timeout: float = 9.0, models: int = 1) -> Read:
+    return within(15, _read, text, channel, use_model, timeout, models) or read_rules(text, channel)
+
+
+def read_plan(text: str) -> dict:
+    from api.v2.plans import parse_plan
+    return within(20, _read_plan, text) or {**parse_plan(text), "reader": "rules"}

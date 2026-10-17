@@ -35,7 +35,7 @@ export function FamilyStatusCard({ status }: { status: FamilyStatus }) {
         <small>Water now · 6-hour estimate</small></p>
       {water && <small><Tr th="ช่วงประมาณ" en="Estimate" /> {water.loM.toFixed(1)}–{water.hiM.toFixed(1)} m · {water.reports} <Tr th="รายงาน" en="reports" /></small>}
       <p>{status.team ? <>{status.team.team} {status.team.vehicle} ~{status.team.eta ?? "?"} <Tr th="(ยังไม่ยืนยัน)" en="Team plan · not confirmed" /></> : <><Tr th="ยังไม่มีทีมวางแผน" en="No team planned yet" /></>}</p>
-      <p>{status.shelter ? <><Tr th="ศูนย์พักพิง" en="Shelter" /> {status.shelter.name} · {status.shelter.km} km · <Tr th="ลึกสุด" en="deepest" /> {status.shelter.deepestM} m<small>Nearest shelter · deepest {status.shelter.deepestM} m</small></> : <><Tr th="ศูนย์พักพิง: ไม่ทราบ" en="Shelter unknown" /></>}</p>
+      <p>{status.shelter ? <><Tr th="ศูนย์พักพิง" en="Shelter" /> <Tr th={status.shelter.name} en={status.shelter.nameEn || status.shelter.name} /> · {status.shelter.km} km · <Tr th="ลึกสุด" en="deepest" /> {status.shelter.deepestM} m<small>Nearest shelter · deepest {status.shelter.deepestM} m</small></> : <><Tr th="ศูนย์พักพิง: ไม่ทราบ" en="Shelter unknown" /></>}</p>
       <p><Tr th={<>เช็กอินถัดไป {status.nextCheck}</>} en={<>Next check-in {status.nextCheck}</>} /></p>
     </div>
   </details>;

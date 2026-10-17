@@ -216,3 +216,14 @@ Access date: **2026-10-13** (Asia/Bangkok). New documents describe the local cod
 | J8 | [Hat Yai request-channel survey](https://rocketmedialab.co/flood-relief-system/), Rocket Media Lab | Describes LINE/chat intake and caller location sharing among existing help channels | Full article rechecked; published 2025-11-25. Secondary survey, not a current runtime audit of plain groups or integrated services. |
 
 Secret Manager is assumed negligible at small demo volume; Pinpoint pricing and aggregate token/map usage were not verified. Cost assumptions are not spend approval. The proposed pilot and sustainability options are team hypotheses, with no partner, funding or adoption evidence.
+
+## Demo persistence and Hosting — 2026-10-17
+
+Access date: **2026-10-17**. Configuration instructions, not evidence of a live deployment.
+
+| ID | Primary source | Finding | Limitation |
+|---|---|---|---|
+| DH1 | [Firestore database management](https://docs.cloud.google.com/firestore/native/docs/manage-databases) | CLI database creation supports explicit database ID, location and Native mode | Existing project database and permissions not queried |
+| DH2 | [Firestore IAM](https://docs.cloud.google.com/firestore/native/docs/security/iam) | Server clients use IAM; `roles/datastore.user` grants data access | Cloud Run identity is derived from the deploy script, not a live service inspection |
+| DH3 | [Hosting Cloud Run rewrites](https://firebase.google.com/docs/hosting/cloud-run) | Hosting forwards dynamic paths to a configured service/region and has a 60-second timeout | Firebase project registration and deployed routing not tested |
+| DH4 | [Cloud Run WebSockets](https://docs.cloud.google.com/run/docs/triggering/websockets) | WebSocket streams are supported and subject to Cloud Run request timeout | Cross-origin acceptance checked in local handlers; no live microphone or network test |

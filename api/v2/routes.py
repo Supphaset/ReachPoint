@@ -10,12 +10,13 @@ from dataclasses import dataclass, field
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from api.v2 import ai, board as B, geo as G, intake as I, pipeline as P
+from api.v2 import ai, board as B, geo as G, intake as I, pipeline as P, store as S
 from api.v2.reader import Fact, Read
 
 router = APIRouter(prefix="/api/v2")
 DEFAULT_NOW_H = 96.0  # 25 Nov 06:00: the water is rising toward the peak (9.97 m at 10:00)
 _rooms_ref = None
+_room_lock = threading.Lock()
 
 
 @dataclass
@@ -47,10 +48,18 @@ def bind(rooms) -> None:
 
 
 def room() -> V2Room:
-    r = _rooms_ref.get(_rooms_ref.current_id.get())
-    if not hasattr(r, "v2"):
-        r.v2 = V2Room()
+    room_id = _rooms_ref.current_id.get()
+    r = _rooms_ref.get(room_id)
+    with _room_lock:
+        if not hasattr(r, "v2"):
+            r.v2 = V2Room(**(S.load(room_id) or {}))
+            r.v2._room_id = room_id
     return r.v2
+
+
+@router.get("/health")
+def health():
+    return {"ok": True, **S.status()}
 
 
 def _state(v: V2Room, at_h: float | None = None) -> dict:
@@ -173,10 +182,16 @@ class ClockIn(BaseModel):
 @router.post("/clock")
 def clock(body: ClockIn):
     v = room()
-    with v.lock:
-        if body.action == "reset":
-            v.__init__()
-        elif body.action == "advance":
+    if body.action == "reset":
+        with v.lock:
+            fresh = V2Room()
+            for key in S.FIELDS:
+                setattr(v, key, getattr(fresh, key))
+            v.__dict__.pop("_cache", None)
+            S.delete(v._room_id)
+        return {"now": {"atH": v.now_h, "at": P.label_time(v.now_h)}, "action": body.action}
+    with S.changing(v):
+        if body.action == "advance":
             v.now_h += 0.5
         elif body.action == "morning":
             h = int(v.now_h) + 1
@@ -212,7 +227,8 @@ class TurnIn(BaseModel):
 def new_chat(lang: str = "th"):
     v = room()
     s = I.new_session("en" if lang == "en" else "th")
-    v.sessions[s.id] = s
+    with S.changing(v):
+        v.sessions[s.id] = s
     return s.view()
 
 
@@ -295,7 +311,7 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
     if s is None:
         raise HTTPException(404, "No such conversation")
     text = said.strip()
-    with v.lock:
+    with S.changing(v):
         lang = I.lang_of(text, s.lang)
         s.lang = lang
         s.transcript.append({"role": "person", "text": text, "channel": channel})
@@ -493,7 +509,7 @@ def simulate(sid: str, body: SimIn):
     s = v.sessions.get(sid)
     if s is None:
         raise HTTPException(404, "No such conversation")
-    with v.lock:
+    with S.changing(v):
         out = F.simulate(v, s, body.event, s.lang)
     if out.get("error"):
         raise HTTPException(409, out["error"])
@@ -513,7 +529,8 @@ def session_ready(sid: str, body: ReadyIn):
     s = v.sessions.get(sid)
     if s is None:
         raise HTTPException(404, "No such conversation")
-    s.ready = sorted({i for i in body.done if 0 <= i < len(F.READY)})
+    with S.changing(v):
+        s.ready = sorted({i for i in body.done if 0 <= i < len(F.READY)})
     return F.status(v, s, _state(v))
 
 
@@ -572,7 +589,7 @@ class PlanIn(BaseModel):
 def post_plan(body: PlanIn):
     v = room()
     parsed = ai.read_plan(body.text)
-    with v.lock:
+    with S.changing(v):
         v.seq += 1
         p = {"id": f"LP{v.seq}", "atH": v.now_h, "text": body.text, "_parsed": {k: parsed.get(k) for k in ("team", "vehicle", "seats", "zones", "eta", "offers")}}
         if body.team and body.team.strip():
@@ -608,12 +625,14 @@ def v_zone(zid: str, team: str | None = None):
 
 
 @router.get("/v/cases/{hid}")
-def v_case(hid: str, team: str | None = None):
+def v_case(hid: str, team: str | None = None, lang: str = "th"):
     from api.v2 import cases as C
     v = room()
     out = C.case(_state(v), v.messages, hid, team)
     if out is None:
         raise HTTPException(404, "No such household")
+    if lang == "en":
+        out["contact"]["sent"] = [{**o, "text": o.get("en") or o["text"]} for o in out["contact"]["sent"]]
     return out
 
 
@@ -628,7 +647,7 @@ def v_outcome(hid: str, body: OutcomeIn):
     """A team's one tap: picked up, or nobody there. The family's phone is told; the board counts it."""
     from api.v2 import cases as C
     v = room()
-    with v.lock:
+    with S.changing(v):
         if hid not in _state(v)["world"].households:
             raise HTTPException(404, "No such household")
         v.seq += 1
@@ -657,7 +676,7 @@ class FirstIn(BaseModel):
 def v_first(hid: str, body: FirstIn):
     from api.v2 import cases as C
     v = room()
-    with v.lock:
+    with S.changing(v):
         if hid not in _state(v)["world"].households:
             raise HTTPException(404, "No such household")
         if body.first:

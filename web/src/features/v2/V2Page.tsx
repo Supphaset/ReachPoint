@@ -158,7 +158,7 @@ export function V2Page() {
         </div>
         {error && <p role="alert" className="rp-warning">{error}</p>}
         <ReportTabs tab={tab} onChange={setTab} />
-        {toast && <button className="rp-ai-toast" onClick={() => setTab("ai")}><b>{toast.who === "gemini" ? "Gemini" : toast.who === "physics" ? t("แบบจำลอง · Physics", "Physics") : t("กติกา · Rules", "Rules")}</b> · {displayText(toast.what)}</button>}
+        {toast && <button className="rp-ai-toast" onClick={() => setTab("ai")}><b>{toast.who === "gemini" ? "Gemini" : toast.who === "physics" ? t("แบบจำลอง · Physics", "Physics") : t("กติกา · Rules", "Rules")}</b> · <Tr th={displayText(toast.what)} en={displayText(toast.whatEn ?? toast.what)} /></button>}
         <div className="rp-report-layout" data-tab={tab}>
           <section className="rp-report-phone">
             <h2 className="rp-column-heading"><span>①</span> <Tr th="แชทครอบครัว" en="Her phone" /></h2>

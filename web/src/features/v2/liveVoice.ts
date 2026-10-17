@@ -1,3 +1,4 @@
+import { wsOrigin } from "../../data/wsOrigin";
 /**
  * A Gemini Live voice call with the intake agent (server: api/v2/live.py). Adapted from Earth's
  * features/intake/gemini-live.ts: microphone → 16 kHz PCM over a WebSocket; Gemini's 24 kHz voice back.
@@ -43,8 +44,7 @@ export class LiveCall {
     this.ctx = new AudioContext();
     await this.ctx.resume();
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-    const base = new URL(window.location.origin);
-    base.protocol = base.protocol === "https:" ? "wss:" : "ws:";
+    const base = wsOrigin(window.location.origin);
     const ws = new WebSocket(new URL(`/api/v2/chat/sessions/${this.sessionId}/live?room=${encodeURIComponent(demoRoom())}`, base));
     ws.binaryType = "arraybuffer";
     this.ws = ws;
