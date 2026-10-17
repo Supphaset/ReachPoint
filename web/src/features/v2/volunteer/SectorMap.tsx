@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../../data/googleMaps";
-import type { BoardState, GeoView, OverviewZone, Shelter } from "../api";
+import type { BoardState, GeoView, OverviewZone, Shelter, UrgentCase } from "../api";
 import { useFloodCanvas } from "../BoardMap";
 import { bindFloodZoom } from "../floodLayer";
 import type { Selection } from "./selection";
@@ -19,8 +19,17 @@ export function needBand(zone: OverviewZone | undefined, maximum: number) {
   return zone.score > maximum * 0.66 ? 3 : zone.score > maximum * 0.33 ? 2 : 1;
 }
 
-/** Shared geometry and ids drive both sector outlines and the ranked list. No household pins are exposed. */
-export function DrawnSectorMap({ geo, zones, selection, onZone, onSector }: { geo: GeoView | null; zones: OverviewZone[]; selection: Selection; onZone: (id: string) => void; onSector: (id: string) => void }) {
+/** Greedy placement in priority order, in projected pixels; runs again whenever the map draws. */
+export function deoverlapLabels<T extends { x: number; y: number }>(candidates: T[], distance = 70): T[] {
+  const placed: T[] = [];
+  for (const candidate of candidates) {
+    if (placed.every(point => Math.hypot(point.x - candidate.x, point.y - candidate.y) >= distance)) placed.push(candidate);
+  }
+  return placed;
+}
+
+/** Shared geometry and ids drive both outlines and the list; urgent dots use only API-provided positions. */
+export function DrawnSectorMap({ geo, zones, selection, onZone, onSector, urgentCases, onCase }: { urgentCases?: UrgentCase[]; onCase?: (id: string) => void; geo: GeoView | null; zones: OverviewZone[]; selection: Selection; onZone: (id: string) => void; onSector: (id: string) => void }) {
   const frame = useRef<SVGSVGElement>(null);
   const [zoom, setZoom] = useState(1);
   const [size, setSize] = useState({ width: 900, height: 700 });
@@ -45,7 +54,7 @@ export function DrawnSectorMap({ geo, zones, selection, onZone, onSector }: { ge
   const y = (lat: number) => size.height / 2 - (lat - (south + north) / 2) * scale;
   const path = (feature: GeoJSON.Feature) => rings(feature).map(ring => ring.map(([lon, lat], index) => `${index ? "L" : "M"}${x(lon)} ${y(lat)}`).join(" ") + "Z").join(" ");
   const maximum = Math.max(1, ...zones.map(zone => zone.score));
-  const top = [...zones].sort((a, b) => b.score - a.score).slice(0, 8).map(zone => zone.id);
+  const top = [...zones].sort((a, b) => b.score - a.score).slice(0, 5).map(zone => zone.id);
   return <><div className="p3-fallback-zoom" aria-label="ซูม · Zoom"><button aria-label="ขยาย · Zoom in" onClick={() => setZoom(value => Math.min(3, value + 0.25))}>+</button><button aria-label="ย่อ · Zoom out" onClick={() => setZoom(value => Math.max(0.75, value - 0.25))}>−</button></div><svg ref={frame} className="p3-sector-map" viewBox={`0 0 ${size.width} ${size.height}`} aria-label="Team zones by help missing; thick sector boundaries A to G">
     {geo.zones.features.map(feature => {
       const id = String(feature.properties?.id);
@@ -56,6 +65,13 @@ export function DrawnSectorMap({ geo, zones, selection, onZone, onSector }: { ge
         {((selection.sector && zone?.sector === selection.sector) || top.includes(id)) && <text x={x((b[0] + b[2]) / 2)} y={y((b[1] + b[3]) / 2)} className="p3-zone-label">{id} · {zone?.label ?? "ไม่ทราบชื่อ"}</text>}
       </g>;
     })}
+    {(urgentCases ?? []).filter(row => row.lon != null && row.lat != null).map(row => <g key={row.id} className="p3-drawn-urgent" role="button" tabIndex={0}
+      aria-label={`ด่วน · Urgent ${row.id}`} onClick={() => onCase?.(row.id)}
+      onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onCase?.(row.id); } }}>
+      <circle cx={x(row.lon!)} cy={y(row.lat!)} r="22" className="p3-drawn-hit" />
+      <circle cx={x(row.lon!)} cy={y(row.lat!)} r="5" />
+      {row.markedFirst && <text x={x(row.lon!)} y={y(row.lat!) - 10}>★</text>}
+    </g>)}
     {sectorFeatures.map(feature => {
       const id = String(feature.properties?.id);
       const b = bounds([feature]);
@@ -63,7 +79,8 @@ export function DrawnSectorMap({ geo, zones, selection, onZone, onSector }: { ge
       return <g key={id} style={{ color: `var(--sector-${id})` }}>
         <path d={path(feature)} className={`p3-sector ${highlighted ? "is-highlighted" : ""}`} />
         <g className="p3-sector-badge" role="button" tabIndex={0} aria-label={`Sector ${id}`} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSector(id); } }} onClick={() => onSector(id)}>
-          <circle cx={x((b[0] + b[2]) / 2)} cy={y((b[1] + b[3]) / 2)} r="22" />
+          <circle className="p3-badge-hit" cx={x((b[0] + b[2]) / 2)} cy={y((b[1] + b[3]) / 2)} r="22" />
+          <circle cx={x((b[0] + b[2]) / 2)} cy={y((b[1] + b[3]) / 2)} r="15" />
           <text x={x((b[0] + b[2]) / 2)} y={y((b[1] + b[3]) / 2)}>{id}</text>
         </g>
       </g>;
@@ -76,6 +93,8 @@ type Props = Parameters<typeof DrawnSectorMap>[0] & {
   /** The replay hour and message count: the water layer redraws (model + reports) when either changes. */
   water?: { hour: number; messages: number };
   shelters?: Shelter[];
+  urgentCases?: UrgentCase[];
+  onCase?: (id: string) => void;
 };
 
 /** What the depth means for a team: the first thing a volunteer asks is "can we get there, and with what?" */
@@ -101,22 +120,46 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
   const overlays: Maps[] = [];
   if (!geo) return () => undefined;
   const maximum = Math.max(1, ...zones.map(zone => zone.score));
-  const top = [...zones].sort((a, b) => b.score - a.score).slice(0, 8).map(zone => zone.id);
-  const label = (feature: GeoJSON.Feature, text: string, sector: boolean, select: () => void) => {
+  const top = [...zones].sort((a, b) => b.score - a.score).slice(0, 5).map(zone => zone.id);
+  // city view: bubbles only on the 12 zones with the most urgent cases; a chosen sector shows all of its zones
+  const mostUrgent = new Set([...zones].filter(zone => zone.urgent).sort((a, b) => b.urgent - a.urgent).slice(0, 12).map(zone => zone.id));
+  const labelFeatures = [...geo.zones.features].sort((a, b) =>
+    (zones.find(zone => zone.id === b.properties?.id)?.score ?? 0) - (zones.find(zone => zone.id === a.properties?.id)?.score ?? 0));
+  const label = (feature: GeoJSON.Feature, text: string, sector: boolean, select: () => void, bubble = false) => {
     const [lng, lat] = featureCentroid(feature);
-    // Overlay buttons provide keyboard selection and paper-backed place labels.
     const overlay = new maps.OverlayView();
     const button = document.createElement("button");
-    button.className = sector ? "p3-google-badge" : "p3-google-label";
+    const zone = zones.find(item => item.id === feature.properties?.id);
+    button.className = sector ? "p3-google-badge" : bubble ? `p3-count-bubble${zone?.urgent ? " is-urgent" : ""}` : "p3-google-label";
     button.textContent = text;
-    button.setAttribute("aria-label", sector ? `พื้นที่ · Sector ${text}` : `โซน · Zone ${text}`);
+    button.setAttribute("aria-label", sector ? `พื้นที่ · Sector ${text}` : `โซน · Zone ${feature.properties?.id} · ${text}`);
     button.setAttribute("aria-pressed", String(sector ? selection.sector === text : selection.zone === feature.properties?.id));
     button.onclick = select;
     maps.OverlayView.preventMapHitsAndGesturesFrom?.(button);
     overlay.onAdd = () => overlay.getPanes().overlayMouseTarget.appendChild(button);
     overlay.draw = () => {
-      const point = overlay.getProjection().fromLatLngToDivPixel(new maps.LatLng(lat, lng));
-      if (point) { button.style.left = `${point.x}px`; button.style.top = `${point.y}px`; }
+      const projection = overlay.getProjection();
+      const zoom = map.getZoom() ?? 12;
+      const point = projection.fromLatLngToDivPixel(new maps.LatLng(lat, lng));
+      let visible = sector ? zoom <= 14 : true;
+      if (!sector && !bubble) {
+        const candidates = labelFeatures.filter(item => {
+          const id = String(item.properties?.id);
+          return zoom >= 16 || top.includes(id) || zones.find(zone => zone.id === id)?.sector === selection.sector && !!selection.sector;
+        }).flatMap(item => {
+          const [lon, latitude] = featureCentroid(item);
+          const position = new maps.LatLng(latitude, lon);
+          const container = projection.fromLatLngToContainerPixel(position);
+          const div = projection.fromLatLngToDivPixel(position);
+          const host = map.getDiv();
+          // Reserve the control strip and keep labels inside the visible map.
+          if (!container || !div || container.x < 24 || container.x > host.clientWidth - 24 || container.y < 76 || container.y > host.clientHeight - 60) return [];
+          return [{ id: String(item.properties?.id), x: div.x, y: div.y }];
+        });
+        visible = deoverlapLabels(candidates).some(item => item.id === feature.properties?.id);
+      }
+      button.hidden = !visible || !point;
+      if (point) { button.style.left = `${point.x}px`; button.style.top = `${point.y - (!sector && !bubble && waterOn && zone?.open ? 36 : 0)}px`; }
     };
     overlay.onRemove = () => { button.onclick = null; button.remove(); };
     overlay.setMap(map);
@@ -129,17 +172,18 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     const paths = rings(feature).map(ring => ring.map(([lng, lat]) => ({ lng, lat })));
     const components = feature.geometry.type === "MultiPolygon" ? feature.geometry.coordinates.map(polygon => polygon.map(ring => ring.map(([lng, lat]) => ({ lng, lat })))) : [paths];
     for (const component of components) {
-    const polygon = new maps.Polygon({ map, paths: component, fillColor: token(`--need-${band}`), fillOpacity: waterOn ? FILL[band] * 0.45 : FILL[band],
+      const polygon = new maps.Polygon({ map, paths: component, fillColor: token(`--need-${band}`), fillOpacity: waterOn ? 0 : FILL[band],
       strokeColor: token("--ink-1"), strokeWeight: selection.zone === id ? 5 : zone?.open && !zone.plans ? 2 : 1,
       strokeOpacity: selection.zone === id ? 1 : 0.55, zIndex: selection.zone === id ? 3 : 1 });
-    polygon.addListener("click", () => onZone(id));
-    overlays.push(polygon);
+      polygon.addListener("click", () => onZone(id));
+      overlays.push(polygon);
     }
-    if (top.includes(id) || (selection.sector && zone?.sector === selection.sector)) {
-      // rising water is the one thing worth an arrow on the map itself
-      const arrow = zone?.water?.trend === "rising" ? " ↑" : zone?.water?.trend === "falling" ? " ↓" : "";
-      label(feature, `${id} · ${zone?.label ?? feature.properties?.label ?? "ไม่ทราบชื่อ"}${arrow}`, false, () => onZone(id));
-    }
+    // One bubble per zone with urgent cases (the count in red); waiting-only counts appear inside a chosen sector.
+    // A bubble on every zone made the map unreadable.
+    const inSector = !!selection.sector && zone?.sector === selection.sector;
+    if (waterOn && zone?.open && ((zone.urgent && mostUrgent.has(id)) || inSector)) label(feature, String(zone.urgent || zone.open), false, () => onZone(id), true);
+    const arrow = zone?.water?.trend === "rising" ? " ↑" : zone?.water?.trend === "falling" ? " ↓" : "";
+    label(feature, `${id} · ${zone?.label ?? feature.properties?.label ?? "ไม่ทราบชื่อ"}${arrow}`, false, () => onZone(id));
   }
   for (const feature of geo.sectors?.features ?? []) {
     const id = String(feature.properties?.id);
@@ -149,13 +193,32 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     overlays.push(polygon);
     label(feature, id, true, () => onSector(id));
   }
+  for (const row of props.urgentCases ?? []) {
+    if (row.lon == null || row.lat == null) continue;
+    const overlay = new maps.OverlayView();
+    const button = document.createElement("button");
+    button.className = `p3-urgent-dot${row.markedFirst ? " is-first" : ""}`;
+    button.textContent = row.markedFirst ? "★" : "";
+    button.setAttribute("aria-label", `ด่วน · Urgent ${row.id}${row.markedFirst ? ` · ทำก่อน · Do first ${row.markedFirst.team}` : ""}`);
+    button.onclick = () => props.onCase?.(row.id);
+    maps.OverlayView.preventMapHitsAndGesturesFrom?.(button);
+    overlay.onAdd = () => overlay.getPanes().overlayMouseTarget.appendChild(button);
+    overlay.draw = () => {
+      const point = overlay.getProjection().fromLatLngToDivPixel(new maps.LatLng(row.lat, row.lon));
+      if (point) { button.style.left = `${point.x}px`; button.style.top = `${point.y}px`; }
+    };
+    overlay.onRemove = () => { button.onclick = null; button.remove(); };
+    overlay.setMap(map);
+    overlays.push(overlay);
+  }
   // Shelters: where a team drops people off. Green dot, name on hover/tap.
   for (const shelter of props.shelters ?? []) {
     overlays.push(new maps.Marker({ map, position: { lat: shelter.lat, lng: shelter.lon }, zIndex: 4,
       title: `ศูนย์พักพิง · Shelter: ${shelter.name}${shelter.capacity ? ` (${shelter.households}/${shelter.capacity})` : ""}`,
       icon: { path: maps.SymbolPath.CIRCLE, scale: 7, fillColor: token("--shelter"), fillOpacity: 1, strokeColor: token("--shelter-ink"), strokeWeight: 2 } }));
   }
-  return () => overlays.forEach(overlay => { maps.event.clearInstanceListeners(overlay); overlay.setMap(null); });
+  const zoomListener = map.addListener?.("zoom_changed", () => overlays.forEach(overlay => overlay.draw?.()));
+  return () => { zoomListener?.remove(); overlays.forEach(overlay => { maps.event.clearInstanceListeners(overlay); overlay.setMap(null); }); };
 }
 
 export function SectorMap(props: Props) {
@@ -216,7 +279,8 @@ export function SectorMap(props: Props) {
   latest.current = props;
   const { selection } = props;
   const drawn = [props.geo?.zones.features.length ?? 0, waterOn, props.shelters?.length ?? 0, selection.zone, selection.sector, selection.hover,
-    ...props.zones.map(zone => `${zone.id}:${zone.score}:${zone.open}:${zone.plans}:${zone.water?.trend}`)].join("|");
+    ...(props.urgentCases ?? []).map(row => `${row.id}:${row.lon}:${row.lat}:${row.markedFirst?.team}:${row.markedFirst?.at}`),
+    ...props.zones.map(zone => `${zone.id}:${zone.label}:${zone.score}:${zone.open}:${zone.urgent}:${zone.plans}:${zone.water?.trend}`)].join("|");
   useEffect(() => {
     if (!ready) return;
     const styles = getComputedStyle(document.documentElement);
@@ -247,11 +311,16 @@ export function SectorMap(props: Props) {
       <button aria-pressed={kind === "hybrid"} onClick={() => setKind("hybrid")}>ดาวเทียม<small>Satellite</small></button>
       {props.water && <button aria-pressed={waterOn} onClick={() => setWaterOn(value => !value)}>น้ำ<small>Water</small></button>}
     </div>}
-    {ready && waterOn && props.water && <div className="p3-water-key" aria-label="ระดับน้ำ ไปด้วยอะไร · Water depth and how to get there">
+    <details className="p3-map-legend">
+      <summary>คำอธิบาย · Legend</summary>
+      <div className="p3-water-key" aria-label="ระดับน้ำและความต้องการ · Water and needs">
+      <div className="p3-legend">{["ไม่มีครอบครัวรอ · None waiting", "น้อย · Lower", "ปานกลาง · More", "มากสุด · Most help missing"].map((label, index) => <span key={label}><i style={{ background: `var(--need-${index})` }} />{label}</span>)}</div>
+      <p>เปิดชั้นน้ำ: ตัวเลขแดง = ด่วน ตัวเลขหมึก = รอ · Water on: red counts urgent, ink counts waiting. ไม่ทราบไม่ใช่แห้ง · Unknown is never dry.</p>
       <b>ระดับน้ำ · ไปด้วยอะไร <small>Water · go by</small></b>
       {GO_BY.map(([token, th, en]) => <span key={token}><i style={{ background: `var(${token})` }} />{th}<small>{en}</small></span>)}
       <span><i className="is-shelter" />ศูนย์พักพิง<small>shelter</small></span>
-    </div>}
+      </div>
+    </details>
   </div>;
 }
 

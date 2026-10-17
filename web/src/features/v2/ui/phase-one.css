@@ -124,14 +124,6 @@
   color: var(--ink-3);
   font-size: 14px;
 }
-.rp-demo {
-  position: relative;
-}
-.rp-demo summary {
-  padding: 12px;
-  min-height: 44px;
-  list-style: none;
-}
 .rp-menu {
   position: absolute;
   right: 0;
@@ -643,9 +635,6 @@
   .rp-steps button {
     padding: 8px;
   }
-  .rp-demo {
-    margin-left: auto;
-  }
   .rp-hero {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -693,13 +682,6 @@
   }
   .rp-replay {
     margin-left: auto;
-  }
-  .rp-demo {
-    margin-left: 0;
-  }
-  .rp-demo summary {
-    font-size: 14px;
-    padding: 10px 4px;
   }
   .rp-steps {
     font-size: 14px;
@@ -923,7 +905,7 @@
 /* Round 2 report: quiet map, central phone stage, evidence rail. */
 .rp-report-app .rp-main {
   max-width: 1600px;
-  padding-bottom: 220px;
+  padding-bottom: 24px;
 }
 .rp-report-app h1 {
   font-size: 28px;
@@ -1089,69 +1071,8 @@
 .rp-trace-timeline .rp-trace strong {
   font-size: 16px;
 }
-.rp-demo-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 90;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s2) var(--s3);
-  padding: var(--s3) var(--s6);
-  background: var(--night);
-  color: var(--on-night);
-  font: 14px/1.4 var(--font-sans);
-}
-.rp-demo-title {
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-}
-.rp-demo-bar small {
-  display: block;
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--on-night-2);
-}
-.rp-demo-bar time {
-  color: var(--on-night-2);
-  font-family: var(--font-mono);
-}
-.rp-demo-events, .rp-demo-clock {
-  display: flex;
-  gap: var(--s2);
-  overflow-x: auto;
-  min-width: 0;
-  max-width: 100%;
-  padding: var(--s1);
-}
-.rp-demo-events .chip, .rp-demo-clock .chip {
-  flex: none;
-  max-width: 270px;
-  white-space: normal;
-  text-align: left;
-}
-.rp-demo-events .chip {
-  flex-direction: column;
-  align-items: start;
-}
-.rp-demo-bar .chip.next {
-  border-color: var(--water-2);
-  box-shadow: 0 0 0 2px var(--physics);
-}
-.rp-demo-bar .chip.done {
-  color: var(--on-night-2);
-}
-.rp-demo-bar p {
-  width: 100%;
-  margin: 0;
-  color: var(--on-night-2);
-  font-size: 14px;
-}
 .rp-app .rp-main {
-  padding-bottom: 220px;
+  padding-bottom: 24px;
 }
 @media (max-width: 1300px) {
   .rp-report-layout {
@@ -1187,22 +1108,6 @@
   .rp-trace-timeline {
     height: 500px;
   }
-  .rp-demo-bar {
-    padding: var(--s2);
-    gap: var(--s1);
-  }
-  .rp-demo-title {
-    width: 100%;
-  }
-  .rp-demo-title time {
-    margin-left: auto;
-  }
-  .rp-demo-events, .rp-demo-clock {
-    width: 100%;
-  }
-  .rp-demo-bar .chip {
-    max-width: 230px;
-  }
   .rp-report-layout .v2-chat {
     height: 480px;
   }
@@ -1210,22 +1115,10 @@
     font-size: 24px;
   }
 }
-.rp-report-app .p4-checklist label {
-  display: flex;
-}
-.rp-demo-bar, .rp-demo-bar * {
-  box-sizing: border-box;
-}
-.rp-demo-bar :focus-visible {
-  outline: 3px solid var(--water-2);
-  outline-offset: 2px;
-}
+
 @media (max-width: 700px) {
-  .rp-demo-title {
-    flex-wrap: wrap;
-  }
   .rp-app .rp-main {
-    padding-bottom: 300px;
+    padding-bottom: 24px;
   }
 }
 .rp-trace-group > summary {
@@ -1246,10 +1139,8 @@
   font-size: 14px;
   font-weight: 400;
 }
-
-.rp-phone-tabs, .rp-ai-toast, .rp-demo-handle { display: none; }
 @media (max-width: 759px) {
-  .rp-report-app .rp-main { padding: 12px 12px 100px; }
+  .rp-report-app .rp-main { padding: 12px; }
   .rp-report-app .rp-section-head { margin-bottom: 12px; }
   .rp-phone-tabs { display: flex; position: sticky; top: 0; z-index: 20; background: var(--surface); margin-bottom: 12px; }
   .rp-phone-tabs button { flex: 1; min-height: 44px; }
@@ -1262,32 +1153,107 @@
   .rp-report-layout .v2-chat { height: max(330px, calc(100dvh - 420px)); }
   .rp-report-layout .rp-report-map { height: 55dvh; }
   .rp-ai-toast { display: block; width: 100%; min-height: 44px; text-align: left; padding: 8px 12px; margin-bottom: 12px; border: 1px solid var(--gemini); border-radius: var(--r-ctl); color: var(--gemini); background: var(--gemini-bg); font-size: 14px; overflow-wrap: anywhere; }
-  .rp-demo-bar { display: block; padding: 8px 12px max(8px, env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0; max-height: 70dvh; overflow-y: auto; }
-  .rp-demo-handle { display: block; min-height: 44px; width: 100%; border: 0; background: var(--night); color: var(--on-night); font: 14px var(--font-sans); }
-  .rp-demo-bar:not(.is-expanded) > :not(.rp-demo-handle) { display: none; }
-  .rp-demo-bar.is-expanded .rp-demo-title { margin-bottom: 8px; }
-  .rp-demo-events, .rp-demo-clock { display: flex; margin-block: 8px; }
   .rp-report-app .rp-column-heading { font-size: 16px; }
 }
 
-/* Desktop: one slim row — title, events, status; the clock opens as a second row on demand. */
+/* Phone view tabs. */
 .rp-phone-tabs.seg { display: none; }
-.rp-demo-bar { flex-wrap: wrap; padding: var(--s2) var(--s6); }
-.rp-demo-events .chip { flex-direction: row; align-items: center; gap: var(--s2); white-space: nowrap; max-width: none; }
-.rp-demo-next { font-size: 14px; color: var(--water-2); }
-.rp-demo-bar p { width: auto; flex: 1 1 240px; min-width: 0; }
-.rp-app .rp-main { padding-bottom: 140px; }
+.rp-app .rp-main { padding-bottom: 24px; }
 @media (max-width: 760px) {
   .rp-phone-tabs.seg { display: flex; }
 }
 
-/* Fit the whole phone (header to composer) above the demo bar on a laptop screen. */
-@media (min-width: 761px) { .rp-report-layout .v2-chat { height: clamp(300px, calc(100vh - 540px), 560px); } }
-@media (min-width: 761px) {
-  .rp-demo-title { order: 0; }
-  .rp-demo-bar p { order: 1; }
-  .rp-demo-events, .rp-demo-clock { order: 2; width: 100%; flex-wrap: nowrap; }
-}
+
 .rp-phone-tabs button { flex-direction: column; gap: 0; line-height: 1.2; }
 .rp-phone-tabs button small { display: block; font-size: 14px; }
-.rp-demo-bar .rp-demo-handle { background: transparent; color: var(--on-night); border: 0; width: 100%; min-height: 44px; font: 600 15px var(--font-sans); }
+
+/* A floating launcher returns the bottom of the screen to the product. */
+.rp-demo-launcher {
+  position: fixed;
+  right: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 150;
+  max-width: min(520px, calc(100vw - 32px));
+  font: 14px/1.4 var(--font-sans);
+  color: var(--on-night);
+}
+.rp-demo-buttons { display: flex; justify-content: end; gap: 8px; }
+.rp-demo-launcher button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 12px;
+  font: inherit;
+  border: 1px solid var(--night-line);
+  color: var(--on-night);
+  background: var(--night);
+  border-radius: var(--r-ctl);
+  cursor: pointer;
+}
+.rp-demo-launcher .rp-demo-primary { border-radius: 28px; text-align: left; }
+.rp-demo-launcher button:disabled { opacity: .55; cursor: wait; }
+.rp-demo-launcher :focus-visible { outline: 2px solid var(--on-night); outline-offset: 2px; }
+.rp-demo-hint { background: var(--night); padding: 8px; border-radius: var(--r-ctl); margin-top: 4px; }
+.rp-demo-popover {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 0;
+  width: min(360px, calc(100vw - 32px));
+  max-height: 75dvh;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--night);
+  border: 1px solid var(--night-line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-sheet);
+}
+.rp-demo-popover[hidden] { display: none; }
+.rp-demo-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rp-demo-title time { flex: 1; color: var(--on-night-2); }
+.rp-demo-popover p { font-size: 14px; margin-block: 12px; color: var(--on-night-2); }
+.rp-demo-events, .rp-demo-clock { display: grid; gap: 4px; margin-top: 8px; }
+.rp-demo-events button { justify-content: start; text-align: left; white-space: normal; }
+.rp-demo-launcher .done { color: var(--on-night-2); }
+.rp-demo-launcher small { display: block; font-size: 14px; color: var(--on-night-2); }
+.rp-demo-clock { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rp-demo-clock-toggle { width: 100%; text-align: left; }
+@media (min-width: 760px) {
+  .rp-report-app { display: flex; flex-direction: column; height: 100dvh; min-height: 0; }
+  .rp-report-app > .rp-header { flex: none; }
+  .rp-report-app .rp-main { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; padding-top: 12px; padding-bottom: 12px; }
+  .rp-report-app .rp-section-head { margin-bottom: 12px; }
+  .rp-report-layout { grid-template-columns: minmax(0, .8fr) minmax(0, 1fr) minmax(0, 1.1fr); gap: 16px; flex: 1; min-height: 0; }
+  .rp-report-phone { grid-column: 2; }
+  .rp-report-trace { grid-column: 3; }
+  .rp-report-layout > .rp-report-aside { grid-column: 1; grid-row: 1; min-height: 0; overflow-y: auto; }
+  .rp-report-phone, .rp-report-trace { display: flex; flex-direction: column; min-height: 0; }
+  .rp-phone-stage { flex: 1; min-height: 0; padding: 12px; }
+  .rp-phone-stage .p4-family { height: 100%; min-height: 0; }
+  .rp-report-layout .v2-phone > :not(.v2-chat) { flex: none; }
+  .rp-report-layout .v2-phone { height: 100%; min-height: 0; max-height: none; display: flex; flex-direction: column; }
+  .rp-report-layout .p4-family .v2-chat { flex: 1; height: auto; min-height: 0; overflow-y: auto; }
+  .rp-report-trace .rp-card { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .rp-report-trace .rp-trace-timeline { height: auto; flex: 1; min-height: 0; }
+}
+@media (max-width: 759px) {
+  .rp-demo-launcher { right: 8px; bottom: max(8px, env(safe-area-inset-bottom)); max-width: calc(100vw - 16px); }
+  .rp-demo-buttons { max-width: min(360px, calc(100vw - 16px)); }
+  .rp-demo-popover { position: fixed; inset: auto 0 0; width: 100%; max-width: none; max-height: 75dvh; padding-bottom: max(16px, env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0; }
+  .rp-demo-hint { max-width: 360px; }
+}
+
+.rp-ai-toast { display: none; }
+@media (max-width: 759px) { .rp-ai-toast { display: block; } }
+
+.rp-demo-launcher, .rp-demo-launcher * { box-sizing: border-box; }
+@media (min-width: 760px) {
+  /* one row that is exactly the space left: without it the row grows with the chat and the page scrolls */
+  .rp-report-layout { grid-template-rows: minmax(0, 1fr); }
+  .rp-report-layout > * { min-height: 0; }
+}
+@media (min-width: 760px) {
+  .rp-report-layout > .rp-report-phone, .rp-report-layout > .rp-report-trace { height: 100%; max-height: 100%; }
+  .rp-phone-stage { overflow: hidden; display: flex; flex-direction: column; }
+  .rp-phone-stage .p4-family { flex: 1; height: auto; display: flex; flex-direction: column; }
+  .rp-phone-stage .p4-family > .v2-phone { flex: 1; height: auto; }
+}
+@media (min-width: 760px) { .rp-report-trace .rp-trace-timeline { padding-bottom: 104px; } }

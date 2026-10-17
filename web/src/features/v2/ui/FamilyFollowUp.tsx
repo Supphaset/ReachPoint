@@ -81,7 +81,7 @@ export function ReadyChecklist({ items }: { items: [string, string][] }) {
   return <section className="card p4-checklist">
     <h3>เตรียมตัว · Get ready <span>{checked.size}/{items.length}</span></h3>
     <progress value={checked.size} max={items.length || 1} aria-label="เตรียมแล้ว · Ready checklist progress" />
-    {items.map(([th, en], index) => <label key={index}>
+    {items.map(([th, en], index) => <label key={index} className={checked.has(index) ? "is-done" : ""}>
       <input type="checkbox" checked={checked.has(index)} onChange={event => {
         const next = new Set(checked);
         if (event.target.checked) next.add(index);

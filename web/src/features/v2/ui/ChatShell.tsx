@@ -54,7 +54,8 @@ export function ChatHeader({ busy, onCall, toggleCall, lang, changeLanguage, spe
     <button type="button" aria-label={onCall === "on" ? "วางสาย · Hang up" : "โทร · Call"} className={`btn btn-sec v2-callbtn is-${onCall}`} onClick={toggleCall} disabled={onCall === "connecting"}>
       <Icon name="call" />{onCall === "on" ? "วางสาย" : onCall === "connecting" ? "…" : "โทร"}
     </button>
-    <details className="v2-chat-menu">
+    {/* a choice closes the menu */}
+    <details className="v2-chat-menu" onClick={event => { if ((event.target as HTMLElement).closest("button")) event.currentTarget.open = false; }}>
       <summary aria-label="เมนู · Chat menu">⋯</summary>
       <div>
         <button className="btn btn-ghost" disabled={busy} onClick={changeLanguage}>{lang === "th" ? "EN / ไทย" : "ไทย / EN"}</button>

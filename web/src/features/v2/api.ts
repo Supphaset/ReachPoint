@@ -291,6 +291,18 @@ export interface CaseRow {
   reportedBy: string;
 }
 
+export type UrgentCase = CaseRow & { markedFirst: { team: string; at: string } | null };
+export interface UrgentZone {
+  id: string;
+  label: string | null;
+  sector: string | null;
+  plans: number;
+  depthM: number | null;
+  score: number;
+  cases: UrgentCase[];
+}
+export interface UrgentView { atH: number; at: string; total: number; zones: UrgentZone[] }
+
 export interface OverviewZone {
   id: string;
   label: string | null;
@@ -441,6 +453,9 @@ export const depthAt = (lon: number, lat: number) => get<DepthSeries>(`/api/v2/d
 export const blocksNow = () => get<{ blocks: SubArea[]; thresholds: { walkM: number; truckM: number } }>("/api/v2/v/blocks");
 
 export const vol = {
+  urgent: () => get<UrgentView>("/api/v2/v/urgent"),
+  first: (id: string, team: string, first: boolean) =>
+    post<UrgentView>(`/api/v2/v/cases/${encodeURIComponent(id)}/first`, { team, first }),
   copilot: (question: string) => post<CopilotResult>("/api/v2/v/copilot", { question }),
   overview: () => get<Overview>("/api/v2/v/overview"),
   feed: (kind?: string, team?: string | null, limit?: number) => get<Feed>(`/api/v2/v/feed?${[kind ? `kind=${encodeURIComponent(kind)}` : "", q(team), limit ? `limit=${limit}` : ""].filter(Boolean).join("&")}`),

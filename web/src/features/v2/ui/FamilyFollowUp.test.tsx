@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { v2, type FamilyStatus, type SimResult, type TurnResult } from "../api";
-import { applySimulation, choiceSender, ChoiceButtons, FamilyStatusCard, QUICK_ACTIONS, runQuickAction, statusLabel, SimulationPanel } from "./FamilyFollowUp";
+import { ReadyChecklist, applySimulation, choiceSender, ChoiceButtons, FamilyStatusCard, QUICK_ACTIONS, runQuickAction, statusLabel, SimulationPanel } from "./FamilyFollowUp";
 import { buildFollowUpTrace, buildReportTrace } from "./reportTrace";
 
 const status: FamilyStatus = {
@@ -121,5 +121,15 @@ describe("quick action payloads", () => {
     expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual({ event: "teamVisit" });
     await v2.status("S1");
     expect(fetcher.mock.calls[2][0]).toBe("/api/v2/chat/sessions/S1/status");
+  });
+});
+
+describe("checklist rows", () => {
+  it("puts each native checkbox beside one Thai label with its English gloss below", () => {
+    const html = renderToStaticMarkup(<ReadyChecklist items={[["โทรศัพท์", "Phone"], ["เอกสาร", "Papers"]]} />);
+    expect(html.match(/<label/g)).toHaveLength(2);
+    expect(html).toMatch(/<label class=""><input type="checkbox"\/><span>โทรศัพท์<small>Phone<\/small><\/span><\/label>/);
+    expect(html).toContain('<progress value="0" max="2"');
+    expect(html).not.toContain("<img");
   });
 });

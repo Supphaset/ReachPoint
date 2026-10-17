@@ -80,3 +80,84 @@ describe("go by", () => {
     expect(goBy(null)).toBeNull();
   });
 });
+
+import { deoverlapLabels } from "./SectorMap";
+describe("projected label spacing", () => {
+  it("keeps priority order, skips labels within 70 projected pixels, and includes the boundary", () => {
+    const candidates = [{ id: "first", x: 0, y: 0 }, { id: "near", x: 40, y: 40 }, { id: "edge", x: 70, y: 0 }, { id: "far", x: 0, y: 100 }];
+    expect(deoverlapLabels(candidates).map(point => point.id)).toEqual(["first", "edge", "far"]);
+    expect(candidates).toHaveLength(4);
+    expect(deoverlapLabels([])).toEqual([]);
+  });
+  it("reconsiders labels after zoom spreads projected positions apart", () => {
+    const points = [{ id: "a", x: 0, y: 0 }, { id: "b", x: 60, y: 0 }];
+    expect(deoverlapLabels(points)).toHaveLength(1);
+    expect(deoverlapLabels(points.map(point => ({ ...point, x: point.x * 2 })))).toHaveLength(2);
+  });
+  it("removes need fill on water, provides an urgent count and selects its zone", () => {
+    const shapes: Record<string, unknown>[] = [];
+    const buttons: { textContent: string; onclick?: () => void; className?: string }[] = [];
+    vi.stubGlobal("document", { createElement: () => {
+      const button = { textContent: "", style: {}, setAttribute: vi.fn(), remove: vi.fn() };
+      buttons.push(button); return button;
+    } });
+    class Polygon { constructor(options: Record<string, unknown>) { shapes.push(options); } addListener = vi.fn(); setMap = vi.fn(); }
+    class OverlayView { setMap = vi.fn(); }
+    const onZone = vi.fn();
+    const cleanup = drawSectorLayers({ Polygon, OverlayView, event: { clearInstanceListeners: vi.fn() } }, {}, {
+      geo, zones: [{ ...zone, urgent: 3 }], selection: { sector: null, zone: null, hover: null }, onZone, onSector: vi.fn(),
+    }, name => `token:${name}`, true);
+    expect(shapes[0].fillOpacity).toBe(0);
+    expect(buttons[0].textContent).toBe("3");
+    expect(buttons[0].className).toContain("is-urgent");
+    buttons[0].onclick?.();
+    expect(onZone).toHaveBeenCalledWith("D12");
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("overlay projection and zoom", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it("draws only spaced, visible labels and hides sector badges above zoom 14", () => {
+    const buttons: { hidden?: boolean; textContent: string; style: Record<string, string> }[] = [];
+    const overlays: OverlayView[] = [];
+    vi.stubGlobal("document", { createElement: () => {
+      const button = { textContent: "", hidden: false, style: {}, setAttribute: vi.fn(), remove: vi.fn() };
+      buttons.push(button); return button;
+    } });
+    let zoom = 14;
+    const projection = {
+      fromLatLngToDivPixel: ({ lng, lat }: { lng: number; lat: number }) => ({ x: 200 + (lng - 100.47) * (zoom >= 16 ? 15000 : 2000), y: 200 + (lat - 7.01) * 2000 }),
+      fromLatLngToContainerPixel: ({ lng, lat }: { lng: number; lat: number }) => ({ x: 200 + (lng - 100.47) * (zoom >= 16 ? 15000 : 2000), y: 200 + (lat - 7.01) * 2000 }),
+    };
+    class OverlayView {
+      draw?: () => void;
+      constructor() { overlays.push(this); }
+      setMap = vi.fn();
+      getProjection = () => projection;
+    }
+    class Polygon { addListener = vi.fn(); setMap = vi.fn(); }
+    class LatLng { constructor(public lat: number, public lng: number) {} }
+    const added = vi.fn();
+    const remove = vi.fn();
+    const map = { getZoom: () => zoom, getDiv: () => ({ clientWidth: 800, clientHeight: 600 }), addListener: added.mockReturnValue({ remove }) };
+    const nearby = structuredClone(geo.zones.features[0]);
+    nearby.properties = { id: "D13", sector: "D" };
+    if (nearby.geometry.type === "Polygon") nearby.geometry.coordinates = nearby.geometry.coordinates.map(ring => ring.map(([lng, lat]) => [lng + 0.01, lat]));
+    const view = { ...geo, zones: { ...geo.zones, features: [geo.zones.features[0], nearby] }, sectors: { type: "FeatureCollection" as const, features: [{ ...geo.zones.features[0], properties: { id: "D" } }] } };
+    const cleanup = drawSectorLayers({ Polygon, OverlayView, LatLng, event: { clearInstanceListeners: vi.fn() } }, map, {
+      geo: view, zones: [zone, { ...zone, id: "D13", score: 50 }], selection: { sector: null, zone: null, hover: null }, onZone: vi.fn(), onSector: vi.fn(),
+    }, name => name);
+    overlays.forEach(overlay => overlay.draw?.());
+    expect(buttons[0].hidden).toBe(false);
+    expect(buttons[1].hidden).toBe(true);
+    expect(buttons[2].hidden).toBe(false);
+    zoom = 16;
+    added.mock.calls[0][1]();
+    expect(buttons[1].hidden).toBe(false);
+    expect(buttons[2].hidden).toBe(true);
+    cleanup();
+    expect(remove).toHaveBeenCalledOnce();
+  });
+});

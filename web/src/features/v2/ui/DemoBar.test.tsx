@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
-import { DemoBar, type DemoControls } from "./DemoBar";
+import { DemoBar, nextSimulation, type DemoControls } from "./DemoBar";
 import { ReportTabs } from "../V2Page";
 import { DepthBars } from "./DepthBars";
 import { traceGroups, TraceTimeline } from "./TraceTimeline";
@@ -13,23 +13,23 @@ const action = vi.fn().mockResolvedValue(undefined);
 describe("demo bar enablement", () => {
   it("disables all five family events until the family has a zone; the clock folds behind one chip", () => {
     const html = renderToStaticMarkup(<DemoBar onAction={action} family={family} />);
-    expect(html.match(/disabled=""/g)).toHaveLength(5);
+    expect(html.match(/disabled=""/g)).toHaveLength(6);
     expect(html).toContain("Clock");
     expect(html).not.toContain("Reset");
-    expect(html).toContain("Share a location in the phone first");
+    expect(html).toContain("Share a location first");
     expect(html).toContain("Next");
   });
   it("enables controls after location, shows finished events and suggests the next one", () => {
     const html = renderToStaticMarkup(<DemoBar at="06:30" onAction={action} family={{ ...family, enabled: true, done: ["rain"], result: "Rain sent" }} />);
     expect(html).not.toContain("disabled=");
     expect(html).toContain('class="chip dark done"');
-    expect(html).toContain('class="chip dark next"');
+    expect(html).toContain("▶ ถัดไป · Next: น้ำแม่น้ำขึ้น · River rising");
     expect(html).toContain("Rain sent");
     expect(html).toContain("06:30");
   });
   it("locks family events during a request", () => {
     const html = renderToStaticMarkup(<DemoBar onAction={action} family={{ ...family, enabled: true, busy: true }} />);
-    expect(html.match(/disabled=""/g)).toHaveLength(5);
+    expect(html.match(/disabled=""/g)).toHaveLength(6);
     expect(action).not.toHaveBeenCalled();
   });
   it("keeps the replay clock available on pages without a family session", () => {
@@ -38,6 +38,18 @@ describe("demo bar enablement", () => {
     expect(html).toContain("Reset");
     expect(html).toContain("Flood the system");
     expect(html).not.toContain("Family events");
+  });
+});
+
+describe("next demo event", () => {
+  it("uses story order even when events were completed out of order, then offers a restart", () => {
+    expect(nextSimulation([])?.event).toBe("rain");
+    expect(nextSimulation(["teamPlan", "rain"])?.event).toBe("river");
+    expect(nextSimulation(["rain", "river", "teamPlan", "teamVisit"])?.event).toBe("checkin");
+    const done = ["rain", "river", "teamPlan", "teamVisit", "checkin"] as const;
+    expect(nextSimulation([...done])).toBeUndefined();
+    const html = renderToStaticMarkup(<DemoBar onAction={action} family={{ ...family, enabled: true, done: [...done] }} />);
+    expect(html).toContain("เริ่มใหม่ · Start over");
   });
 });
 
@@ -77,9 +89,11 @@ describe("phone navigation", () => {
     expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
     expect(html).toContain('aria-pressed="true">แผนที่');
   });
-  it("provides a collapsed mobile demo handle while retaining all controls", () => {
+  it("starts with a closed popover while retaining the clock controls", () => {
     const html = renderToStaticMarkup(<DemoBar onAction={action} />);
-    expect(html).toContain('class="rp-demo-handle" aria-expanded="false"');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('class="rp-demo-popover" hidden=""');
+    expect(html).not.toContain("<footer");
     expect(html).toContain("Reset");
     expect(html).toContain("Rain alert");
   });

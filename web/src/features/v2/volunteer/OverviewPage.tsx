@@ -6,17 +6,22 @@ import { Depth, Trend, VShell, useGeo, useLive, useTeam } from "./shared";
 import { initialSelection, selectionReducer } from "./selection";
 import { displayText } from "../ui/trace";
 import { SectorMap, goBy } from "./SectorMap";
+import { UrgentList, useUrgent } from "./UrgentList";
 import "../ui/phase-three.css";
 
 export function OverviewPage() {
   const { data, error, reload } = useLive(() => vol.overview(), []);
   const geo = useGeo();
+  const urgent = useUrgent();
+  const [tab, setTab] = useState("sectors");
+  const [highlighted, setHighlighted] = useState<string | null>(null);
+  const [focusRequest, setFocusRequest] = useState(0);
   const [sheet, setSheet] = useState("half");
   const [selection, dispatch] = useReducer(selectionReducer, initialSelection);
   const [team] = useTeam();
   const selectZone = (id: string) => dispatch({ type: "zone", id, sector: data?.zones.find(zone => zone.id === id)?.sector ?? null });
   const selectSector = (id: string) => dispatch({ type: "sector", id });
-  return <VShell title="ช่วยตรงไหนก่อน · Where help is missing" sub="เลือกพื้นที่บนแผนที่หรือรายชื่อ · Select a sector or team zone to see uncovered needs." at={data?.at} ledger={data?.overall}>
+  return <VShell title="ช่วยตรงไหนก่อน · Where help is missing" at={data?.at} ledger={data?.overall}>
     {error && <p role="alert">Couldn't reach the server: {error}</p>}
     <div className="p3-numbers">
       <span><b>{data?.zones.reduce((sum, zone) => sum + zone.open, 0) ?? "…"}</b> ครอบครัวรอ · waiting</span>
@@ -30,12 +35,20 @@ export function OverviewPage() {
       <section className="p3-map-column" aria-label="Sector map">
         <div className="p3-breadcrumb"><button className="btn btn-sec" onClick={() => dispatch({ type: "sector", id: null })}>หาดใหญ่ · Hat Yai</button>{selection.sector && <span> / {selection.sector}</span>}{selection.zone && <span> / {selection.zone}</span>}</div>
         <SectorMap geo={geo} zones={data?.zones ?? []} selection={selection} onZone={selectZone} onSector={selectSector}
-          water={data ? { hour: data.atH, messages: data.overall.messages } : undefined} shelters={data?.shelters} />
-        <div className="p3-legend">{["ไม่มีครอบครัวรอ · None waiting", "น้อย · Lower", "ปานกลาง · More", "มากสุด · Most help missing"].map((label, index) => <span key={label}><i style={{ background: `var(--need-${index})` }} />{label}</span>)}</div>
-        <p>เส้นประ / ขอบหนา: มีครอบครัวรอ ไม่มีทีม · Dashed / heavier edges: waiting, no team. Thick outlines and letters: sectors. Water unknown is never dry.</p>
+          water={data ? { hour: data.atH, messages: data.overall.messages } : undefined} shelters={data?.shelters}
+          urgentCases={tab === "urgent" ? urgent.data?.zones.flatMap(zone => zone.cases) : undefined}
+          onCase={id => { setHighlighted(id); setFocusRequest(value => value + 1); setSheet("full"); }} />
       </section>
       <aside data-sheet={sheet} className="p3-sector-list" aria-label="Sectors ranked within each area">
         <div className="p3-sheet-sizes seg" aria-label="ขนาดรายชื่อ · List height">{[["peek", "ย่อ · Peek"], ["half", "ครึ่ง · Half"], ["full", "เต็ม · Full"]].map(([value, label]) => <button key={value} aria-pressed={sheet === value} onClick={() => setSheet(value)}>{label}</button>)}</div>
+        <div className="seg v-overview-tabs" role="tablist" aria-label="รายการช่วยเหลือ · Assistance lists">
+          <button role="tab" aria-selected={tab === "sectors"} aria-controls="v-sector-panel" id="v-sector-tab" onClick={() => setTab("sectors")}>พื้นที่ · Sectors</button>
+          <button role="tab" aria-selected={tab === "urgent"} aria-controls="v-urgent-panel" id="v-urgent-tab" onClick={() => setTab("urgent")}>ด่วน · Urgent ({urgent.data?.total ?? "…"})</button>
+        </div>
+        {tab === "urgent" ? <div id="v-urgent-panel" role="tabpanel" aria-labelledby="v-urgent-tab">
+          {urgent.error && <p role="alert">โหลดหรือบันทึกไม่สำเร็จ · Could not load or save: {urgent.error}</p>}
+          <UrgentList data={urgent.data} zones={data?.zones ?? []} team={team} busy={urgent.busy} highlighted={highlighted} focusRequest={focusRequest} onZone={selectZone} onFirst={urgent.first} />
+        </div> : <div id="v-sector-panel" role="tabpanel" aria-labelledby="v-sector-tab">
         {selection.zone ? <ZonePanel key={selection.zone} id={selection.zone} water={data?.zones.find(zone => zone.id === selection.zone)?.water} team={team} onClose={() => dispatch({ type: "close" })} onPosted={reload} /> : <>
         {(data?.sectors ?? []).map(sector => <section key={sector.id}>
           <button className="p3-sector-row" aria-expanded={selection.sector === sector.id} onMouseEnter={() => dispatch({ type: "hover", id: sector.id })} onMouseLeave={() => dispatch({ type: "hover", id: null })} onFocus={() => dispatch({ type: "hover", id: sector.id })} onBlur={() => dispatch({ type: "hover", id: null })} onClick={() => selectSector(sector.id)}>
@@ -50,6 +63,7 @@ export function OverviewPage() {
           </button>)}
         </section>)}
         </>}
+        </div>}
       </aside>
     </div>
 

@@ -97,3 +97,24 @@
   font-size: 14px;
   font-weight: 400;
 }
+
+/* Keep the native checkbox out of the app's full-width form field rules. */
+.rp-app .p4-checklist label {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding-block: 6px;
+  font-size: 14px;
+}
+.rp-app .p4-checklist input[type=checkbox] {
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  margin: 0;
+  padding: 0;
+}
+.p4-checklist label span { min-width: 0; overflow-wrap: anywhere; }
+.p4-checklist label.is-done span, .p4-checklist label.is-done small { color: var(--done); text-decoration: line-through; }

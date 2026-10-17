@@ -17,8 +17,18 @@ export function useTeam(): [string, (t: string) => void] {
       return "";
     }
   });
+  useEffect(() => {
+    const sync = (event: Event) => {
+      if (event instanceof CustomEvent) setTeamState(event.detail as string);
+      else { try { setTeamState(localStorage.getItem(TEAM_KEY) ?? ""); } catch { /* Keep the tab's team. */ } }
+    };
+    window.addEventListener("reachpoint-team", sync);
+    window.addEventListener("storage", sync);
+    return () => { window.removeEventListener("reachpoint-team", sync); window.removeEventListener("storage", sync); };
+  }, []);
   const setTeam = useCallback((t: string) => {
     setTeamState(t);
+    window.dispatchEvent(new CustomEvent("reachpoint-team", { detail: t }));
     try {
       localStorage.setItem(TEAM_KEY, t);
     } catch {

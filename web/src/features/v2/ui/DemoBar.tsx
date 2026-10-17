@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SimEvent } from "../api";
 import { SIMULATIONS } from "./FamilyFollowUp";
 import type { ClockAction } from "./Shared";
@@ -20,19 +20,36 @@ export interface DemoControls {
   onSimulate: (event: SimEvent) => Promise<void>;
 }
 
+export function nextSimulation(done: SimEvent[]) {
+  return SIMULATIONS.find(simulation => !done.includes(simulation.event));
+}
+
 export function DemoBar({ at, onAction, family }: {
   at?: string;
   onAction: (action: ClockAction) => Promise<unknown>;
   family?: DemoControls;
 }) {
   const [expanded, setExpanded] = useState(false);
-  // On the Report page the family events are the story; the replay clock folds behind one chip.
+  const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!expanded) return;
+    const close = (event: PointerEvent) => {
+      if (!root.current?.contains(event.target as Node)) setExpanded(false);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setExpanded(false); trigger.current?.focus(); }
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", close); document.removeEventListener("keydown", escape); };
+  }, [expanded]);
   const [clockOpen, setClockOpen] = useState(false);
   const [acting, setActing] = useState(false);
   const lock = useRef(false);
   const [error, setError] = useState("");
   const disabled = acting || !!family?.busy || (family !== undefined && !family.enabled);
-  const next = SIMULATIONS.find(simulation => !family?.done.includes(simulation.event))?.event;
+  const next = nextSimulation(family?.done ?? []);
 
   async function run(action: () => Promise<unknown>) {
     if (disabled || lock.current) return;
@@ -44,30 +61,34 @@ export function DemoBar({ at, onAction, family }: {
     finally { lock.current = false; setActing(false); }
   }
 
-  return <footer className={`rp-demo-bar${expanded ? " is-expanded" : ""}`} aria-label="แถบสาธิต · Demo controls">
-    <button className="rp-demo-handle" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>สาธิต · Demo {expanded ? "⌄" : "⌃"}</button>
-    <div className="rp-demo-title"><span className="pill p-night">DEMO</span>
-      <b>{family ? "จำลองสถานการณ์" : "นาฬิกาสาธิต"}<small>{family ? "What happens next?" : "Demo clock"}</small></b>
-      <time>{at ?? "รอเวลา · Time pending"}</time>
+  return <div ref={root} className="rp-demo-launcher" aria-label="สาธิต · Demo controls">
+    <div className="rp-demo-buttons">
+      {family && <button className="rp-demo-primary" disabled={disabled}
+        title={next?.proves} onClick={() => void run(() => next ? family.onSimulate(next.event) : onAction("reset"))}>
+        {next ? `▶ ถัดไป · Next: ${next.label}` : "เริ่มใหม่ · Start over"}
+      </button>}
+      <button ref={trigger} className="rp-demo-more" aria-label="ตัวเลือกสาธิต · Demo options" aria-expanded={expanded}
+        onClick={() => setExpanded(value => !value)}>{family ? "⋯" : "สาธิต · Demo ⋯"}</button>
     </div>
-    {family && <div className="rp-demo-events" role="group" aria-label="เหตุการณ์ · Family events">
-      {SIMULATIONS.map(simulation => {
-        const done = family.done.includes(simulation.event);
-        return <button key={simulation.event} className={`chip dark${done ? " done" : next === simulation.event ? " next" : ""}`}
+    {family && !family.enabled && <p className="rp-demo-hint" role="status">แจ้งตำแหน่งในแชทก่อน · Share a location first</p>}
+    <section className="rp-demo-popover" hidden={!expanded} aria-label="ตัวเลือกสาธิต · Demo options">
+      <div className="rp-demo-title"><b>สาธิต · Demo</b><time>{at ?? "รอเวลา · Time pending"}</time>
+        <button aria-label="ปิด · Close" onClick={() => { setExpanded(false); trigger.current?.focus(); }}>×</button></div>
+      {family && <div className="rp-demo-events" role="group" aria-label="เหตุการณ์ · Family events">
+        {SIMULATIONS.map(simulation => <button key={simulation.event} className={`chip dark${family.done.includes(simulation.event) ? " done" : ""}`}
           disabled={disabled} title={simulation.proves} onClick={() => void run(() => family.onSimulate(simulation.event))}>
-          {done && <span aria-hidden="true">✓</span>}{simulation.label}
-          {!done && next === simulation.event && <span className="rp-demo-next">ถัดไป · Next</span>}
-        </button>;
-      })}
-      <button className="chip dark" aria-expanded={clockOpen} onClick={() => setClockOpen(value => !value)}>
-        นาฬิกา · Clock {clockOpen ? "⌄" : "›"}</button>
-    </div>}
-    {(!family || clockOpen) && <div className="rp-demo-clock" role="group" aria-label="นาฬิกา · Replay clock">
-      {CLOCK_ACTIONS.map(([action, th, en]) => <button className="chip dark bl" key={action} disabled={disabled}
-        onClick={() => void run(() => onAction(action))}>{th}<small>{en}</small></button>)}
-    </div>}
-    <p role="status">{error || (family && !family.enabled
-      ? "แจ้งตำแหน่งในแชทก่อน · Share a location in the phone first"
-      : family?.result || "เลื่อนเวลาสำหรับห้องสาธิตนี้ · Changes the replay for this demo room")}</p>
-  </footer>;
+          {family.done.includes(simulation.event) && "✓ "}{simulation.label}
+        </button>)}
+      </div>}
+      <p role="status">{error || (family && !family.enabled ? "แจ้งตำแหน่งในแชทก่อน · Share a location first"
+        : family?.result || "เลื่อนเวลาสำหรับห้องสาธิตนี้ · Changes the replay for this demo room")}</p>
+      {family && <button className="rp-demo-clock-toggle" aria-expanded={clockOpen} onClick={() => setClockOpen(value => !value)}>
+        นาฬิกา · Clock {clockOpen ? "⌄" : "›"}</button>}
+      {(!family || clockOpen) && <div className="rp-demo-clock" role="group" aria-label="นาฬิกา · Replay clock">
+        {CLOCK_ACTIONS.map(([action, th, en]) => <button className="chip dark bl" key={action} disabled={disabled}
+          onClick={() => void run(() => onAction(action))}>{th}<small>{en}</small></button>)}
+      </div>}
+    </section>
+    {error && !expanded && <p role="alert" className="rp-demo-hint">{error}</p>}
+  </div>;
 }
