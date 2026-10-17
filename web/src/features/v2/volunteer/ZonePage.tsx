@@ -35,7 +35,7 @@ export function ZonePage() {
           <div className="rp-stack">
             <section className="rp-decision rp-pad">
               <span className="v-label">Decision · review before departure</span>
-              <h2>{vehicle} to {id} · {zone.people.urgent} urgent</h2>
+              <h2>{vehicle} to {id} · {data.totals.urgent ?? zone.people.urgent} urgent</h2>
               <p>{data.totals.open} families waiting · {zone.plans.length ? `${zone.plans.length} teams planned` : "No team planned"}</p>
               <p>{data.briefing}</p>
               <Link to={`/v/plan?zone=${id}`} className="rp-button rp-primary">Plan a trip to {id} →</Link>

@@ -276,7 +276,7 @@ def zone(st: dict, zid: str, team: str | None = None) -> dict | None:
     brief = briefing(z, open_, outlook)
     return {"zone": z, "households": rs, "outlook": outlook, "briefing": brief, "unlocked": unlocked(w, team, zid),
             "subareas": subareas(st, zid), "blocks": blocks(st, zid),
-            "totals": {"open": len(open_), "people": sum(r["people"] or 1 for r in open_),
+            "totals": {"open": len(open_), "people": sum(r["people"] or 1 for r in open_), "urgent": sum(1 for r in open_ if r["urgent"]),
                        "boat": sum(1 for r in open_ if r["boat"]), "closed": len(rs) - len(open_)},
             "now": {"atH": w.now_h, "at": P.label_time(w.now_h)}}
 

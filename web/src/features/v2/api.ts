@@ -349,7 +349,7 @@ export interface ZonePage {
   unlocked: boolean;
   subareas: SubArea[];
   blocks: SubArea[];
-  totals: { open: number; people: number; boat: number; closed: number };
+  totals: { open: number; people: number; urgent?: number; boat: number; closed: number };
   now: { atH: number; at: string };
 }
 

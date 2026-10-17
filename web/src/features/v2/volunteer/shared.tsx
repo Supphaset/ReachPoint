@@ -1,6 +1,6 @@
 /** Shared parts of the volunteer pages: the shell and navigation, the team name, live refresh, chips and a small map. */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { apiMode } from "../../../data/mode";
 import { depthBand, v2, type CaseRow, type GeoView } from "../api";
 import { StepHeader } from "../ui/Shared";
@@ -68,14 +68,11 @@ export function VShell({ title, sub, at, children }: { title: string; sub?: Reac
   return (
     <main className="v-page rp-app">
       <StepHeader at={at} onAction={async action => { await v2.clock(action); window.dispatchEvent(new Event("reachpoint-clock")); }} />
-      <header className="v-header">
-        <Link to="/v" className="v-brand"><b>ReachPoint</b><span>Volunteers</span></Link>
-        <nav className="v-nav" aria-label="Volunteer pages">
-          <NavLink to="/v" end>Where help is missing</NavLink>
-          <NavLink to="/v/feed">Decision feed</NavLink>
-          <NavLink to="/v/plan">Plan a trip</NavLink>
-          <Link to="/" className="v-nav-demo">Judge demo ↗</Link>
-        </nav>
+      <nav className="rp-subnav" aria-label="Volunteer pages">
+        <span className="rp-subnav-label">Volunteers</span>
+        <NavLink to="/v" end>Where help is missing</NavLink>
+        <NavLink to="/v/feed">Every AI decision</NavLink>
+        <NavLink to="/v/plan">Plan a trip</NavLink>
         <div className="v-team">
           {editing ? (
             <form onSubmit={(e) => { e.preventDefault(); setEditing(false); }}>
@@ -89,14 +86,13 @@ export function VShell({ title, sub, at, children }: { title: string; sub?: Reac
             </button>
           )}
         </div>
-      </header>
+      </nav>
       <div className="v-body">
         <div className="v-titlebar">
           <div>
             <h1>{title}</h1>
             {sub ? <p className="v-sub">{sub}</p> : null}
           </div>
-          {at ? <span className="v-at">{at} <span className="v2-chip">REPLAY</span></span> : null}
         </div>
         {children}
       </div>

@@ -897,3 +897,47 @@
   width: 20px;
   min-height: 20px;
 }
+
+/* volunteer pages: a light second row under the step header instead of a second dark bar */
+.rp-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  padding: 6px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.rp-subnav-label {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  margin-right: 8px;
+}
+.rp-subnav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.rp-subnav a.active {
+  background: var(--sunken);
+  color: var(--ink-1);
+  font-weight: 600;
+}
+.rp-subnav .v-team {
+  margin-left: auto;
+}
+.rp-subnav .v-team-btn {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink-1);
+  padding: 0 12px;
+}
