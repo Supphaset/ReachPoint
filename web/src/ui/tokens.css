@@ -210,15 +210,45 @@
   --route-mid: var(--water-4);
   --route-deep: var(--urgent);
   --route-unknown: var(--ink-3);
-  --need-0: var(--sunken);
-  --need-1: var(--water-1);
-  --need-2: var(--water-2);
-  --need-3: var(--water-4);
-  --sector-A: var(--rules);
-  --sector-B: var(--physics);
-  --sector-C: var(--done);
-  --sector-D: var(--gemini);
-  --sector-E: var(--doubt);
-  --sector-F: var(--urgent);
-  --sector-G: var(--color-moving);
+  --need-0: #f1ede5;
+  --need-1: #ddd5c5;
+  --need-2: #b6ab97;
+  --need-3: #7b6f5c;
+  --sector-A: var(--ink-1);
+  --sector-B: var(--ink-1);
+  --sector-C: var(--ink-1);
+  --sector-D: var(--ink-1);
+  --sector-E: var(--ink-1);
+  --sector-F: var(--ink-1);
+  --sector-G: var(--ink-1);
+}
+
+/* Round 2 kit: calm stage, with dark controls reserved for the demo. */
+:root {
+  --stage: #e8e3d8;
+  --line-2: #c4bdaf;
+  --gemini-ink: #3b2391;
+  --night: #0c1522;
+  --night-2: #18263a;
+  --night-line: #2c3d57;
+  --on-night: #e9eef6;
+  --on-night-2: #b3bfd0;
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s7: 32px;
+  --s8: 48px;
+  --r-pill-s: 6px;
+  --r-ctl: 10px;
+  --r-card: 14px;
+  --r-bub: 18px;
+  --r-sheet: 20px;
+  --h-chip: 36px;
+  --h-btn: 44px;
+  --h-btn-lg: 52px;
+  --sh-1: 0 1px 2px rgb(16 26 41 / .07);
+  --sh-2: 0 10px 30px rgb(16 26 41 / .18);
 }

@@ -94,7 +94,28 @@ function toRgb(hex: string): [number, number, number] {
   return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
 }
 
-/** Draws the water at a (fractional) hour into a canvas the size of the grid. */
+/** Keep the original grid separate so smoothing never changes the underlying measurements. */
+const grids = new WeakMap<HTMLCanvasElement, HTMLCanvasElement>();
+const BAND_ALPHA = [0.38, 0.46, 0.54, 0.62];
+
+export function floodOpacity(zoom: number) {
+  return zoom <= 16 ? 1 : zoom < 18 ? 0.6 : 0.35;
+}
+
+interface ZoomMap {
+  getZoom: () => number | undefined;
+  addListener: (event: string, update: () => void) => { remove: () => void };
+}
+
+/** Both report and shelter maps fade the same canvas, with listener cleanup on unmount. */
+export function bindFloodZoom(map: ZoomMap, canvas: HTMLCanvasElement) {
+  const update = () => { canvas.style.opacity = String(floodOpacity(map.getZoom() ?? 14)); };
+  update();
+  const listener = map.addListener("zoom_changed", update);
+  return () => listener.remove();
+}
+
+/** Draw the data grid once, then upsample 4× for the display layer. */
 export function drawFlood(
   canvas: HTMLCanvasElement,
   sim: Sim,
@@ -102,11 +123,19 @@ export function drawFlood(
   analysis: Analysis | null,
 ): { wetCells: number } {
   const { rows, cols, hours, frameBytes, stepM } = sim.meta;
-  canvas.width = cols;
-  canvas.height = rows;
+  let grid = grids.get(canvas);
+  if (!grid) {
+    grid = document.createElement("canvas");
+    grids.set(canvas, grid);
+  }
+  grid.width = cols;
+  grid.height = rows;
+  canvas.width = cols * 4;
+  canvas.height = rows * 4;
+  const raw = grid.getContext("2d");
   const ctx = canvas.getContext("2d");
-  if (!ctx) return { wetCells: 0 };
-  const img = ctx.createImageData(cols, rows);
+  if (!raw || !ctx) return { wetCells: 0 };
+  const img = raw.createImageData(cols, rows);
   const h0 = Math.max(0, Math.min(hours, Math.floor(hour)));
   const h1 = Math.min(hours, h0 + 1);
   const f = Math.max(0, Math.min(1, hour - h0));
@@ -126,13 +155,19 @@ export function drawFlood(
     }
     if (d <= 0.08) continue;
     wet++;
-    const c = d < 0.5 ? pal[0] : d < 1 ? pal[1] : d < 2 ? pal[2] : pal[3];
+    const band = d < 0.5 ? 0 : d < 1 ? 1 : d < 2 ? 2 : 3;
+    const c = pal[band];
     const o = k * 4;
     img.data[o] = c[0];
     img.data[o + 1] = c[1];
     img.data[o + 2] = c[2];
-    img.data[o + 3] = Math.min(220, 110 + d * 60);
+    img.data[o + 3] = Math.round(BAND_ALPHA[band] * 255);
   }
-  ctx.putImageData(img, 0, 0);
+  raw.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.filter = "blur(1.5px)";
+  ctx.drawImage(grid, 0, 0, canvas.width, canvas.height);
+  ctx.filter = "none";
   return { wetCells: wet };
 }

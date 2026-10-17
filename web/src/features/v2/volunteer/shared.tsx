@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { apiMode } from "../../../data/mode";
-import { depthBand, v2, type CaseRow, type GeoView } from "../api";
+import { depthBand, v2, type CaseRow, type GeoView, type BoardState } from "../api";
 import { StepHeader } from "../ui/Shared";
 import "../v2.css";
 import "./volunteer.css";
@@ -60,7 +60,7 @@ export function useGeo(): GeoView | null {
   return g;
 }
 
-export function VShell({ title, sub, at, children }: { title: string; sub?: ReactNode; at?: string; children: ReactNode }) {
+export function VShell({ title, sub, at, ledger, children }: { title: string; sub?: ReactNode; at?: string; ledger?: BoardState["overall"]; children: ReactNode }) {
   const [team, setTeam] = useTeam();
   const [editing, setEditing] = useState(false);
   if (!apiMode())
@@ -69,19 +69,19 @@ export function VShell({ title, sub, at, children }: { title: string; sub?: Reac
     <main className="v-page rp-app">
       <StepHeader at={at} onAction={async action => { await v2.clock(action); window.dispatchEvent(new Event("reachpoint-clock")); }} />
       <nav className="rp-subnav" aria-label="Volunteer pages">
-        <span className="rp-subnav-label">Volunteers</span>
-        <NavLink to="/v" end>Where help is missing</NavLink>
-        <NavLink to="/v/feed">Every AI decision</NavLink>
+        <span className="rp-subnav-label">อาสา · Volunteers</span>
+        <NavLink to="/v" end>ช่วยที่ไหน · Where help is missing</NavLink>
+        <NavLink to="/v/feed">การตัดสินใจ · AI decisions</NavLink>
         <div className="v-team">
           {editing ? (
             <form onSubmit={(e) => { e.preventDefault(); setEditing(false); }}>
               <label htmlFor="v-team-name" className="v-sr">Your team name</label>
               <input id="v-team-name" autoFocus value={team} onChange={(e) => setTeam(e.target.value)} placeholder="e.g. ทีมเรือกู้ภัยหาดใหญ่ 1" />
-              <button type="submit">Save</button>
+              <button type="submit">บันทึก · Save</button>
             </form>
           ) : (
             <button type="button" className="v-team-btn" onClick={() => setEditing(true)} title="Teams see exact addresses in zones their own plans cover">
-              {team ? <>Team: <b>{team}</b></> : "Set your team name"}
+              {team ? <>ทีม · Team: <b>{team}</b></> : "ชื่อทีม · Set team name"}
             </button>
           )}
         </div>
@@ -93,6 +93,12 @@ export function VShell({ title, sub, at, children }: { title: string; sub?: Reac
             {sub ? <p className="v-sub">{sub}</p> : null}
           </div>
         </div>
+        {ledger && <div className="p3-ledger" aria-label="ยอดจากระบบ · API totals">
+          <span><b>{ledger.messages}</b> ข้อความ <small>messages</small></span>
+          <span><b>{ledger.households}</b> ครอบครัว <small>households</small></span>
+          <span><b>{ledger.duplicatesMerged}</b> รวมรายการซ้ำ <small>duplicates merged</small></span>
+          <span><b>{ledger.estimatedHouseholdsAffected}</b> ครัวเรือนคาดว่าได้รับผลกระทบ <small>estimated households affected</small></span>
+        </div>}
         {children}
       </div>
     </main>
@@ -112,7 +118,7 @@ export function StatusChip({ r }: { r: Pick<CaseRow, "status" | "urgent" | "outc
 }
 
 export function Depth({ m, lo, hi }: { m: number | null | undefined; lo?: number; hi?: number }) {
-  if (m === null || m === undefined) return <span className="v-depth is-unknown">unknown</span>;
+  if (m === null || m === undefined) return <span className="v-depth is-unknown">ไม่ทราบ · unknown</span>;
   return (
     <span className={`v-depth is-${depthBand(m)}`} title={lo !== undefined ? `likely ${lo.toFixed(1)}–${hi?.toFixed(1)} m` : undefined}>
       {m.toFixed(1)} m

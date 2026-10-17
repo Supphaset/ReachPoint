@@ -2,6 +2,7 @@ import type { Activity, FeedItem, FactView } from "../api";
 export type Who = "gemini" | "rules" | "physics" | "action" | "doubt";
 export interface TraceEntry {
   id: string;
+  turn?: number;
   who: Who;
   at: string;
   atH: number;

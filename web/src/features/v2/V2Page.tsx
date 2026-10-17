@@ -4,16 +4,22 @@ import { Link } from "react-router-dom";
 import { BoardMap, type HouseMark, type SimMode } from "./BoardMap";
 import { Phone } from "./Phone";
 import { v2, type BoardState, type GeoView, type HouseholdView, type TurnResult, type SimResult, type FamilyStatus } from "./api";
-import { DepthRange, HonestyLabel, Panel, StepHeader, type ClockAction, TraceLine } from "./ui/Shared";
+import { HonestyLabel, Panel, StepHeader, type ClockAction } from "./ui/Shared";
+import { DepthBars } from "./ui/DepthBars";
+import { TraceTimeline } from "./ui/TraceTimeline";
 import { buildFollowUpTrace, buildReportTrace } from "./ui/reportTrace";
+import { displayText } from "./ui/trace";
 import type { TraceEntry } from "./ui/trace";
 import "./v2.css";
 
 export function V2Page() {
+  const [tab, setTab] = useState("chat");
+  const [toast, setToast] = useState<TraceEntry | null>(null);
   const [geo, setGeo] = useState<GeoView | null>(null);
   const [board, setBoard] = useState<BoardState | null>(null);
   const [household, setHousehold] = useState<HouseholdView | null>(null);
   const [houses, setHouses] = useState<HouseMark[]>([]);
+  const [activeTurn, setActiveTurn] = useState<number | null>(null);
   const [trace, setTrace] = useState<TraceEntry[]>([]);
   const [lang, setLang] = useState<"th" | "en">("th");
   const [chatVersion, setChatVersion] = useState(0);
@@ -54,7 +60,8 @@ export function V2Page() {
   function onTurn(turn: TurnResult) {
     const at = board?.at ?? "Demo time";
     const atH = board?.atH ?? 0;
-    const added = buildReportTrace(turn, ++turnIndex.current, at, atH, previousStatus.current, pendingVisit.current);
+    const index = ++turnIndex.current;
+    const added = buildReportTrace(turn, index, at, atH, previousStatus.current, pendingVisit.current);
     pendingVisit.current = false;
     setTrace(lines => [...lines, ...added]);
     previousStatus.current = turn.status ?? null;
@@ -81,6 +88,7 @@ export function V2Page() {
         setHouses(marks);
       }, failure => setError(String(failure)));
     }
+    return index;
   }
 
   function onSimulation(result: SimResult) {
@@ -109,54 +117,69 @@ export function V2Page() {
     await refresh();
   }
 
+  const latest = trace[trace.length - 1];
+  useEffect(() => {
+    setToast(latest ?? null);
+    if (!latest) return;
+    const timer = window.setTimeout(() => setToast(null), 6000);
+    return () => window.clearTimeout(timer);
+  }, [latest]);
+
   const focus = household ? { lon: household.lon, lat: household.lat } : null;
   return (
-    <div className="rp-app">
-      <StepHeader at={board?.at} onAction={act} />
+    <div className="rp-app rp-report-app">
+      <StepHeader at={board?.at} showDemo={false} />
       <main className="rp-main">
         <div className="rp-section-head">
           <div>
-            <h1>One message. A family on the map.</h1>
-            <p>Be a synthetic family. Follow her words through the AI’s decisions.</p>
+            <h1>ข้อความเดียว ครอบครัวปรากฏบนแผนที่</h1>
+            <p>One message. A family on the map. · Synthetic demo family</p>
           </div>
           <HonestyLabel />
         </div>
         {error && <p role="alert" className="rp-warning">{error}</p>}
-        <div className="rp-report-layout">
-          <Phone onSimulation={onSimulation} onTurn={onTurn} version={chatVersion} lang={lang} setLang={setLang} />
-          <Panel title="What the AI is doing for this family">
-            <div aria-live="polite">
-              {trace.length ? trace.map(line => <TraceLine key={line.id} {...line} />) : (
-                <div className="rp-pad rp-stack">
-                  <h3>Her words become evidence.</h3>
-                  <p>Send the message to watch Gemini read, rules locate, and physics correct the map.</p>
-                </div>
-              )}
+        <ReportTabs tab={tab} onChange={setTab} />
+        {toast && <button className="rp-ai-toast" onClick={() => setTab("ai")}><b>{toast.who === "gemini" ? "Gemini" : toast.who === "physics" ? "แบบจำลอง · Physics" : "กติกา · Rules"}</b> · {displayText(toast.what)}</button>}
+        <div className="rp-report-layout" data-tab={tab}>
+          <section className="rp-report-phone">
+            <h2 className="rp-column-heading"><span>①</span> แชทครอบครัว <small>Her phone</small></h2>
+            <div className="rp-phone-stage">
+              <Phone at={board?.at} onClock={act} activeTurn={activeTurn} onActiveTurn={setActiveTurn}
+                onSimulation={onSimulation} onTurn={onTurn} version={chatVersion} lang={lang} setLang={setLang} />
             </div>
-          </Panel>
-          <aside className="rp-stack">
+          </section>
+          <section className="rp-report-trace">
+            <h2 className="rp-column-heading"><span>②</span> การทำงานของ AI <small>For this family</small></h2>
+            <Panel title="หลักฐานและการตัดสินใจ · Evidence & decisions">
+              <TraceTimeline lines={trace} activeTurn={activeTurn} onActiveTurn={setActiveTurn} />
+            </Panel>
+          </section>
+          <aside className="rp-stack rp-report-aside">
+            <h2 className="rp-column-heading"><span>③</span> แผนที่เรียนรู้ <small>Her house</small></h2>
+            <div className="card rp-map-card">
             <div className="rp-report-map">
               <BoardMap geo={geo} state={board} selected={household?.zoneId ?? null} onSelect={() => undefined}
-                houses={houses} focus={focus} focusZoom={17} focusedHousehold={household} lang="en"
+                houses={houses} focus={focus} focusZoom={16} maxZoom={18} focusedHousehold={household} lang="en"
                 simHour={board?.atH ?? 96} simMode={simMode} />
             </div>
-            <div className="rp-toggle" role="group" aria-label="Water layer">
-              <button aria-pressed={simMode === "physics"} onClick={() => setSimMode("physics")}>Model only</button>
-              <button aria-pressed={simMode === "corrected"} onClick={() => setSimMode("corrected")}>Model + reports</button>
+            <div className="seg" role="group" aria-label="Water layer">
+              <button aria-pressed={simMode === "physics"} onClick={() => setSimMode("physics")}>แบบจำลอง<small>Model only</small></button>
+              <button aria-pressed={simMode === "corrected"} onClick={() => setSimMode("corrected")}>+ รายงาน<small>Model + reports</small></button>
             </div>
-            <Panel title={household ? `Her house · ${household.id}` : "Her house · awaiting location"}>
-              <div className="rp-pad rp-stack">
-                <DepthRange value={modelDepth} source="model only · before correction" at={depthUpdatedAt} />
-                <span>↓ Reports correct the estimate</span>
-                <DepthRange value={correctedDepth?.[0] ?? null} lo={correctedDepth?.[1]} hi={correctedDepth?.[2]}
-                  source="model + reports" at={depthUpdatedAt} />
-                <p>Switch between the model and the model with reports. Depth is an estimate; unknown is not dry.</p>
-              </div>
-            </Panel>
-            {confirmed && household?.zoneId && <Link className="rp-button rp-primary" to={`/v/zone/${household.zoneId}`}>See her on the volunteer page →</Link>}
+            <DepthBars model={modelDepth} corrected={correctedDepth} at={depthUpdatedAt} />
+            </div>
+            {confirmed && household?.zoneId && <Link className="rp-button rp-primary" to={`/v/zone/${household.zoneId}`}>ดูครอบครัวในหน้าอาสา · See her on the volunteer page →</Link>}
           </aside>
         </div>
       </main>
     </div>
   );
+}
+
+
+export function ReportTabs({ tab, onChange }: { tab: string; onChange: (tab: string) => void }) {
+  return <nav className="rp-phone-tabs seg" aria-label="มุมมอง · Report view">
+    {[["chat", "แชท", "Chat"], ["ai", "AI", "Decisions"], ["map", "แผนที่", "Map"]].map(([id, th, en]) =>
+      <button key={id} aria-pressed={tab === id} onClick={() => onChange(id)}>{th}<small>{en}</small></button>)}
+  </nav>;
 }

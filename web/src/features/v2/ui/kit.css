@@ -1,0 +1,198 @@
+/* Shared controls, including aliases for the existing screens. */
+.btn, .rp-button, .p3-actions > button, .p3-actions > a, .rp-app .v-team-btn, .rp-app .p3-zone-panel > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: var(--h-btn);
+  padding: var(--s2) var(--s4);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-ctl);
+  background: var(--surface);
+  color: var(--ink-1);
+  font: 600 15px/1.4 var(--font-sans);
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn-pri, .rp-primary {
+  background: var(--ink-1);
+  border-color: var(--ink-1);
+  color: var(--surface);
+}
+.btn-sec {
+  background: var(--surface);
+  border-color: var(--line-2);
+}
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-2);
+}
+.btn-lg {
+  min-height: var(--h-btn-lg);
+}
+.bl {
+  flex-direction: column;
+  gap: 0;
+}
+.bl small {
+  font-size: 14px;
+  font-weight: 400;
+}
+.chip, .rp-chip, .p4-choices button, .p4-quick button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s1);
+  min-height: var(--h-btn);
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-1);
+  font: 500 14px/1.4 var(--font-sans);
+  cursor: pointer;
+}
+.chip.on, .p4-choices button[aria-pressed="true"] {
+  background: var(--ink-1);
+  border-color: var(--ink-1);
+  color: var(--surface);
+}
+.chip.q, .p4-quick button {
+  background: var(--sunken);
+  border-color: transparent;
+}
+.chip.dark {
+  background: var(--night-2);
+  border-color: var(--night-line);
+  color: var(--on-night);
+}
+.chip.dim, .btn:disabled, .chip:disabled {
+  opacity: .5;
+  cursor: default;
+}
+.pill {
+  display: inline-flex;
+  gap: var(--s1);
+  padding: var(--s1) var(--s2);
+  border-radius: var(--r-pill-s);
+  font-size: 14px;
+}
+.p-urgent {
+  background: var(--urgent-bg);
+  color: var(--urgent);
+}
+.p-doubt {
+  background: var(--doubt-bg);
+  color: var(--doubt);
+}
+.p-done {
+  background: var(--done-bg);
+  color: var(--done);
+}
+.p-water {
+  background: var(--physics-bg);
+  color: var(--water-4);
+}
+.p-gemini {
+  background: var(--gemini-bg);
+  color: var(--gemini);
+}
+.p-rules {
+  background: var(--rules-bg);
+  color: var(--rules);
+}
+.p-plain {
+  background: var(--sunken);
+  color: var(--ink-2);
+}
+.p-night {
+  background: var(--night-2);
+  color: var(--on-night);
+}
+.p-replay {
+  border: 1px solid var(--ink-1);
+  background: var(--surface);
+  color: var(--ink-1);
+}
+.card {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+.card-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border-bottom: 1px solid var(--line);
+}
+.sh {
+  display: grid;
+  gap: var(--s1);
+}
+.seg, .rp-toggle {
+  display: flex;
+  gap: var(--s1);
+  padding: var(--s1);
+  background: var(--sunken);
+  border-radius: var(--r-ctl);
+}
+.seg button, .rp-toggle button {
+  flex: 1;
+  min-height: var(--h-btn);
+  border: 0;
+  border-radius: var(--r-ctl);
+  padding: var(--s2);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 14px;
+}
+.seg button[aria-pressed="true"], .rp-toggle button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--ink-1);
+  box-shadow: var(--sh-1);
+}
+/* Scope beats the legacy page defaults while keeping one control definition. */
+.rp-app .btn-pri, .rp-app .rp-primary {
+  background: var(--ink-1);
+  color: var(--surface);
+  border-color: var(--ink-1);
+}
+.rp-app .btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.rp-app .chip {
+  border-radius: 999px;
+  font-size: 14px;
+}
+.rp-app .chip.on {
+  background: var(--ink-1);
+  color: var(--surface);
+}
+.rp-app .chip.q {
+  background: var(--sunken);
+  border-color: transparent;
+}
+.rp-app .chip.is-sos {
+  border-color: var(--urgent);
+  color: var(--urgent);
+}
+.rp-app .p4-choices.is-visit button {
+  border-radius: var(--r-ctl);
+}
+.rp-app .p3-actions > button, .rp-app .p3-actions > a, .rp-app .p3-zone-panel > button {
+  border-radius: var(--r-ctl);
+  min-height: var(--h-btn);
+}
+.rp-app .p4-choices button.on {
+  opacity: 1;
+}
+.rp-app .p4-choices button.dim {
+  opacity: .4;
+}

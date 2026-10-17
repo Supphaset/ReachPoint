@@ -17,7 +17,83 @@
 .p4-checklist input { width: 22px; height: 22px; }
 .p4-sim h2 { font-size: 18px; margin-block: 8px; }
 .p4-sim p { margin-bottom: 0; }
-.rp-report-layout .p4-family .v2-chat { height: 480px; }
+.rp-report-layout .p4-family .v2-chat { height: clamp(260px, calc(100vh - 630px), 520px); }
 .p4-status, .p4-status .v2-chip { font-size: 15px; }
 .p4-quick-group { min-width: 0; flex: none; }
 .p4-emergency { display: flex; align-items: center; min-height: 44px; margin: 0 8px 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink-1); font-size: 14px; }
+
+/* Rich messages preserve one clear answer group below each question. */
+.p4-choices.is-visit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.p4-choices.is-visit button {
+  width: 100%;
+  justify-content: start;
+  text-align: left;
+  border-radius: var(--r-ctl);
+}
+.p4-choices .is-sos, .p4-quick .is-sos {
+  border: 1px solid var(--urgent);
+  color: var(--urgent);
+}
+.p4-choices .is-sos.on {
+  background: var(--urgent);
+  color: var(--surface);
+}
+.p4-checklist h3 {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s2);
+  color: var(--done);
+}
+.p4-checklist progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--done);
+}
+.p4-checklist input {
+  accent-color: var(--done);
+}
+.v2-notice-card {
+  flex: none;
+  margin-block: var(--s2);
+}
+.v2-card-band {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  font-size: 14px;
+}
+.v2-card-band.is-water {
+  background: var(--physics-bg);
+  color: var(--water-4);
+}
+.v2-card-band.is-done {
+  background: var(--done-bg);
+  color: var(--done);
+}
+.v2-card-band.is-ink {
+  background: var(--sunken);
+  color: var(--ink-2);
+}
+.v2-card-band time {
+  margin-left: auto;
+  font: 14px var(--font-mono);
+}
+.v2-card-body {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s3);
+  font-size: 15px;
+}
+.v2-card-body p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.v2-card-body small, .v2-card-band small {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+}

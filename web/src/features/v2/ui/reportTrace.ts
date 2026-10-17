@@ -8,7 +8,7 @@ export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string
   const prefix = `turn-${turnIndex}`;
   const to = household ? `/v/case/${household.id}` : undefined;
   const add = (suffix: string, entry: Omit<TraceEntry, "id" | "at" | "atH">) => {
-    lines.push({ id: `${prefix}-${suffix}`, at, atH, ...entry });
+    lines.push({ id: `${prefix}-${suffix}`, at, atH, turn: turnIndex, ...entry });
   };
   for (const [index, fact] of (effects.facts ?? []).entries()) {
     if (!fact.quote)
@@ -96,5 +96,5 @@ export function buildFollowUpTrace(result: SimResult, index: number, at: string,
     checkin: "ถามไถ่ความปลอดภัยต่อ · Sent this family a safety check-in",
   };
   if (!result.message && !result.inbox) return [];
-  return [{ id: `followup-${index}`, who: "action", at, atH, what: what[result.event] }];
+  return [{ id: `followup-${index}`, who: "action", at, atH, turn: index, what: what[result.event] }];
 }

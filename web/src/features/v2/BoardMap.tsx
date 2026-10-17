@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../data/googleMaps";
 import { blocksNow, cssVar, depthBand, type BoardState, type GeoView, type HouseholdView } from "./api";
-import { drawFlood, loadSim, type Analysis, type Sim } from "./floodLayer";
+import { bindFloodZoom, floodOpacity, drawFlood, loadSim, type Analysis, type Sim } from "./floodLayer";
 import { locationLayers, type MapCollection } from "../../data/locationMap";
 import { demoRoom } from "../../data/room";
 
@@ -25,6 +25,7 @@ export interface TripOverlay {
 interface Props {
   showPlans?: boolean;
   focusZoom?: number;
+  maxZoom?: number;
   focusedHousehold?: { id: string; lon: number; lat: number } | null;
   tripOverlay?: TripOverlay;
   geo: GeoView | null;
@@ -122,7 +123,7 @@ export function BoardMap(props: Props) {
   return <GoogleBoard maps={maps} {...props} />;
 }
 
-function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simHour, simMode, showPlans = false, focusedHousehold, tripOverlay, focusZoom = 18 }: Props & { maps: Maps }) {
+function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simHour, simMode, showPlans = false, focusedHousehold, tripOverlay, focusZoom = 18, maxZoom = 20 }: Props & { maps: Maps }) {
   const flood = useFloodCanvas(geo, state, simHour, simMode);
   const overlay = useRef<Maps>(null);
   const el = useRef<HTMLDivElement>(null);
@@ -149,7 +150,7 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       center: { lng: geo.center[0], lat: geo.center[1] },
       zoom: 14,
       minZoom: 13,
-      maxZoom: 20,
+      maxZoom,
       restriction: { latLngBounds: { west: w - pad, south: so - pad, east: e + pad, north: n + pad }, strictBounds: true },
       mapTypeId: "hybrid",
       disableDefaultUI: true,
@@ -162,36 +163,37 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
     zones.current.addListener("click", (e: Maps) => select.current(e.feature.getProperty("id")));
     dots.current = new maps.Data({ map: map.current });
     marks.current = new maps.Data({ map: map.current });
-  }, [maps, geo]);
+  }, [maps, geo, maxZoom]);
 
-  // the water: a canvas stretched over the simulation's grid, under the dots
+  // Water stays beneath zone shapes, house outlines and labels.
   useEffect(() => {
     if (!map.current || !flood.sim) return;
-    if (!overlay.current) {
-      const [w, s, e, n] = flood.sim.meta.bbox;
-      const cv = flood.canvas;
-      cv.className = "v2-flood-canvas";
-      const O = class extends maps.OverlayView {
-        onAdd() {
-          this.getPanes().mapPane.appendChild(cv); // under the zones, dots and houses
-        }
-        draw() {
-          const p = this.getProjection();
-          const sw = p.fromLatLngToDivPixel(new maps.LatLng(s, w));
-          const ne = p.fromLatLngToDivPixel(new maps.LatLng(n, e));
-          cv.style.left = `${sw.x}px`;
-          cv.style.top = `${ne.y}px`;
-          cv.style.width = `${ne.x - sw.x}px`;
-          cv.style.height = `${sw.y - ne.y}px`;
-        }
-        onRemove() {
-          cv.remove();
-        }
-      };
-      overlay.current = new O();
-      overlay.current.setMap(map.current);
-    }
-  }, [maps, flood.sim, flood.canvas]);
+    const instance = map.current;
+    const [west, south, east, north] = flood.sim.meta.bbox;
+    const canvas = flood.canvas;
+    canvas.className = "v2-flood-canvas";
+    const water = new class extends maps.OverlayView {
+      onAdd() { this.getPanes().mapPane.appendChild(canvas); }
+      draw() {
+        const projection = this.getProjection();
+        const sw = projection.fromLatLngToDivPixel(new maps.LatLng(south, west));
+        const ne = projection.fromLatLngToDivPixel(new maps.LatLng(north, east));
+        Object.assign(canvas.style, {
+          left: `${sw.x}px`, top: `${ne.y}px`,
+          width: `${ne.x - sw.x}px`, height: `${sw.y - ne.y}px`,
+        });
+      }
+      onRemove() { canvas.remove(); }
+    }();
+    overlay.current = water;
+    water.setMap(instance);
+    const unbind = bindFloodZoom(instance, canvas);
+    return () => {
+      unbind();
+      water.setMap(null);
+      overlay.current = null;
+    };
+  }, [maps, geo, flood.sim, flood.canvas]);
 
   useEffect(() => {
     if (!zones.current) return;
@@ -262,12 +264,20 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
     m.forEach((f: Maps) => m.remove(f));
     m.addGeoJson({
       type: "FeatureCollection",
-      features: houses.map((h) => ({ type: "Feature", properties: { k: h.kind }, geometry: { type: "Polygon", coordinates: [h.outline] } })),
+      features: houses.flatMap(house => {
+        const feature = { type: "Feature", properties: { k: house.kind, halo: false }, geometry: { type: "Polygon", coordinates: [house.outline] } };
+        return house.kind === "me" ? [{ ...feature, properties: { k: house.kind, halo: true } }, feature] : [feature];
+      }),
     });
     m.setStyle((f: Maps) => {
       const k = f.getProperty("k");
       const c = cssVar(k === "me" ? "--house-me" : k === "known" ? "--house-known" : "--house-new");
-      return { fillColor: c, fillOpacity: 0.75, strokeColor: c, strokeWeight: 2, zIndex: 10, clickable: false };
+      const halo = f.getProperty("halo");
+      return {
+        fillColor: c, fillOpacity: halo ? 0 : k === "me" ? 0.2 : 0.75,
+        strokeColor: halo ? cssVar("--ink-1") : c, strokeWeight: halo ? 7 : 3,
+        zIndex: halo ? 9 : 10, clickable: false,
+      };
     });
   }, [houses]);
 
@@ -301,7 +311,7 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
         position: { lng: s.lon, lat: s.lat },
         title: `${s.name} · ${s.people} people checked in${s.coming ? ` · ${s.coming} on the way` : ""} · room for about ${s.capacity}`,
         icon: { path: "M -7 -7 L 7 -7 L 7 7 L -7 7 Z", fillColor: cssVar("--shelter"), fillOpacity: 1, strokeColor: cssVar("--shelter-ink"), strokeWeight: 2, scale: 1, labelOrigin: new maps.Point(0, 20) },
-        label: { text: `${shortName(s.name)} · ${s.people}`, color: cssVar("--v2-ink-on-map"), fontSize: "11px", fontWeight: "600" },
+        label: { text: `${shortName(s.name)} · ${s.people}`, color: cssVar("--v2-ink-on-map"), fontSize: "14px", fontWeight: "600" },
         zIndex: 20,
       }));
     }
@@ -315,7 +325,7 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
         position: { lng: c[0], lat: c[1] },
         title: p.text ?? "",
         icon: { path: maps.SymbolPath.FORWARD_CLOSED_ARROW, fillColor: cssVar("--plan-line"), fillOpacity: 1, strokeColor: cssVar("--v2-phone-bg"), strokeWeight: 1, scale: 5, labelOrigin: new maps.Point(0, 5) },
-        label: { text: `${vehicleWord(p.vehicle)}${p.eta ? ` ≈ ${p.eta.slice(-5)}` : ""}`, color: cssVar("--v2-ink-on-map"), fontSize: "11px", fontWeight: "600" },
+        label: { text: `${vehicleWord(p.vehicle)}${p.eta ? ` ≈ ${p.eta.slice(-5)}` : ""}`, color: cssVar("--v2-ink-on-map"), fontSize: "14px", fontWeight: "600" },
         zIndex: 19,
       }));
     }
@@ -425,6 +435,7 @@ function DrawnMap({ geo, state, selected, onSelect, houses, simHour, simMode, fo
       {href && flood.sim ? (
         <image
           href={href}
+          opacity={floodOpacity(focus ? focusZoom : 14)}
           x={px(flood.sim.meta.bbox[0])}
           y={py(flood.sim.meta.bbox[3])}
           width={px(flood.sim.meta.bbox[2]) - px(flood.sim.meta.bbox[0])}
@@ -465,7 +476,10 @@ function DrawnMap({ geo, state, selected, onSelect, houses, simHour, simMode, fo
       ))}
       {(state?.shelters ?? []).map(shelter => <rect key={shelter.id} x={px(shelter.lon) - 5} y={py(shelter.lat) - 5} width="10" height="10" fill="var(--surface)" stroke="var(--done)" />)}
       {houses.map((h, i) => (
-        <path key={i} d={path(h.outline)} className={`v2-house is-${h.kind}`} />
+        <g key={i}>
+          {h.kind === "me" && <path d={path(h.outline)} className="v2-house-halo" />}
+          <path d={path(h.outline)} className={`v2-house is-${h.kind}`} />
+        </g>
       ))}
     </svg>
   );

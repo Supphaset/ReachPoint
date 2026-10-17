@@ -70,3 +70,60 @@
 .p3-zone-panel .p3-actions > button { background: var(--ink-1); color: var(--surface); }
 .p3-zone-panel { overflow-wrap: anywhere; box-sizing: border-box; }
 .p4-map-label { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }
+
+/* Chat cards are compact previews; the same map opens into an accessible sheet. */
+.v2-chat .p3-location, .v2-chat .p3-shelter {
+  margin-left: 36px;
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+.p3-house {
+  padding: 0;
+}
+.v2-chat .p3-house.is-sent {
+  width: 78%;
+  margin-left: auto;
+}
+.p3-location-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--s4);
+  height: 100px;
+  background: var(--sunken);
+  color: var(--ink-3);
+}
+.p3-location .p3-actions {
+  display: grid;
+}
+.p3-location .p3-actions .btn-pri {
+  background: var(--ink-1);
+  color: var(--surface);
+}
+.p3-shelter-thumb {
+  position: relative;
+  margin: -12px -12px 0;
+}
+.p3-shelter-thumb .p3-route-map {
+  height: 150px;
+}
+.p3-shelter-thumb .p3-expand {
+  position: absolute;
+  top: var(--s2);
+  right: var(--s2);
+  min-width: 44px;
+  padding: var(--s2);
+}
+.p3-shelter-answers .p4-choices {
+  display: grid;
+}
+.p3-shelter-answers .chip {
+  justify-content: start;
+  text-align: left;
+  border-radius: var(--r-ctl);
+}
+.p3-sheet > button {
+  align-self: end;
+  min-width: 44px;
+  border-radius: var(--r-ctl);
+}

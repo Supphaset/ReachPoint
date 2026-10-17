@@ -1,5 +1,8 @@
 /** Small inline icon set (24 px grid, stroke icons). Every state chip carries one, so colour is never the only signal. */
 const PATHS: Record<string, string> = {
+  call: "M5 3h4l2 5-3 2a15 15 0 0 0 6 6l2-3 5 2v4c0 2-3 3-5 2C8 18 3 13 2 6c0-2 1-3 3-3z",
+  volume: "M4 9h4l5-5v16l-5-5H4z M17 8a6 6 0 0 1 0 8 M20 5a10 10 0 0 1 0 14",
+  send: "M3 3l18 9-18 9 4-9z M7 12h14",
   octagon: "M8.5 2.5h7l5 5v7l-5 5h-7l-5-5v-7z M12 7.5v5.5 M12 16.5v.01",
   triangle: "M12 3.5 21.5 20h-19z M12 10v4.5 M12 17.5v.01",
   circle: "M12 3.5a8.5 8.5 0 1 1 0 17a8.5 8.5 0 1 1 0-17z M8.5 12.5l2.4 2.4 4.6-5",

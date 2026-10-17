@@ -1,8 +1,10 @@
 import { useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { v2 } from "../api";
+import { DemoBar } from "./DemoBar";
 import { displayText, type TraceEntry } from "./trace";
 import "./phase-one.css";
+import "./kit.css";
 export type ClockAction = Parameters<typeof v2.clock>[0];
 export function HonestyLabel() {
   return <div className="rp-honesty">Hat Yai flood · real water data, synthetic people</div>;
@@ -55,31 +57,12 @@ export function TraceLine({ who, at, what, quote, gloss, to }: Omit<TraceEntry, 
   );
 }
 
-const clockActions: [ClockAction, string][] = [
-  ["advance", "+30 min"],
-  ["morning", "Next 07:00"],
-  ["rain", "Rain alert"],
-  ["river", "River rising"],
-  ["flood", "Flood the system"],
-  ["reset", "Reset"],
-];
-export function StepHeader({ at, onAction }: { at?: string; onAction?: (action: ClockAction) => Promise<unknown> }) {
+export function StepHeader({ at, onAction, showDemo = true }: {
+  at?: string; onAction?: (action: ClockAction) => Promise<unknown>; showDemo?: boolean;
+}) {
   const [explore, setExplore] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  async function act(action: ClockAction) {
-    setBusy(true);
-    setError("");
-    try {
-      if (onAction) await onAction(action);
-      else await v2.clock(action);
-    } catch (failure) {
-      setError(String(failure));
-    } finally {
-      setBusy(false);
-    }
-  }
   return (
+    <>
     <header className="rp-header">
       <div className="rp-bar">
         <Link className="rp-logo" to="/">
@@ -90,14 +73,13 @@ export function StepHeader({ at, onAction }: { at?: string; onAction?: (action: 
           <span>{at ?? "21–28 Nov 2025"}</span>
         </div>
         <nav className="rp-steps" aria-label="Demo steps">
-          <NavLink to="/" end>1 Overview</NavLink>
-          <NavLink to="/report" end>2 Report</NavLink>
-          <NavLink to="/v">3 Volunteer</NavLink>
+          <NavLink to="/" end><span>1 ภาพรวม</span><small>Overview</small></NavLink>
+          <NavLink to="/report" end><span>2 แจ้งเหตุ</span><small>Report</small></NavLink>
+          <NavLink to="/v"><span>3 อาสา</span><small>Volunteer</small></NavLink>
           <button onClick={() => setExplore(!explore)} aria-expanded={explore}>
-            {explore ? "Guided steps" : "Explore freely"}
+            <span>{explore ? "ตามขั้นตอน" : "สำรวจ"}<small>{explore ? "Guided steps" : "Explore freely"}</small></span>
           </button>
         </nav>
-        <DemoMenu busy={busy} act={act} />
       </div>
       {explore && (
         <nav className="rp-explore">
@@ -105,27 +87,15 @@ export function StepHeader({ at, onAction }: { at?: string; onAction?: (action: 
           <Link to="/v/feed">Every AI decision</Link>
         </nav>
       )}
-      {error && <p role="alert">{error}</p>}
     </header>
-  );
-}
-
-function DemoMenu({ busy, act }: { busy: boolean; act: (action: ClockAction) => Promise<void> }) {
-  return (
-    <details className="rp-demo">
-      <summary>Demo controls ▾</summary>
-      <div className="rp-menu">
-        {clockActions.map(([action, label]) => (
-          <button key={action} disabled={busy} onClick={() => act(action)}>{label}</button>
-        ))}
-      </div>
-    </details>
+    {showDemo && <DemoBar at={at} onAction={onAction ?? (action => v2.clock(action))} />}
+    </>
   );
 }
 
 export function Panel({ title, children, className = "" }: { title: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={`rp-card ${className}`}>
+    <section className={`card rp-card ${className}`}>
       <div className="rp-card-head">
         <h2>{title}</h2>
       </div>

@@ -18,13 +18,13 @@ describe("shelter route water colouring", () => {
 
 describe("shelter answer choices", () => {
   it.each([true, false])("offers only the replies appropriate to walkable=%s", walkable => {
-    const html = renderToStaticMarkup(<ShelterAnswers walkable={walkable} disabled={false} onAnswer={() => undefined} />);
+    const html = renderToStaticMarkup(<ShelterAnswers walkable={walkable} disabled={false} onAnswer={() => true} />);
     expect(html).toContain(walkable ? "Stay home" : "Need a team");
     expect(html).toContain(walkable ? "I&#x27;ll go" : "I can get there");
     expect(html).not.toContain(walkable ? "Need a team" : "Stay home");
   });
   it("disables both choices while a turn is sending", () => {
-    const html = renderToStaticMarkup(<ShelterAnswers walkable={false} disabled onAnswer={() => undefined} />);
+    const html = renderToStaticMarkup(<ShelterAnswers walkable={false} disabled onAnswer={() => true} />);
     expect(html.match(/disabled=""/g)).toHaveLength(2);
   });
 });

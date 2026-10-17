@@ -379,3 +379,255 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--color-focus
 .v2-map-legend .is-walk { background: var(--household-safe); }
 .v2-map-legend .is-truck { background: var(--house-new); }
 .v2-map-legend .is-boat { background: var(--depth-3); }
+
+/* Round 2 messaging shell. */
+.v2-phone .v2-phone-top {
+  position: relative;
+  flex-wrap: nowrap;
+  padding: var(--s2);
+  gap: var(--s2);
+  background: var(--surface);
+  color: var(--ink-1);
+}
+.v2-avatar {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ink-1);
+  color: var(--surface);
+}
+.v2-avatar i {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gemini);
+  border: 2px solid var(--surface);
+}
+.v2-avatar.small {
+  width: 28px;
+  height: 28px;
+}
+.v2-avatar.is-spacer {
+  visibility: hidden;
+}
+.v2-agent-name {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.4;
+}
+.v2-agent-name b, .v2-agent-name span, .v2-agent-name small {
+  display: block;
+  font-size: 14px;
+}
+.v2-agent-name span {
+  color: var(--gemini);
+}
+.v2-agent-name small {
+  color: var(--ink-3);
+}
+.v2-chat-menu {
+  flex: none;
+}
+.v2-chat-menu summary {
+  display: grid;
+  place-items: center;
+  list-style: none;
+  width: 44px;
+  font-size: 24px;
+  cursor: pointer;
+}
+.v2-chat-menu > div {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 30;
+  display: grid;
+  padding: var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-2);
+}
+.v2-chat {
+  background: var(--paper);
+}
+.v2-bubble-group {
+  min-width: 0;
+  margin-top: var(--s2);
+}
+.v2-bubble-group.is-grouped {
+  margin-top: 2px;
+}
+.v2-bubble-name {
+  display: block;
+  padding-left: 36px;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+.v2-bubble-row {
+  display: flex;
+  align-items: end;
+  gap: var(--s2);
+}
+.v2-bubble-row .v2-msg {
+  margin: 0;
+  min-width: 0;
+  max-width: 78%;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  line-height: 1.5;
+  border-radius: var(--r-bub);
+}
+.v2-bubble-row .v2-msg.is-agent {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top-left-radius: var(--r-pill-s);
+}
+.v2-bubble-row .v2-msg.is-person {
+  background: var(--ink-1);
+  color: var(--surface);
+  border-bottom-right-radius: var(--r-pill-s);
+}
+.v2-bubble-group.is-person .v2-bubble-row {
+  justify-content: end;
+}
+.v2-message-time {
+  min-width: 0;
+  font: 14px/1.3 var(--font-mono);
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+.v2-message-time b {
+  display: block;
+  font: 500 14px/1.3 var(--font-sans);
+  color: var(--gemini);
+}
+.v2-bubble-group.is-person .v2-message-time {
+  order: -1;
+  text-align: right;
+}
+.v2-person-turn {
+  min-width: 0;
+}
+.v2-receipt {
+  display: flex;
+  justify-content: end;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  padding: var(--s1) 0 var(--s2);
+  font-size: 14px;
+}
+.v2-receipt b {
+  width: 100%;
+  text-align: right;
+  color: var(--gemini);
+  font-weight: 500;
+}
+.v2-receipt-fact {
+  background: var(--gemini-bg);
+  color: var(--gemini-ink);
+  border-radius: var(--r-pill-s);
+  padding: 2px var(--s2);
+}
+.v2-receipt-fact.is-urgent {
+  background: var(--urgent-bg);
+  color: var(--urgent);
+}
+.v2-composer {
+  background: var(--surface);
+}
+.v2-phone .v2-composer input {
+  border-radius: 999px;
+  font-size: 15px;
+  background: var(--sunken);
+  border-color: var(--line);
+}
+.v2-phone .v2-send, .v2-phone .v2-mic {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: var(--ink-1);
+}
+.v2-samples {
+  align-items: center;
+  background: var(--surface);
+  min-width: 0;
+}
+.v2-samples > b {
+  font: 14px var(--font-mono);
+  color: var(--ink-3);
+}
+.v2-samples button {
+  min-height: 44px;
+  font-size: 14px;
+}
+.p4-status summary {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.p4-status summary .v2-chip {
+  flex: none;
+}
+.v2-house-halo {
+  fill: none;
+  stroke: var(--ink-1);
+  stroke-width: 7;
+}
+.v2-house.is-me {
+  fill-opacity: .2;
+  stroke-width: 3;
+}
+.rp-report-app .v2-map-legend, .rp-report-app .v2-nb-legend, .rp-report-app .v2-oncall {
+  font-size: 14px;
+}
+.rp-report-layout .v2-samples button {
+  white-space: nowrap;
+}
+.rp-report-layout .v2-samples .rp-gloss {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rp-report-app .rp-composer-gloss {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.p4-status-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.p4-status summary > svg {
+  margin-left: auto;
+}
+.p4-status[open] summary > svg {
+  transform: rotate(90deg);
+}
+.p4-choices small {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+}
+.rp-report-layout .v2-msg.is-person {
+  background: var(--ink-1);
+}
+.v2-samples > b { flex: none; writing-mode: horizontal-tb; }
+
+/* Icons must read on the round buttons: send is solid ink, the mic a quiet outline. */
+.v2-phone .v2-send { color: var(--paper); border-radius: 50%; }
+.v2-phone .v2-send:disabled { background: var(--line); color: var(--ink-3); }
+.v2-phone .v2-mic { background: var(--surface); color: var(--ink-1); border: 1px solid var(--line); border-radius: 50%; }
+.v2-phone .v2-mic.is-on { background: var(--urgent); color: var(--paper); }

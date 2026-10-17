@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Icon } from "../../../ui/Icon";
 import type { Choice, FamilyStatus, SimEvent, SimResult } from "../api";
 import "./phase-four.css";
 
@@ -18,9 +19,14 @@ export function FamilyStatusCard({ status }: { status: FamilyStatus }) {
   return <details className="p4-status">
     <summary>
       <span className={`v2-chip${status.urgent ? " is-red" : ""}`} title={stateEn}>{stateTh}</span>
-      🏠 {status.householdId ?? "—"} · {status.zoneId ?? "?"}
-      {water && <> · 💧 ~{water.nowM.toFixed(1)} m {arrow}</>}
-      {" · "}{status.team ? `🚤 ~${status.team.eta ?? "?"}` : "ยังไม่มีทีม"}
+      <span className="p4-status-line">
+        {status.householdId
+          ? <>{status.householdId}{status.zoneId && ` · ${status.zoneId}`}
+            {water && <> · ~{water.nowM.toFixed(1)} m {arrow}</>}
+            {" · "}{status.team ? `${status.team.team}${status.team.eta ? ` ~${status.team.eta}` : ""}` : "ยังไม่มีทีม"}</>
+          : "ยังไม่ทราบตำแหน่งบ้าน · Location not shared yet"}
+      </span>
+      <Icon name="chevron" />
     </summary>
     <div>
       <p>น้ำขณะนี้ {water ? `~${water.nowM.toFixed(1)} m ${{ rising: "↑", falling: "↓", steady: "→" }[water.trend]} · 6 ชม. ~${water.in6hM.toFixed(1)} m` : "ไม่ทราบ"}
@@ -53,20 +59,46 @@ export function ChoiceButtons({ kind, options, disabled, onSend }: { kind: strin
   const send = useRef(onSend);
   send.current = onSend;
   const choose = useRef(choiceSender((text, replyTo) => send.current(text, replyTo), kind, setChosen));
-  return <div className="p4-choices" role="group" aria-label="คำตอบ · Reply choices">{options.map((option, index) =>
-    <button key={index} disabled={disabled || chosen !== null} aria-pressed={chosen === index} onClick={() => void choose.current(option, index)}>{chosen === index ? "✓ " : ""}{option.label}</button>)}</div>;
+  const visit = ["teamVisit", "pickedUp", "nobodyThere", "visit"].includes(kind)
+    || options.some(option => /ยังมีคน|ติดอยู่|still inside/i.test(option.label + option.send));
+  return <div className={`p4-choices${visit ? " is-visit" : ""}`} role="group" aria-label="คำตอบ · Reply choices">
+    {options.map((option, index) => {
+      const [th, ...gloss] = option.label.split(" · ");
+      const urgent = visit && /ยังมีคน|ติดอยู่|still inside/i.test(option.label + option.send);
+      const state = chosen === index ? " on" : chosen !== null ? " dim" : "";
+      return <button key={index} className={`chip${state}${urgent ? " is-sos" : ""}`}
+        disabled={disabled || chosen !== null} aria-pressed={chosen === index}
+        onClick={() => void choose.current(option, index)}>
+        {chosen === index && <Icon name="check" />}
+        <span>{th}{gloss.length > 0 && <small>{gloss.join(" · ")}</small>}</span>
+      </button>;
+    })}
+  </div>;
 }
 
 export function ReadyChecklist({ items }: { items: [string, string][] }) {
-  return <section className="p4-checklist"><h3>เตรียมตัว · Get ready</h3>{items.map(([th, en], index) => <label key={index}><input type="checkbox" /><span>{th}<small>{en}</small></span></label>)}</section>;
+  const [checked, setChecked] = useState<Set<number>>(() => new Set());
+  return <section className="card p4-checklist">
+    <h3>เตรียมตัว · Get ready <span>{checked.size}/{items.length}</span></h3>
+    <progress value={checked.size} max={items.length || 1} aria-label="เตรียมแล้ว · Ready checklist progress" />
+    {items.map(([th, en], index) => <label key={index}>
+      <input type="checkbox" checked={checked.has(index)} onChange={event => {
+        const next = new Set(checked);
+        if (event.target.checked) next.add(index);
+        else next.delete(index);
+        setChecked(next);
+      }} />
+      <span>{th}<small>{en}</small></span>
+    </label>)}
+  </section>;
 }
 
 export const QUICK_ACTIONS = [
-  { label: "🌊 น้ำขึ้นเร็ว · Water rising fast", send: "น้ำขึ้นเร็วมาก", replyTo: "checkin" },
-  { label: "🚪 ต้องการออกจากบ้าน · I need to leave", send: "ต้องการออกจากบ้าน", replyTo: "leaveAsk" },
-  { label: "🩹 มีคนบาดเจ็บ · Someone is hurt", send: "มีคนบาดเจ็บ ต้องการความช่วยเหลือด่วน", replyTo: "checkin" },
-  { label: "🏠 แจ้งเพื่อนบ้าน · Report a neighbour", prefill: "บ้านทาง" },
-  { label: "✅ ปลอดภัยแล้ว · We're safe", send: "ปลอดภัยดี", replyTo: "checkin" },
+  { label: "น้ำขึ้นเร็ว · Water rising fast", send: "น้ำขึ้นเร็วมาก", replyTo: "checkin" },
+  { label: "ต้องการออกจากบ้าน · I need to leave", send: "ต้องการออกจากบ้าน", replyTo: "leaveAsk" },
+  { label: "มีคนบาดเจ็บ · Someone is hurt", send: "มีคนบาดเจ็บ ต้องการความช่วยเหลือด่วน", replyTo: "checkin" },
+  { label: "แจ้งเพื่อนบ้าน · Report a neighbour", prefill: "บ้านทาง" },
+  { label: "ปลอดภัยแล้ว · We're safe", send: "ปลอดภัยดี", replyTo: "checkin" },
 ] as const;
 
 export function runQuickAction(action: typeof QUICK_ACTIONS[number], send: (text: string, replyTo: string) => Promise<boolean>, prefill: (text: string) => void, showEmergency: () => void) {
@@ -77,17 +109,17 @@ export function runQuickAction(action: typeof QUICK_ACTIONS[number], send: (text
 
 export function QuickActions({ disabled, onSend, onPrefill }: { disabled: boolean; onSend: (text: string, replyTo: string) => Promise<boolean>; onPrefill: (text: string) => void }) {
   const [hurt, setHurt] = useState(false);
-  return <div className="p4-quick-group"><div className="p4-quick" aria-label="แจ้งเพิ่มเติม · Quick actions">{QUICK_ACTIONS.map(action => <button key={action.label} disabled={disabled} onClick={() => {
+  return <div className="p4-quick-group"><div className="p4-quick" aria-label="แจ้งเพิ่มเติม · Quick actions">{QUICK_ACTIONS.map(action => <button className={`chip q${action === QUICK_ACTIONS[2] ? " is-sos" : ""}`} key={action.label} disabled={disabled} onClick={() => {
     void runQuickAction(action, onSend, onPrefill, () => setHurt(true));
   }}>{action.label}</button>)}</div>{hurt && <a className="p4-emergency" href="tel:1669">โทร 1669 · Call 1669</a>}</div>;
 }
 
 export const SIMULATIONS: { event: SimEvent; label: string; proves: string }[] = [
-  { event: "rain", label: "🌧 ฝนตกหนักเพิ่ม · More rain", proves: "แจ้งเตือนฝนที่บ้านนี้ · Rain alert from the flood model's rain response at this house" },
-  { event: "river", label: "🌊 น้ำแม่น้ำขึ้น · River rising", proves: "แจ้งครอบครัวเรื่องน้ำแม่น้ำ · River response warns this family" },
-  { event: "teamPlan", label: "🚤 ทีมวางแผนมา · A team plans to come", proves: "ส่งแผนให้ครอบครัว ยังไม่ใช่การรับตัว · Team plan delivered to the family; pickup remains unconfirmed" },
-  { event: "teamVisit", label: "🏠 ทีมมาถึงแล้ว · The team arrives", proves: "ครอบครัวยืนยันผลการเยี่ยม · Team visit asks the family to confirm what happened" },
-  { event: "checkin", label: "⏰ 2 ชม. ต่อมา · Check-in 2 hours later", proves: "ติดตามความปลอดภัยต่อเนื่อง · A follow-up asks whether the family is still safe" },
+  { event: "rain", label: "ฝนตกหนักเพิ่ม · More rain", proves: "แจ้งเตือนฝนที่บ้านนี้ · Rain alert from the flood model's rain response at this house" },
+  { event: "river", label: "น้ำแม่น้ำขึ้น · River rising", proves: "แจ้งครอบครัวเรื่องน้ำแม่น้ำ · River response warns this family" },
+  { event: "teamPlan", label: "ทีมวางแผนมา · A team plans to come", proves: "ส่งแผนให้ครอบครัว ยังไม่ใช่การรับตัว · Team plan delivered to the family; pickup remains unconfirmed" },
+  { event: "teamVisit", label: "ทีมมาถึงแล้ว · The team arrives", proves: "ครอบครัวยืนยันผลการเยี่ยม · Team visit asks the family to confirm what happened" },
+  { event: "checkin", label: "2 ชม. ต่อมา · Check-in 2 hours later", proves: "ติดตามความปลอดภัยต่อเนื่อง · A follow-up asks whether the family is still safe" },
 ];
 
 export async function applySimulation(result: SimResult, receive: (message: NonNullable<SimResult["message"]>) => void, refreshInbox: () => Promise<void>) {
