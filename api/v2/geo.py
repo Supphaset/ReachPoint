@@ -48,6 +48,7 @@ class Building:
     ground_m: float | None
     area_m2: int
     outline: list[list[float]]
+    block_id: str | None = None
     x: float = 0.0
     y: float = 0.0
 
@@ -71,6 +72,7 @@ class Geo:
     streets: list[dict]
     _bgrid: dict = field(default_factory=dict)
     _sgrid: dict = field(default_factory=dict)
+    blocks: list = field(default_factory=list)   # v2-blocks.geojson features, when present
 
     def __post_init__(self):
         for b in self.buildings.values():
@@ -183,7 +185,25 @@ def load() -> Geo:
         raw = json.load(fh)
     blds = {r["id"]: Building(r["id"], r["zoneId"], r["c"][0], r["c"][1], r["groundM"], r["areaM2"], r["outline"])
             for r in raw["buildings"]}
-    zones = [z for z in json.loads((PKG / "zones.geojson").read_text())["features"] if z["properties"]["areaId"] == raw["area"]]
     streets = [{"name": f["properties"].get("name"), "nameTh": f["properties"].get("nameTh"), "kind": f["properties"].get("kind"), "coordinates": f["geometry"]["coordinates"]}
                for f in json.loads((PKG / "v2-streets.geojson").read_text())["features"]]
+    zfile, afile, bfile = PKG / "v2-zones.geojson", PKG / "v2-zoning.json", PKG / "v2-blocks.geojson"
+    if zfile.exists() and afile.exists():
+        # zones and blocks along the city's real barriers (data/scripts/build_v2_zoning.py)
+        zones = json.loads(zfile.read_text())["features"]
+        assign = json.loads(afile.read_text())["assign"]
+        blocks = json.loads(bfile.read_text())["features"] if bfile.exists() else []
+        g = Geo(blds, zones, streets)
+        g.blocks = blocks
+        from shapely.geometry import Point, shape
+        shapes = [(z["properties"]["id"], shape(z["geometry"])) for z in zones]
+        for b in blds.values():
+            z = assign.get(b.id)
+            if z:
+                b.zone_id, b.block_id = z[0], z[1]
+            else:  # on the city's edge, between simplified outlines: the nearest zone
+                p = Point(b.lon, b.lat)
+                b.zone_id = min(shapes, key=lambda zs: zs[1].distance(p))[0]
+        return g
+    zones = [z for z in json.loads((PKG / "zones.geojson").read_text())["features"] if z["properties"]["areaId"] == raw["area"]]
     return Geo(blds, zones, streets)

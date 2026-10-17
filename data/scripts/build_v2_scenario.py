@@ -60,7 +60,7 @@ def main() -> None:
     zones = {z["properties"]["id"]: z["properties"] for z in geo.zones}
     by_zone: dict[str, list[G.Building]] = {}
     for b in geo.buildings.values():
-        if b.ground_m is not None:
+        if b.ground_m is not None and b.zone_id in zones:
             by_zone.setdefault(b.zone_id, []).append(b)
 
     # --- truth: a water surface per zone per hour, shaped by the gauge
@@ -166,7 +166,8 @@ def main() -> None:
 
     landmarks = {}
     for f in json.loads((PKG / "landmarks.geojson").read_text())["features"]:
-        landmarks.setdefault(f["properties"]["zoneId"], []).append(f["properties"]["type"])
+        z = geo.zone_at(*f["geometry"]["coordinates"]) or f["properties"]["zoneId"]  # zones may have been redrawn
+        landmarks.setdefault(z, []).append(f["properties"]["type"])
     LM_TH = {"Temple": "วัด", "Market": "ตลาด", "School": "โรงเรียน", "Shrine": "ศาลเจ้า", "Mosque": "มัสยิด",
              "Health centre": "อนามัย", "Community building": "ศาลาชุมชน", "Shelter (high ground)": "ศูนย์พักพิง"}
 

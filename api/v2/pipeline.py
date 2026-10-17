@@ -562,7 +562,11 @@ def plans_until(w: World, now_h: float, extra: list[dict] | None = None):
     from api.v2.plans import parse_plan
     for p in scenario()["plans"] + (extra or []):
         if p["atH"] <= now_h:
-            parsed = p.get("_parsed") or parse_plan(p["text"])
+            parsed = dict(p.get("_parsed") or parse_plan(p["text"]))
+            from api.v2.plans import places
+            zs, bs = places(p["text"], G.load())
+            parsed["zones"] = list(dict.fromkeys(list(parsed.get("zones") or []) + zs))
+            parsed["blocks"] = bs
             w.plans.append({"id": p["id"], "atH": p["atH"], "at": label_time(p["atH"]), "text": p["text"], **parsed})
 
 

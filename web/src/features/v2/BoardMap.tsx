@@ -5,11 +5,11 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../data/googleMaps";
-import { cssVar, depthBand, type BoardState, type GeoView, type HouseholdView } from "./api";
+import { blocksNow, cssVar, depthBand, type BoardState, type GeoView, type HouseholdView } from "./api";
 import { drawFlood, loadSim, type Analysis, type Sim } from "./floodLayer";
 import { demoRoom } from "../../data/room";
 
-export type SimMode = "corrected" | "physics" | "off";
+export type SimMode = "corrected" | "physics" | "off" | "access";
 
 export interface HouseMark {
   outline: [number, number][];
@@ -56,7 +56,7 @@ function useFloodCanvas(geo: GeoView | null, state: BoardState | null, hour: num
   const corr = useAnalysis(state, hour, mode);
   useEffect(() => {
     if (!sim) return;
-    if (mode === "off") {
+    if (mode === "off" || mode === "access") {
       canvas.current.width = 1;
       canvas.current.height = 1;
     } else drawFlood(canvas.current, sim, hour, corr);
@@ -121,6 +121,7 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
   const dots = useRef<Maps>(null);
   const marks = useRef<Maps>(null);
   const pins = useRef<Maps[]>([]);
+  const access = useRef<Maps>(null);
   const select = useRef(onSelect);
   select.current = onSelect;
 
@@ -225,6 +226,25 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       return { fillColor: c, fillOpacity: 0.75, strokeColor: c, strokeWeight: 2, zIndex: 10, clickable: false };
     });
   }, [houses]);
+
+  // access now: each street-bounded block coloured by how you get in or out (walk, high truck, boat)
+  useEffect(() => {
+    if (!map.current) return;
+    if (!access.current) access.current = new maps.Data({ map: map.current });
+    const layer = access.current;
+    layer.forEach((f: Maps) => layer.remove(f));
+    if (simMode !== "access") return;
+    let live = true;
+    blocksNow().then(({ blocks }) => {
+      if (!live) return;
+      layer.addGeoJson({ type: "FeatureCollection", features: blocks.filter((b) => b.geometry).map((b) => ({
+        type: "Feature", geometry: b.geometry, properties: { a: b.access, n: b.name, o: b.open } })) });
+      const col: Record<string, string> = { walk: "--household-safe", truck: "--house-new", boat: "--depth-3", unknown: "--depth-unknown" };
+      layer.setStyle((f: Maps) => ({ fillColor: cssVar(col[f.getProperty("a")] ?? "--depth-unknown"), fillOpacity: f.getProperty("o") ? 0.62 : 0.4,
+        strokeColor: cssVar("--depth-line"), strokeWeight: 0.6, clickable: false, zIndex: 2 }));
+    }, () => undefined);
+    return () => { live = false; };
+  }, [simMode, state?.now.atH, state?.overall.messages, maps]);
 
   // shelters and team plans: labelled pins that update as people check in and teams post plans
   useEffect(() => {

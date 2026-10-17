@@ -101,7 +101,7 @@ def overview(st: dict) -> dict:
                  + sum(30 for r in open_ if r["cannotWalk"]) + sum(15 for r in open_ if r["elderly"]))
         score = unmet * (0.5 if plans else 1.0) + max(0, likely - heard) * 0.2
         zones.append({
-            "id": zid, "district": z.get("district"), "score": round(score),
+            "id": zid, "label": z.get("label"), "district": z.get("district"), "score": round(score),
             "open": len(open_), "urgent": sum(1 for r in open_ if r["urgent"]),
             "lostContact": sum(1 for r in open_ if r["status"] == "lostContact"),
             "cannotWalk": sum(r["cannotWalk"] for r in open_), "elderly": sum(r["elderly"] for r in open_),
@@ -267,7 +267,7 @@ def zone(st: dict, zid: str, team: str | None = None) -> dict | None:
     open_ = [r for r in rs if r["status"] not in CLOSED]
     brief = briefing(z, open_, outlook)
     return {"zone": z, "households": rs, "outlook": outlook, "briefing": brief, "unlocked": unlocked(w, team, zid),
-            "subareas": subareas(st, zid),
+            "subareas": subareas(st, zid), "blocks": blocks(st, zid),
             "totals": {"open": len(open_), "people": sum(r["people"] or 1 for r in open_),
                        "boat": sum(1 for r in open_ if r["boat"]), "closed": len(rs) - len(open_)},
             "now": {"atH": w.now_h, "at": P.label_time(w.now_h)}}
@@ -329,51 +329,51 @@ def trip(st: dict, zones: list[str], team: str | None = None) -> dict:
             "now": {"atH": w.now_h, "at": P.label_time(w.now_h)}}
 
 
-# --- smaller areas: ~350 m blocks inside a zone, named after their main street ---
-SUB_M = 350.0
+# --- blocks (data/scripts/build_v2_zoning.py): streets-bounded areas of ~150-700 people, named by their soi ---
+WALK_M, TRUCK_M = 0.25, 0.6   # walk out below ankle-shin water; a high truck up to ~0.6 m; above that, a boat
 
 
-def _street_of(geo, h) -> str | None:
-    b = geo.buildings.get(h.building_id) if h.building_id else None
-    if b is None:
-        return None
-    f = geo.facing(b)
-    return f and (f.street_th or f.street)
+def access_of(d: float | None) -> str:
+    if d is None:
+        return "unknown"
+    return "walk" if d < WALK_M else "truck" if d < TRUCK_M else "boat"
+
+
+def blocks(st: dict, zid: str | None = None, geometry: bool = True) -> list[dict]:
+    """Every block with its families' need and its access now (walk / truck / boat) from the water at its buildings."""
+    geo = G.load()
+    w = st["world"]
+    cache = st.setdefault("_blocks", {})
+    if "all" not in cache:
+        by_block: dict = {}
+        for h in w.households.values():
+            b = geo.buildings.get(h.building_id) if h.building_id else None
+            if b and b.block_id:
+                by_block.setdefault(b.block_id, []).append(h)
+        sample: dict = {}
+        for b in geo.buildings.values():
+            if b.block_id and len(sample.setdefault(b.block_id, [])) < 6:
+                sample[b.block_id].append(b)
+        out = []
+        for f in geo.blocks:
+            p = f["properties"]
+            hs = by_block.get(p["id"], [])
+            rs = [row(st, h) for h in hs]
+            open_ = [r for r in rs if r["status"] not in CLOSED]
+            # where families have reported: the model corrected at their houses; elsewhere the model at a few houses
+            ds = sorted(r["depth"]["m"] for r in rs if r["depth"]) or sorted(S.depth(b.lon, b.lat, w.now_h) or 0.0 for b in sample.get(p["id"], []))
+            d = round(ds[len(ds) // 2], 2) if ds else None
+            out.append({"id": p["id"], "zoneId": p["zoneId"], "name": p.get("name"), "people": p.get("people"),
+                        "geometry": f["geometry"], "depthM": d, "access": access_of(d),
+                        "open": len(open_), "urgent": sum(1 for r in open_ if r["urgent"]),
+                        "lostContact": sum(1 for r in open_ if r["status"] == "lostContact"),
+                        "cannotWalk": sum(r["cannotWalk"] for r in open_), "need": sum(r["priority"] for r in open_),
+                        "households": [r["id"] for r in sorted(open_, key=lambda r: -r["priority"])][:12]})
+        cache["all"] = out
+    rows = [b for b in cache["all"] if zid is None or b["zoneId"] == zid]
+    return rows if geometry else [{k: v for k, v in b.items() if k != "geometry"} for b in rows]
 
 
 def subareas(st: dict, zid: str | None = None) -> list[dict]:
-    """Households grouped into ~350 m blocks (zone-scoped), each with its need and a street name people know."""
-    geo = G.load()
-    w = st["world"]
-    cells: dict = {}
-    for h in w.households.values():
-        if h.lon is None or (zid and h.zone_id != zid) or not h.zone_id:
-            continue
-        x, y = G.to_m(h.lon, h.lat)
-        key = (h.zone_id, int(x // SUB_M), int(y // SUB_M))
-        cells.setdefault(key, []).append(h)
-    out = []
-    # readable, stable ids: B-7·1, B-7·2 … numbered north-west to south-east within the zone
-    order = {}
-    for z in {k[0] for k in cells}:
-        for n, k in enumerate(sorted((k for k in cells if k[0] == z), key=lambda k: (-k[2], k[1])), 1):
-            order[k] = n
-    for (z, i, j), hs in cells.items():
-        rs = [row(st, h) for h in hs]
-        open_ = [r for r in rs if r["status"] not in CLOSED]
-        streets: dict = {}
-        for h in hs:
-            n = _street_of(geo, h)
-            if n:
-                streets[n] = streets.get(n, 0) + 1
-        name = max(streets, key=streets.get) if streets else None
-        ds = sorted(r["depth"]["m"] for r in open_ if r["depth"])
-        lon0, lat0 = G.to_ll(i * SUB_M, j * SUB_M)
-        lon1, lat1 = G.to_ll((i + 1) * SUB_M, (j + 1) * SUB_M)
-        need = sum(r["priority"] for r in open_)
-        out.append({"id": f"{z}·{order[(z, i, j)]}", "zoneId": z, "name": name, "bbox": [lon0, lat0, lon1, lat1],
-                    "open": len(open_), "people": sum(r["people"] or 1 for r in open_), "urgent": sum(1 for r in open_ if r["urgent"]),
-                    "lostContact": sum(1 for r in open_ if r["status"] == "lostContact"), "cannotWalk": sum(r["cannotWalk"] for r in open_),
-                    "boat": sum(1 for r in open_ if r["boat"]), "depthM": ds[len(ds) // 2] if ds else None, "need": need,
-                    "households": [r["id"] for r in sorted(open_, key=lambda r: -r["priority"])][:8]})
-    return sorted(out, key=lambda c: -c["need"])
+    """The blocks, most help missing first (kept under the old name for the pages that list them)."""
+    return sorted(blocks(st, zid, geometry=False), key=lambda b: -b["need"])

@@ -193,3 +193,17 @@
 .v-hot li.is-on { background: var(--color-waiting-bg); }
 .v-hot li:last-child { border-bottom: 0; }
 @media (max-width: 600px) { .v-hot li { grid-template-columns: minmax(0, 1fr) auto; } }
+
+.v-block { stroke: var(--color-surface); stroke-width: 0.8; fill-opacity: 0.32; }
+.v-block.is-walk { fill: var(--household-safe); }
+.v-block.is-truck { fill: var(--house-new); }
+.v-block.is-boat { fill: var(--depth-3); }
+.v-block.is-unknown { fill: var(--depth-unknown); }
+.v-block.has-open { fill-opacity: 0.55; stroke: var(--color-ink-2); }
+.v-block.is-link { cursor: pointer; }
+.v-legend-access { font-size: var(--text-xs); display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); align-items: center; margin: var(--space-1) 0 0; }
+.v-legend-access i { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+.v-legend-access .is-walk, .v-access.is-walk { background: var(--household-safe); }
+.v-legend-access .is-truck, .v-access.is-truck { background: var(--house-new); }
+.v-legend-access .is-boat, .v-access.is-boat { background: var(--depth-3); color: var(--color-on-ink); }
+.v-access { font-size: var(--text-2xs); font-weight: var(--weight-bold); padding: 1px var(--space-2); border-radius: var(--radius-sm); background: var(--color-surface-sunken); }

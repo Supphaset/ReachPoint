@@ -22,16 +22,23 @@ called were not checked.
 
 Open the site. You get your own private demo room (nobody else sees your reports; Reset only resets yours).
 
-1. **Report as a victim** on the phone on the left, in Thai or English, by typing or holding the mic. Try the sample:
-   *"น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"*.
-   The agent asks only what is missing; under each answer you see what it understood, with your own words.
-2. **Watch your house appear** on the satellite map, and the zone's numbers change.
-3. **Mention a neighbour** ("บ้านข้างๆ มียายอยู่คนเดียว"). The agent asks which way that house is from yours: north,
-   south, east or west. The system finds that house on the building map. If it already reported, it isn't counted
-   twice; if not, it is added as a household reported by a neighbour.
-4. **Post a plan as a volunteer** ("เรือเรา 8 ที่ จะเข้า B-3 ราวบ่ายสอง") and see your phone told that a boat is coming.
-5. **Press "Play the flood"** to watch 21–28 Nov 2025: the flood simulation spreads from the canal as the real gauge
-   rises, reports arrive, duplicates merge, quiet zones get asked, and the picture sharpens.
+1. **Play a victim.** Top left is a Hat Yai shophouse with the water at its modelled depth. Report on the phone below
+   it, in Thai or English, by typing or by pressing **📞 Call** to talk to the agent through **Gemini Live**. Try:
+   *"น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"*. The agent asks only what is missing;
+   under each answer you see what it understood, with your own words. The house scene becomes *your* house.
+2. **Mention neighbours:** *"บ้านทางทิศตะวันออกมียายอยู่คนเดียว ทางทิศตะวันตกมีครอบครัว 4 คน"*. For each one the agent
+   shows the satellite picture with that house outlined and asks "is it this one?". A house that already reported isn't
+   counted twice; a new one is added as reported by a neighbour.
+3. **Shelters:** if you can leave on your own, the agent offers the nearest shelter you can walk to (no stretch deeper
+   than 0.5 m on the way), or says plainly that walking isn't safe now. Say *"ถึงแล้ว"* at the shelter and your house is
+   marked empty for the teams.
+4. **Press "Rain alert".** The flood model's response to 60 mm more rain tells each home how much its water will rise
+   and when; homes with someone who can't walk are warned first.
+5. **Open "Volunteer pages →"**: where help is missing (zones and ~350 m hotspots), the live feed of what the AI did
+   with every message, a zone page, one family's whole case, and "Plan a trip". Post a plan and the families there are
+   told; zones with a team coming are outlined on the map. After the visit, one tap: *picked up* or *nobody there*.
+6. **Press "Play the flood"** to watch 21–28 Nov 2025 build up: water spreading from the hills and canals, reports
+   arriving, duplicates merging, the picture sharpening.
 
 ## How it works
 
@@ -54,16 +61,18 @@ flowchart LR
 
 | Step | What it does | Code |
 |---|---|---|
-| **Intake agent** | One question at a time, only what is missing: where, how many, who is vulnerable, how deep (with a concrete check: "above or below your door handle?"), then the neighbours side by side. Skips the neighbour questions when life is at risk | [`api/v2/intake.py`](api/v2/intake.py) |
-| **Reader** | A language model turns any message into facts. Every fact must quote the person's exact words or it is dropped. Rules take over if the model is unavailable, and say so | [`api/v2/ai.py`](api/v2/ai.py), [`reader.py`](api/v2/reader.py) |
-| **Locator** | Address → Pinpoint → the Google Open Buildings outline under it. "The house to the east" → the nearest building in that direction, as seen from the door looking at the street (OSM street direction) | [`api/v2/geo.py`](api/v2/geo.py) |
-| **Dedupe** | Counts households, not messages. Replies stay in their conversation; a relative's post merges only when exactly one nearby family has the same makeup; otherwise it is kept apart and counted as a range | [`api/v2/pipeline.py`](api/v2/pipeline.py) |
-| **Flood simulation** | Diffusive shallow-water model on the 30 m FABDEM terrain: the canal at the real gauge X.44 level hour by hour, the real IMERG rain, drainage | [`data/scripts/build_v2_flood_sim.py`](data/scripts/build_v2_flood_sim.py) |
-| **Analyst** | Words → depth ranges; each report is compared with the simulation at its own house; nearby reports' gaps correct the simulation ("reports say 0.6 m deeper here: likely blocked drains"); a report whose gap disagrees with its neighbours is marked doubtful, never deleted | [`api/v2/pipeline.py`](api/v2/pipeline.py), [`level.py`](api/v2/level.py) |
-| **Planner, Notifier** | Daily and alert check-ins, early warnings to vulnerable households where the simulated water spreads next, "lost contact" after two missed checks, plan updates to every household in a zone, gaps such as "nobody plans medical help" | [`api/v2/planner.py`](api/v2/planner.py), [`messages.py`](api/v2/messages.py) |
+| **Intake agent** | One question at a time, only what is missing: where, how many, who is vulnerable, how deep (with a concrete check: "above or below your door handle?"). Neighbours only when the person mentions them: their direction if missing, then a yes/no on the satellite picture. Offers a walkable shelter. Typed, held mic, or a Gemini Live call | [`intake.py`](api/v2/intake.py), [`live.py`](api/v2/live.py) |
+| **Reader** | A language model turns any message into facts. Every fact must quote the person's exact words or it is dropped. Rules take over if the model is unavailable, and say so | [`ai.py`](api/v2/ai.py), [`reader.py`](api/v2/reader.py) |
+| **Locator** | Address → Pinpoint → the Google Open Buildings outline under it. "The house to the east" → the nearest building in that compass sector (compass, because left and right depend on where you face) | [`geo.py`](api/v2/geo.py) |
+| **Dedupe** | Counts households, not messages. Replies stay in their conversation; a relative's post merges only when exactly one nearby family has the same makeup; otherwise it is kept apart and counted as a range | [`pipeline.py`](api/v2/pipeline.py) |
+| **Flood model** | Local-inertial shallow water (Bates et al. 2010) over the whole lower U-Tapao basin: IMERG rain, curve-number losses, Manning friction by land cover, canals, city drains that back up, Sadao inflow, Songkhla Lake. Street-level ground in dense blocks. Calibrated against the real gauge and news-reported depths | [`build_v2_basin_sim.py`](data/scripts/build_v2_basin_sim.py) |
+| **Analyst** | Words → depth ranges with an error by wording and source. Optimal interpolation spreads each report's gap from the model (≈300 m, 12 h); where the model is dry but people report water, the water fills only the low ground. A report the model and its neighbours both contradict is marked doubtful, never deleted | [`assim.py`](api/v2/assim.py) |
+| **Planner, Notifier** | Daily and alert check-ins; rain warnings with each home's expected rise from an extra-rain model run; "lost contact" after two missed checks; plan updates to every household in a zone; gaps such as "nobody plans medical help" | [`planner.py`](api/v2/planner.py), [`rain.py`](api/v2/rain.py) |
+| **Shelters** | Real public buildings (OSM) that stay dry all week in the model and have no deep-water report nearby; a walk check along the way; check-in by the family, a team or shelter staff | [`shelters.py`](api/v2/shelters.py) |
+| **Volunteer pages** | Where help is missing, live feed, zone, family case, plan a trip; exact addresses only for a team whose plan covers the zone | [`cases.py`](api/v2/cases.py), [`web/src/features/v2/volunteer`](web/src/features/v2/volunteer) |
 
-**Which model reads:** Gemini on Vertex AI in the deployed build (`REACHPOINT_LLM=gemini`, the default). During
-development the same reader can run on Claude through the Claude Code CLI (`REACHPOINT_LLM=claude`). Every
+**Which model:** Gemini reads every message (`REACHPOINT_LLM=gemini`, the default) and Gemini Live (`gemini-3.8-live`)
+is the voice. During development the same reader also ran on Claude through the Claude Code CLI, to compare; every
 reading is labelled with the model that made it.
 
 ## Measured, not claimed
@@ -86,17 +95,22 @@ differences), so these numbers show how well physics and reports combine, not fi
 
 | Real | Synthetic |
 |---|---|
-| River gauge X.44 (RID), IMERG rain, Sentinel-1 flood extent (Earth Engine), FABDEM terrain, Google Open Buildings outlines (30,086 in the city), OSM streets and canals, WorldPop and DOPA population | Every household, message, post, reply and volunteer plan. Bulletins are reconstructed from the real gauge readings and labelled as such |
+| River gauge X.44 (RID), IMERG rain, Sentinel-1 flood extent, FABDEM terrain, ESA WorldCover (Earth Engine), Google Open Buildings outlines (30,086 in the city), OSM streets, canals and public buildings, news-reported depths (23–25 Nov), WorldPop and DOPA population | Every household, message, post, reply and volunteer plan. Bulletins are reconstructed from the real gauge readings and labelled as such |
 
 Never enter real personal data.
 
 ## Honest limits
 
-- **Not a hydraulic model.** The simulation has no buildings, pipes, pumps or dykes. It is a first guess that reports
-  correct, and it is labelled that way.
+- **The flood model is a model.** Against the real data it runs about 1.2 m high at the gauge on average and drains too
+  slowly, and downtown on 23 Nov it gives 0.3–0.7 m where people reported 0.5–2 m. Reports correct it where people
+  talk; elsewhere it is labelled as the model.
 - **Synthetic people.** The scenario was written by the team; the evaluation measures behaviour, not field accuracy.
+- **Shelters are candidates,** not the official 2025 list; room is estimated from building size. The walk check uses
+  the direct line, not the street network.
+- **Rain warnings are linear:** one extra-rain run scaled to the forecast.
 - **Not tried with responders yet.** No drill with a rescue team so far.
-- **Messages are simulated.** Check-ins appear in the app; SMS, LINE and phone calls are not connected.
+- **Messages are simulated.** Check-ins appear in the app; SMS, LINE and real phone calls are not connected. Gemini
+  Live works in the browser.
 - **Pinpoint:** where the key is not configured, addresses fall back to a street-name match in the city.
 
 ## Run it locally

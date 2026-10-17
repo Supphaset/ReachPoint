@@ -141,7 +141,7 @@ export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTon
   zoneTone?: Record<string, string>;
   onZone?: (id: string) => void;
   shelters?: { id: string; name: string; lon: number; lat: number; people?: number }[];
-  cells?: { id: string; name: string | null; bbox: [number, number, number, number]; need: number; open: number }[];
+  cells?: { id: string; name: string | null; geometry?: GeoJSON.Polygon | GeoJSON.MultiPolygon; need: number; open: number; access?: string }[];
   onCell?: (id: string) => void;
 }) {
   const shapes = useMemo(() => {
@@ -177,14 +177,15 @@ export function MiniMap({ geo, zoneId, rows, onPick, height = 280, mark, zoneTon
           <title>{`Zone ${r.id}`}</title>
         </path>
       ))}
-      {(cells ?? []).map((c) => {
-        const top = Math.max(...(cells ?? []).map((x) => x.need), 1);
-        const tone = c.need >= top * 0.5 ? "is-high" : c.need >= top * 0.2 ? "is-mid" : "is-low";
+      {(cells ?? []).filter((c) => c.geometry).map((c) => {
+        const g = c.geometry!;
+        const rings = g.type === "Polygon" ? [g.coordinates[0]] : g.coordinates.map((p) => p[0]);
+        const d = rings.map((r) => r.map((p, j) => `${j ? "L" : "M"}${px(p[0]).toFixed(1)} ${py(p[1]).toFixed(1)}`).join(" ") + "Z").join(" ");
         return (
-          <rect key={c.id} x={px(c.bbox[0])} y={py(c.bbox[3])} width={px(c.bbox[2]) - px(c.bbox[0])} height={py(c.bbox[1]) - py(c.bbox[3])}
-            className={`v-cell ${tone}${onCell ? " is-link" : ""}`} onClick={onCell ? () => onCell(c.id) : undefined}>
-            <title>{`${c.id}${c.name ? ` · ${c.name}` : ""} · ${c.open} families waiting`}</title>
-          </rect>
+          <path key={c.id} d={d} className={`v-block is-${c.access ?? "unknown"}${c.open ? " has-open" : ""}${onCell ? " is-link" : ""}`}
+            onClick={onCell ? () => onCell(c.id) : undefined}>
+            <title>{`${c.id}${c.name ? ` · ${c.name}` : ""} · ${c.open} families waiting · ${c.access === "walk" ? "can walk out" : c.access === "truck" ? "high truck" : c.access === "boat" ? "boat needed" : "unknown"}`}</title>
+          </path>
         );
       })}
       {(shelters ?? []).filter((s) => s.lon >= w && s.lon <= e && s.lat >= s0(shapes) && s.lat <= n).map((s) => (

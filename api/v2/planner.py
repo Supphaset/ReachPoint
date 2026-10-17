@@ -99,14 +99,21 @@ def plan_outreach(w, geo: G.Geo) -> None:
     # plans: tell households in each zone; post a gap when nobody plans what is needed
     for p in w.plans:
         told = 0
+        blocks = set(p.get("blocks") or [])
+        block_zones = {b.split("·")[0] for b in blocks}
         for z in p.get("zones", []):
             for h in w.households.values():
-                if h.zone_id == z and h.status not in ("evacuated",):
+                if h.zone_id == z and h.status not in ("evacuated", "atShelter"):
+                    if z in block_zones:  # the plan names streets in this zone: tell only the families on them
+                        bl = geo.buildings.get(h.building_id) if h.building_id else None
+                        if not bl or bl.block_id not in blocks:
+                            continue
                     w.outbound.append({"atH": p["atH"], "householdId": h.id, "kind": "planUpdate", "text": plan_update(p, z)})
                     told += 1
         p["told"] = told
         w.activity.append({"atH": p["atH"], "at": p["at"], "agent": "Notifier",
                            "text": f"Plan from {p.get('team') or 'a team'} ({', '.join(p.get('zones', []))}"
+                                   + (f"; streets: {len(blocks)} blocks" if blocks else "") + 
                                    f"{', ' + p['eta'] if p.get('eta') else ''}): {told} households told.",
                            "tool": "plan line · message", "ref": p["id"], "key": "plan"})
     for zid in w.levels:

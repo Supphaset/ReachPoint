@@ -18,7 +18,7 @@ export function ZonePage() {
   const rows = (data?.households ?? []).filter((r) => (showClosed || !["safe", "evacuated", "nobodyThere", "atShelter"].includes(r.status))
     && (!inArea || inArea.has(r.id)));
   return (
-    <VShell title={`Zone ${id}`} sub={z?.district ?? undefined} at={data?.now.at}>
+    <VShell title={`Zone ${id}${z?.label ? ` · ${z.label}` : ""}`} sub={z?.district ?? undefined} at={data?.now.at}>
       {error ? <p className="v2-error">Couldn't load zone {id}: {error}</p> : null}
       {data ? (
         <>
@@ -84,16 +84,17 @@ export function ZonePage() {
             <section className="v2-card v-pad">
               <h2 className="v-h2">Map of zone {id}</h2>
               <MiniMap geo={geo} zoneId={id} rows={data.households} onPick={(hid) => nav(`/v/case/${hid}`)} height={460}
-                cells={data.subareas} onCell={(cid) => setArea(cid)} />
-              <p className="v-muted v-small">Squares: smaller areas of about 350 m, darker where more help is missing. Tap one to list its families.</p>
-              <h3 className="v-h2">Smaller areas</h3>
+                cells={data.blocks} onCell={(cid) => setArea(cid)} />
+              <p className="v-legend-access"><i className="is-walk" />can walk out <i className="is-truck" />high truck <i className="is-boat" />boat needed
+                <span className="v-muted"> · blocks follow streets; water now at their houses. Tap one to list its families.</span></p>
+              <h3 className="v-h2">Blocks with families waiting</h3>
               <ol className="v-hot">
                 {data.subareas.filter((c) => c.open).slice(0, 10).map((c) => (
                   <li key={c.id} className={area === c.id ? "is-on" : ""}>
                     <button type="button" className="v-linkbtn" onClick={() => setArea(area === c.id ? null : c.id)}><b>{c.name ?? c.id}</b></button>
                     <span className="v-muted v-small">{c.id}</span>
                     <span className="v-small">{c.open} waiting{c.urgent ? ` · ${c.urgent} urgent` : ""}{c.cannotWalk ? ` · ${c.cannotWalk} can't walk` : ""}</span>
-                    <Depth m={c.depthM} />
+                    <span className={`v-access is-${c.access}`}>{c.access === "walk" ? "walk" : c.access === "truck" ? "truck" : c.access === "boat" ? "boat" : "?"}</span>
                   </li>
                 ))}
               </ol>

@@ -26,11 +26,12 @@ from api.v2.pipeline import PKG, scenario  # noqa: E402
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--workers", type=int, default=8)
+    ap.add_argument("--force", action="store_true", help="read every message again (e.g. after switching model)")
     args = ap.parse_args()
     msgs = [m for m in scenario()["messages"] if m["channel"] != "bulletin"]
     out_path = PKG / "v2-facts.json"
     done = json.loads(out_path.read_text())["facts"] if out_path.exists() else {}
-    todo = [m for m in msgs if str(done.get(m["id"], {}).get("reader", "rules")) == "rules"]
+    todo = msgs if args.force else [m for m in msgs if str(done.get(m["id"], {}).get("reader", "rules")) == "rules"]
     print(len(msgs), "messages;", len(todo), "to read", flush=True)
 
     def one(m):

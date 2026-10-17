@@ -52,7 +52,7 @@ export function TripPage() {
         <div className="v-zonepick">
           {(over.data?.zones ?? []).map((z) => (
             <button key={z.id} type="button" aria-pressed={picked.includes(z.id)} onClick={() => toggle(z.id)}>
-              <b>{z.id}</b> <span>{z.open} waiting{z.urgent ? ` · ${z.urgent} urgent` : ""}</span>
+              <b>{z.id}</b> <span>{z.label}</span> <span>{z.open} waiting{z.urgent ? ` · ${z.urgent} urgent` : ""}</span>
               {z.plans ? <i className="is-planned">{z.plans} team{z.plans > 1 ? "s" : ""}</i> : z.open ? <i className="is-none">no team</i> : null}
             </button>
           ))}

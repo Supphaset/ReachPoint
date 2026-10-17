@@ -29,3 +29,77 @@ def parse_plan(text: str) -> dict:
     team = re.split(r"\s*(\d|จะ|ไป|เข้า|ประมาณ|going|will|plans?\b|,)", t)[0].strip()[:40] or None
     return {"team": team, "vehicle": vehicle, "seats": int(seats.group(1)) if seats else None, "zones": zones,
             "eta": eta, "offers": offer}
+
+
+def _norm(s: str) -> str:
+    """Street names as people say them: no "ถนน"/"ซอย"/"Thanon"/"Soi", no spaces, the two common spellings of ราษฎร์."""
+    s = re.sub(r"ถนน|ถ\.|ซอย|ซ\.|thanon|soi|road|rd\.?", "", (s or "").lower())
+    return re.sub(r"\s+", "", s.replace("ฏ", "ฎ"))
+
+
+def _named(k: str, t: str) -> bool:
+    """k appears in t as a whole name: not the start of a longer numbered soi ("ราษฎร์อุทิศ" in "ราษฎร์อุทิศ15")."""
+    i = t.find(k)
+    while i >= 0:
+        nxt = t[i + len(k): i + len(k) + 1]
+        if not nxt.isdigit() and nxt not in ("/",):
+            return True
+        i = t.find(k, i + 1)
+    return False
+
+
+def places(text: str, geo) -> tuple[list[str], list[str]]:
+    """Zones and blocks a plan line names by street: "เรือเข้าซอยราษฎร์อุทิศ 15" → the block(s) on that soi and their
+    zone. The longest names are tried first, so "ราษฎร์อุทิศ 15" wins over "ราษฎร์อุทิศ"."""
+    # times and seat counts are not soi numbers: "แสงอาทิตย์ 15:00", "8 ที่"
+    t = _norm(re.sub(r"\d{1,2}[:.]\d{2}|\d+\s*(ที่นั่ง|ที่|seats?|คน|people)|\b[ABC]-\d{1,2}\b", " ", text or "", flags=re.I))
+    blocks, zones = [], []
+    names = sorted({(b["properties"].get("name") or "") for b in geo.blocks if b["properties"].get("name")}, key=len, reverse=True)
+    hit = []
+    for n in names:
+        k = _norm(n)
+        if len(k) >= 4 and _named(k, t) and not any(k in h for h in hit):
+            hit.append(k)
+            for b in geo.blocks:
+                if b["properties"].get("name") == n:
+                    blocks.append(b["properties"]["id"])
+                    if b["properties"]["zoneId"] not in zones:
+                        zones.append(b["properties"]["zoneId"])
+    # any street by name: the blocks it runs through ("ซอยราษฎร์อุทิศ 15" even when no block is named after it)
+    for k, bids in sorted(_street_blocks(geo).items(), key=lambda kv: len(kv[0]), reverse=True):
+        if len(k) >= 5 and _named(k, t) and not any(k in h for h in hit):
+            hit.append(k)
+            for bid in bids:
+                if bid not in blocks:
+                    blocks.append(bid)
+                z = bid.split("·")[0]
+                if z not in zones:
+                    zones.append(z)
+    for z in geo.zones:  # a zone named by its road ("แถวถนนแสงอาทิตย์") counts as the whole zone
+        k = _norm(z["properties"].get("name") or "")
+        if len(k) >= 4 and _named(k, t) and z["properties"]["id"] not in zones and not any(k in h for h in hit):
+            zones.append(z["properties"]["id"])
+    return zones, blocks
+
+
+_SB: dict | None = None
+
+
+def _street_blocks(geo) -> dict[str, list[str]]:
+    """Street name (normalised) → the blocks of the buildings along it (within ~25 m of its line)."""
+    global _SB
+    if _SB is None:
+        from api.v2 import geo as G
+        out: dict[str, set] = {}
+        for st in geo.streets:
+            name = st.get("nameTh") or st.get("name")
+            if not name:
+                continue
+            k = _norm(name)
+            coords = st["coordinates"] if isinstance(st["coordinates"][0][0], float) else [p for part in st["coordinates"] for p in part]
+            for lon, lat in coords[:: max(1, len(coords) // 12)]:
+                for b in geo.near(*G.to_m(lon, lat), 25):
+                    if b.block_id:
+                        out.setdefault(k, set()).add(b.block_id)
+        _SB = {k: sorted(v) for k, v in out.items()}
+    return _SB

@@ -501,3 +501,10 @@ def depth_series(lon: float, lat: float):
     return {"start": S.meta()["start"], "nowH": v.now_h, "now": P.label_time(v.now_h), "model": model,
             "corrected": {"m": round(d, 2), "lo": round(max(0.0, d - sd), 2), "hi": round(d + sd, 2), "reports": n, "model": round(prior, 2)},
             "groundM": b.ground_m if b else None, "buildingId": b.id if b else None}
+
+
+@router.get("/v/blocks")
+def v_blocks(zone: str | None = None):
+    """Blocks with their outline, need and access now (walk / truck / boat), for the maps."""
+    from api.v2 import cases as C
+    return {"blocks": C.blocks(_state(room()), zone), "thresholds": {"walkM": C.WALK_M, "truckM": C.TRUCK_M}}

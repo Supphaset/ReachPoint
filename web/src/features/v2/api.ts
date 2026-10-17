@@ -234,6 +234,7 @@ export interface CaseRow {
 
 export interface OverviewZone {
   id: string;
+  label: string | null;
   district: string | null;
   score: number;
   open: number;
@@ -267,7 +268,8 @@ export interface SubArea {
   id: string;
   zoneId: string;
   name: string | null;
-  bbox: [number, number, number, number];
+  access: "walk" | "truck" | "boat" | "unknown";
+  geometry?: GeoJSON.Polygon | GeoJSON.MultiPolygon;
   open: number;
   people: number;
   urgent: number;
@@ -341,6 +343,7 @@ export interface ZonePage {
   briefing: string;
   unlocked: boolean;
   subareas: SubArea[];
+  blocks: SubArea[];
   totals: { open: number; people: number; boat: number; closed: number };
   now: { atH: number; at: string };
 }
@@ -364,6 +367,8 @@ export interface DepthSeries {
 }
 
 export const depthAt = (lon: number, lat: number) => get<DepthSeries>(`/api/v2/depth-series?lon=${lon}&lat=${lat}`);
+
+export const blocksNow = () => get<{ blocks: SubArea[]; thresholds: { walkM: number; truckM: number } }>("/api/v2/v/blocks");
 
 export const vol = {
   overview: () => get<Overview>("/api/v2/v/overview"),

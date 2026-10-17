@@ -190,10 +190,18 @@ export function V2Page() {
               simMode={simMode}
             />
             <div className="v2-simswitch" role="radiogroup" aria-label="Water layer">
-              {([["corrected", "Simulation + reports"], ["physics", "Physics only"], ["off", "Zones"]] as [SimMode, string][]).map(([m, label]) => (
+              {([["corrected", "Simulation + reports"], ["physics", "Physics only"], ["access", "Walk · truck · boat"], ["off", "Zones"]] as [SimMode, string][]).map(([m, label]) => (
                 <button key={m} type="button" role="radio" aria-checked={simMode === m} onClick={() => setSimMode(m)}>{label}</button>
               ))}
             </div>
+            {simMode === "access" ? (
+              <div className="v2-map-legend" aria-hidden="true">
+                <span><i className="is-walk" />walk out (&lt; 0.25 m)</span>
+                <span><i className="is-truck" />high truck (&lt; 0.6 m)</span>
+                <span><i className="is-boat" />boat needed</span>
+                <span>blocks follow streets · water now</span>
+              </div>
+            ) : (
             <div className="v2-map-legend" aria-hidden="true">
               <span><i className="is-unknown" />unknown</span>
               <span><i className="is-1" />&lt; 0.5 m</span>
@@ -204,6 +212,7 @@ export function V2Page() {
               <span><i className="is-shelter" />shelter</span>
               <span><i className="is-plan" />team coming</span>
             </div>
+            )}
           </div>
           <TimeBar timeline={timeline} viewH={viewing} nowH={nowH} onChange={scrub} playing={playing} onPlay={() => setPlaying((p) => !p)} />
           <div className="v2-tabs" role="tablist">

@@ -27,7 +27,7 @@ export function OverviewPage() {
       ) : null}
       {top ? (
         <p className="v-callout">
-          <b>Most help missing: zone {top.id}</b> ({top.district}). {top.open} families waiting
+          <b>Most help missing: zone {top.id} · {top.label}</b> ({top.district}). {top.open} families waiting
           {top.urgent ? `, ${top.urgent} urgent` : ""}{top.cannotWalk ? `, ${top.cannotWalk} people who can't walk` : ""}.{" "}
           {top.plans ? `${top.plans} team plan${top.plans > 1 ? "s" : ""} posted.` : "No team has posted a plan."}{" "}
           <Link to={`/v/zone/${top.id}`}>Open zone {top.id} →</Link>
@@ -60,7 +60,7 @@ export function OverviewPage() {
             <tbody>
               {(data?.zones ?? []).map((z, i) => (
                 <tr key={z.id} onClick={() => nav(`/v/zone/${z.id}`)} className={i < 3 && z.score > 0 ? "is-top" : ""}>
-                  <td><Link to={`/v/zone/${z.id}`}><b>{z.id}</b></Link> <span className="v-muted">{z.district}</span>
+                  <td><Link to={`/v/zone/${z.id}`}><b>{z.id}</b></Link> {z.label} <span className="v-muted v-small">{z.district}</span>
                     {z.quiet ? <span className="v2-chip is-amber">quiet</span> : null}
                     {z.predicted ? <span className="v2-chip is-amber">water ≤ 6 h</span> : null}</td>
                   <td className="num">{z.open}</td>
