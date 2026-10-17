@@ -33,7 +33,8 @@ sys.path.insert(0, str(ROOT))
 PKG = ROOT / "data" / "hy-2025-11"
 SECTOR_MIN, SECTOR_MAX = 8000, 16000       # people per sector (level 1)
 TEAM_MIN_B, TEAM_MAX_B = 200, 450          # buildings per team zone (level 2): one team, one shift
-TEAM_MAX_KM2 = 0.4                         # ~500-650 m across
+TEAM_MAX_KM2 = 0.4
+TEAM_ALONE_B = 80                          # a piece walled in by main roads/canals may stand alone from this size                         # ~500-650 m across
 BLOCK_MIN, BLOCK_MAX = 120, 400            # people per block (level 3)
 
 
@@ -238,24 +239,44 @@ def main() -> None:
                 out.append(q)
         return out
 
+    major = unary_union(t1 + t2)   # railway, canals, rivers, trunk, primary and secondary roads
+
+    def across_major(p, q):
+        """Do p and q meet along a main road, canal or the railway (rather than a small street)?"""
+        border = p.buffer(NEAR).intersection(q.buffer(NEAR))
+        if border.is_empty:
+            return False
+        return major.intersection(border).length > 0.00035          # ~40 m of main line along their border
+
     def merge_team(pieces):
+        """Grow pieces smaller than one team's shift by joining a neighbour across a small street. Joining across a
+        main road, canal or the railway is the last resort (a team works the two sides separately); a piece cut off
+        by main lines may stay on its own if it has at least TEAM_ALONE_B buildings."""
         pieces = list(pieces)
+        alone = set()
         while len(pieces) > 1:
             sizes = [nbld(q) for q in pieces]
-            k = int(np.argmin(sizes))
-            if sizes[k] >= TEAM_MIN_B:
+            order = [i for i in np.argsort(sizes) if sizes[i] < TEAM_MIN_B and pieces[i].wkb not in alone]
+            if not order:
                 break
+            k = int(order[0])
             p = pieces[k]
             pb = p.buffer(NEAR)
             cands = []
             for i, q in enumerate(pieces):
                 if i != k and pb.intersects(q):
                     j = _join(p, q)
-                    cands.append((too_big(j), -compact(j), sizes[i], i, j))
+                    cands.append((across_major(p, q), too_big(j), -compact(j), sizes[i], i, j))
+            if cands and min(cands, key=lambda c: c[:4])[0] and sizes[k] >= TEAM_ALONE_B:
+                alone.add(p.wkb)   # every neighbour is across a main line: keep it as its own small zone
+                continue
             if not cands:
+                if sizes[k] >= TEAM_ALONE_B:
+                    alone.add(p.wkb)
+                    continue
                 i = min((i for i in range(len(pieces)) if i != k), key=lambda i: p.distance(pieces[i]))
-                cands = [(False, 0, 0, i, _join(p, pieces[i]))]
-            *_, best, joined = min(cands, key=lambda c: c[:3])
+                cands = [(True, False, 0, 0, i, _join(p, pieces[i]))]
+            *_, best, joined = min(cands, key=lambda c: c[:4])
             pieces = [q for i, q in enumerate(pieces) if i not in (k, best)] + [joined]
         return pieces
 
@@ -285,16 +306,19 @@ def main() -> None:
     sector_names = unique_names(sectors)
     teams = []
     for si, sp in enumerate(sectors):
-        merged = merge_team(split_team(sp, [t2, t3, t4]))
+        # every main road, canal and the railway separates team zones (cut always); smaller streets only when needed
+        pieces = [x for q in cut(sp, t1 + t2) for x in (split_team(q, [t3, t4]) if too_big(q) else [q])]
+        merged = merge_team(pieces)
         # still more than one shift's work after merging: split straight across, without merging back
         final = []
         for z in merged:
             if nbld(z) > TEAM_MAX_B * 1.1:
                 halves = cut(z, [_midline(z)])
-                final += halves if len(halves) > 1 and min(nbld(h) for h in halves) >= TEAM_MIN_B * 0.6 else [z]
+                final += halves if len(halves) > 1 and min(nbld(h) for h in halves) >= TEAM_ALONE_B else [z]
             else:
                 final.append(z)
-        tz = [solid(z.buffer(NEAR / 2).buffer(-NEAR / 2 + 3e-5).intersection(sp), 0.5) for z in final]
+        # one connected area per zone: a detached bit goes to the nearest zone (its buildings are matched at load)
+        tz = [solid(z.buffer(NEAR / 2).buffer(-NEAR / 2 + 3e-5).intersection(sp), 1e9) for z in final]
         tz.sort(key=lambda p: (-round(p.centroid.y, 3), p.centroid.x))
         teams += [(si, k, z) for k, z in enumerate(tz, 1)]
     team_names = unique_names([z for _, _, z in teams])

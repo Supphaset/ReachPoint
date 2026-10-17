@@ -6,25 +6,25 @@ not field accuracy. Reference readings for depth are the rule reader's band for 
 
 | Measure | Result | Target |
 |---|---|---|
-| Messages read by the model in batch (claude:claude-haiku-5-5) | 100% (1598/1598) | — |
+| Messages read by the model in batch (claude:claude-haiku-5-5) | 100% (1522/1522) | — |
 | Facts shown with the person's exact words | 100% (enforced: a fact whose quote isn't in the message is dropped) | ≥ 95% |
-| Depth from words in the same band as the reference reading | 100% (1478/1478) | ≥ 85% |
-| People count read correctly (first-hand reports) | 100% (170/170) | — |
-| Neighbour direction read correctly (north, south, east, west) | 100% (73/73) | — |
-| "Still safe" replies wrongly marked urgent | 0% (0/722) | low |
-| Households counted vs real families heard about | 309–313 vs 303 (the range keeps possible duplicates apart) | truth inside the range |
-| Households wrongly merged (two families as one) | 2% (6/313) | ≤ 3% |
-| Neighbour words matched to the exact building | 100% (73/73) | ≥ 85% |
-| Planted wrong reports flagged doubtful | 60% (12/20) | ≥ 80% |
-| Honest reports wrongly flagged doubtful | 5% (74/1401) | low |
-| Depth at a household from the model + OTHER reports (this one left out), mean error | 0.25 m over 1330 reports (median 0.22 m); model alone 0.46 m | better than the model alone |
-| Zone water surface vs the true zone surface (mean error, 6 moments) | 1.14 m over 318 zone-moments | — |
+| Depth from words in the same band as the reference reading | 100% (1410/1410) | ≥ 85% |
+| People count read correctly (first-hand reports) | 100% (176/176) | — |
+| Neighbour direction read correctly (north, south, east, west) | 100% (72/72) | — |
+| "Still safe" replies wrongly marked urgent | 0% (0/752) | low |
+| Households counted vs real families heard about | 306–309 vs 299 (the range keeps possible duplicates apart) | truth inside the range |
+| Households wrongly merged (two families as one) | 1% (2/309) | ≤ 3% |
+| Neighbour words matched to the exact building | 100% (72/72) | ≥ 85% |
+| Planted wrong reports flagged doubtful | 80% (4/5) | ≥ 80% |
+| Honest reports wrongly flagged doubtful | 5% (66/1345) | low |
+| Depth at a household from the model + OTHER reports (this one left out), mean error | 0.27 m over 1251 reports (median 0.23 m); model alone 0.46 m | better than the model alone |
+| Zone water surface vs the true zone surface (mean error, 6 moments) | 1.10 m over 305 zone-moments | — |
 
 Level error by moment (mean absolute, metres):
 
-- 23 Nov 18:00: 1.23 m across 53 zones
-- 24 Nov 06:00: 0.91 m across 57 zones
-- 24 Nov 18:00: 1.04 m across 55 zones
-- 25 Nov 09:00: 1.21 m across 51 zones
-- 25 Nov 21:00: 1.21 m across 50 zones
-- 26 Nov 12:00: 1.27 m across 52 zones
+- 23 Nov 18:00: 1.13 m across 52 zones
+- 24 Nov 06:00: 0.92 m across 55 zones
+- 24 Nov 18:00: 0.95 m across 59 zones
+- 25 Nov 09:00: 1.28 m across 46 zones
+- 25 Nov 21:00: 1.21 m across 47 zones
+- 26 Nov 12:00: 1.17 m across 46 zones
