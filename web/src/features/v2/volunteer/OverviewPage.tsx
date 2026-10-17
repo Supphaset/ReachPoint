@@ -122,13 +122,19 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
   };
   const zone = detail?.zone;
   return <aside ref={panel} className="p3-zone-panel" tabIndex={-1} onKeyDown={event => { if (event.key === "Escape") onClose(); }} aria-label={`Zone ${id} summary`}>
-    <button onClick={onClose}><Tr th="ปิด" en="Close" /></button>
-    <header className="p4-zone-heading"><small><Tr th="โซนช่วยเหลือ" en="Response zone" /></small><h2>{id} · {zone?.label}</h2></header>
+    <header className="p4-zone-heading">
+      <button className="btn btn-ghost p4-zone-back" onClick={onClose}>← <Tr th="กลับไปที่รายการ" en="Back to list" /></button>
+      <small><Tr th="โซนช่วยเหลือ" en="Response zone" /></small><h2>{id} · {zone?.label}</h2>
+    </header>
     {error && <p role="alert">{error}</p>}
     {!detail && !error && <p role="status"><Tr th="กำลังโหลด" en="Loading zone…" /></p>}
     {zone && !planning && <>
       <p className="p4-decision">{displayText(zone.summary)}</p>
-      <div className="p4-zone-stats"><span>{detail?.totals.open} <Tr th="ครอบครัวรอ" en="waiting" /></span><span>{zone.people.urgent} <Tr th="ด่วน" en="urgent" /></span><span>{zone.people.cannotWalk} <Tr th="เดินไม่ได้" en="can’t walk" /></span></div>
+      <div className="p4-zone-stats">
+        <span><b>{detail?.totals.open ?? "…"}</b><Tr th="ครอบครัวรอ" en="waiting" /></span>
+        <span className={zone.people.urgent ? "is-urgent" : ""}><b>{zone.people.urgent}</b><Tr th="ด่วน" en="urgent" /></span>
+        <span><b>{zone.people.cannotWalk}</b><Tr th="เดินไม่ได้" en="can’t walk" /></span>
+      </div>
       {(() => {
         // the likely depth sets the vehicle; the deep end of the range is said out loud, since a team meets the worst street
         const likely = zone.level?.depthM, hi = zone.level?.depthHiM;
@@ -141,9 +147,10 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
     </>}
     {zone && !planning && <>
       <h3><Tr th="ทำไมที่นี่" en="Why here" /></h3>
-      <div className="p3-why"><span className="pill p-physics"><Tr th="แบบจำลอง" en="Physics" /></span><p><Tr th="น้ำ" en="Water:" /> <Depth m={zone.level?.depthM} lo={zone.level?.depthLoM} hi={zone.level?.depthHiM} /> · {detail?.now.at}<br />{zone.sources.map(source => displayText(source.text)).join(" · ") || t("ยังไม่มีแหล่งข้อมูล · Sources unavailable", "Sources unavailable")}</p></div>
-      <div className="p3-why"><span className="pill p-gemini">Gemini</span><p>{displayText(detail?.briefing || t("ยังไม่มีคำอธิบาย · Briefing unavailable", "Briefing unavailable"))}</p></div>
-      <div className="p3-why"><span className="pill p-rules"><Tr th="กติกา" en="Rules" /></span><p>{displayText(zone.gap || t("ทบทวนความต้องการและแผนทีม · Review needs and team plans", "Review needs and team plans"))}</p></div>
+      {/* three short answers; the evidence behind each opens on demand instead of one wall of text */}
+      <details className="p3-why"><summary><span className="pill p-physics"><Tr th="แบบจำลอง" en="Physics" /></span> <Tr th="น้ำ" en="Water" /> <Depth m={zone.level?.depthM} lo={zone.level?.depthLoM} hi={zone.level?.depthHiM} /></summary><p><Tr th="น้ำ" en="Water:" /> <Depth m={zone.level?.depthM} lo={zone.level?.depthLoM} hi={zone.level?.depthHiM} /> · {detail?.now.at}<br />{zone.sources.map(source => displayText(source.text)).join(" · ") || t("ยังไม่มีแหล่งข้อมูล · Sources unavailable", "Sources unavailable")}</p></details>
+      <details className="p3-why"><summary><span className="pill p-gemini">Gemini</span> <Tr th="สรุปจากข้อความของครอบครัว" en="What the families said" /></summary><p>{displayText(detail?.briefing || t("ยังไม่มีคำอธิบาย · Briefing unavailable", "Briefing unavailable"))}</p></details>
+      <details className="p3-why"><summary><span className="pill p-rules"><Tr th="กติกา" en="Rules" /></span> <Tr th="ช่องว่างที่ยังไม่มีใครดูแล" en="What is not covered" /></summary><p>{displayText(zone.gap || t("ทบทวนความต้องการและแผนทีม · Review needs and team plans", "Review needs and team plans"))}</p></details>
       <div className="rp-warning"><h3><Tr th="ยังไม่แน่ใจ" en="Not sure" /></h3><p>{displayText(zone.disagree || t("ยังไม่มีข้อขัดแย้งที่บันทึกไว้ ข้อมูลที่ไม่รายงานยังไม่ทราบ · No recorded conflict; unreported conditions remain unknown", "No recorded conflict; unreported conditions remain unknown"))}</p></div>
       <h3><Tr th="ใครก่อน" en="Who first" /></h3>
       {priorityFamilies(detail?.households ?? []).map(household => <Link className="p3-family" key={household.id} to={`/v/case/${household.id}`}><span className="pill">{household.id}</span><p>{household.people === null ? t("ไม่ทราบจำนวนคน · Household size unknown", "Household size unknown") : t(`${household.people} คน · people`, `${household.people} people`)} · {household.cannotWalk ? t("มีคนเดินไม่ได้ · Cannot walk", "Cannot walk") : household.urgent ? t("แจ้งความต้องการด่วน · Urgent help reported", "Urgent help reported") : t("กำลังรอความช่วยเหลือ · Waiting for help", "Waiting for help")}</p></Link>)}
