@@ -7,7 +7,7 @@ come. Then it tells every household what is happening.
 
 AI Builder Cup 2026 (Google Cloud JAPAC) · Sustainability & Social Impact · built 12–18 Oct 2026 by a team of two.
 
-- **Live demo:** [Open in English](https://reachpoint-900867850704.asia-southeast1.run.app/?lang=en)
+- **Live demo:** [Open in English](https://reachpoint-main.web.app/?lang=en) (Firebase Hosting; the same app on Cloud Run directly: [run.app](https://reachpoint-900867850704.asia-southeast1.run.app/?lang=en))
 - **Repository:** [Supphaset/ReachPoint](https://github.com/Supphaset/ReachPoint) · **Video:** see the submission · **Deck (PDF):** see the submission
 - Product spec: [`docs/product/v2-spec.md`](docs/product/v2-spec.md) · Evaluation: [`docs/eval/v2-results.md`](docs/eval/v2-results.md)
 
