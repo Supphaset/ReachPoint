@@ -87,6 +87,7 @@ export function ShelterMap({ route, full = false }: { route: ShelterRoute; full?
       onAdd() { this.getPanes().mapPane.appendChild(canvas); }
       draw() {
         const projection = this.getProjection();
+        if (!projection) return; // not drawn yet (or the Maps key was refused)
         const sw = projection.fromLatLngToDivPixel(new maps.LatLng(south, west));
         const ne = projection.fromLatLngToDivPixel(new maps.LatLng(north, east));
         Object.assign(canvas.style, { left: `${sw.x}px`, top: `${ne.y}px`, width: `${ne.x - sw.x}px`, height: `${sw.y - ne.y}px` });

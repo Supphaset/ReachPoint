@@ -177,6 +177,7 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       onAdd() { this.getPanes().mapPane.appendChild(canvas); }
       draw() {
         const projection = this.getProjection();
+        if (!projection) return; // not drawn yet (or the Maps key was refused)
         const sw = projection.fromLatLngToDivPixel(new maps.LatLng(south, west));
         const ne = projection.fromLatLngToDivPixel(new maps.LatLng(north, east));
         Object.assign(canvas.style, {

@@ -142,6 +142,7 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     overlay.onAdd = () => overlay.getPanes().overlayMouseTarget.appendChild(button);
     overlay.draw = () => {
       const projection = overlay.getProjection();
+      if (!projection) return; // not drawn yet (or the Maps key was refused)
       const zoom = map.getZoom() ?? 12;
       const point = projection.fromLatLngToDivPixel(new maps.LatLng(lat, lng));
       let visible = sector ? zoom <= 14 : true;
@@ -207,7 +208,7 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     maps.OverlayView.preventMapHitsAndGesturesFrom?.(button);
     overlay.onAdd = () => overlay.getPanes().overlayMouseTarget.appendChild(button);
     overlay.draw = () => {
-      const point = overlay.getProjection().fromLatLngToDivPixel(new maps.LatLng(row.lat, row.lon));
+      const point = overlay.getProjection()?.fromLatLngToDivPixel(new maps.LatLng(row.lat, row.lon));
       if (point) { button.style.left = `${point.x}px`; button.style.top = `${point.y}px`; }
     };
     overlay.onRemove = () => { button.onclick = null; button.remove(); };
@@ -267,6 +268,7 @@ export function SectorMap(props: Props) {
       onAdd() { this.getPanes().mapPane.appendChild(canvas); }
       draw() {
         const projection = this.getProjection();
+        if (!projection) return; // not drawn yet (or the Maps key was refused)
         const sw = projection.fromLatLngToDivPixel(new maps.LatLng(south, west));
         const ne = projection.fromLatLngToDivPixel(new maps.LatLng(north, east));
         Object.assign(canvas.style, { left: `${sw.x}px`, top: `${ne.y}px`, width: `${ne.x - sw.x}px`, height: `${sw.y - ne.y}px` });
