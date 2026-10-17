@@ -1,3 +1,4 @@
+import { Tr } from "./lang";
 import { useEffect, useRef } from "react";
 import { TraceLine } from "./Shared";
 import type { TraceEntry } from "./trace";
@@ -24,13 +25,13 @@ export function TraceTimeline({ lines, activeTurn, onActiveTurn }: {
 
   return <div className="rp-trace-timeline" ref={box} aria-live="polite">
     {!lines.length && <div className="rp-pad rp-stack">
-      <h3>คำพูดกลายเป็นหลักฐาน<small className="rp-gloss">Her words become evidence.</small></h3>
-      <p>ส่งข้อความในแชท แล้วติดตามการอ่านและการคำนวณ<small className="rp-gloss">Send a message to follow Gemini, rules and the flood model.</small></p>
+      <h3><Tr th="คำพูดกลายเป็นหลักฐาน" en="Her words become evidence." /></h3>
+      <p><Tr th="ส่งข้อความในแชท แล้วติดตามการอ่านและการคำนวณ" en="Send a message to follow Gemini, rules and the flood model." /></p>
     </div>}
     {groups.map(([key, group], index) => {
       const latest = index === groups.length - 1;
       const turn = group[0].turn;
-      const summary = <><b>ข้อความ · Turn {turn ?? index + 1}</b> · {group[0].at} · {group.length} ขั้นตอน / decisions</>;
+      const summary = <><b><Tr th="ข้อความ" en="Turn" /> {turn ?? index + 1}</b> · {group[0].at} · {group.length} <Tr th="ขั้นตอน / decisions" en="decisions" /></>;
       const content = group.map(line => <TraceLine key={line.id} {...line} />);
       const shared = {
         "data-turn": turn,

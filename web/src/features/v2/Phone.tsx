@@ -1,3 +1,4 @@
+import { Tr, useT } from "./ui/lang";
 /**
  * The victim's phone: a short conversation with ReachPoint's AI agent. One question at a time, by typing or by
  * holding the mic (the browser's speech recognition, Thai or English). Under each answer: what the system
@@ -52,13 +53,13 @@ interface Props {
   onSimulation: (result: SimResult) => void;
   version: number;
   lang: "th" | "en";
-  setLang: (l: "th" | "en") => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rec = any;
 
-export function Phone({ onTurn, onSimulation, version, lang, setLang, at, judgeMode = true, onClock, activeTurn, onActiveTurn }: Props) {
+export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = true, onClock, activeTurn, onActiveTurn }: Props) {
+  const t = useT();
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<FamilyStatus | null>(null);
   const [done, setDone] = useState<SimEvent[]>([]);
@@ -139,9 +140,10 @@ export function Phone({ onTurn, onSimulation, version, lang, setLang, at, judgeM
       if (currentSession.current !== s.id) return;
       setStatus(result.status);
       setDone(events => events.includes(event) ? events : [...events, event]);
+      const simulation = SIMULATIONS.find(sim => sim.event === event);
       setSimResult(result.message || result.inbox
-        ? SIMULATIONS.find(sim => sim.event === event)?.proves ?? ""
-        : "อัปเดตสถานะแล้ว ไม่มีข้อความใหม่ · Status updated; no new family message for this event.");
+        ? simulation ? t(simulation.proves, simulation.provesEn) : ""
+        : t("อัปเดตสถานะแล้ว ไม่มีข้อความใหม่ · Status updated; no new family message for this event.", "Status updated; no new family message for this event."));
       onSimulation(result);
       await applySimulation(result, message => setItems(xs => [...xs, {
         kind: "notice", text: message.text, at: result.status.now,
@@ -149,10 +151,10 @@ export function Phone({ onTurn, onSimulation, version, lang, setLang, at, judgeM
         choices: message.choices.map(([label, send]) => ({ label, send })),
       }]), async () => {
         try { await refreshInbox(s); }
-        catch { setSimResult("จำลองแล้ว รอโหลดข้อความทีมอีกครั้ง · Event applied; team message pending. Inbox will retry."); }
+        catch { setSimResult(t("จำลองแล้ว รอโหลดข้อความทีมอีกครั้ง · Event applied; team message pending. Inbox will retry.", "Event applied; team message pending. Inbox will retry.")); }
       });
     } catch (error) {
-      setSimResult(error instanceof ApiError && error.status === 409 ? "แจ้งตำแหน่งก่อน · Report first" : "จำลองไม่สำเร็จ ลองอีกครั้ง · Simulation failed; try again");
+      setSimResult(error instanceof ApiError && error.status === 409 ? t("แจ้งตำแหน่งก่อน · Report first", "Report first") : t("จำลองไม่สำเร็จ ลองอีกครั้ง · Simulation failed; try again", "Simulation failed; try again"));
     } finally { requestBusy.current = false; setBusy(false); }
   };
 
@@ -283,13 +285,12 @@ export function Phone({ onTurn, onSimulation, version, lang, setLang, at, judgeM
 
   return (
     <div className="p4-family"><section className="v2-phone" aria-label="Victim's phone">
-      <ChatHeader busy={busy} onCall={onCall} toggleCall={() => void toggleCall()} lang={lang}
-        changeLanguage={() => { const next = lang === "th" ? "en" : "th"; setLang(next); void start(next); }}
+      <ChatHeader busy={busy} onCall={onCall} toggleCall={() => void toggleCall()}
         speak={speak} toggleSpeak={() => setSpeak(!speak)} restart={() => {
           // In the demo a restart is a new family: reset the room too, or the old family's team messages come back.
           if (judgeMode) void onClock("reset"); else void start(lang);
         }} />
-      {onCall === "on" ? <p className="v2-oncall">{lang === "th" ? "กำลังคุยกับ ReachPoint ด้วยเสียง · Gemini Live" : "On a call with ReachPoint · Gemini Live"}</p> : null}
+      {onCall === "on" ? <p className="v2-oncall">{lang === "th" ? t("กำลังคุยกับ ReachPoint ด้วยเสียง · Gemini Live", "Gemini Live") : "On a call with ReachPoint · Gemini Live"}</p> : null}
       {status && <FamilyStatusCard status={status} />}
       <div className="v2-chat" role="log" aria-live="polite">
         {/* the Yes/No buttons stay on the latest picture even when a notice arrives after it */}
@@ -302,7 +303,7 @@ export function Phone({ onTurn, onSimulation, version, lang, setLang, at, judgeM
               {it.checklist && <ReadyChecklist items={it.checklist} />}
               {it.house && <HouseLocation point={it.house} buildingId={it.house.buildingId} zoneId={it.house.zoneId} />}
               {it.route && <ShelterCard route={it.route} busy={busy} onAnswer={reply => send(reply, "chat")} />}
-              {i === lastAgent && (askLocation || outside) && <LocationCard busy={busy || onCall !== "off"} outside={outside} onPin={async pin => { await send(pin.method === "gps" ? "ตำแหน่งจาก GPS" : "ปักหมุดบ้านแล้ว", "chat", pin); }} />}
+              {i === lastAgent && (askLocation || outside) && <LocationCard busy={busy || onCall !== "off"} outside={outside} onPin={async pin => { await send(pin.method === "gps" ? t("ตำแหน่งจาก GPS", "GPS location shared") : t("ปักหมุดบ้านแล้ว", "House pinned"), "chat", pin); }} />}
             </div>
           ) : it.kind === "person" ? (
             <div key={i} className="v2-person-turn">
@@ -324,7 +325,7 @@ export function Phone({ onTurn, onSimulation, version, lang, setLang, at, judgeM
           ) : it.kind === "notice" ? (
             <NoticeCard key={i} kind={it.type} at={it.at}>
               <p>{it.text}</p>
-              {it.type === "planUpdate" && <span className="pill p-plain">แผน ยังไม่ใช่การรับตัว · Planned, not rescued yet</span>}
+              {it.type === "planUpdate" && <span className="pill p-plain"><Tr th="แผน ยังไม่ใช่การรับตัว" en="Planned, not rescued yet" /></span>}
               {it.choices && <ChoiceButtons kind={it.replyTo ?? it.type} options={it.choices} disabled={busy} onSend={(text, kind) => send(text, "chat", undefined, kind)} />}
             </NoticeCard>
           ) : null,
@@ -368,7 +369,7 @@ export function Phone({ onTurn, onSimulation, version, lang, setLang, at, judgeM
           </button>
         ) : null}
         <button type="submit" className="v2-send" disabled={busy || !text.trim()}>
-          <Icon name="send" label="ส่ง · Send" />
+          <Icon name="send" label={t("ส่ง · Send", "Send")} />
         </button>
       </form>
       {text === DEMO_MESSAGES.th[0] && <p className="rp-composer-gloss rp-gloss">{DEMO_MESSAGES.en[0]}</p>}

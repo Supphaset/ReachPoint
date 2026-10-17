@@ -23,7 +23,7 @@ describe("urgent groups", () => {
   it("shows shared team marks, needs, unknown depth, open links and the highlighted row", () => {
     const html = renderToStaticMarkup(<MemoryRouter><UrgentList data={{ atH: 0, at: "07:00", total: 3, zones }} zones={[]} team="ทีมสอง" busy={false}
       highlighted="HH001" onZone={vi.fn()} onFirst={vi.fn()} /></MemoryRouter>);
-    for (const text of ["D1 · คลองเตย", "NO TEAM", "2 ทีม · teams", "Can't walk", "unknown", "Silent 12", "★ ทีมหนึ่ง · 07:00", 'href="/v/case/HH001"', 'aria-pressed="true"', "is-highlighted"]) expect(html).toContain(text.replace("'", "&#x27;"));
+    for (const text of ["D1 · คลองเตย", "NO TEAM", "2 ทีม · teams", "Can't walk", "unknown", "Silent</small> 12", "★ ทีมหนึ่ง · 07:00", 'href="/v/case/HH001"', 'aria-pressed="true"', "is-highlighted"]) expect(html).toContain(text.replace("'", "&#x27;"));
     expect(html).toContain("not clinical triage");
   });
   it("sends the current team and explicit on/off state, uses the encoded household route and returns shared state", async () => {

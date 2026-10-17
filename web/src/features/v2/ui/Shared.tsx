@@ -1,3 +1,4 @@
+import { Tr, LanguageToggle } from "./lang";
 import { useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { v2 } from "../api";
@@ -68,16 +69,17 @@ export function StepHeader({ at, onAction, showDemo = true }: {
         <Link className="rp-logo" to="/">
           <span aria-hidden="true">◉</span> ReachPoint
         </Link>
+        <LanguageToggle />
         <div className="rp-replay">
           <b>REPLAY</b>
           <span>{at ?? "21–28 Nov 2025"}</span>
         </div>
         <nav className="rp-steps" aria-label="Demo steps">
-          <NavLink to="/" end><span>1 ภาพรวม</span><small>Overview</small></NavLink>
-          <NavLink to="/report" end><span>2 แจ้งเหตุ</span><small>Report</small></NavLink>
-          <NavLink to="/v"><span>3 อาสา</span><small>Volunteer</small></NavLink>
+          <NavLink to="/" end><Tr th="1 ภาพรวม" en="1 Overview" /></NavLink>
+          <NavLink to="/report" end><Tr th="2 แจ้งเหตุ" en="2 Report" /></NavLink>
+          <NavLink to="/v"><Tr th="3 อาสา" en="3 Volunteer" /></NavLink>
           <button onClick={() => setExplore(!explore)} aria-expanded={explore}>
-            <span>{explore ? "ตามขั้นตอน" : "สำรวจ"}<small>{explore ? "Guided steps" : "Explore freely"}</small></span>
+            <span><Tr th={explore ? "ตามขั้นตอน" : "สำรวจ"} en={explore ? "Guided steps" : "Explore freely"} /></span>
           </button>
         </nav>
       </div>

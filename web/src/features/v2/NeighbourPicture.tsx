@@ -8,7 +8,7 @@ export function NeighbourPicture({ c, lang }: { c: NbConfirm; lang: "th" | "en" 
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     let live = true;
-    loadGoogleMaps(lang).then((maps: Maps) => {
+    loadGoogleMaps("en").then((maps: Maps) => {
       if (!live || !el.current) return;
       const mid = c.me ? { lng: (c.me.lon + c.candidate.lon) / 2, lat: (c.me.lat + c.candidate.lat) / 2 } : { lng: c.candidate.lon, lat: c.candidate.lat };
       const map = new maps.Map(el.current, { center: mid, zoom: 20, mapTypeId: "satellite", disableDefaultUI: true, gestureHandling: "none", keyboardShortcuts: false, tilt: 0 });

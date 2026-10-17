@@ -1,3 +1,4 @@
+import { Tr } from "./lang";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { BoardMap, type TripOverlay } from "../BoardMap";
@@ -47,7 +48,7 @@ export function TripMap({ plan, households, shelters, geo, atH }: TripMapProps) 
   }), [stops, plan.runs, shelter, launch]);
   const depths = plan.families.flatMap(family => family.depthM == null ? [] : [family.depthM]);
   return (<Panel title={<>
-    {plan.zone} · เส้นทางช่วยเหลือ
+    {plan.zone} <Tr th="· เส้นทางช่วยเหลือ" en="· Response route" />
     <span className="rp-gloss">Trip on the map</span>
   </>} className="rp-trip-map">
     {stops.length ? (<div className="rp-trip-satellite">

@@ -1,3 +1,4 @@
+import { useT } from "../ui/lang";
 /** Plan a trip: pick zones, see the families and their needs, the water on the way and who else is going; then post
  * the plan in one line. Information to decide with, not an assignment. */
 import { useEffect, useMemo, useState } from "react";
@@ -7,13 +8,14 @@ import { Depth, VShell, useLive, useTeam } from "./shared";
 import { FamilyTable } from "./ZonePage";
 
 export function TripPage() {
+  const translate = useT();
   const [params, setParams] = useSearchParams();
   const [team, setTeam] = useTeam();
   const nav = useNavigate();
   const picked = useMemo(() => (params.get("zones") ?? "").split(",").filter(Boolean), [params]);
   const over = useLive(() => vol.overview(), []);
   const trip = useLive(() => (picked.length ? vol.trip(picked, team) : Promise.resolve(null)), [picked.join(","), team]);
-  const [vehicle, setVehicle] = useState("เรือ");
+  const [vehicle, setVehicle] = useState("boat");
   const [seats, setSeats] = useState(8);
   const [eta, setEta] = useState("14:00");
   const [line, setLine] = useState("");
@@ -23,9 +25,9 @@ export function TripPage() {
 
   useEffect(() => {
     if (edited) return;
-    const name = team || "ทีมของเรา";
-    setLine(picked.length ? `${name} ${vehicle} ${seats} ที่ จะเข้า ${picked.join(" แล้วต่อ ")} ราว ${eta} อพยพ` : "");
-  }, [team, vehicle, seats, eta, picked, edited]);
+    const name = team || translate("ทีมของเรา", "Our team");
+    setLine(picked.length ? translate(`${name} ${vehicle} ${seats} ที่ จะเข้า ${picked.join(" แล้วต่อ ")} ราว ${eta} อพยพ`, `${name}: ${vehicle}, ${seats} seats, ${picked.join(" then ")}, around ${eta}, evacuation`) : "");
+  }, [team, vehicle, seats, eta, picked, edited, translate]);
 
   const toggle = (z: string) => {
     const next = picked.includes(z) ? picked.filter((x) => x !== z) : [...picked, z].slice(0, 4);
@@ -92,10 +94,10 @@ export function TripPage() {
           <section className="v2-card v-pad v-post" aria-label="Post your plan">
             <h2 className="v-h2">Post your plan</h2>
             <div className="v-postgrid">
-              <label htmlFor="v-team">Team name<input id="v-team" value={team} onChange={(e) => setTeam(e.target.value)} placeholder="ทีมเรือกู้ภัยหาดใหญ่ 1" /></label>
+              <label htmlFor="v-team">Team name<input id="v-team" value={team} onChange={(e) => setTeam(e.target.value)} placeholder={translate("ทีมเรือกู้ภัยหาดใหญ่ 1", "Hat Yai rescue boat 1")} /></label>
               <label htmlFor="v-veh">Vehicle
                 <select id="v-veh" value={vehicle} onChange={(e) => { setVehicle(e.target.value); setEdited(false); }}>
-                  <option value="เรือ">Boat</option><option value="เจ็ทสกี">Jet ski</option><option value="รถยกสูง">High truck</option><option value="รถกระบะ">Pickup</option>
+                  <option value="boat">Boat</option><option value="jet ski">Jet ski</option><option value="high truck">High truck</option><option value="pickup">Pickup</option>
                 </select>
               </label>
               <label htmlFor="v-seats">Seats<input id="v-seats" type="number" min={1} max={60} value={seats} onChange={(e) => { setSeats(Number(e.target.value) || 1); setEdited(false); }} /></label>

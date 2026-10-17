@@ -1,3 +1,4 @@
+import { useT } from "./ui/lang";
 /** Zone card (three questions), AI activity, the time-lapse bar and the volunteer plan box. */
 import { useMemo, useState } from "react";
 import { v2, depthBand, type Activity, type BoardState, type Timeline, type ZoneView } from "./api";
@@ -180,6 +181,7 @@ export function TimeBar({ timeline, viewH, nowH, onChange, playing, onPlay }: {
 }
 
 export function PlanBox({ onPosted }: { onPosted: () => void }) {
+  const t = useT();
   const [text, setText] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -203,7 +205,7 @@ export function PlanBox({ onPosted }: { onPosted: () => void }) {
     >
       <label htmlFor="v2-plan">Volunteer? Post where you plan to go, in one line</label>
       <div>
-        <input id="v2-plan" value={text} onChange={(e) => setText(e.target.value)} placeholder="เรือเรา 8 ที่ จะเข้า B-3 ราวบ่ายสอง แล้วต่อ B-5 อพยพ" />
+        <input id="v2-plan" value={text} onChange={(e) => setText(e.target.value)} placeholder={t("เรือเรา 8 ที่ จะเข้า B-3 ราวบ่ายสอง แล้วต่อ B-5 อพยพ", "Our boat has 8 seats; B-3 around 14:00, then B-5 for evacuation")} />
         <button type="submit" disabled={busy || !text.trim()}>Post plan</button>
       </div>
       {note ? <p className="v2-muted">{note}</p> : null}

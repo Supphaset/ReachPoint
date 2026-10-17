@@ -128,7 +128,7 @@ def route(w, lon: float, lat: float, s: dict) -> dict:
     ds = [d for i, d in enumerate(ds) if not (d > 3.0 and min(ds[max(0, i - 1)], ds[min(len(ds) - 1, i + 1)]) < 1.5)] or [0.0]
     deepest, wet = max(ds), sum(d > 0.1 for d in ds)
     k = max(range(len(ds)), key=ds.__getitem__)
-    return {"shelterId": s["id"], "name": s["name"], "kind": s["kind"], "lon": s["lon"], "lat": s["lat"],
+    return {"shelterId": s["id"], "name": s["name"], "nameEn": s.get("nameEn"), "kind": s["kind"], "lon": s["lon"], "lat": s["lat"],
             "km": round(dist / 1000, 1), "deepestM": round(deepest, 2), "wetShare": round(wet / len(ds), 2),
             "walkable": deepest <= WALK_M, "minutes": int(round(dist / 1000 / WALK_KMH * 60)), "by": by,
             # for the map: the route and the water along it (every ~40 m), and where it is deepest

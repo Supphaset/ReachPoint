@@ -69,7 +69,10 @@ export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string
 }
 
 function replyGloss(turn: TurnResult): string {
-  if (!/[\u0e00-\u0e7f]/.test(turn.reply))
+  // an English reply that only quotes a Thai place name is its own gloss
+  const thai = (turn.reply.match(/[\u0e00-\u0e7f]/g) ?? []).length;
+  const latin = (turn.reply.match(/[a-z]/gi) ?? []).length;
+  if (thai < latin)
     return turn.reply;
   if (turn.effects.nbConfirm)
     return "Please confirm the neighbour’s house in the satellite picture.";

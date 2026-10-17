@@ -1,3 +1,4 @@
+import { useUiLang } from "./ui/lang";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BoardMap } from "./BoardMap";
@@ -9,6 +10,7 @@ import { useTween } from "./ui/useTween";
 import "./v2.css";
 let visited = false;
 export function OverviewLanding() {
+  const { lang } = useUiLang();
   const navigate = useNavigate();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [board, setBoard] = useState<BoardState | null>(null);
@@ -97,6 +99,7 @@ export function OverviewLanding() {
   return <div className="rp-app">
     <StepHeader at={board?.at ?? overview?.at} onAction={action} />
     <main className="rp-main">
+      {lang === "th" && <p className="rp-language-hint">Prefer English? Tap EN (top right)</p>}
       <section className="rp-hero">
         <div>
           <HonestyLabel />
@@ -159,7 +162,7 @@ function Doors() {
   return <div className="rp-doors">
     <Link className="rp-door rp-primary" to="/report">
       <b>Report as a family →</b>
-      <small>Thai with English · no microphone needed</small>
+      <small>English or Thai · no microphone needed</small>
     </Link>
     <Link className="rp-door" to="/v">
       <b>See where help is missing →</b>

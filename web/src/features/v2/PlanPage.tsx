@@ -1,3 +1,4 @@
+import { Tr, useT } from "./ui/lang";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { v2, vol, type CopilotResult, type Overview, type ZonePage as ZoneData, type Trip, type CopilotPlan, type Plan } from "./api";
@@ -7,6 +8,7 @@ import { DepthRange, HonestyLabel, Panel, questions, StepHeader } from "./ui/Sha
 import { displayText, readerLabel } from "./ui/trace";
 import { TripMap } from "./ui/TripMap";
 export function PlanPage() {
+  const t = useT();
   const [params] = useSearchParams();
   const geo = useGeo();
   const [team, setTeam] = useTeam();
@@ -117,7 +119,7 @@ export function PlanPage() {
     setPosting(true);
     setError('');
     try {
-      const response = await v2.plan(`${own} ${plan.vehicle === 'boat' ? 'เรือ' : plan.vehicle} ${plan.seats} ที่นั่ง จะเข้าโซน ${plan.zone}${extra.trim() ? ` และ ${extra.trim()}` : ''} ประมาณ ${eta} (อพยพ)`, own);
+      const response = await v2.plan(t(`${own} ${plan.vehicle === 'boat' ? 'เรือ' : plan.vehicle} ${plan.seats} ที่นั่ง จะเข้าโซน ${plan.zone}${extra.trim() ? ` และ ${extra.trim()}` : ''} ประมาณ ${eta} (อพยพ)`, `${own}: ${plan.vehicle}, ${plan.seats} seats, zone ${plan.zone}${extra.trim() ? ` then ${extra.trim()}` : ""}, around ${eta} (evacuation)`), own);
       if (mounted.current)
         setPosted(response.plan.told ?? 0);
     }
@@ -143,9 +145,7 @@ export function PlanPage() {
     }} />
     <main className="rp-main">
       <div className="rp-section-head">
-        <h1>เรือหนึ่งลำ เริ่มที่ไหน
-          <span className="rp-gloss">One boat. Where first?</span>
-        </h1>
+        <h1><Tr th="เรือหนึ่งลำ เริ่มที่ไหน" en="One boat. Where first?" /></h1>
         <HonestyLabel />
       </div>
       {error && <p className="rp-warning" role="alert">{error}</p>}
@@ -228,11 +228,12 @@ function CopilotPanel({ question, setQuestion, busy, ask, asked, result }: Copil
 function OrderPanel({ plan }: {
   plan: CopilotPlan;
 }) {
-  return <Panel title="ใครก่อน · Why this order">
+  const t = useT();
+  return <Panel title={t("ใครก่อน · Why this order", "Why this order")}>
     {plan.families.map((family, index) => <article className="rp-stop-detail" key={family.id}>
       <div>
         <b className="rp-stop-number">{index + 1}</b>
-        <b>{family.people} คน · {family.people} people</b>
+        <b>{family.people} <Tr th="คน" en="people" /></b>
       </div>
       <Link to={`/v/case/${family.id}`}>{family.id} · evidence →</Link>
       <div className="rp-chips">
@@ -241,7 +242,7 @@ function OrderPanel({ plan }: {
       </div>
     </article>)}
     <div className="rp-pad">
-      <h3>เตรียมอะไร · What to bring</h3>
+      <h3><Tr th="เตรียมอะไร" en="What to bring" /></h3>
       <ul>
         {plan.bring.map((item, index) => <li key={index}>{displayText(item)}</li>)}
       </ul>
@@ -259,7 +260,8 @@ interface OtherTeamsProps {
 }
 
 function OtherTeams({ plan, extra, setExtra, trip, overlap, unique }: OtherTeamsProps) {
-  return <Panel title="ทีมใกล้เคียง · Other teams near you">
+  const t = useT();
+  return <Panel title={t("ทีมใกล้เคียง · Other teams near you", "Other teams near you")}>
     <div className="rp-pad rp-stack">
       <label>Add another zone · check overlap
         <input value={extra} onChange={event => setExtra(event.target.value.toUpperCase())} placeholder="Zone ID, e.g. D11" />

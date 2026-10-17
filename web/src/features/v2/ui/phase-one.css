@@ -1257,3 +1257,37 @@
   .rp-phone-stage .p4-family > .v2-phone { flex: 1; height: auto; }
 }
 @media (min-width: 760px) { .rp-report-trace .rp-trace-timeline { padding-bottom: 104px; } }
+
+/* Language stays on the first header row, beside the brand at phone widths. */
+.rp-language {
+  display: flex;
+  flex: none;
+  margin-left: auto;
+  order: 4;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  overflow: hidden;
+}
+.rp-header .rp-language button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  font-size: 14px;
+}
+.rp-language button[aria-pressed="true"] {
+  background: var(--ink-1);
+  color: var(--surface);
+}
+.rp-language-hint { margin-bottom: 12px !important; font-size: 14px; }
+@media (max-width: 759px) {
+  .rp-header .rp-bar { gap: 8px; padding: 8px 12px; }
+  .rp-language { order: 0; }
+  .rp-header .rp-replay { order: 1; flex-basis: 100%; }
+  .rp-header .rp-steps { order: 2; width: 100%; margin-left: 0; flex-wrap: wrap; }
+  .rp-header .rp-steps > * { flex: 1; padding: 8px; }
+}
+@media (min-width: 760px) and (max-width: 850px) {
+  .rp-language { order: 2; }
+}
+.rp-header .rp-language button + button { border-left: 1px solid var(--line); }

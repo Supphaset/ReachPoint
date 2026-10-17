@@ -128,7 +128,7 @@ describe("checklist rows", () => {
   it("puts each native checkbox beside one Thai label with its English gloss below", () => {
     const html = renderToStaticMarkup(<ReadyChecklist items={[["โทรศัพท์", "Phone"], ["เอกสาร", "Papers"]]} />);
     expect(html.match(/<label/g)).toHaveLength(2);
-    expect(html).toMatch(/<label class=""><input type="checkbox"\/><span>โทรศัพท์<small>Phone<\/small><\/span><\/label>/);
+    expect(html).toMatch(/<label class=""><input type="checkbox"\/><span>โทรศัพท์<small class="rp-gloss">Phone<\/small><\/span><\/label>/);
     expect(html).toContain('<progress value="0" max="2"');
     expect(html).not.toContain("<img");
   });

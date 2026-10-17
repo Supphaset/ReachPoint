@@ -116,7 +116,8 @@ export function BoardMap(props: Props) {
   const [maps, setMaps] = useState<Maps | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
-    loadGoogleMaps(props.lang).then(setMaps, () => setFailed(true));
+    // Maps is loaded once per page; keep vendor controls in English when the UI switches.
+    loadGoogleMaps("en").then(setMaps, () => setFailed(true));
   }, [props.lang]);
   if (failed || !props.geo) return <DrawnMap {...props} />;
   if (!maps) return <div className="v2-map v2-map-loading">Loading satellite map…</div>;

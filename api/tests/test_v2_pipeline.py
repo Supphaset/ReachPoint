@@ -295,3 +295,11 @@ def test_zone_plan_waits_until_the_report_is_finished():
     c.post("/api/v2/plans", json={"text": "ทีมเรือ A เข้าโซน B5 07:30", "team": "ทีมเรือ A"}, headers=h)
     inbox = c.get(f"/api/v2/me/{made['token']}", headers=h).json()["inbox"]
     assert not [o for o in inbox if o["kind"] == "planUpdate"]
+
+
+def test_an_english_address_finds_the_same_house_as_the_thai_one():
+    from api.v2 import geo as G, intake as I
+    g = G.load()
+    th = I.locate("บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2", g)
+    en = I.locate("house 52/9 Phetkasem Soi 2", g)
+    assert en and th and en["buildingId"] == th["buildingId"]

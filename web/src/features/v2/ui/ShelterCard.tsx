@@ -1,3 +1,4 @@
+import { Tr, useT } from "./lang";
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../../data/googleMaps";
 import { cssVar, v2, type ShelterRoute } from "../api";
@@ -26,14 +27,16 @@ export function routeSegments(route: Pick<ShelterRoute, "path" | "samples">) {
 }
 
 export function ShelterAnswers({ walkable, disabled, onAnswer }: { walkable: boolean; disabled: boolean; onAnswer: (text: string) => boolean | Promise<boolean> }) {
+  const t = useT();
   const answers = walkable
-    ? [["ไป", "ไป · I'll go"], ["อยู่บ้าน", "อยู่บ้าน · Stay home"]]
-    : [["ไปได้", "ไปได้ (มีเรือ/รถยกสูง) · I can get there"], ["ต้องการทีม", "ต้องการทีม · Need a team"]];
+    ? [[t("ไป", "I will go"), t("ไป · I'll go", "I'll go")], [t("อยู่บ้าน", "Stay home"), t("อยู่บ้าน · Stay home", "Stay home")]]
+    : [[t("ไปได้", "I can get there"), t("ไปได้ (มีเรือ/รถยกสูง) · I can get there", "I can get there")], [t("ต้องการทีม", "I need a team"), t("ต้องการทีม · Need a team", "Need a team")]];
   return <div className="p3-shelter-answers"><ChoiceButtons kind="shelter" options={answers.map(([send, label]) => ({ send, label }))}
     disabled={disabled} onSend={async text => onAnswer(text)} /></div>;
 }
 
 export function ShelterMap({ route, full = false }: { route: ShelterRoute; full?: boolean }) {
+  const t = useT();
   const geo = useGeo();
   const { data: board } = useLive(() => v2.state(), []);
   const flood = useFloodCanvas(board ? geo : null, board, board?.now.atH ?? 0, "corrected");
@@ -44,7 +47,7 @@ export function ShelterMap({ route, full = false }: { route: ShelterRoute; full?
   useEffect(() => {
     let active = true;
     const shapes: Maps[] = [];
-    loadGoogleMaps("th").then(api => {
+    loadGoogleMaps("en").then(api => {
       if (!active || !box.current) return;
       const instance = new api.Map(box.current, { mapTypeId: "satellite", disableDefaultUI: true, maxZoom: 18, zoomControl: full, gestureHandling: full ? "cooperative" : "none" });
       setMap(instance);
@@ -63,9 +66,9 @@ export function ShelterMap({ route, full = false }: { route: ShelterRoute; full?
           zIndex: 20,
         }));
       };
-      marker(route.from, "บ้าน · Home", "below");
+      marker(route.from, t("บ้าน · Home", "Home"), "below");
       marker([route.lon, route.lat], route.name);
-      marker(route.deepestAt, `~${route.deepestM} ม.`, "right");
+      marker(route.deepestAt, `~${route.deepestM} ${t("ม.", "m")}`, "right");
       for (const segment of routeSegments(route)) {
         [segment.start, segment.end].forEach(point => bounds.extend({ lng: point[0], lat: point[1] }));
         shapes.push(new api.Polyline({ map: instance, path: [segment.start, segment.end].map(point => ({ lng: point[0], lat: point[1] })), strokeColor: cssVar(`--route-${segment.tone}`), strokeWeight: segment.tone === "deep" ? 8 : 6, zIndex: 10 }));
@@ -97,10 +100,11 @@ export function ShelterMap({ route, full = false }: { route: ShelterRoute; full?
       overlay.setMap(null);
     };
   }, [map, maps, flood.canvas, flood.sim]);
-  return <div className="p3-route-map" ref={box} aria-label="Shelter route and flood water">{failed && <p>โหลดแผนที่ไม่ได้ · Map unavailable. Open Google Maps for directions.</p>}</div>;
+  return <div className="p3-route-map" ref={box} aria-label="Shelter route and flood water">{failed && <p><Tr th="โหลดแผนที่ไม่ได้" en="Map unavailable. Open Google Maps for directions." /></p>}</div>;
 }
 
 export function ShelterCard({ route, busy, onAnswer }: { route: ShelterRoute; busy: boolean; onAnswer: (text: string) => boolean | Promise<boolean> }) {
+  const t = useT();
   const [full, setFull] = useState(false);
   const { data } = useLive(() => v2.state(), []);
   let directions: string | undefined;
@@ -110,27 +114,28 @@ export function ShelterCard({ route, busy, onAnswer }: { route: ShelterRoute; bu
   } catch { /* A malformed URL must not become a navigation link. */ }
   return <section className="card p3-shelter">
     <div className="p3-shelter-thumb"><ShelterMap route={route} />
-      <button className="btn btn-sec p3-expand" aria-label="ขยายแผนที่ · Open full map" onClick={() => setFull(true)}><Icon name="map" /></button>
+      <button className="btn btn-sec p3-expand" aria-label={t("ขยายแผนที่ · Open full map", "Open full map")} onClick={() => setFull(true)}><Icon name="map" /></button>
     </div>
-    <p>ศูนย์พักพิง {route.name} · {route.km} กม. · เดินราว {route.minutes} นาที · ลึกสุด {route.deepestM} ม.</p>
+    <p><Tr th="ศูนย์พักพิง" en="Shelter" /> {route.name} · {route.km} <Tr th="กม." en="km · walk about" /> {route.minutes} <Tr th="นาที" en="min · deepest" /> {route.deepestM} <Tr th="ม." en="m" /></p>
     <p>Shelter · {route.km} km · about {route.minutes} min walking · deepest {route.deepestM} m</p>
-    <p>{route.by === "streets" ? "ตามถนน · along streets" : "เส้นตรง · direct line (no street route)"}</p>
-    {!route.walkable && <strong>อย่าเดินลุยน้ำ · Don't wade</strong>}
+    <p>{route.by === "streets" ? t("ตามถนน · along streets", "along streets") : t("เส้นตรง · direct line (no street route)", "direct line (no street route)")}</p>
+    {!route.walkable && <strong><Tr th="อย่าเดินลุยน้ำ" en="Don't wade" /></strong>}
     <div className="p3-actions">
-      <button onClick={() => setFull(true)}>เปิดแผนที่เต็มจอ · Open full map</button>
-      {directions && <a href={directions} target="_blank" rel="noopener noreferrer">นำทางด้วย Google Maps · Directions in Google Maps</a>}
+      <button onClick={() => setFull(true)}><Tr th="เปิดแผนที่เต็มจอ" en="Open full map" /></button>
+      {directions && <a href={directions} target="_blank" rel="noopener noreferrer"><Tr th="นำทางด้วย Google Maps" en="Directions in Google Maps" /></a>}
     </div>
     <ShelterAnswers walkable={route.walkable} disabled={busy} onAnswer={onAnswer} />
-    <p>น้ำเปลี่ยนทุกชั่วโมง · Water changes by the hour; this is not a guarantee of a dry route.</p>
+    <p><Tr th="น้ำเปลี่ยนทุกชั่วโมง" en="Water changes by the hour; this is not a guarantee of a dry route." /></p>
     {full && <Sheet label="Full shelter map" onClose={() => setFull(false)}>
-      <button className="btn btn-sec" autoFocus onClick={() => setFull(false)}>ปิด · Close</button>
+      <button className="btn btn-sec" autoFocus onClick={() => setFull(false)}><Tr th="ปิด" en="Close" /></button>
       <ShelterMap route={route} full />
       <WaterLegend />
-      <p>สถานการณ์น้ำ ณ {data?.at ?? "ไม่ทราบเวลา · time unavailable"} · Flood model + reports at demo time</p>
+      <p><Tr th="สถานการณ์น้ำ ณ" en="Water conditions at" /> {data?.at ?? t("ไม่ทราบเวลา · time unavailable", "time unavailable")} · Flood model + reports at demo time</p>
     </Sheet>}
   </section>;
 }
 
 export function WaterLegend() {
-  return <p className="p3-legend">{[["light", "≤0.25 m"], ["mid", "≤0.5 m"], ["deep", ">0.5 m · อย่าลุย / don't wade"], ["unknown", "unknown"]].map(([tone, text]) => <span key={tone}><i style={{ background: `var(--route-${tone})` }} />{text}</span>)}</p>;
+  const t = useT();
+  return <p className="p3-legend">{[["light", "≤0.25 m"], ["mid", "≤0.5 m"], ["deep", t(">0.5 m · อย่าลุย / don't wade", ">0.5 m · don't wade")], ["unknown", "unknown"]].map(([tone, text]) => <span key={tone}><i style={{ background: `var(--route-${tone})` }} />{text}</span>)}</p>;
 }

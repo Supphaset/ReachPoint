@@ -1,3 +1,4 @@
+import { Tr, useT } from "../ui/lang";
 /** Shared parts of the volunteer pages: the shell and navigation, the team name, live refresh, chips and a small map. */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
@@ -71,27 +72,28 @@ export function useGeo(): GeoView | null {
 }
 
 export function VShell({ title, sub, at, ledger, children }: { title: string; sub?: ReactNode; at?: string; ledger?: BoardState["overall"]; children: ReactNode }) {
+  const t = useT();
   const [team, setTeam] = useTeam();
   const [editing, setEditing] = useState(false);
   if (!apiMode())
-    return <main className="v-page"><p className="v2-card v-pad">These pages need the ReachPoint server. Open them with <code>?data=api</code>.</p></main>;
+    return <main className="v-page rp-app"><StepHeader showDemo={false} /><p className="v2-card v-pad">These pages need the ReachPoint server. Open them with <code>?data=api</code>.</p></main>;
   return (
     <main className="v-page rp-app">
       <StepHeader at={at} onAction={async action => { await v2.clock(action); window.dispatchEvent(new Event("reachpoint-clock")); }} />
       <nav className="rp-subnav" aria-label="Volunteer pages">
-        <span className="rp-subnav-label">อาสา · Volunteers</span>
-        <NavLink to="/v" end>ช่วยที่ไหน · Where help is missing</NavLink>
-        <NavLink to="/v/feed">การตัดสินใจ · AI decisions</NavLink>
+        <span className="rp-subnav-label"><Tr th="อาสา" en="Volunteers" /></span>
+        <NavLink to="/v" end><Tr th="ช่วยที่ไหน" en="Where help is missing" /></NavLink>
+        <NavLink to="/v/feed"><Tr th="การตัดสินใจ" en="AI decisions" /></NavLink>
         <div className="v-team">
           {editing ? (
             <form onSubmit={(e) => { e.preventDefault(); setEditing(false); }}>
               <label htmlFor="v-team-name" className="v-sr">Your team name</label>
-              <input id="v-team-name" autoFocus value={team} onChange={(e) => setTeam(e.target.value)} placeholder="e.g. ทีมเรือกู้ภัยหาดใหญ่ 1" />
-              <button type="submit">บันทึก · Save</button>
+              <input id="v-team-name" autoFocus value={team} onChange={(e) => setTeam(e.target.value)} placeholder={t("e.g. ทีมเรือกู้ภัยหาดใหญ่ 1", "e.g. Hat Yai rescue boat 1")} />
+              <button type="submit"><Tr th="บันทึก" en="Save" /></button>
             </form>
           ) : (
             <button type="button" className="v-team-btn" onClick={() => setEditing(true)} title="Teams see exact addresses in zones their own plans cover">
-              {team ? <>ทีม · Team: <b>{team}</b></> : "ชื่อทีม · Set team name"}
+              {team ? <><Tr th="ทีม" en="Team:" /> <b>{team}</b></> : t("ชื่อทีม · Set team name", "Set team name")}
             </button>
           )}
         </div>
@@ -103,11 +105,11 @@ export function VShell({ title, sub, at, ledger, children }: { title: string; su
             {sub ? <p className="v-sub">{sub}</p> : null}
           </div>
         </div>
-        {ledger && <div className="p3-ledger" aria-label="ยอดจากระบบ · API totals">
-          <span><b>{ledger.messages}</b> ข้อความ <small>messages</small></span>
-          <span><b>{ledger.households}</b> ครอบครัว <small>households</small></span>
-          <span><b>{ledger.duplicatesMerged}</b> รวมรายการซ้ำ <small>duplicates merged</small></span>
-          <span><b>{ledger.estimatedHouseholdsAffected}</b> ครัวเรือนคาดว่าได้รับผลกระทบ <small>estimated households affected</small></span>
+        {ledger && <div className="p3-ledger" aria-label={t("ยอดจากระบบ · API totals", "API totals")}>
+          <span><b>{ledger.messages}</b> <Tr th="ข้อความ" en="messages" /></span>
+          <span><b>{ledger.households}</b> <Tr th="ครอบครัว" en="households" /></span>
+          <span><b>{ledger.duplicatesMerged}</b> <Tr th="รวมรายการซ้ำ" en="duplicates merged" /></span>
+          <span><b>{ledger.estimatedHouseholdsAffected}</b> <Tr th="ครัวเรือนคาดว่าได้รับผลกระทบ" en="estimated households affected" /></span>
         </div>}
         {children}
       </div>
@@ -128,7 +130,7 @@ export function StatusChip({ r }: { r: Pick<CaseRow, "status" | "urgent" | "outc
 }
 
 export function Depth({ m, lo, hi }: { m: number | null | undefined; lo?: number; hi?: number }) {
-  if (m === null || m === undefined) return <span className="v-depth is-unknown">ไม่ทราบ · unknown</span>;
+  if (m === null || m === undefined) return <span className="v-depth is-unknown"><Tr th="ไม่ทราบ" en="unknown" /></span>;
   return (
     <span className={`v-depth is-${depthBand(m)}`} title={lo !== undefined ? `likely ${lo.toFixed(1)}–${hi?.toFixed(1)} m` : undefined}>
       {m.toFixed(1)} m
@@ -139,7 +141,7 @@ export function Depth({ m, lo, hi }: { m: number | null | undefined; lo?: number
 export function Needs({ r }: { r: CaseRow }) {
   return (
     <span className="v-needs">
-      {r.needs.filter(need => /wants.*leave|needs.*ride|ต้องการออก|ต้องการ.*รถ/i.test(need)).map(need => <span key={need} className="is-strong">ต้องการออก ต้องมีรถรับ · {need}</span>)}
+      {r.needs.filter(need => /wants.*leave|needs.*ride|ต้องการออก|ต้องการ.*รถ/i.test(need)).map(need => <span key={need} className="is-strong"><Tr th="ต้องการออก ต้องมีรถรับ ·" en="Wants to leave, needs a ride ·" /> {need}</span>)}
       {r.people ? <span>{r.people} people</span> : <span className="v-muted">people ?</span>}
       {r.cannotWalk ? <span className="is-strong">{r.cannotWalk} can't walk</span> : null}
       {r.elderly ? <span>{r.elderly} elderly</span> : null}
@@ -242,10 +244,11 @@ export function fmtTags(tags: string[]): { key: string; label: string; tone: str
 
 /** "↑ rising ~0.2 m in 6 h": the trend a team needs before it sets out (water rising = go sooner, bigger boat). */
 export function Trend({ water, long = false }: { water: import("../api").WaterTrend | null | undefined; long?: boolean }) {
-  if (!water) return <span className="p3-trend">แนวโน้มไม่ทราบ · trend unknown</span>;
+  const t = useT();
+  if (!water) return <span className="p3-trend"><Tr th="แนวโน้มไม่ทราบ" en="trend unknown" /></span>;
   const arrow = { rising: "↑", falling: "↓", steady: "→" }[water.trend];
-  const th = { rising: "น้ำขึ้น", falling: "น้ำลด", steady: "ทรงตัว" }[water.trend];
+  const th = { rising: t("น้ำขึ้น", "Rising"), falling: t("น้ำลด", "Falling"), steady: t("ทรงตัว", "Steady") }[water.trend];
   const change = Math.abs(water.next6hM);
   return <span className={`p3-trend is-${water.trend}`}>{arrow} {th}<small> {water.trend}</small>
-    {long && water.trend !== "steady" && <> ~{change.toFixed(1)} ม. ใน 6 ชม.<small> ~{change.toFixed(1)} m in 6 h</small></>}</span>;
+    {long && water.trend !== "steady" && <> <Tr th={<>~{change.toFixed(1)} ม. ใน 6 ชม.</>} en={<>~{change.toFixed(1)} m in 6 h</>} /></>}</span>;
 }

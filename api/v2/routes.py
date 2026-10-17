@@ -422,7 +422,7 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
                 o = s.shelter_offer or {}
                 if nxt == "shelter":
                     key = "shelter" if o.get("walkable") else "shelter_deep"
-                    reply = prefix + I.say(key, lang, name=o.get("name"), km=o.get("km"), minutes=o.get("minutes"), deep=o.get("deepestM"))
+                    reply = prefix + I.say(key, lang, name=(o.get("nameEn") if lang == "en" else None) or o.get("name"), km=o.get("km"), minutes=o.get("minutes"), deep=o.get("deepestM"))
                     # the phone shows the route on the flood map, a Google Maps link and the two answers
                     effects["shelterRoute"] = {**o, "from": [s.pin["lon"], s.pin["lat"]],
                                                "googleMaps": "https://www.google.com/maps/dir/?api=1&origin="
@@ -437,7 +437,7 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
                 s.finished = True
                 near = getattr(s, "shelter_nearest", None)
                 if s.shelter_offer == {} and near and s.facts.get("urgent", {}).get("value") is not True:
-                    prefix += I.say("shelter_none", lang, name=near["name"], deep=near["deepestM"]) + " "
+                    prefix += I.say("shelter_none", lang, name=(near.get("nameEn") if lang == "en" else None) or near["name"], deep=near["deepestM"]) + " "
                 while s.nb_queue and s.pin:  # urgent: no more questions; neighbours go in unconfirmed
                     effects["neighbour"], _ = _add_neighbour(v, s, channel, lang)
                     st = _state(v)

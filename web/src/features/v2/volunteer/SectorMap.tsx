@@ -1,3 +1,4 @@
+import { Tr, useT, useUiLang, t as translate, type UiLang } from "../ui/lang";
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../../data/googleMaps";
 import type { BoardState, GeoView, OverviewZone, Shelter, UrgentCase } from "../api";
@@ -30,6 +31,7 @@ export function deoverlapLabels<T extends { x: number; y: number }>(candidates: 
 
 /** Shared geometry and ids drive both outlines and the list; urgent dots use only API-provided positions. */
 export function DrawnSectorMap({ geo, zones, selection, onZone, onSector, urgentCases, onCase }: { urgentCases?: UrgentCase[]; onCase?: (id: string) => void; geo: GeoView | null; zones: OverviewZone[]; selection: Selection; onZone: (id: string) => void; onSector: (id: string) => void }) {
+  const t = useT();
   const frame = useRef<SVGSVGElement>(null);
   const [zoom, setZoom] = useState(1);
   const [size, setSize] = useState({ width: 900, height: 700 });
@@ -42,7 +44,7 @@ export function DrawnSectorMap({ geo, zones, selection, onZone, onSector, urgent
     observer.observe(frame.current);
     return () => observer.disconnect();
   }, [!!geo]);
-  if (!geo) return <p role="status">กำลังโหลดแผนที่ · Loading sectors…</p>;
+  if (!geo) return <p role="status"><Tr th="กำลังโหลดแผนที่" en="Loading sectors…" /></p>;
   const sectorFeatures = geo.sectors?.features ?? [];
   const selectedFeatures = selection.sector ? geo.zones.features.filter(feature => feature.properties?.sector === selection.sector || zones.find(zone => zone.id === feature.properties?.id)?.sector === selection.sector) : [];
   const [west, south, east, north] = bounds(selectedFeatures.length ? selectedFeatures : geo.zones.features);
@@ -55,18 +57,18 @@ export function DrawnSectorMap({ geo, zones, selection, onZone, onSector, urgent
   const path = (feature: GeoJSON.Feature) => rings(feature).map(ring => ring.map(([lon, lat], index) => `${index ? "L" : "M"}${x(lon)} ${y(lat)}`).join(" ") + "Z").join(" ");
   const maximum = Math.max(1, ...zones.map(zone => zone.score));
   const top = [...zones].sort((a, b) => b.score - a.score).slice(0, 5).map(zone => zone.id);
-  return <><div className="p3-fallback-zoom" aria-label="ซูม · Zoom"><button aria-label="ขยาย · Zoom in" onClick={() => setZoom(value => Math.min(3, value + 0.25))}>+</button><button aria-label="ย่อ · Zoom out" onClick={() => setZoom(value => Math.max(0.75, value - 0.25))}>−</button></div><svg ref={frame} className="p3-sector-map" viewBox={`0 0 ${size.width} ${size.height}`} aria-label="Team zones by help missing; thick sector boundaries A to G">
+  return <><div className="p3-fallback-zoom" aria-label={t("ซูม · Zoom", "Zoom")}><button aria-label={t("ขยาย · Zoom in", "Zoom in")} onClick={() => setZoom(value => Math.min(3, value + 0.25))}>+</button><button aria-label={t("ย่อ · Zoom out", "Zoom out")} onClick={() => setZoom(value => Math.max(0.75, value - 0.25))}>−</button></div><svg ref={frame} className="p3-sector-map" viewBox={`0 0 ${size.width} ${size.height}`} aria-label="Team zones by help missing; thick sector boundaries A to G">
     {geo.zones.features.map(feature => {
       const id = String(feature.properties?.id);
       const zone = zones.find(candidate => candidate.id === id);
       const b = bounds([feature]);
       return <g key={id} role="button" tabIndex={0} aria-label={`Zone ${id}, ${zone?.open ?? "unknown"} waiting`} aria-pressed={selection.zone === id} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onZone(id); } }} onClick={() => onZone(id)}>
-        <path d={path(feature)} className={`p3-zone ${selection.zone === id ? "is-selected" : ""}`} style={{ fill: `var(--need-${needBand(zone, maximum)})`, strokeDasharray: zone?.open && !zone.plans ? "8 5" : undefined }}><title>{`${id} · ${zone?.label ?? "ไม่ทราบชื่อ"} · ${zone?.open ?? "unknown"} waiting`}</title></path>
-        {((selection.sector && zone?.sector === selection.sector) || top.includes(id)) && <text x={x((b[0] + b[2]) / 2)} y={y((b[1] + b[3]) / 2)} className="p3-zone-label">{id} · {zone?.label ?? "ไม่ทราบชื่อ"}</text>}
+        <path d={path(feature)} className={`p3-zone ${selection.zone === id ? "is-selected" : ""}`} style={{ fill: `var(--need-${needBand(zone, maximum)})`, strokeDasharray: zone?.open && !zone.plans ? "8 5" : undefined }}><title>{`${id} · ${zone?.label ?? t("ไม่ทราบชื่อ", "Unknown place")} · ${zone?.open ?? "unknown"} waiting`}</title></path>
+        {((selection.sector && zone?.sector === selection.sector) || top.includes(id)) && <text x={x((b[0] + b[2]) / 2)} y={y((b[1] + b[3]) / 2)} className="p3-zone-label">{id} · {zone?.label ?? t("ไม่ทราบชื่อ", "Unknown place")}</text>}
       </g>;
     })}
     {(urgentCases ?? []).filter(row => row.lon != null && row.lat != null).map(row => <g key={row.id} className="p3-drawn-urgent" role="button" tabIndex={0}
-      aria-label={`ด่วน · Urgent ${row.id}`} onClick={() => onCase?.(row.id)}
+      aria-label={t(`ด่วน · Urgent ${row.id}`, `Urgent ${row.id}`)} onClick={() => onCase?.(row.id)}
       onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onCase?.(row.id); } }}>
       <circle cx={x(row.lon!)} cy={y(row.lat!)} r="22" className="p3-drawn-hit" />
       <circle cx={x(row.lon!)} cy={y(row.lat!)} r="5" />
@@ -115,7 +117,8 @@ export function goBy(depthM: number | null | undefined): [string, string] | null
 // The need ramp is pale on purpose; on the street map it needs more alpha as need grows, and none where nobody waits.
 const FILL = [0, 0.3, 0.45, 0.6];
 
-export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (name: string) => string, waterOn = false) {
+export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (name: string) => string, waterOn = false, lang: UiLang = "th") {
+  const t = (th: string, en: string) => translate(th, en, lang);
   const { geo, zones, selection, onZone, onSector } = props;
   const overlays: Maps[] = [];
   if (!geo) return () => undefined;
@@ -132,7 +135,7 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     const zone = zones.find(item => item.id === feature.properties?.id);
     button.className = sector ? "p3-google-badge" : bubble ? `p3-count-bubble${zone?.urgent ? " is-urgent" : ""}` : "p3-google-label";
     button.textContent = text;
-    button.setAttribute("aria-label", sector ? `พื้นที่ · Sector ${text}` : `โซน · Zone ${feature.properties?.id} · ${text}`);
+    button.setAttribute("aria-label", sector ? t(`พื้นที่ · Sector ${text}`, `Sector ${text}`) : t(`โซน · Zone ${feature.properties?.id} · ${text}`, `Zone ${feature.properties?.id} · ${text}`));
     button.setAttribute("aria-pressed", String(sector ? selection.sector === text : selection.zone === feature.properties?.id));
     button.onclick = select;
     maps.OverlayView.preventMapHitsAndGesturesFrom?.(button);
@@ -183,7 +186,7 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     const inSector = !!selection.sector && zone?.sector === selection.sector;
     if (waterOn && zone?.open && ((zone.urgent && mostUrgent.has(id)) || inSector)) label(feature, String(zone.urgent || zone.open), false, () => onZone(id), true);
     const arrow = zone?.water?.trend === "rising" ? " ↑" : zone?.water?.trend === "falling" ? " ↓" : "";
-    label(feature, `${id} · ${zone?.label ?? feature.properties?.label ?? "ไม่ทราบชื่อ"}${arrow}`, false, () => onZone(id));
+    label(feature, `${id} · ${zone?.label ?? feature.properties?.label ?? t("ไม่ทราบชื่อ", "Unknown place")}${arrow}`, false, () => onZone(id));
   }
   for (const feature of geo.sectors?.features ?? []) {
     const id = String(feature.properties?.id);
@@ -199,7 +202,7 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
     const button = document.createElement("button");
     button.className = `p3-urgent-dot${row.markedFirst ? " is-first" : ""}`;
     button.textContent = row.markedFirst ? "★" : "";
-    button.setAttribute("aria-label", `ด่วน · Urgent ${row.id}${row.markedFirst ? ` · ทำก่อน · Do first ${row.markedFirst.team}` : ""}`);
+    button.setAttribute("aria-label", t(`ด่วน · Urgent ${row.id}${row.markedFirst ? ` · ทำก่อน · Do first ${row.markedFirst.team}` : ""}`, `Urgent ${row.id}${row.markedFirst ? ` · Do first ${row.markedFirst.team}` : ""}`));
     button.onclick = () => props.onCase?.(row.id);
     maps.OverlayView.preventMapHitsAndGesturesFrom?.(button);
     overlay.onAdd = () => overlay.getPanes().overlayMouseTarget.appendChild(button);
@@ -214,7 +217,7 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
   // Shelters: where a team drops people off. Green dot, name on hover/tap.
   for (const shelter of props.shelters ?? []) {
     overlays.push(new maps.Marker({ map, position: { lat: shelter.lat, lng: shelter.lon }, zIndex: 4,
-      title: `ศูนย์พักพิง · Shelter: ${shelter.name}${shelter.capacity ? ` (${shelter.households}/${shelter.capacity})` : ""}`,
+      title: `${t("ศูนย์พักพิง · Shelter", "Shelter")}: ${shelter.name}${shelter.capacity ? ` (${shelter.households}/${shelter.capacity})` : ""}`,
       icon: { path: maps.SymbolPath.CIRCLE, scale: 7, fillColor: token("--shelter"), fillOpacity: 1, strokeColor: token("--shelter-ink"), strokeWeight: 2 } }));
   }
   const zoomListener = map.addListener?.("zoom_changed", () => overlays.forEach(overlay => overlay.draw?.()));
@@ -222,6 +225,8 @@ export function drawSectorLayers(maps: Maps, map: Maps, props: Props, token: (na
 }
 
 export function SectorMap(props: Props) {
+  const { lang } = useUiLang();
+  const t = useT();
   const host = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState<{ maps: Maps; map: Maps } | null>(null);
   const [failed, setFailed] = useState(false);
@@ -235,7 +240,7 @@ export function SectorMap(props: Props) {
     let active = true;
     let resize: ResizeObserver | undefined;
     let instance: Maps;
-    loadGoogleMaps("th").then(maps => {
+    loadGoogleMaps("en").then(maps => {
       if (!active || !host.current) return;
       host.current.hidden = false;
       instance = new maps.Map(host.current, { center: { lat: 7.01, lng: 100.47 }, zoom: 12, mapTypeId: "roadmap",
@@ -288,8 +293,8 @@ export function SectorMap(props: Props) {
       ...latest.current,
       onZone: id => latest.current.onZone(id),
       onSector: id => latest.current.onSector(id),
-    }, name => styles.getPropertyValue(name).trim(), waterOn && !!props.water);
-  }, [ready, drawn]);
+    }, name => styles.getPropertyValue(name).trim(), waterOn && !!props.water, lang);
+  }, [ready, drawn, lang]);
   useEffect(() => {
     if (!ready || !props.geo) return;
     const { selection, zones, geo } = props;
@@ -304,21 +309,21 @@ export function SectorMap(props: Props) {
     refit.current();
   }, [ready, props.geo, props.selection.zone, props.selection.sector]);
   return <div className="p3-map-stage">
-    <div ref={host} className="p3-google-map" aria-label="แผนที่หาดใหญ่ · Hat Yai map" style={{ visibility: ready ? "visible" : "hidden", position: ready ? "relative" : "absolute" }} />
-    {!ready && <><p className="p3-map-status" role="status">{failed ? "แผนที่สำรอง · Offline outline map" : "กำลังเปิดแผนที่ · Loading map"}</p><DrawnSectorMap {...props} /></>}
-    {ready && <div className="seg p3-map-type" role="group" aria-label="ชนิดแผนที่ · Map type">
-      <button aria-pressed={kind === "roadmap"} onClick={() => setKind("roadmap")}>แผนที่<small>Map</small></button>
-      <button aria-pressed={kind === "hybrid"} onClick={() => setKind("hybrid")}>ดาวเทียม<small>Satellite</small></button>
-      {props.water && <button aria-pressed={waterOn} onClick={() => setWaterOn(value => !value)}>น้ำ<small>Water</small></button>}
+    <div ref={host} className="p3-google-map" aria-label={t("แผนที่หาดใหญ่ · Hat Yai map", "Hat Yai map")} style={{ visibility: ready ? "visible" : "hidden", position: ready ? "relative" : "absolute" }} />
+    {!ready && <><p className="p3-map-status" role="status">{failed ? t("แผนที่สำรอง · Offline outline map", "Offline outline map") : t("กำลังเปิดแผนที่ · Loading map", "Loading map")}</p><DrawnSectorMap {...props} /></>}
+    {ready && <div className="seg p3-map-type" role="group" aria-label={t("ชนิดแผนที่ · Map type", "Map type")}>
+      <button aria-pressed={kind === "roadmap"} onClick={() => setKind("roadmap")}><Tr th="แผนที่" en="Map" /></button>
+      <button aria-pressed={kind === "hybrid"} onClick={() => setKind("hybrid")}><Tr th="ดาวเทียม" en="Satellite" /></button>
+      {props.water && <button aria-pressed={waterOn} onClick={() => setWaterOn(value => !value)}><Tr th="น้ำ" en="Water" /></button>}
     </div>}
     <details className="p3-map-legend">
-      <summary>คำอธิบาย · Legend</summary>
-      <div className="p3-water-key" aria-label="ระดับน้ำและความต้องการ · Water and needs">
-      <div className="p3-legend">{["ไม่มีครอบครัวรอ · None waiting", "น้อย · Lower", "ปานกลาง · More", "มากสุด · Most help missing"].map((label, index) => <span key={label}><i style={{ background: `var(--need-${index})` }} />{label}</span>)}</div>
-      <p>เปิดชั้นน้ำ: ตัวเลขแดง = ด่วน ตัวเลขหมึก = รอ · Water on: red counts urgent, ink counts waiting. ไม่ทราบไม่ใช่แห้ง · Unknown is never dry.</p>
-      <b>ระดับน้ำ · ไปด้วยอะไร <small>Water · go by</small></b>
-      {GO_BY.map(([token, th, en]) => <span key={token}><i style={{ background: `var(${token})` }} />{th}<small>{en}</small></span>)}
-      <span><i className="is-shelter" />ศูนย์พักพิง<small>shelter</small></span>
+      <summary><Tr th="คำอธิบาย" en="Legend" /></summary>
+      <div className="p3-water-key" aria-label={t("ระดับน้ำและความต้องการ · Water and needs", "Water and needs")}>
+      <div className="p3-legend">{[t("ไม่มีครอบครัวรอ · None waiting", "None waiting"), t("น้อย · Lower", "Lower"), t("ปานกลาง · More", "More"), t("มากสุด · Most help missing", "Most help missing")].map((label, index) => <span key={label}><i style={{ background: `var(--need-${index})` }} />{label}</span>)}</div>
+      <p><Tr th="เปิดชั้นน้ำ: ตัวเลขแดง = ด่วน ตัวเลขหมึก = รอ ไม่ทราบไม่ใช่แห้ง" en="Water on: red counts urgent, ink counts waiting. Unknown is never dry." /></p>
+      <b><Tr th="ระดับน้ำ · ไปด้วยอะไร" en="Water · go by" /></b>
+      {GO_BY.map(([token, th, en]) => <span key={token}><i style={{ background: `var(${token})` }} /><Tr th={th} en={en} /></span>)}
+      <span><i className="is-shelter" /><Tr th="ศูนย์พักพิง" en="shelter" /></span>
       </div>
     </details>
   </div>;

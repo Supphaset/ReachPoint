@@ -1,3 +1,4 @@
+import { Tr, useT } from "./lang";
 import { useEffect, useRef, useState } from "react";
 import type { SimEvent } from "../api";
 import { SIMULATIONS } from "./FamilyFollowUp";
@@ -29,6 +30,7 @@ export function DemoBar({ at, onAction, family }: {
   onAction: (action: ClockAction) => Promise<unknown>;
   family?: DemoControls;
 }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -47,7 +49,8 @@ export function DemoBar({ at, onAction, family }: {
   const [clockOpen, setClockOpen] = useState(false);
   const [acting, setActing] = useState(false);
   const lock = useRef(false);
-  const [error, setError] = useState("");
+  const [failed, setFailed] = useState(false);
+  const error = failed ? t("จำลองไม่สำเร็จ ลองอีกครั้ง · Demo action failed; try again", "Demo action failed; try again") : "";
   const disabled = acting || !!family?.busy || (family !== undefined && !family.enabled);
   const next = nextSimulation(family?.done ?? []);
 
@@ -55,38 +58,38 @@ export function DemoBar({ at, onAction, family }: {
     if (disabled || lock.current) return;
     lock.current = true;
     setActing(true);
-    setError("");
+    setFailed(false);
     try { await action(); }
-    catch { setError("จำลองไม่สำเร็จ ลองอีกครั้ง · Demo action failed; try again"); }
+    catch { setFailed(true); }
     finally { lock.current = false; setActing(false); }
   }
 
-  return <div ref={root} className="rp-demo-launcher" aria-label="สาธิต · Demo controls">
+  return <div ref={root} className="rp-demo-launcher" aria-label={t("สาธิต · Demo controls", "Demo controls")}>
     <div className="rp-demo-buttons">
       {family && <button className="rp-demo-primary" disabled={disabled}
-        title={next?.proves} onClick={() => void run(() => next ? family.onSimulate(next.event) : onAction("reset"))}>
-        {next ? `▶ ถัดไป · Next: ${next.label}` : "เริ่มใหม่ · Start over"}
+        title={next && t(next.proves, next.provesEn)} onClick={() => void run(() => next ? family.onSimulate(next.event) : onAction("reset"))}>
+        {next ? t(`▶ ถัดไป · Next: ${next.label}`, `▶ Next: ${next.labelEn}`) : t("เริ่มใหม่ · Start over", "Start over")}
       </button>}
-      <button ref={trigger} className="rp-demo-more" aria-label="ตัวเลือกสาธิต · Demo options" aria-expanded={expanded}
-        onClick={() => setExpanded(value => !value)}>{family ? "⋯" : "สาธิต · Demo ⋯"}</button>
+      <button ref={trigger} className="rp-demo-more" aria-label={t("ตัวเลือกสาธิต · Demo options", "Demo options")} aria-expanded={expanded}
+        onClick={() => setExpanded(value => !value)}>{family ? "⋯" : t("สาธิต · Demo ⋯", "Demo ⋯")}</button>
     </div>
-    {family && !family.enabled && <p className="rp-demo-hint" role="status">แจ้งตำแหน่งในแชทก่อน · Share a location first</p>}
-    <section className="rp-demo-popover" hidden={!expanded} aria-label="ตัวเลือกสาธิต · Demo options">
-      <div className="rp-demo-title"><b>สาธิต · Demo</b><time>{at ?? "รอเวลา · Time pending"}</time>
-        <button aria-label="ปิด · Close" onClick={() => { setExpanded(false); trigger.current?.focus(); }}>×</button></div>
-      {family && <div className="rp-demo-events" role="group" aria-label="เหตุการณ์ · Family events">
+    {family && !family.enabled && <p className="rp-demo-hint" role="status"><Tr th="แจ้งตำแหน่งในแชทก่อน" en="Share a location first" /></p>}
+    <section className="rp-demo-popover" hidden={!expanded} aria-label={t("ตัวเลือกสาธิต · Demo options", "Demo options")}>
+      <div className="rp-demo-title"><b><Tr th="สาธิต" en="Demo" /></b><time>{at ?? t("รอเวลา · Time pending", "Time pending")}</time>
+        <button aria-label={t("ปิด · Close", "Close")} onClick={() => { setExpanded(false); trigger.current?.focus(); }}>×</button></div>
+      {family && <div className="rp-demo-events" role="group" aria-label={t("เหตุการณ์ · Family events", "Family events")}>
         {SIMULATIONS.map(simulation => <button key={simulation.event} className={`chip dark${family.done.includes(simulation.event) ? " done" : ""}`}
-          disabled={disabled} title={simulation.proves} onClick={() => void run(() => family.onSimulate(simulation.event))}>
-          {family.done.includes(simulation.event) && "✓ "}{simulation.label}
+          disabled={disabled} title={t(simulation.proves, simulation.provesEn)} onClick={() => void run(() => family.onSimulate(simulation.event))}>
+          {family.done.includes(simulation.event) && "✓ "}{t(simulation.label, simulation.labelEn)}
         </button>)}
       </div>}
-      <p role="status">{error || (family && !family.enabled ? "แจ้งตำแหน่งในแชทก่อน · Share a location first"
-        : family?.result || "เลื่อนเวลาสำหรับห้องสาธิตนี้ · Changes the replay for this demo room")}</p>
+      <p role="status">{error || (family && !family.enabled ? t("แจ้งตำแหน่งในแชทก่อน · Share a location first", "Share a location first")
+        : family?.result || t("เลื่อนเวลาสำหรับห้องสาธิตนี้ · Changes the replay for this demo room", "Changes the replay for this demo room"))}</p>
       {family && <button className="rp-demo-clock-toggle" aria-expanded={clockOpen} onClick={() => setClockOpen(value => !value)}>
-        นาฬิกา · Clock {clockOpen ? "⌄" : "›"}</button>}
-      {(!family || clockOpen) && <div className="rp-demo-clock" role="group" aria-label="นาฬิกา · Replay clock">
+        <Tr th="นาฬิกา" en="Clock" /> {clockOpen ? "⌄" : "›"}</button>}
+      {(!family || clockOpen) && <div className="rp-demo-clock" role="group" aria-label={t("นาฬิกา · Replay clock", "Replay clock")}>
         {CLOCK_ACTIONS.map(([action, th, en]) => <button className="chip dark bl" key={action} disabled={disabled}
-          onClick={() => void run(() => onAction(action))}>{th}<small>{en}</small></button>)}
+          onClick={() => void run(() => onAction(action))}><Tr th={th} en={en} /></button>)}
       </div>}
     </section>
     {error && !expanded && <p role="alert" className="rp-demo-hint">{error}</p>}
