@@ -57,7 +57,8 @@ export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string
       who: readerLabel(effects.reader) === "Gemini" ? "gemini" : "rules",
       what: "Agent reply / next question",
       quote: displayText(turn.reply),
-      gloss: replyGloss(turn),
+      // an English reply needs no English gloss under it
+      gloss: replyGloss(turn) === turn.reply ? undefined : replyGloss(turn),
     });
   if (effects.neighbour?.sure)
     add("neighbour", {

@@ -1319,3 +1319,19 @@
 /* The English gloss sits on the same line as the Thai ("52 นาที min"), except under page titles. */
 .rp-gloss { display: inline; margin: 0 0 0 .35em; }
 h1 > .rp-gloss { display: block; margin: 4px 0 0; font-size: 15px; }
+
+/* Owner, 17 Oct (2nd pass): Pro Max height was too big beside the evidence and the map.
+   The phone keeps a real phone's width (390, iPhone 15/16) so text stays readable, and its height
+   fits the screen: the whole phone is in view, from ~620 px on a laptop up to a true 844 on a big screen. */
+@media (min-width: 760px) {
+  .rp-report-layout { grid-template-columns: 430px minmax(0, 1.1fr) minmax(0, .9fr); }
+  .rp-phone-stage { padding: 12px 20px; }
+  .rp-phone-stage .p4-family, .rp-phone-stage .p4-family > .v2-phone, .rp-report-layout .v2-phone {
+    width: 390px; height: clamp(620px, calc(100dvh - 232px), 844px);
+  }
+  .rp-report-trace > .rp-card { min-height: 0; height: clamp(620px, calc(100dvh - 208px), 868px); }
+}
+@media (min-width: 760px) and (max-width: 1300px) {
+  .rp-report-layout { grid-template-columns: 430px minmax(0, 1fr); }
+}
+@media (min-width: 760px) { .rp-report-trace > .rp-card { flex: none; } .rp-report-trace .rp-trace-timeline { overflow-y: auto; } }
