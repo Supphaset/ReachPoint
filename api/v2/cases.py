@@ -101,7 +101,8 @@ def overview(st: dict) -> dict:
                  + sum(30 for r in open_ if r["cannotWalk"]) + sum(15 for r in open_ if r["elderly"]))
         score = unmet * (0.5 if plans else 1.0) + max(0, likely - heard) * 0.2
         zones.append({
-            "id": zid, "label": z.get("label"), "district": z.get("district"), "score": round(score),
+            "id": zid, "label": z.get("label"), "district": z.get("district"), "sector": z.get("sector"),
+            "sectorName": z.get("sectorName"), "score": round(score),
             "open": len(open_), "urgent": sum(1 for r in open_ if r["urgent"]),
             "lostContact": sum(1 for r in open_ if r["status"] == "lostContact"),
             "cannotWalk": sum(r["cannotWalk"] for r in open_), "elderly": sum(r["elderly"] for r in open_),
@@ -111,11 +112,18 @@ def overview(st: dict) -> dict:
             "closed": sum(1 for r in rs if r["status"] in CLOSED),
         })
     zones.sort(key=lambda z: -z["score"])
+    sectors = []
+    for sf in G.load().sectors:
+        sid = sf["properties"]["id"]
+        mine = [z for z in zones if z["sector"] == sid]
+        sectors.append({"id": sid, "name": sf["properties"].get("name"), "zones": len(mine), "open": sum(z["open"] for z in mine),
+                        "urgent": sum(z["urgent"] for z in mine), "noTeam": sum(1 for z in mine if z["open"] and not z["plans"]),
+                        "boat": sum(z["boat"] for z in mine)})
     points = [{"id": h.id, "lon": h.lon, "lat": h.lat, "status": h.status, "urgent": h.urgent and h.status not in CLOSED,
                "outcome": h.outcome, "needs": needs(h), "depth": None, "zoneId": h.zone_id}
               for h in w.households.values() if h.lon is not None]
     return {"atH": w.now_h, "at": P.label_time(w.now_h), "overall": st["overall"], "zones": zones, "points": points,
-            "shelters": st.get("shelters", []), "hotspots": [c for c in subareas(st) if c["need"] > 0][:10]}
+            "shelters": st.get("shelters", []), "hotspots": [c for c in subareas(st) if c["need"] > 0][:10], "sectors": sectors}
 
 
 # --- live feed: what the AI did with every message ---

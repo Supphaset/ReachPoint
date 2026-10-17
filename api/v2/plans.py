@@ -15,7 +15,8 @@ OFFERS = {"อพยพผู้ป่วย": "medical evacuation", "การ�
 
 def parse_plan(text: str) -> dict:
     t = text or ""
-    zones = re.findall(r"\b([ABC]-\d{1,2})\b", t)
+    # team zones are radio-style codes: a sector letter (no I or O) and a number, "A3", "C14" (old "B-7" still read)
+    zones = [z.upper().replace("-", "") for z in re.findall(r"(?<![A-Za-z0-9])([A-HJ-NP-Za-hj-np-z]-?\d{1,2})(?![0-9])", t)]
     m = re.search(r"(\d{1,2})[:.](\d{2})", t)
     eta = f"{int(m.group(1)):02d}:{m.group(2)}" if m else None
     if not eta:
@@ -52,7 +53,7 @@ def places(text: str, geo) -> tuple[list[str], list[str]]:
     """Zones and blocks a plan line names by street: "เรือเข้าซอยราษฎร์อุทิศ 15" → the block(s) on that soi and their
     zone. The longest names are tried first, so "ราษฎร์อุทิศ 15" wins over "ราษฎร์อุทิศ"."""
     # times and seat counts are not soi numbers: "แสงอาทิตย์ 15:00", "8 ที่"
-    t = _norm(re.sub(r"\d{1,2}[:.]\d{2}|\d+\s*(ที่นั่ง|ที่|seats?|คน|people)|\b[ABC]-\d{1,2}\b", " ", text or "", flags=re.I))
+    t = _norm(re.sub(r"\d{1,2}[:.]\d{2}|\d+\s*(ที่นั่ง|ที่|seats?|คน|people)|(?<![A-Za-z0-9])[A-HJ-NP-Z]-?\d{1,2}(?![0-9])", " ", text or "", flags=re.I))
     blocks, zones = [], []
     names = sorted({(b["properties"].get("name") or "") for b in geo.blocks if b["properties"].get("name")}, key=len, reverse=True)
     hit = []

@@ -1,4 +1,5 @@
 /** City overview: zones ranked by how much help is missing, not just by how deep the water is. */
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { vol } from "../api";
 import { Depth, MiniMap, VShell, useGeo, useLive } from "./shared";
@@ -8,6 +9,8 @@ export function OverviewPage() {
   const geo = useGeo();
   const nav = useNavigate();
   const o = data?.overall;
+  const [sector, setSector] = useState<string | null>(null);
+  const zones = (data?.zones ?? []).filter((z) => !sector || z.sector === sector);
   const top = data?.zones[0];
   return (
     <VShell
@@ -48,17 +51,32 @@ export function OverviewPage() {
           </ol>
         </section>
       ) : null}
+      {data?.sectors.length ? (
+        <section aria-label="Sectors">
+          <h2 className="v-h2">Sectors <span className="v-muted v-small">· split along the railway, canals and main roads; each holds team zones of about 500 m that one team covers in a shift</span></h2>
+          <div className="v-sectors">
+            <button type="button" aria-pressed={!sector} onClick={() => setSector(null)}><b>All</b><span>{data.zones.length} team zones</span></button>
+            {data.sectors.map((s) => (
+              <button key={s.id} type="button" aria-pressed={sector === s.id} onClick={() => setSector(sector === s.id ? null : s.id)}>
+                <b>Sector {s.id}</b><span>{s.name}</span>
+                <span>{s.open} waiting{s.urgent ? <> · <em className="is-red">{s.urgent} urgent</em></> : null}</span>
+                <span>{s.noTeam ? <em className="is-red">{s.noTeam} zones with no team</em> : "every zone has a team"}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <div className="v-split">
         <div className="v-tablewrap">
           <table className="v-table">
             <thead>
               <tr>
-                <th>Zone</th><th className="num">Waiting</th><th className="num">Urgent</th><th className="num">Not answering</th>
+                <th>Team zone</th><th className="num">Waiting</th><th className="num">Urgent</th><th className="num">Not answering</th>
                 <th className="num">Can't walk</th><th className="num">Need a boat</th><th>Water</th><th>Teams</th>
               </tr>
             </thead>
             <tbody>
-              {(data?.zones ?? []).map((z, i) => (
+              {zones.map((z, i) => (
                 <tr key={z.id} onClick={() => nav(`/v/zone/${z.id}`)} className={i < 3 && z.score > 0 ? "is-top" : ""}>
                   <td><Link to={`/v/zone/${z.id}`}><b>{z.id}</b></Link> {z.label} <span className="v-muted v-small">{z.district}</span>
                     {z.quiet ? <span className="v2-chip is-amber">quiet</span> : null}

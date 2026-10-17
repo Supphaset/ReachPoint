@@ -32,6 +32,7 @@ export function TripPage() {
     setParams(next.length ? { zones: next.join(",") } : {});
   };
   const t = trip.data;
+  const [sectorF, setSectorF] = useState<string | null>(null);
   const people = t?.people ?? 0;
   const post = async () => {
     if (!line.trim() || !team.trim()) return;
@@ -48,9 +49,15 @@ export function TripPage() {
   return (
     <VShell title="Plan a trip" sub="Pick the zones you can reach. See who is waiting there, what water you'll meet, and who else is going. Then post your plan in one line." at={over.data?.at}>
       <section className="v2-card v-pad v-pick" aria-label="Zones">
-        <span className="v-label">Zones (up to 4), most help missing first</span>
+        <span className="v-label">Team zones (up to 4), most help missing first · each is about one team's shift</span>
+        <div className="v-filters" role="tablist" aria-label="Sector">
+          <button role="tab" aria-selected={!sectorF} onClick={() => setSectorF(null)}>All sectors</button>
+          {(over.data?.sectors ?? []).map((s) => (
+            <button key={s.id} role="tab" aria-selected={sectorF === s.id} onClick={() => setSectorF(s.id)}>Sector {s.id}</button>
+          ))}
+        </div>
         <div className="v-zonepick">
-          {(over.data?.zones ?? []).map((z) => (
+          {(over.data?.zones ?? []).filter((z) => (!sectorF || z.sector === sectorF) && (sectorF || z.open || picked.includes(z.id))).slice(0, sectorF ? 40 : 24).map((z) => (
             <button key={z.id} type="button" aria-pressed={picked.includes(z.id)} onClick={() => toggle(z.id)}>
               <b>{z.id}</b> <span>{z.label}</span> <span>{z.open} waiting{z.urgent ? ` · ${z.urgent} urgent` : ""}</span>
               {z.plans ? <i className="is-planned">{z.plans} team{z.plans > 1 ? "s" : ""}</i> : z.open ? <i className="is-none">no team</i> : null}

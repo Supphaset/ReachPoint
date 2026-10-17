@@ -207,3 +207,10 @@
 .v-legend-access .is-truck, .v-access.is-truck { background: var(--house-new); }
 .v-legend-access .is-boat, .v-access.is-boat { background: var(--depth-3); color: var(--color-on-ink); }
 .v-access { font-size: var(--text-2xs); font-weight: var(--weight-bold); padding: 1px var(--space-2); border-radius: var(--radius-sm); background: var(--color-surface-sunken); }
+
+.v-sectors { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-2); }
+.v-sectors button { display: grid; gap: 2px; text-align: left; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); cursor: pointer;
+  border: var(--border-thin) solid var(--color-line-strong); background: var(--color-surface); color: var(--color-ink); font: inherit; font-size: var(--text-xs); }
+.v-sectors button[aria-pressed="true"] { border: 2px solid var(--color-brand); background: var(--color-waiting-bg); }
+.v-sectors b { font-size: var(--text-sm); }
+.v-sectors em { font-style: normal; font-weight: var(--weight-bold); }

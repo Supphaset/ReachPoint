@@ -39,6 +39,8 @@ export interface Plan {
 }
 
 export interface ZoneView {
+  sector?: string | null;
+  sectorName?: string | null;
   id: string;
   label: string;
   district: string | null;
@@ -235,6 +237,8 @@ export interface CaseRow {
 export interface OverviewZone {
   id: string;
   label: string | null;
+  sector: string | null;
+  sectorName: string | null;
   district: string | null;
   score: number;
   open: number;
@@ -262,6 +266,7 @@ export interface Overview {
   points: CaseRow[];
   shelters: Shelter[];
   hotspots: SubArea[];
+  sectors: { id: string; name: string | null; zones: number; open: number; urgent: number; noTeam: number; boat: number }[];
 }
 
 export interface SubArea {

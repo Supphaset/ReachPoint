@@ -83,6 +83,7 @@ def zone_view(w, geo: G.Geo, zid: str) -> dict:
     status = {k: sum(1 for h in hh if h.status == k) for k in ("open", "safe", "evacuated", "lostContact")}
     return {
         "id": zid, "label": meta.get("label", zid), "district": meta.get("district"),
+        "sector": meta.get("sector"), "sectorName": meta.get("sectorName"),
         "level": None if lvl.wse_m is None else {
             "wseM": lvl.wse_m, "loM": lvl.lo_m, "hiM": lvl.hi_m, "depthM": depth[0], "depthLoM": depth[1], "depthHiM": depth[2],
             "trendCmH": lvl.trend_cm_h, "n": lvl.n, "doubtful": len(lvl.doubtful), "certainty": lvl.certainty},

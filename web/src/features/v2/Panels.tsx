@@ -23,7 +23,7 @@ export function ZoneCard({ zone, state }: { zone: ZoneView | null; state: BoardS
       <header className="v2-zone-head">
         <span className={`v2-swatch is-${depthBand(l?.depthM)}`} aria-hidden="true" />
         <h2>Zone {zone.id}{zone.label && zone.label !== zone.id ? ` · ${zone.label}` : ""}</h2>
-        <span className="v2-muted">{zone.district}</span>
+        <span className="v2-muted">{zone.sector ? `Sector ${zone.sector}${zone.sectorName ? ` · ${zone.sectorName}` : ""} · ` : ""}{zone.district}</span>
         <span className="v2-chips">
           {zone.people.urgent ? <span className="v2-chip is-red">{zone.people.urgent} urgent</span> : null}
           {zone.status.lostContact ? <span className="v2-chip is-amber">{zone.status.lostContact} lost contact</span> : null}

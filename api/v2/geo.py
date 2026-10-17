@@ -73,6 +73,7 @@ class Geo:
     _bgrid: dict = field(default_factory=dict)
     _sgrid: dict = field(default_factory=dict)
     blocks: list = field(default_factory=list)   # v2-blocks.geojson features, when present
+    sectors: list = field(default_factory=list)  # v2-sectors.geojson: INSARAG-style sectors A, B, C …
 
     def __post_init__(self):
         for b in self.buildings.values():
@@ -195,6 +196,8 @@ def load() -> Geo:
         blocks = json.loads(bfile.read_text())["features"] if bfile.exists() else []
         g = Geo(blds, zones, streets)
         g.blocks = blocks
+        sfile = PKG / "v2-sectors.geojson"
+        g.sectors = json.loads(sfile.read_text())["features"] if sfile.exists() else []
         from shapely.geometry import Point, shape
         shapes = [(z["properties"]["id"], shape(z["geometry"])) for z in zones]
         for b in blds.values():
