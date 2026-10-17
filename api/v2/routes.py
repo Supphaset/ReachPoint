@@ -65,6 +65,14 @@ def _state(v: V2Room, at_h: float | None = None) -> dict:
     return cache[sig]
 
 
+def _locked(v: V2Room, build):
+    """Build a polled reply under the room lock and turn it into plain JSON there: a chat turn changes the shared
+    board in place, and serialising it at the same moment failed with "dictionary changed size during iteration"."""
+    from fastapi.encoders import jsonable_encoder
+    with v.lock:
+        return jsonable_encoder(build())
+
+
 def _public(s: dict) -> dict:
     s = dict(s)
     s.pop("world", None)
@@ -150,9 +158,12 @@ def timeline():
 @router.get("/state")
 def state(at: float | None = None):
     v = room()
-    s = _public(_state(v, at))
-    s["now"] = {"atH": v.now_h, "at": P.label_time(v.now_h)}
-    return s
+
+    def build():
+        s = _public(_state(v, at))
+        s["now"] = {"atH": v.now_h, "at": P.label_time(v.now_h)}
+        return s
+    return _locked(v, build)
 
 
 class ClockIn(BaseModel):
@@ -299,7 +310,10 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
                 s.pin, s.building_id, s.zone_id = {"lon": loc["lon"], "lat": loc["lat"], "precision": loc["precision"]}, loc["buildingId"], loc["zoneId"]
                 effects["located"] = loc
             else:
-                effects["pinOutside"] = True
+                # say which: inside our zones but on no house (move the pin), or outside what we cover
+                near = geo.zone_at(pin["lon"], pin["lat"])
+                effects["pinOutside"] = {"reason": "noHouse" if near else "outside"}
+                prefix += I.say("pin_no_house" if near else "pin_outside", lang) + " "
         follow = None
         # a button under one of our own messages answers that message, even if an intake question is still open
         if s.household_id and not s.nb_queue and (reply_to or (pending != "shelter" and (s.follow or s.finished))):
@@ -510,7 +524,7 @@ def session_status(sid: str):
     s = v.sessions.get(sid)
     if s is None:
         raise HTTPException(404, "No such conversation")
-    return F.status(v, s, _state(v))
+    return _locked(v, lambda: F.status(v, s, _state(v)))
 
 
 STALE_PLAN_H = 4  # a zone plan older than this is not news to a family that has just written in (its time has passed)
@@ -519,6 +533,12 @@ STALE_PLAN_H = 4  # a zone plan older than this is not news to a family that has
 @router.get("/me/{token}")
 def me(token: str):
     v = room()
+    if not any(x.token == token for x in v.sessions.values()):
+        raise HTTPException(404, "No such status page")
+    return _locked(v, lambda: _me(v, token))
+
+
+def _me(v: V2Room, token: str):
     s = next((x for x in v.sessions.values() if x.token == token), None)
     if s is None:
         raise HTTPException(404, "No such status page")
@@ -567,7 +587,8 @@ def post_plan(body: PlanIn):
 @router.get("/v/overview")
 def v_overview():
     from api.v2 import cases as C
-    return C.overview(_state(room()))
+    v = room()
+    return _locked(v, lambda: C.overview(_state(v)))
 
 
 @router.get("/v/feed")
@@ -624,7 +645,7 @@ def v_urgent():
     Teams can mark a case "do first"; every team sees the mark."""
     from api.v2 import cases as C
     v = room()
-    return C.urgent(_state(v), v.first)
+    return _locked(v, lambda: C.urgent(_state(v), v.first))
 
 
 class FirstIn(BaseModel):

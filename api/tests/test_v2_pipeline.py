@@ -331,3 +331,28 @@ def test_a_second_ride_request_does_not_start_over():
     assert "3/5" in again["reply"]
     after = len(c.get(f"/api/v2/v/cases/{hid}", headers=h).json()["story"])
     assert after == posted  # no duplicate request for the teams
+
+
+def test_a_pin_outside_the_area_is_explained():
+    from api.main import app
+    from api.v2 import geo as G
+    c = TestClient(app)
+    h = {"X-Demo-Room": "pytest-v2-pin-outside"}
+    far = c.post("/api/v2/chat/sessions", headers=h).json()["id"]
+    r = c.post(f"/api/v2/chat/sessions/{far}/turn", json={"text": "pinned", "pin": {"lon": 100.60, "lat": 7.20, "method": "map"}}, headers=h).json()
+    assert r["effects"]["pinOutside"]["reason"] == "outside" and "1784" in r["reply"]
+    # inside a zone but on no house: find a zone point with no building within 60 m
+    g = G.load()
+    spot = None
+    for z in g.zones:
+        ring = z["geometry"]["coordinates"][0] if z["geometry"]["type"] == "Polygon" else z["geometry"]["coordinates"][0][0]
+        for lon, lat in ring[::7]:
+            if g.zone_at(lon, lat) and g.snap(lon, lat, 60) is None:
+                spot = (lon, lat)
+                break
+        if spot:
+            break
+    if spot:
+        sid = c.post("/api/v2/chat/sessions", headers=h).json()["id"]
+        r = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": "pinned", "pin": {"lon": spot[0], "lat": spot[1], "method": "map"}}, headers=h).json()
+        assert r["effects"]["pinOutside"]["reason"] == "noHouse"

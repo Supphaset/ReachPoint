@@ -70,7 +70,7 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
   const [items, setItems] = useState<Item[]>([]);
   const [text, setText] = useState(DEMO_MESSAGES[lang][0]);
   const [askLocation, setAskLocation] = useState(false);
-  const [outside, setOutside] = useState(false);
+  const [outside, setOutside] = useState<"" | "noHouse" | "outside">("");
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
   const [speak, setSpeak] = useState(false);
@@ -89,7 +89,7 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
       setDone([]);
       setSession(s);
       setAskLocation(!s.pin);
-      setOutside(false);
+      setOutside("");
       setText(DEMO_MESSAGES[l][0]);
       seen.current = new Set();
       setItems(s.transcript.map((t) => ({ kind: "agent", text: t.text, at })));
@@ -199,7 +199,8 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
       setSession(r.session);
       if (r.status) { statusVersion.current++; setStatus(r.status); }
       setAskLocation(!!r.effects.askLocation || !r.session.pin);
-      setOutside(!!r.effects.pinOutside);
+      const miss = r.effects.pinOutside;
+      setOutside(!miss ? "" : typeof miss === "object" ? miss.reason : "outside");
       const extra: string[] = [];
       if (r.effects.located) extra.push(lang === "th" ? `พบบ้าน · โซน ${r.effects.located.zoneId}` : `House found · zone ${r.effects.located.zoneId}`);
       if (r.effects.shelter?.going) extra.push(lang === "th" ? `กำลังไป ${r.effects.shelter.name}` : `Walking to ${r.effects.shelter.name}`);

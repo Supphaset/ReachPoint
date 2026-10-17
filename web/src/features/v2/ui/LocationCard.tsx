@@ -60,16 +60,19 @@ function LocationThumbnail() {
   </div>;
 }
 
-export function LocationCard({ busy, outside, onPin }: { busy: boolean; outside: boolean; onPin: (pin: LocationPin) => Promise<void> }) {
+export function LocationCard({ busy, outside, onPin }: { busy: boolean; outside: "" | "noHouse" | "outside" | boolean; onPin: (pin: LocationPin) => Promise<void> }) {
   const t = useT();
-  const [sheet, setSheet] = useState(outside);
+  // a pin on no house reopens the map to move it; a pin far away does not: the agent's message says why first
+  const [sheet, setSheet] = useState(outside === "noHouse");
   const [message, setMessage] = useState("");
   const [fix, setFix] = useState<Point | null>(null);
   const [locating, setLocating] = useState(false);
   useEffect(() => {
-    if (outside) {
-      setMessage(t("ตำแหน่งอยู่นอกหาดใหญ่ กรุณาปักหมุดบ้านในหาดใหญ่ · Pin outside Hat Yai. Choose your house in Hat Yai on the map.", "Pin outside Hat Yai. Choose your house in Hat Yai on the map."));
+    if (outside === "noHouse") {
+      setMessage(t("หมุดไม่อยู่บนบ้านหลังไหน เลื่อนไปที่หลังคาบ้าน · Not on a house: move the pin onto your roof", "Not on a house: move the pin onto your roof."));
       setSheet(true);
+    } else if (outside) {
+      setMessage(t("อยู่นอกพื้นที่ที่เราดูแล (เมืองหาดใหญ่) · Outside the area we cover (Hat Yai city)", "Outside the area we cover (Hat Yai city)."));
     }
   }, [outside]);
   const gps = () => {

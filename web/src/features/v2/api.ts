@@ -222,7 +222,8 @@ export interface TurnResult {
     reader?: string;
     located?: { by: string; label?: string; zoneId: string; buildingId: string; lon?: number; lat?: number; precision?: string };
     askLocation?: boolean;
-    pinOutside?: boolean;
+    /** The pin missed: "noHouse" (inside our zones, no building under it) or "outside" (beyond what we cover). */
+    pinOutside?: { reason: "noHouse" | "outside" } | boolean;
     shelterRoute?: ShelterRoute;
     neighbour?: { side: string; known: boolean; householdId: string; buildingId: string; sure: boolean } | null;
     nbConfirm?: NbConfirm;
