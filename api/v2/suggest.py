@@ -195,13 +195,13 @@ def _gemini(ctx):
             response = gemini.post(model, {"systemInstruction": {"parts": [{"text": INSTRUCTION}]},
                 "contents": [{"role": "user", "parts": [{"text": "<zone_context_json>\n" + json.dumps(ctx, ensure_ascii=False) + "\n</zone_context_json>"}]}],
                 "generationConfig": {"temperature": 0, "responseMimeType": "application/json", "responseSchema": SCHEMA,
-                                     "maxOutputTokens": 4096, "thinkingConfig": {"thinkingBudget": 0}}}, 20.0)
+                                     "maxOutputTokens": 4096}}, 20.0)
             response.raise_for_status()
             parts = response.json()["candidates"][0]["content"]["parts"]
             return json.loads("".join(p.get("text", "") for p in parts if not p.get("thought"))), f"gemini:{model}"
         except Exception as e:
             # Status and Gemini's own error text only (never the request, which holds family messages).
-            body = getattr(getattr(e, "response", None), "text", "")[:200]
+            body = " ".join(getattr(getattr(e, "response", None), "text", "").split())[:300]
             log.warning("suggest: %s failed: %s %s", model, type(e).__name__, body)
             continue
     return None
@@ -217,9 +217,6 @@ def answer(ctx):
     if out:
         fallback = rules(ctx)
         out["warnings"] = list(dict.fromkeys(out["warnings"] + fallback["warnings"]))
-        # Preserve the same reserve policy even if the model filled every run.
-        if ctx["unheard"].get("streets") and out["spareSeats"] < fallback["spareSeats"]:
-            out = None
     return {"reader": result[1] if out else "rules", "context": {"waiting": len(ctx["families"]),
             "people": sum(h["people"] or 0 for h in ctx["families"]), "unknownSize": sum(h["people"] is None for h in ctx["families"]), "otherTeams": len(ctx["otherTeams"]),
             "floodedBuildings": ctx["unheard"].get("floodedBuildings", sum(s["floodedBuildings"] for s in ctx["unheard"].get("streets", []))),
