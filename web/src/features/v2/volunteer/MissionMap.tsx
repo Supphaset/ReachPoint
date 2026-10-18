@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../../data/googleMaps";
-import { cssVar, type BoardState, type CaseRow, type GeoView } from "../api";
+import { cssVar, type MissionRoute, type BoardState, type CaseRow, type GeoView } from "../api";
 import { useFloodCanvas } from "../BoardMap";
 import { bindFloodZoom } from "../floodLayer";
 import { Tr, useT, useUiLang } from "../ui/lang";
 import { isDone } from "./mission";
 
 type Props = {
-  geo: GeoView | null; zoneId: string; rows: CaseRow[]; selected: string | null;
+  route?: MissionRoute; geo: GeoView | null; zoneId: string; rows: CaseRow[]; selected: string | null;
   hour: number; onSelect: (id: string) => void;
 };
 
-export function MissionMap({ geo, zoneId, rows, selected, hour, onSelect }: Props) {
+export function MissionMap({ route, geo, zoneId, rows, selected, hour, onSelect }: Props) {
   const t = useT();
   const { lang } = useUiLang();
   const host = useRef<HTMLDivElement>(null);
@@ -27,6 +27,7 @@ export function MissionMap({ geo, zoneId, rows, selected, hour, onSelect }: Prop
   const polygons = geometry?.type === "Polygon" ? [geometry.coordinates] : geometry?.type === "MultiPolygon" ? geometry.coordinates : [];
   const geometryKey = JSON.stringify(polygons);
   const positions = rows.map(row => `${row.id}:${row.lat}:${row.lon}`).join("|");
+  const routeKey = JSON.stringify(route);
   const drawn = rows.map(row => `${row.id}:${row.lat}:${row.lon}:${isDone(row)}:${row.urgent}`).join("|");
 
   useEffect(() => {
@@ -51,13 +52,17 @@ export function MissionMap({ geo, zoneId, rows, selected, hour, onSelect }: Prop
     const extend = (lon: number, lat: number) => { box.extend({ lat, lng: lon }); count++; };
     polygons.flat(2).forEach(([lon, lat]) => extend(lon, lat));
     latest.current.rows.forEach(row => { if (row.lat !== null && row.lon !== null) extend(row.lon, row.lat); });
+    if (route) {
+      extend(route.start.lon, route.start.lat);
+      route.runs.forEach(run => { if (run.shelter) extend(run.shelter.lon, run.shelter.lat); });
+    }
     const fit = () => { if (count) map.fitBounds(box, 48); };
     fit();
     const idle = maps.event.addListenerOnce(map, "idle", fit);
     const resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => { maps.event.trigger(map, "resize"); fit(); });
     if (host.current) resize?.observe(host.current);
     return () => { idle.remove(); resize?.disconnect(); };
-  }, [ready, geometryKey, positions, zoneId]);
+  }, [ready, geometryKey, positions, zoneId, routeKey]);
 
   useEffect(() => {
     if (!ready) return;
@@ -67,8 +72,29 @@ export function MissionMap({ geo, zoneId, rows, selected, hour, onSelect }: Prop
       strokeColor: cssVar("--ink-1"), strokeWeight: 2, fillOpacity: 0, clickable: false }));
     const open = rows.filter(row => !isDone(row));
     const path = open.filter(row => row.lat !== null && row.lon !== null).map(row => ({ lat: row.lat, lng: row.lon }));
-    overlays.push(new maps.Polyline({ map, path, strokeOpacity: 0, clickable: false,
-      icons: [{ icon: { path: "M 0,-1 0,1", strokeColor: cssVar("--ink-1"), strokeOpacity: 1, strokeWeight: 2, scale: 2 }, offset: "0", repeat: "12px" }] }));
+    if (!route) overlays.push(new maps.Polyline({ map, path, strokeColor: cssVar("--ink-1"), strokeOpacity: .5, clickable: false }));
+    const marker = (lon: number, lat: number, label: string) => {
+      overlays.push(new maps.Marker({ map, position: { lng: lon, lat }, label: { text: label, color: cssVar("--ink-1"), fontSize: "12px" }, title: label, icon: { path: "M -6,-6 L 6,-6 L 6,6 L -6,6 Z", fillColor: cssVar("--surface"), fillOpacity: 1, strokeColor: cssVar("--ink-1"), strokeWeight: 2, scale: 2 } }));
+    };
+    if (route) {
+      marker(route.start.lon, route.start.lat, route.vehicle === "boat" ? (route.start.label === "Launch here" ? t("จุดลงเรือ", "Launch here") : t("ยังยืนยันจุดลงเรือไม่ได้", "Launch unverified")) : t("จุดเริ่ม", "Start"));
+      route.runs.forEach(run => {
+        if (run.shelter) marker(run.shelter.lon, run.shelter.lat, t("ศูนย์พักพิง", "Shelter drop-off"));
+        run.legs.forEach(leg => {
+          leg.samples.slice(1).forEach((sample, i) => {
+            const previous = leg.samples[i];
+            const d = Math.max(previous[2], sample[2]);
+            const token = d < .4 ? "--water-1" : d <= .5 ? "--water-2" : d <= 1 ? "--water-3" : "--water-4";
+            overlays.push(new maps.Polyline({ map, path: [{ lng: previous[0], lat: previous[1] }, { lng: sample[0], lat: sample[1] }], strokeColor: cssVar(token), strokeWeight: 5, strokeOpacity: 1, clickable: false }));
+          });
+          if (leg.warnings.length) marker(leg.warningAt[0], leg.warningAt[1], "!");
+        });
+      });
+      route.unreachable.forEach(h => {
+        const row = rows.find(r => r.id === h.id);
+        if (row?.lon != null && row.lat != null) marker(row.lon, row.lat, "!");
+      });
+    }
     rows.forEach(row => {
       if (row.lat === null || row.lon === null) return;
       const done = isDone(row);
@@ -76,7 +102,7 @@ export function MissionMap({ geo, zoneId, rows, selected, hour, onSelect }: Prop
       button.type = "button";
       button.className = `mission-marker ${done ? "is-done" : row.urgent ? "is-urgent" : "is-waiting"}`;
       button.dataset.house = row.id;
-      button.textContent = done ? "✓" : String(open.indexOf(row) + 1);
+      button.textContent = route?.unreachable.some(h => h.id === row.id) ? "!" : done ? "✓" : (route && !route.runs.some(run => run.stops.includes(row.id)) ? "·" : String((route?.runs.flatMap(run => run.stops) ?? open.map(r => r.id)).indexOf(row.id) + 1));
       button.setAttribute("aria-label", t(`บ้าน ${row.id}`, `House ${row.id}`));
       button.onclick = () => latest.current.onSelect(row.id);
       maps.OverlayView.preventMapHitsAndGesturesFrom?.(button);
@@ -97,7 +123,7 @@ export function MissionMap({ geo, zoneId, rows, selected, hour, onSelect }: Prop
       overlays.push(marker);
     });
     return () => overlays.forEach(overlay => overlay.setMap(null));
-  }, [ready, geometryKey, drawn, t]);
+  }, [ready, geometryKey, drawn, routeKey, t]);
 
   useEffect(() => {
     host.current?.querySelectorAll<HTMLButtonElement>(".mission-marker").forEach(button => {
@@ -142,6 +168,6 @@ export function MissionMap({ geo, zoneId, rows, selected, hour, onSelect }: Prop
       ? t("โหลดแผนที่ไม่ได้ ใช้รายการบ้านด้านล่าง", "Map could not load. Use the household list below.")
       : t("กำลังโหลดแผนที่", "Loading map…")}</p>}
     <div className="mission-map-legend"><span><Tr th="แดง = ด่วน · เหลือง = รอ · ✓ = เรียบร้อย" en="Red = urgent · Amber = waiting · ✓ = done" /></span>
-      <span className="mission-order-key"><Tr th="ลำดับการไป ไม่ใช่เส้นทางถนน" en="visiting order, not a road route" /></span></div>
+      <span className="mission-order-key">{route ? <Tr th="เส้นทางถนน · สีตามความลึกน้ำแบบจำลอง" en="Street route · coloured by model water depth" /> : <Tr th="ลำดับการไป ไม่ใช่เส้นทางถนน" en="visiting order, not a road route" />}</span></div>
   </section>;
 }

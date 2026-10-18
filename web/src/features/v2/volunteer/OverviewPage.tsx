@@ -1,9 +1,10 @@
+import { warningTh } from "./RouteGuide";
 import { Tr, useT } from "../ui/lang";
 /** Map and list share one sector and one zone selection. Plans never imply a rescue. */
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveMission } from "./mission";
-import { v2, vol, type ZoneSuggestion, type Overview, type WaterTrend, type ZonePage as ZoneDetail } from "../api";
+import { v2, vol, type MissionRoute, type ZoneSuggestion, type Overview, type WaterTrend, type ZonePage as ZoneDetail } from "../api";
 import { Depth, Trend, VShell, useGeo, useLive, useTeam } from "./shared";
 import { initialSelection, selectionReducer } from "./selection";
 import { displayText } from "../ui/trace";
@@ -107,6 +108,17 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
   const [told, setTold] = useState<number | null>(null);
   const [suggestion, setSuggestion] = useState<ZoneSuggestion | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const [routePreview, setRoutePreview] = useState<MissionRoute | null>(null);
+  useEffect(() => {
+    if (!planning) return;
+    let active = true;
+    setRoutePreview(null);
+    const timer = window.setTimeout(() => {
+      vol.route(id, vehicle, seats, planTeam).then(r => { if (active) setRoutePreview(r); }).catch(() => { if (active) setRoutePreview(null); });
+    }, 200);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [planning, id, vehicle, seats, planTeam, suggestion]);
+
   const requestVersion = useRef(0);
   const clearSuggestion = () => { requestVersion.current += 1; setSuggestion(null); setSuggesting(false); };
   const suggest = async () => {
@@ -209,6 +221,7 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
       <fieldset disabled={busy || posted}><legend><Tr th="ที่นั่ง" en="Seats" /></legend><div className="p3-plan-chips">{[2, 4, 6, 8].map(value => <button type="button" className={`chip ${seats === value ? "on" : ""}`} aria-pressed={seats === value} key={value} onClick={() => { setSeats(value); clearSuggestion(); }}>{value}</button>)}</div></fieldset>
       <fieldset disabled={busy || posted}><legend><Tr th="เวลา" en="Time" /></legend><div className="p3-plan-chips">{["07:00", "12:00", "17:00"].map(value => <button type="button" key={value} className={`chip ${eta === value ? "on" : ""}`} aria-pressed={eta === value} onClick={() => { etaTouched.current = true; setEta(value); clearSuggestion(); }}>{value}</button>)}</div></fieldset>
       <label><Tr th="ถึงประมาณ" en="Arrival time" /><input type="time" required value={eta} onChange={event => { etaTouched.current = true; setEta(event.target.value); clearSuggestion(); }} disabled={busy || posted} /></label>
+      {routePreview && <p className="route-preview"><Tr th={`เส้นทางประมาณ ${routePreview.totals.km} กม. · ${routePreview.totals.minutes} นาที · น้ำลึกสุด ${routePreview.deepestM} ม.`} en={`Route: ${routePreview.totals.km} km · ${routePreview.totals.minutes} min · deepest ${routePreview.deepestM} m`} />{routePreview.warnings[0] && <> · <Tr th={warningTh(routePreview.warnings[0])} en={routePreview.warnings[0]} /></>}</p>}
       <button type="button" className="btn btn-ghost" disabled={busy || suggesting || !planTeam.trim()} onClick={() => void suggest()}>✦ <Tr th="แนะนำลำดับการไป (Gemini)" en="Suggest visiting order (Gemini)" /></button>
       {suggesting && <p role="status"><Tr th="กำลังอ่านข้อมูลในโซน…" en="Reading this zone’s records…" /></p>}
       {suggestion && <section className="zone-suggestion" aria-label={t("ลำดับที่แนะนำ", "Suggested visiting order")}>

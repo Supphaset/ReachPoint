@@ -476,3 +476,11 @@
   .mission-map { position: relative; top: auto; height: 45vh; }
   .mission-map-legend { right: var(--space-2); }
 }
+
+.mission-route { padding: var(--space-4); overflow-wrap: anywhere; font-size: .875rem; }
+.mission-route h3 { font-size: 1rem; margin-block: 1rem .5rem; }
+.mission-route ol, .mission-route ul { padding-inline-start: 1.25rem; }
+.mission-route li { margin-block: .5rem; }
+.route-preview { overflow-wrap: anywhere; }
+
+.mission-layout > div { min-width: 0; }

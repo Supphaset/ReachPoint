@@ -447,7 +447,19 @@ export interface CaseView {
   now: { atH: number; at: string };
 }
 
+export interface RouteLeg {
+  from: string; to: string; path: [number, number][]; samples: [number, number, number][];
+  km: number; minutes: number; deepestM: number; warnings: string[]; warningAt: [number, number];
+}
+export interface MissionRoute {
+  vehicle: string; seats: number; start: { lon: number; lat: number; label: string };
+  runs: { run: number; stops: string[]; start: MissionRoute["start"]; shelter: { id: string; name: string; nameEn: string | null; lon: number; lat: number } | null;
+    legs: RouteLeg[]; totals: { km: number; minutes: number } }[];
+  totals: { km: number; minutes: number }; deepestM: number; warnings: string[];
+  unreachable: { id: string; reason: string; reasonTh: string }[]; now: { at: string; atH: number };
+}
 export interface ZonePage {
+  route?: MissionRoute;
   plan?: Plan | null;
   /** Some zone responses may supply shelter choices; absence leaves the outcome unlinked. */
   shelterOptions?: ShelterOption[];
@@ -492,6 +504,7 @@ export interface ZoneSuggestion {
 }
 
 export const vol = {
+  route: (id: string, vehicle: string, seats: number, team?: string) => get<MissionRoute>(`/api/v2/v/mission/${encodeURIComponent(id)}/route?vehicle=${encodeURIComponent(vehicle)}&seats=${seats}&${q(team)}`),
   suggest: (zone: string, input: { team: string; vehicle: "boat" | "truck" | "foot"; seats: number; eta: string; lang: "th" | "en" }) => post<ZoneSuggestion>(`/api/v2/v/zones/${encodeURIComponent(zone)}/suggest`, input),
   urgent: () => get<UrgentView>("/api/v2/v/urgent"),
   first: (id: string, team: string, first: boolean) =>

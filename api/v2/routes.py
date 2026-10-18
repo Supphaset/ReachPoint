@@ -686,10 +686,30 @@ def v_feed(kind: str | None = None, team: str | None = None, limit: Annotated[in
 @router.get("/v/zones/{zid}")
 def v_zone(zid: Identifier, team: str | None = None):
     from api.v2 import cases as C
-    out = C.zone(_state(room()), zid, team)
+    st = _state(room())
+    out = C.zone(st, zid, team)
     if out is None:
         raise HTTPException(404, "No such zone")
+    from api.v2 import routing as R
+    plan = out.get("plan")
+    if not team:
+        plan = next((p for p in reversed(st["world"].plans) if zid in (p.get("zones") or [])), None)
+    out["route"] = R.route(st["world"], out["households"], plan, center=C.zone_point(zid))
     return out
+
+
+@router.get("/v/mission/{zone_id}/route")
+def v_route(zone_id: Identifier, team: str | None = None,
+            vehicle: Annotated[str | None, Query(pattern="^(boat|truck|foot|high truck|on foot)$")] = None,
+            seats: Annotated[int | None, Query(ge=1, le=20)] = None):
+    from api.v2 import cases as C, routing as R
+    st = _state(room())
+    if zone_id not in st["zones"]:
+        raise HTTPException(404, "No such zone")
+    w = st["world"]
+    plan = next((p for p in reversed(w.plans) if zone_id in (p.get("zones") or [])
+                 and (not team or (p.get("team") or "").strip().lower() == team.strip().lower())), None)
+    return R.route(w, C._rows(st, zone_id), plan, vehicle, seats, C.zone_point(zone_id))
 
 
 @router.get("/v/cases/{hid}")

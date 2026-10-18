@@ -1,3 +1,4 @@
+import { RouteGuide } from "./RouteGuide";
 import { useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { vol, type CaseRow, type ZonePage as ZoneDetail } from "../api";
@@ -38,7 +39,9 @@ export function MissionContent({ data, mission, team, reload }: { data: ZoneDeta
   const geo = useGeo();
   const openTeamName = useTeamNameOpener();
   const postedOrder = data.plan?.order;
-  const rows = postedOrder ? postedOrder.flatMap(id => data.households.filter(h => h.id === id)) : visitingOrder(data.households);
+  const routeOrder = data.route?.runs.flatMap(run => run.stops);
+  const order = routeOrder ? [...routeOrder, ...data.households.map(h => h.id).filter(id => !routeOrder.includes(id))] : postedOrder;
+  const rows = order ? order.flatMap(id => data.households.filter(h => h.id === id)) : visitingOrder(data.households);
   const checkStreets = data.plan?.checkStreets;
   const streets = checkStreets ? data.zone.unheard?.streets.filter(s => checkStreets.includes(s.name) || checkStreets.includes(s.nameEn)) : undefined;
   const done = rows.filter(isDone).length;
@@ -84,20 +87,22 @@ export function MissionContent({ data, mission, team, reload }: { data: ZoneDeta
     {sent && <p role="status"><Tr th="บันทึกผลแล้ว แจ้งครอบครัวแล้ว" en="Outcome recorded. The family has been notified." /></p>}
     {done === rows.length && <section className="mission-empty"><h2>{(data.zone.unheard?.notHeard?.[1] ?? 0) > 0 ? <Tr th="คำขอที่แจ้งมาครบแล้ว ยังต้องตรวจถนนที่ประเมินไว้" en="All reported requests are done. Check the estimated streets too." /> : <Tr th="ทุกบ้านในโซนนี้เรียบร้อย" en="Every house in this zone is done" />}</h2><Link to="/v"><Tr th="กลับไปเลือกโซน" en="Back to zones" /></Link></section>}
     <div className="mission-layout">
-      <MissionMap geo={geo} zoneId={data.zone.id} rows={rows} selected={selected} hour={data.now.atH} onSelect={selectMarker} />
+      <div><MissionMap route={data.route} geo={geo} zoneId={data.zone.id} rows={rows} selected={selected} hour={data.now.atH} onSelect={selectMarker} />{data.route && <RouteGuide route={data.route} />}</div>
       <section className="mission-list" aria-label={t("บ้านตามลำดับการไป", "Houses in visiting order")}>
         {rows.map((row, index) => {
           const closed = isDone(row);
-          const directions = directionsUrl(row.lat, row.lon);
+          const stopIndex = routeOrder?.indexOf(row.id);
+          const directions = data.route?.vehicle === "boat" ? null : directionsUrl(row.lat, row.lon);
           const advice = goBy(row.depth?.m);
           const confirming = pending?.id === row.id;
           return <article key={row.id} ref={node => { if (node) cards.current.set(row.id, node); else cards.current.delete(row.id); }}
             data-house={row.id} className={`mission-house${closed ? " is-done" : ""}${selected === row.id ? " is-selected" : ""}`}
             onClick={() => setSelected(row.id)}>
             <button type="button" className="mission-house-select" aria-pressed={selected === row.id} onClick={() => setSelected(row.id)}>
-              <span className={`mission-number ${closed ? "is-done" : row.urgent ? "is-urgent" : "is-waiting"}`}>{closed ? "✓" : index + 1}</span><b>{row.id}</b>
+              <span className={`mission-number ${closed ? "is-done" : row.urgent ? "is-urgent" : "is-waiting"}`}>{closed ? "✓" : stopIndex === -1 ? "!" : stopIndex === undefined ? index + 1 : stopIndex + 1}</span><b>{row.id}</b>
               {row.urgent && !closed && <span><Tr th="ด่วน" en="Urgent" /></span>}
             </button>
+            {stopIndex === -1 && !closed && <p><Tr th="อยู่นอกเส้นทางนี้ โปรดตรวจสอบคำเตือน" en="Outside this route; check the warnings" /></p>}
             <div className="mission-needs">{row.needs.filter(need => need !== "urgent").map((need, i) => <span className="pill" key={`${need}-${i}`}>{t(...needLabel(need))}</span>)}</div>
             <p>{row.people === null ? t("ไม่ทราบจำนวนคน", "People unknown") : t(`${row.people} คน`, `${row.people} people`)}
               {row.cannotWalk > 0 && <> · <Tr th={`เดินไม่ได้ ${row.cannotWalk} คน`} en={`${row.cannotWalk} cannot walk`} /></>}
@@ -107,7 +112,7 @@ export function MissionContent({ data, mission, team, reload }: { data: ZoneDeta
             <p><Tr th={`ติดต่อล่าสุด ${row.lastHeard} · เงียบ ${row.hoursSilent} ชม.`} en={`Last heard ${row.lastHeard} · ${row.hoursSilent} hours silent`} /></p>
             {closed && <p className="mission-outcome">{t(...outcomeLabel(row))}{row.outcome && <> · {row.outcome.team} · {row.outcome.at}</>}</p>}
             <div className="mission-actions">
-              {directions ? <a href={directions} target="_blank" rel="noopener noreferrer"><Tr th="นำทาง" en="Directions" /></a> : <span><Tr th="ยังไม่มีพิกัดบ้าน" en="House coordinates unavailable" /></span>}
+              {directions ? <a href={directions} target="_blank" rel="noopener noreferrer"><Tr th="นำทาง" en="Directions" /></a> : data.route?.vehicle === "boat" ? <span><Tr th="ใช้เส้นทางน้ำ ReachPoint ด้านบน" en="Follow the ReachPoint water route above" /></span> : <span><Tr th="ยังไม่มีพิกัดบ้าน" en="House coordinates unavailable" /></span>}
               <Link to={`/v/case/${encodeURIComponent(row.id)}`}><Tr th="เปิด" en="Open" /></Link>
               {!closed && OUTCOMES.map(([kind, th, en]) => <button type="button" key={kind} disabled={busy} onClick={() => requestOutcome(row.id, kind)}><Tr th={th} en={en} /></button>)}
             </div>
