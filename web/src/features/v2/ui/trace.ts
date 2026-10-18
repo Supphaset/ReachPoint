@@ -14,6 +14,7 @@ export interface TraceEntry {
 }
 
 export function readerLabel(reader: string | null | undefined) {
+  if (reader?.startsWith("gemini-live")) return "Gemini Live";
   return reader?.startsWith("gemini") ? "Gemini" : "Rules";
 }
 

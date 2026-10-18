@@ -14,8 +14,8 @@ export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string
     if (!fact.quote)
       continue;
     add(`fact-${index}`, {
-      who: readerLabel(effects.reader) === "Gemini" ? "gemini" : "rules",
-      what: `Read · ${factGloss(fact)}`,
+      who: readerLabel(effects.reader).startsWith("Gemini") ? "gemini" : "rules",
+      what: `${readerLabel(effects.reader)} · Read · ${factGloss(fact)}`,
       quote: fact.quote,
       gloss: factGloss(fact),
       to,
@@ -56,7 +56,7 @@ export function buildReportTrace(turn: TurnResult, turnIndex: number, at: string
   }
   if (turn.reply)
     add("asking", {
-      who: readerLabel(effects.reader) === "Gemini" ? "gemini" : "rules",
+      who: readerLabel(effects.reader).startsWith("Gemini") ? "gemini" : "rules",
       what: "Agent reply / next question",
       quote: displayText(turn.reply),
       // an English reply needs no English gloss under it
@@ -99,8 +99,9 @@ export function buildFollowUpTrace(result: SimResult, index: number, at: string,
     river: "แจ้งเตือนน้ำแม่น้ำครอบครัวนี้ · Warned this family: river rising",
     teamPlan: "แจ้งแผนทีมให้ครอบครัว · Team plan told to this family",
     teamVisit: "ขอยืนยันผลการเยี่ยม · Team visit: asked this family to confirm",
+    safetyCall: "โทรถามความปลอดภัย · AI safety call queued",
     checkin: "ถามไถ่ความปลอดภัยต่อ · Sent this family a safety check-in",
   };
-  if (!result.message && !result.inbox) return [];
+  if (!result.message && !result.inbox && !result.incoming) return [];
   return [{ id: `followup-${index}`, who: "action", at, atH, turn: index, what: what[result.event], whatEn: what[result.event].split(" · ")[1] }];
 }

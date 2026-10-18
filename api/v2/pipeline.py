@@ -344,6 +344,13 @@ def _way(side: str | None) -> str:
 
 def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
     at = msg["atH"]
+    if msg["channel"] == "callEvent":
+        hid = msg.get("householdHint")
+        hh = w.households.get(hid)
+        if hh and msg.get("callMissed"):
+            hh.checks_unanswered += 1
+        _log(w, "Planner", f"{hid} AI safety call {msg['text']}", "Gemini Live", at, hid, "safetyCall")
+        return
     w.messages_in += 1
     w.channels[msg["channel"]] = w.channels.get(msg["channel"], 0) + 1
     if msg["channel"] == "bulletin":
@@ -433,6 +440,9 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
     w.msg_link[msg["id"]] = {"householdId": hh.id, "how": how, "kind": kind}
     if kind == "self":
         w.threads.setdefault(msg["id"], hh.id)
+    if msg.get("outboundCall"):
+        _log(w, "Gemini", f"{hh.id} answered ReachPoint's safety call: {msg['text'][:160]}",
+             "Gemini Live · process_turn", at, hh.id, "safetyCall")
     hh.last_heard_h = at
     if kind == "reply":
         hh.checks_unanswered = 0

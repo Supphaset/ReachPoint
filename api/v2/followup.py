@@ -203,7 +203,7 @@ def status(v, s, st: dict) -> dict:
             "outcome": hh.outcome if hh else None,
             "shelter": near and {k: near[k] for k in ("name", "nameEn", "km", "deepestM", "walkable", "minutes")},
             "nextCheck": P.label_time(max(v.now_h, last_agent) + CHECKIN_H)[-5:], "now": P.label_time(v.now_h),
-            "rideRequested": s.ride_requested, "ready": sorted(set(s.ready)), "readyTotal": len(READY)}
+            "incoming": s.incoming, "rideRequested": s.ride_requested, "ready": sorted(set(s.ready)), "readyTotal": len(READY)}
 
 
 SIM_TEAM = "ทีมเรืออาสาจำลอง"
@@ -221,6 +221,9 @@ def simulate(v, s, event: str, lang: str) -> dict:
         msg = {"text": say("rain_sim", lang, mm=int(RN.FORECAST_MM), cm=max(cm, 5), h=h), "kind": "rainRise", "choices": LEAVE}
     elif event == "river":
         msg = {"text": say("river_sim", lang), "kind": "river", "choices": LEAVE}
+    elif event == "safetyCall":
+        s.incoming = {"kind": "safetyCheck", "at": P.label_time(v.now_h), "reason": "Scheduled safety check"}
+        return {"event": event, "incoming": s.incoming}
     elif event == "checkin":
         msg = {"text": say("checkin_sim", lang), "kind": "checkin", "choices": CHECK}
     elif event in ("teamPlan", "teamVisit"):

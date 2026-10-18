@@ -1,9 +1,10 @@
 # ReachPoint
 
-**A flood picture that builds itself from what people say.** Families talk to an AI agent; the demo replays synthetic public posts and reconstructed
-bulletins alongside historical river-gauge and satellite inputs. A team of agents turns all of it into one live
-map for volunteers: who needs help, how deep the water is street by street, where it is heading, and who plans to
-come. Then it tells every household what is happening.
+**A flood picture that stays current, because it asks back.** In the 2025 Hat Yai flood, help requests went into
+one-way systems and stayed there. ReachPoint takes a family's report by chat or by simply talking to Gemini, then keeps
+asking: safety checks, rain alerts for that home, and an AI phone-style call when a family goes quiet. Every answer
+updates one live map for volunteers (who needs help, how deep the water is, who plans to come), Gemini plans each
+team's visiting order, and the family confirms when help arrives.
 
 AI Builder Cup 2026 (Google Cloud JAPAC) · Sustainability & Social Impact · built during the event (planning from 11 Oct, code 12–18 Oct 2026) by a team of two.
 
@@ -13,31 +14,40 @@ AI Builder Cup 2026 (Google Cloud JAPAC) · Sustainability & Social Impact · bu
 
 ## The problem
 
-In the November 2025 Hat Yai flood, help requests arrived faster than anyone could sort them:
+In the November 2025 floods in southern Thailand more than 160 people died, at least 110 of them in Songkhla, where Hat Yai is
+([ABC News, 30 Nov 2025](https://www.abc.net.au/news/2025-11-30/thailand-floods-death-toll-rises/106082418)).
+Requests poured in, but the systems that held them did not talk back:
 
-- A Hat Yai rescue volunteer group told Reuters calls had come in non-stop, in the thousands, for three days
-  ([Reuters, 25 Nov 2025](https://www.marketscreener.com/news/thailand-to-send-aircraft-carrier-for-flood-relief-as-rains-intensify-ce7d5edddb80f122)).
-- The government's crisis centre merged requests from Traffy Fondue, the HatYaiFlood site and volunteer groups into
-  about 40,000 cases covering 77,000 people, and said the data was still incomplete because names didn't match across
-  entries ([The Nation, 27 Nov 2025](https://www.nationthailand.com/news/general/40058844)).
-- Being heard was not the same as being reached. A mother who spent two days on her roof with her four-year-old said:
-  *"Every day they would pick up my calls, but nobody came to rescue us."*
-  ([ABC News, 30 Nov 2025](https://www.abc.net.au/news/2025-11-30/thailand-floods-death-toll-rises/106082418))
-- Phone lines and power failed, so many people lost contact
-  ([Thai PBS, 25 Nov 2025](https://www.thaipbs.or.th/news/content/358821)); false or incomplete messages cost rescue
-  teams time ([Bernama, 27 Nov 2025](https://www.bernama.com/en/news.php?id=2496089)); and a later white paper found no
-  system tracked which areas had been reached and which were still waiting
+- **One-way requests.** Traffy Fondue, one of the main channels, was described as "a one-way information submission
+  system" ([The Nation, 26 Nov 2025](https://www.nationthailand.com/news/general/40058824)). A later white paper found
+  the request forms were incomplete, with no callback contact and no coordinates
   ([ThaiPublica, 21 May 2026](https://thaipublica.org/2026/05/hatyai-flood-systemic-failure-analysis/)).
+- **Stale data.** Once people were safe, a volunteer set up a Google Form so teams could take their request pins down
+  by hand ([The Nation, 26 Nov 2025](https://www.nationthailand.com/news/general/40058824)). The crisis centre's
+  merged list of about 40,000 cases covering 77,000 people was still incomplete because names didn't match across
+  entries ([The Nation, 27 Nov 2025](https://www.nationthailand.com/news/general/40058844)), and fabricated or
+  unverifiable messages cost rescue teams time ([Bernama](https://www.bernama.com/en/news.php?id=2496215)).
+- **Heard is not reached.** A mother who spent two days on her roof with her four-year-old said: *"Every day they
+  would pick up my calls, but nobody came to rescue us."*
+  ([ABC News](https://www.abc.net.au/news/2025-11-30/thailand-floods-death-toll-rises/106082418))
+- **Typing leaves people out.** The people most at risk (older, sick, alone, panicking) are the least able to fill in a
+  form, and a request that is never updated looks the same whether they are safe or in deeper water.
 
-So nobody could say how many people were in which street, how deep the water was there, or whether anyone was on the
-way. More sources: [`docs/research/real-rescue-practice.md`](docs/research/real-rescue-practice.md).
+More sources: [`docs/research/real-rescue-practice.md`](docs/research/real-rescue-practice.md).
 
 ### What existed, and what ReachPoint adds
 
 Volunteers built real tools during the flood: Traffy Fondue and the HatYaiFlood site collected requests, Jitasa.Care
 used AI to sort about 20,000 social-media posts by need and location, and ThaiRod on LINE showed rescuers the nearest
 open cases ([Thairath](https://en.thairath.co.th/news/politic/2897779),
-[Spring News](https://www.springnews.co.th/news/hot-issue/860848)). ReachPoint demonstrates a connected picture of requests, water estimates and team plans:
+[Spring News](https://www.springnews.co.th/news/hot-issue/860848)). They collect requests. ReachPoint keeps each one current:
+
+- **It asks back.** Scheduled safety checks, rain alerts with each home's own expected rise, and plan updates go to
+  every household; one tap ("water rising fast") updates the family's urgency and the map. Two missed checks mark a
+  family as lost contact, and ReachPoint calls them: Gemini Live asks one simple question at a time, with live
+  captions, and what they say updates their record.
+- **Talk instead of type.** A family can report or answer by voice in Thai or English; no form to fill in.
+- **Requests close themselves.** A team's pickup asks the family to confirm, and the household closes when they do.
 
 - **One family, one dot.** Messages, forwards and relatives' posts are matched to households, with
   merge reasons and possible-duplicate ranges shown, so 1,064 messages become about 300 families.

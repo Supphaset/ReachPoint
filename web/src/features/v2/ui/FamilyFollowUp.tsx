@@ -125,9 +125,11 @@ export function QuickActions({ disabled, onSend, onPrefill }: { disabled: boolea
 export const SIMULATIONS: { event: SimEvent; label: string; labelEn: string; proves: string; provesEn: string }[] = [
   { event: "rain", label: "ฝนตกหนักเพิ่ม · More rain", labelEn: "More rain", proves: "แจ้งเตือนฝนที่บ้านนี้ · Rain alert from the flood model's rain response at this house", provesEn: "Rain alert from the flood model's rain response at this house" },
   { event: "river", label: "น้ำแม่น้ำขึ้น · River rising", labelEn: "River rising", proves: "แจ้งครอบครัวเรื่องน้ำแม่น้ำ · River response warns this family", provesEn: "River response warns this family" },
+  { event: "checkin", label: "2 ชม. ต่อมา · Check-in 2 hours later", labelEn: "Check-in 2 hours later", proves: "ติดตามความปลอดภัยต่อเนื่อง · A follow-up asks whether the family is still safe", provesEn: "A follow-up asks whether the family is still safe" },
+  { event: "safetyCall", label: "โทรถามความปลอดภัย", labelEn: "Safety call", proves: "AI โทรถามข้อมูลล่าสุด", provesEn: "ReachPoint calls the family for an update" },
   { event: "teamPlan", label: "ทีมวางแผนมา · A team plans to come", labelEn: "A team plans to come", proves: "ส่งแผนให้ครอบครัว ยังไม่ใช่การรับตัว · Team plan delivered to the family; pickup remains unconfirmed", provesEn: "Team plan delivered to the family; pickup remains unconfirmed" },
   { event: "teamVisit", label: "ทีมมาถึงแล้ว · The team arrives", labelEn: "The team arrives", proves: "ครอบครัวยืนยันผลการเยี่ยม · Team visit asks the family to confirm what happened", provesEn: "Team visit asks the family to confirm what happened" },
-  { event: "checkin", label: "2 ชม. ต่อมา · Check-in 2 hours later", labelEn: "Check-in 2 hours later", proves: "ติดตามความปลอดภัยต่อเนื่อง · A follow-up asks whether the family is still safe", provesEn: "A follow-up asks whether the family is still safe" },
+
 ];
 
 export async function applySimulation(result: SimResult, receive: (message: NonNullable<SimResult["message"]>) => void, refreshInbox: () => Promise<void>) {

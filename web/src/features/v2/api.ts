@@ -164,7 +164,10 @@ export interface Fact {
   quote: string;
 }
 
+export interface Incoming { kind: "safetyCheck" | "lostContact"; at: string; reason: string }
+
 export interface Session {
+  incoming?: Incoming | null;
   id: string;
   token: string;
   lang: "th" | "en";
@@ -206,6 +209,7 @@ export interface ShelterRoute {
 
 export interface Choice { label: string; send: string }
 export interface FamilyStatus {
+  incoming?: Incoming | null;
   householdId: string | null;
   zoneId: string | null;
   status: string;
@@ -224,9 +228,10 @@ export interface FamilyStatus {
   ready?: number[];
   readyTotal?: number;
 }
-export type SimEvent = "rain" | "river" | "teamPlan" | "teamVisit" | "checkin";
+export type SimEvent = "rain" | "river" | "teamPlan" | "teamVisit" | "checkin" | "safetyCall";
 export interface SimResult {
   event: SimEvent;
+  incoming?: Incoming;
   message?: { text: string; kind: string; choices: [string, string][] };
   inbox?: boolean;
   status: FamilyStatus;
@@ -266,6 +271,7 @@ export interface NbConfirm {
 }
 
 export interface Inbox {
+  incoming?: Incoming | null;
   inbox: { atH: number; at: string; kind: string; text: string; choices?: Choice[] }[];
   now: { atH: number; at: string };
 }
@@ -283,6 +289,7 @@ export const v2 = {
   clock: (action: "advance" | "morning" | "rain" | "river" | "flood" | "reset") => post<{ now: { atH: number } }>("/api/v2/clock", { action }),
   newChat: (lang: "th" | "en") => post<Session>(`/api/v2/chat/sessions?lang=${lang}`, {}),
   turn: (id: string, text: string, channel: "chat" | "voice", pin?: LocationPin, replyTo?: string) => post<TurnResult>(`/api/v2/chat/sessions/${id}/turn`, { text, channel, ...(pin ? { pin } : {}), ...(replyTo ? { replyTo } : {}) }),
+  incoming: (id: string, action: "answer" | "decline") => post<{ incoming: null; kind: Incoming["kind"] }>(`/api/v2/chat/sessions/${id}/incoming`, { action }),
   status: (id: string) => get<FamilyStatus>(`/api/v2/chat/sessions/${id}/status`),
   simulate: (id: string, event: SimEvent) => post<SimResult>(`/api/v2/chat/sessions/${id}/simulate`, { event }),
   ready: (id: string, done: number[]) => post<FamilyStatus>(`/api/v2/chat/sessions/${id}/ready`, { done }),

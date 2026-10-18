@@ -1,0 +1,22 @@
+.v2-phone { position: relative; }
+.rp-incoming {
+  position: absolute; inset: 0; z-index: 20; background: var(--color-surface);
+  color: var(--color-ink); display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: var(--space-5); padding: var(--space-5); text-align: center;
+}
+.rp-call-avatar {
+  width: 96px; height: 96px; display: grid; place-items: center; border-radius: var(--radius-pill);
+  background: var(--color-brand); color: var(--color-brand-ink); font-size: var(--text-3xl);
+  animation: rp-ring 1.8s ease-out infinite;
+}
+.rp-call-actions { display: flex; gap: var(--space-5); justify-content: center; padding: var(--space-4); }
+.rp-call-actions button { min-height: var(--button-big); min-width: 100px; border-radius: var(--radius-pill); padding: var(--space-3); }
+.rp-call-actions .rp-call-answer { background: var(--color-green); color: var(--color-on-ink); }
+.rp-call-actions .rp-call-decline { background: var(--color-red); color: var(--color-on-ink); }
+.rp-in-call { position: absolute; inset: 64px 0 0; z-index: 15; background: var(--color-surface); color: var(--color-ink); display: flex; flex-direction: column; padding: var(--space-4); }
+.rp-call-captions { flex: 1; overflow-y: auto; font-size: var(--text-lg); line-height: var(--leading); overflow-wrap: anywhere; }
+.rp-in-call .rp-call-captions { min-height: 0; }
+.rp-call-captions p { margin: var(--space-3) 0; }
+.rp-call-summary { padding: var(--space-4); background: var(--color-surface-sunken); border-radius: var(--radius-md); margin: var(--space-3); }
+@keyframes rp-ring { 50% { transform: scale(1.06); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) { .rp-call-avatar { animation: none; } }

@@ -11,9 +11,9 @@ const family: DemoControls = { enabled: false, busy: false, result: "", done: []
 const action = vi.fn().mockResolvedValue(undefined);
 
 describe("demo bar enablement", () => {
-  it("disables all five family events until the family has a zone; the clock folds behind one chip", () => {
+  it("disables all six family events until the family has a zone; the clock folds behind one chip", () => {
     const html = renderToStaticMarkup(<DemoBar onAction={action} family={family} />);
-    expect(html.match(/disabled=""/g)).toHaveLength(6);
+    expect(html.match(/disabled=""/g)).toHaveLength(7);
     expect(html).toContain("Clock");
     expect(html).not.toContain("Reset");
     // the disabled button says why, instead of a separate box
@@ -29,7 +29,7 @@ describe("demo bar enablement", () => {
   });
   it("locks family events during a request", () => {
     const html = renderToStaticMarkup(<DemoBar onAction={action} family={{ ...family, enabled: true, busy: true }} />);
-    expect(html.match(/disabled=""/g)).toHaveLength(6);
+    expect(html.match(/disabled=""/g)).toHaveLength(7);
     expect(action).not.toHaveBeenCalled();
   });
   it("keeps the replay clock available on pages without a family session", () => {
@@ -46,7 +46,9 @@ describe("next demo event", () => {
     expect(nextSimulation([])?.event).toBe("rain");
     expect(nextSimulation(["teamPlan", "rain"])?.event).toBe("river");
     expect(nextSimulation(["rain", "river", "teamPlan", "teamVisit"])?.event).toBe("checkin");
-    const done = ["rain", "river", "teamPlan", "teamVisit", "checkin"] as const;
+    expect(nextSimulation(["rain", "river", "checkin"])?.event).toBe("safetyCall");
+    expect(nextSimulation(["rain", "river", "checkin", "safetyCall"])?.event).toBe("teamPlan");
+    const done = ["rain", "river", "teamPlan", "teamVisit", "checkin", "safetyCall"] as const;
     expect(nextSimulation([...done])).toBeUndefined();
     const html = renderToStaticMarkup(<DemoBar onAction={action} family={{ ...family, enabled: true, done: [...done] }} />);
     expect(html).toContain("เริ่มใหม่ · Start over");

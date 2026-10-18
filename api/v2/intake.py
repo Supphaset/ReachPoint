@@ -103,6 +103,11 @@ class Session:
     follow: str | None = None  # the agent's own follow-up question waiting for an answer (api/v2/followup.py)
     ride_requested: bool = False  # the family already asked for a team to take them out (asked once, not again)
     ready: list = field(default_factory=list)
+    incoming: dict | None = None
+    call_kind: str | None = None
+    call_declines: int = 0
+    call_stage: int = 0
+    call_seen: float = -1
     ready_shown: bool = False  # the checklist card has been shown once  # which "get ready" items the family ticked (indexes into followup.READY)
 
     def to_dict(self):
@@ -116,7 +121,7 @@ class Session:
     def view(self):
         return {"id": self.id, "token": self.token, "lang": self.lang, "householdId": self.household_id, "pin": self.pin,
                 "buildingId": self.building_id, "zoneId": self.zone_id, "facts": self.facts, "transcript": self.transcript,
-                "neighbours": self.neighbour_results, "pending": self.pending, "finished": self.finished}
+                "incoming": self.incoming, "neighbours": self.neighbour_results, "pending": self.pending, "finished": self.finished}
 
 
 def new_session(lang: str = "th") -> Session:

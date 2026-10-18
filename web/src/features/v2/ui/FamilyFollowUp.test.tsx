@@ -76,10 +76,10 @@ describe("simulation responses", () => {
     expect(buildFollowUpTrace(result, 1, "14:00", 2)[0].what).toContain("Team plan told to this family");
     expect(buildFollowUpTrace({ ...result, inbox: false }, 2, "14:00", 2)).toEqual([]);
   });
-  it("explains Report first and disables all five events before location", () => {
+  it("explains Report first and disables all six events before location", () => {
     const html = renderToStaticMarkup(<SimulationPanel enabled={false} busy={false} result="" onSimulate={() => undefined} />);
     expect(html).toContain("Report first");
-    expect(html.match(/disabled=""/g)).toHaveLength(5);
+    expect(html.match(/disabled=""/g)).toHaveLength(6);
   });
 });
 

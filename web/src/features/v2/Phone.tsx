@@ -17,6 +17,7 @@ import { BoatRequestCard, NoticeCard } from "./ui/NoticeCard";
 import { Icon } from "../../ui/Icon";
 import { DemoBar } from "./ui/DemoBar";
 import type { ClockAction } from "./ui/Shared";
+import { IncomingCall, Captions, CallSummary, callTime, type Caption } from "./ui/IncomingCall";
 import { LiveCall } from "./liveVoice";
 
 type Item =
@@ -24,6 +25,7 @@ type Item =
   | { kind: "person"; text: string; voice?: boolean; pin?: LocationPin; at?: string; receipt?: Receipt }
 
   | { kind: "notice"; text: string; at: string; type: string; replyTo?: string; choices?: Choice[] }
+  | { kind: "call"; lines: Caption[]; seconds: number; update: string }
   | { kind: "confirm"; c: NbConfirm };
 
 const FIELD: Record<string, [string, string]> = {
@@ -78,6 +80,13 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
   const rec = useRef<Rec>(null);
   const end = useRef<HTMLDivElement>(null);
   const call = useRef<LiveCall | null>(null);
+  const [captions, setCaptions] = useState<Caption[]>([]);
+  const captionRef = useRef<Caption[]>([]);
+  const callStarted = useRef(0);
+  const callUpdate = useRef("");
+  const [seconds, setSeconds] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const [incomingBusy, setIncomingBusy] = useState(false);
   const [onCall, setOnCall] = useState<"off" | "connecting" | "on">("off");
 
   const start = (l: "th" | "en") =>
@@ -109,6 +118,7 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
   const refreshInbox = async (s: Session) => {
     const m = await v2.me(s.token);
     if (currentSession.current !== s.id) return;
+    setStatus(old => old ? { ...old, incoming: m.incoming } : old);
     const fresh = m.inbox.filter(i => !seen.current.has(`${i.kind}:${i.atH}:${i.text}`));
     if (!fresh.length) return; // nothing new: leave the chat (and the page's scroll) alone
     fresh.forEach(i => seen.current.add(`${i.kind}:${i.atH}:${i.text}`));
@@ -239,35 +249,53 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
     }
   };
 
-  const toggleCall = async () => {
-    if (!session) return;
-    if (call.current) {
-      call.current.stop();
-      call.current = null;
-      setOnCall("off");
-      return;
-    }
-    setOnCall("connecting");
-    const c = new LiveCall(session.id, {
-      onReady: () => setOnCall("on"),
-      onCaller: (t) => { setItems((xs) => [...xs, { kind: "person", text: t, voice: true, at }]); setBusy(true); },
-      onTurn: (r) => { setBusy(false); apply(r); },
-      onEnd: (m) => {
-        call.current = null;
-        setOnCall("off");
-        setBusy(false);
-        if (m) setItems((xs) => [...xs, { kind: "agent", text: m }]);
-      },
-    });
-    call.current = c;
-    try {
-      await c.start();
-    } catch (e) {
-      call.current = null;
-      setOnCall("off");
-      setItems((xs) => [...xs, { kind: "agent", text: lang === "th" ? "เริ่มสายไม่ได้ (ต้องอนุญาตไมโครโฟน) พิมพ์แทนได้ค่ะ" : `Couldn't start the call (${(e as Error).message}). Typing still works.` }]);
-    }
+  const finishCall = (message?: string) => {
+    const c = call.current;
+    if (!c) return;
+    call.current = null;
+    c.stop();
+    const duration = callStarted.current ? Math.floor((Date.now() - callStarted.current) / 1000) : 0;
+    setItems(xs => [...xs, { kind: "call", lines: [...captionRef.current], seconds: duration, update: callUpdate.current },
+      ...(message ? [{ kind: "agent" as const, text: message }] : [])]);
+    setOnCall("off");
+    setBusy(false);
   };
+  const toggleCall = async (outbound?: "safetyCheck" | "lostContact") => {
+    if (!session) return;
+    if (call.current) { finishCall(); return; }
+    setOnCall("connecting");
+    setMuted(false);
+    setSeconds(0);
+    captionRef.current = [];
+    callUpdate.current = "";
+    callStarted.current = 0;
+    setCaptions([]);
+    const c = new LiveCall(session.id, {
+      onReady: () => { callStarted.current = Date.now(); setOnCall("on"); },
+      onCaption: (speaker, text) => {
+        const lines = captionRef.current;
+        const last = lines[lines.length - 1];
+        captionRef.current = last?.speaker === speaker
+          ? [...lines.slice(0, -1), { speaker, text: last.text + text }] : [...lines, { speaker, text }];
+        setCaptions([...captionRef.current]);
+      },
+      onFallback: text => setItems(xs => [...xs, { kind: "agent", text }]),
+      onCaller: text => { setItems(xs => [...xs, { kind: "person", text, voice: true, at }]); setBusy(true); },
+      onTurn: r => {
+        setBusy(false); apply(r);
+        callUpdate.current = (r.effects.facts ?? []).map(f => `${t(FIELD[f.field]?.[0] ?? f.field, FIELD[f.field]?.[1] ?? f.field)}: ${Array.isArray(f.value) ? f.value.join("–") + " m" : f.value}`).join(", ") || callUpdate.current;
+      },
+      onEnd: finishCall,
+    }, outbound);
+    call.current = c;
+    try { await c.start(); }
+    catch (error) { finishCall(t("เริ่มสายไม่ได้ พิมพ์ตอบได้ค่ะ", `Couldn't start the call. ${(error as Error).message}`)); }
+  };
+  useEffect(() => {
+    if (onCall !== "on") return;
+    const timer = window.setInterval(() => setSeconds(Math.floor((Date.now() - callStarted.current) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, [onCall]);
   useEffect(() => () => { currentSession.current = null; call.current?.stop(); }, []);
 
   const lastAgent = items.reduce((last, item, index) => item.kind === "agent" ? index : last, -1);
@@ -288,12 +316,21 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
 
   return (
     <div className="p4-family"><section className="v2-phone" aria-label="Victim's phone">
+      {status?.incoming && session && onCall === "off" && <IncomingCall incoming={status.incoming} zone={status.zoneId} sid={session.id} busy={incomingBusy}
+        onAnswer={() => { const kind = status.incoming!.kind; setIncomingBusy(false); setStatus({ ...status, incoming: null }); void toggleCall(kind); }}
+        onDecline={() => { setIncomingBusy(false); setStatus({ ...status, incoming: null }); }}
+        onError={() => { setIncomingBusy(false); setItems(xs => [...xs, { kind: "agent", text: t("ลองอีกครั้งค่ะ", "Please try again.") }]); }} />}
       <ChatHeader busy={busy} onCall={onCall} toggleCall={() => void toggleCall()}
         speak={speak} toggleSpeak={() => setSpeak(!speak)} restart={() => {
           // In the demo a restart is a new family: reset the room too, or the old family's team messages come back.
           if (judgeMode) void onClock("reset"); else void start(lang);
         }} />
-      {onCall === "on" ? <p className="v2-oncall">{lang === "th" ? t("กำลังคุยกับ ReachPoint ด้วยเสียง · Gemini Live", "Gemini Live") : "On a call with ReachPoint · Gemini Live"}</p> : null}
+      {onCall !== "off" && <section className="rp-in-call" aria-label={t("กำลังโทร", "Call in progress")}>
+        <b>ReachPoint · {onCall === "connecting" ? t("กำลังเชื่อมต่อ", "Connecting") : callTime(seconds)}</b>
+        <Captions lines={captions} />
+        <div className="rp-call-actions"><button aria-pressed={muted} onClick={() => { call.current?.setMuted(!muted); setMuted(!muted); }}><Tr th={muted ? "เปิดไมค์" : "ปิดไมค์"} en={muted ? "Unmute" : "Mute"} /></button>
+          <button className="rp-call-decline" onClick={() => finishCall()}><Tr th="วางสาย" en="Hang up" /></button></div>
+      </section>}
       {status && <FamilyStatusCard status={status} />}
       <div className="v2-chat" role="log" aria-live="polite">
         {/* the Yes/No buttons stay on the latest picture even when a notice arrives after it */}
@@ -309,7 +346,7 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
               {it.route && <ShelterCard route={it.route} busy={busy} onAnswer={reply => send(reply, "chat")} />}
               {i === lastAgent && (askLocation || outside) && <LocationCard busy={busy || onCall !== "off"} outside={outside} onPin={async pin => { await send(pin.method === "gps" ? t("ตำแหน่งจาก GPS", "GPS location shared") : t("ปักหมุดบ้านแล้ว", "House pinned"), "chat", pin); }} />}
             </div>
-          ) : it.kind === "person" ? (
+          ) : it.kind === "call" ? <CallSummary key={i} {...it} /> : it.kind === "person" ? (
             <div key={i} className="v2-person-turn">
               <Bubble person at={it.at} read={!!it.receipt} grouped={items[i - 1]?.kind === "person"}>{it.voice && <Icon name="mic" />}{it.text}</Bubble>
               {it.pin && <HouseLocation point={it.pin} sent accuracyM={it.pin.accuracyM} />}

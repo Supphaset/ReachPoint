@@ -89,6 +89,11 @@ def _state(v: V2Room, at_h: float | None = None) -> dict:
         state = cache.get(sig)
     if state is None:
         state = B.state(at, v.messages, v.plans, v.alerts, v.pulled)
+        for session in v.sessions.values():
+            hh = state["world"].households.get(session.household_id)
+            if hh and hh.status == "lostContact" and hh.last_heard_h > session.call_seen:
+                session.incoming = {"kind": "lostContact", "at": P.label_time(v.now_h), "reason": "Two missed safety checks"}
+                session.call_seen = hh.last_heard_h
         with _board_cache_lock:
             if len(cache) >= 2:
                 cache.clear()
@@ -329,7 +334,7 @@ def _pin_to_house(pin: dict, geo) -> dict | None:
 
 
 @bilingual_view
-def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, reply_to: str | None = None) -> dict:
+def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, reply_to: str | None = None, outbound: bool = False) -> dict:
     """One turn of the intake agent: typed, held-mic, or Gemini Live voice (api/v2/live.py)."""
     v = room()
     s = v.sessions.get(sid)
@@ -345,6 +350,25 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
         effects = {}
         prefix = ""
         main_msg = None
+        follow = None
+        if outbound:
+            from api.v2 import followup as F
+            r = ai.read(text, "safetyReply")
+            I._merge(s, r)
+            r.reader = "gemini-live:" + r.reader
+            F._post(v, s, text, r, outboundCall=True)
+            s.incoming = None
+            effects["facts"] = [{"field": f.field, "value": f.value, "quote": f.quote} for f in r.facts]
+            effects["reader"] = r.reader
+            confirmation = ("บันทึกการเปลี่ยนแปลงแล้วค่ะ ทีมจะเห็นข้อมูลนี้ค่ะ" if lang == "th" else
+                            "I've updated your request. A team will be told.")
+            if r.get("urgent"):
+                confirmation += " " + F.say("check_urgent", lang)
+            questions = [("ทุกคนยังอยู่ด้วยกันไหมคะ", "Is everyone still with you?"),
+                         ("ตอนนี้มีใครเดินไม่ได้ไหมคะ", "Is anyone unable to walk now?")]
+            question = (questions[s.call_stage][0 if lang == "th" else 1] if s.call_stage < len(questions) else "")
+            s.call_stage += 1
+            follow = {"reply": confirmation + " " + question, "kind": "safetyCall"}
         if pin:  # a pin always wins over address words: it is where the phone (or the person's finger) is
             loc = _pin_to_house(pin, geo)
             if loc:
@@ -356,9 +380,8 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
                 effects["pinOutside"] = {"reason": "noHouse" if near else "outside"}
                 prefix += I.say("pin_no_house" if near else "pin_outside", lang) + " "
         ride_request = bool(re.search(r"need (?:a )?team|ต้องการทีม|ขอทีม", text, re.I))
-        follow = None
         # a button under one of our own messages answers that message, even if an intake question is still open
-        if not ride_request and s.household_id and not s.nb_queue and (reply_to or (pending != "shelter" and (s.follow or s.finished))):
+        if not outbound and not ride_request and s.household_id and not s.nb_queue and (reply_to or (pending != "shelter" and (s.follow or s.finished))):
             from api.v2 import followup as F
             follow = F.answer(v, s, _state(v)["world"], text, reply_to or s.follow, lang)
             if follow:
@@ -545,7 +568,7 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
 
 
 class SimIn(Input):
-    event: str = Field(max_length=12, pattern="^(rain|river|teamPlan|teamVisit|checkin)$")
+    event: str = Field(max_length=12, pattern="^(rain|river|teamPlan|teamVisit|checkin|safetyCall)$")
 
 
 @router.post("/chat/sessions/{sid}/simulate")
@@ -563,6 +586,33 @@ def simulate(sid: Identifier, body: SimIn):
         raise HTTPException(409, out["error"])
     out["status"] = F.status(v, s, _state(v))
     return out
+
+
+class IncomingIn(Input):
+    action: str = Field(max_length=8, pattern="^(answer|decline)$")
+
+
+@router.post("/chat/sessions/{sid}/incoming")
+def incoming(sid: Identifier, body: IncomingIn):
+    from api.v2 import calls
+    v = room()
+    s = v.sessions.get(sid)
+    if s is None:
+        raise HTTPException(404, "No such conversation")
+    with S.changing(v):
+        if not s.incoming:
+            raise HTTPException(409, "No pending call")
+        kind = s.incoming["kind"]
+        s.incoming = None
+        if body.action == "answer":
+            s.call_kind = kind
+            s.call_declines = 0
+            s.call_stage = 0
+            calls.event(v, s, "placed")
+        else:
+            s.call_declines += 1
+            calls.event(v, s, "no answer", missed=s.call_declines % 2 == 0)
+    return {"incoming": s.incoming, "kind": kind}
 
 
 class ReadyIn(Input):
@@ -624,7 +674,7 @@ def _me(v: V2Room, token: str):
         o["at"] = P.label_time(o["atH"])
         # the answers the phone offers under this message, sent back with replyTo = its kind
         o["choices"] = [{"label": a, "send": b} for a, b in F.CHOICES.get(o["kind"], [])]
-    return {"session": s.view(), "household": hh.view() if hh else None, "zone": zone, "inbox": inbox,
+    return {"incoming": s.incoming, "session": s.view(), "household": hh.view() if hh else None, "zone": zone, "inbox": inbox,
             "now": {"atH": v.now_h, "at": P.label_time(v.now_h)}}
 
 

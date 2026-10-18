@@ -40,15 +40,15 @@ def plan_outreach(w, geo: G.Geo) -> None:
         if not hh.first_hand or hh.status in ("safe", "evacuated") or hh.outcome:
             continue
         missed = check_times(hh.last_heard_h, now)
-        hh.checks_unanswered = len(missed)
+        hh.checks_unanswered += len(missed)
         for t in missed:
             w.outbound.append({"atH": t, "householdId": hh.id, "kind": "check", "text": say("check"), "en": say("check", "en")})
-        if len(missed) >= 2 and hh.status != "lostContact":
+        if hh.checks_unanswered >= 2 and hh.status != "lostContact":
             hh.status = "lostContact"
-            w.activity.append({"atH": missed[1], "at": label_time(missed[1]), "agent": "Planner",
-                               "text": f"{hh.id} in {hh.zone_id} missed two safety checks → lost contact. AI voice call queued.",
+            w.activity.append({"atH": now, "at": label_time(now), "agent": "Planner",
+                               "text": f"{hh.id} in {hh.zone_id} missed safety checks → lost contact. AI safety call queued.",
                                "tool": "check schedule", "ref": hh.id, "key": "lost"})
-            w.outbound.append({"atH": missed[1] + 0.25, "householdId": hh.id, "kind": "lostCall", "text": say("lostCall"), "en": say("lostCall", "en")})
+            w.outbound.append({"atH": now, "householdId": hh.id, "kind": "lostCall", "text": say("lostCall"), "en": say("lostCall", "en")})
 
     # prediction and early warning from the gauge
     from api.v2 import sim as S
