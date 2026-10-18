@@ -139,6 +139,11 @@ def validate(raw, ctx):
     streets = ctx["unheard"].get("streets", [])
     names = {r[k] for r in streets for k in ("name", "nameEn")}
     out["checkStreets"] = [s for s in out["checkStreets"] if s["name"] in names and _text_ok(s["why"], ctx)]
+    # Show the street in the team's language whichever spelling the model used.
+    spelled = {r[k]: r for r in streets for k in ("name", "nameEn") if r.get(k)}
+    for c in out["checkStreets"]:
+        r = spelled[c["name"]]
+        c["name"] = r["name"] if thai else (r.get("nameEn") or r["name"])
     out["order"] = sorted(order, key=lambda v: v["run"])
     out["warnings"] = warnings   # only the server's own access and capacity warnings; the model's are not checkable
     out["bring"] = [s for s in out["bring"] if len(s) <= 200 and _text_ok(s, ctx)]

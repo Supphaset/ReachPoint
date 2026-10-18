@@ -455,7 +455,7 @@ export interface MissionRoute {
   vehicle: string; seats: number; start: { lon: number; lat: number; label: string };
   runs: { run: number; stops: string[]; start: MissionRoute["start"]; shelter: { id: string; name: string; nameEn: string | null; lon: number; lat: number } | null;
     legs: RouteLeg[]; totals: { km: number; minutes: number } }[];
-  totals: { km: number; minutes: number }; deepestM: number; warnings: string[];
+  totals: { km: number; minutes: number }; perRun?: { runs: number; km: number; minutes: number }; deepestM: number; warnings: string[];
   unreachable: { id: string; reason: string; reasonTh: string }[]; now: { at: string; atH: number };
 }
 export interface ZonePage {

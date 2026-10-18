@@ -349,7 +349,7 @@ def route(w, rows, plan=None, vehicle=None, seats=None, center=None):
             while remaining:
                 nxt = min(remaining, key=lambda i: distance(current, i))
                 ordered_ids.append(nxt); remaining.remove(nxt); current = nxt
-            ids = two_opt(ordered_ids, distance, "start", "shelter")
+            ids = two_opt(ordered_ids, distance, "start", "start" if vehicle == "boat" else "shelter")
         drop, shelter_i = choose_drop(ids[-1])
         if drop is None:
             warnings.append("No reachable dry shelter drop-off; arrange a handover on the ground")
@@ -365,16 +365,22 @@ def route(w, rows, plan=None, vehicle=None, seats=None, center=None):
             legs.append(item); reached.append(hid); current = hid
         if not reached:
             continue
-        for a, b in ([(current, "shelter"), ("shelter", "start")] if drop else [(current, "start")]):
+        # A boat hands people over at the launch point, where a truck takes them on to the shelter; trucks and
+        # walkers take them to the shelter themselves.
+        back = [(current, "start")] if vehicle == "boat" or not drop else [(current, "shelter"), ("shelter", "start")]
+        for a, b in back:
             item = leg(a, b)
             if item:
                 legs.append(item)
             else:
                 warnings.append("Drop-off or return exceeds vehicle depth limit; check on the ground")
         totals = {"km": round(sum(l["km"] for l in legs), 3), "minutes": round(sum(l["minutes"] for l in legs), 1)}
-        runs.append({"run": len(runs)+1, "stops": reached, "start": start, "shelter": drop, "legs": legs, "totals": totals})
+        runs.append({"run": len(runs)+1, "stops": reached, "start": start, "shelter": drop, "legs": legs, "totals": totals,
+                     "handover": vehicle == "boat"})
         warnings.extend(n for l in legs for n in l["warnings"])
     return {"vehicle": vehicle, "seats": seats, "start": start, "runs": runs, "unreachable": unreachable,
             "totals": {k: round(sum(r["totals"][k] for r in runs), 2) for k in ("km", "minutes")},
+            "perRun": {"runs": len(runs), "km": round(max((r["totals"]["km"] for r in runs), default=0), 1),
+                       "minutes": round(max((r["totals"]["minutes"] for r in runs), default=0))},
             "deepestM": max((l["deepestM"] for r in runs for l in r["legs"]), default=0),
             "warnings": list(dict.fromkeys(warnings)), "now": {"atH": w.now_h, "at": P.label_time(w.now_h)}}

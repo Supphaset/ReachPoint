@@ -27,12 +27,12 @@ export function RouteGuide({ route }: { route: MissionRoute }) {
     <p><Tr th={`เส้นทางจากแบบจำลองน้ำท่วม ณ ${route.now.at}; โปรดตรวจสอบหน้างาน`} en={`Route from the flood model at ${route.now.at}; check on the ground.`} /></p>
     {route.vehicle === "boat" && <p><Tr th="Google นำทางเรือไม่ได้ ใช้เส้นทางน้ำ ReachPoint เป็นหลัก" en="Google can't route boats. Follow the ReachPoint water route as the main guidance." /> <a href={boatLink} target="_blank" rel="noopener noreferrer"><Tr th="นำทางไปจุดลงเรือ" en="Directions to launch only" /></a></p>}
     {route.runs.map(run => <div key={run.run}>
-      <h3><Tr th={`เที่ยว ${run.run}`} en={`Run ${run.run}`} /> · {run.totals.km} km · <Tr th={`${run.totals.minutes} นาที`} en={`${run.totals.minutes} min`} /></h3>
+      <h3><Tr th={`เที่ยว ${run.run}`} en={`Run ${run.run}`} /> · {run.totals.km.toFixed(1)} km · <Tr th={`${Math.round(run.totals.minutes)} นาที`} en={`${Math.round(run.totals.minutes)} min`} /></h3>
       {route.vehicle !== "boat" && runDirections(route, run) && <a href={runDirections(route, run)!} target="_blank" rel="noopener noreferrer"><Tr th="เปิดทั้งเที่ยวใน Google Maps" en="Open the whole run in Google Maps" /></a>}
       {run.stops.length > 9 && route.vehicle !== "boat" && <p><Tr th="Google แสดงได้ 9 จุดแรก ใช้รายการด้านล่างสำหรับจุดที่เหลือ" en="Google includes the first 9 stops; follow the list for the remaining stops." /></p>}
-      <ol>{run.legs.map((leg, i) => <li key={i}>{leg.to === "shelter" ? t("จุดส่งต่อศูนย์พักพิง", "Shelter drop-off") : leg.to === "start" ? t("กลับจุดเริ่ม", "Return to start") : leg.to} · {leg.km} km · <Tr th={`${leg.minutes} นาที · น้ำลึกสุด ${leg.deepestM} ม.`} en={`${leg.minutes} min · deepest ${leg.deepestM} m`} />
+      <ol>{run.legs.map((leg, i) => <li key={i}>{leg.to === "shelter" ? t("จุดส่งต่อศูนย์พักพิง", "Shelter drop-off") : leg.to === "start" ? (route.vehicle === "boat" ? t("กลับจุดลงเรือ ส่งต่อรถไปศูนย์พักพิง", "Back to the launch point: hand over to a truck") : t("กลับจุดเริ่ม", "Return to start")) : leg.to} · {leg.km.toFixed(1)} km · <Tr th={`${Math.round(leg.minutes)} นาที · น้ำลึกสุด ${leg.deepestM} ม.`} en={`${Math.round(leg.minutes)} min · deepest ${leg.deepestM} m`} />
         {leg.warnings.map(w => <p key={w}><Tr th={warningTh(w)} en={w} /></p>)}</li>)}</ol>
-      {run.shelter && <p><Tr th="ศูนย์พักพิง:" en="Shelter:" /> {t(run.shelter.name, run.shelter.nameEn || run.shelter.name)}</p>}
+      {run.shelter && <p>{route.vehicle === "boat" ? <Tr th="รถรับต่อไปที่:" en="The truck takes them on to:" /> : <Tr th="ศูนย์พักพิง:" en="Shelter:" />} {t(run.shelter.name, run.shelter.nameEn || run.shelter.name)}</p>}
     </div>)}
     {route.warnings.length > 0 && <ul className="rp-warning">{route.warnings.map(w => <li key={w}><Tr th={warningTh(w)} en={w} /></li>)}</ul>}
     {route.unreachable.map(h => <p key={h.id}><b>{h.id}</b> · <Tr th={h.reasonTh} en={h.reason} /></p>)}

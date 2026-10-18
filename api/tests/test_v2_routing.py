@@ -54,7 +54,7 @@ def test_boat_launch_and_posted_order(streets):
     assert out['runs'][0]['stops'] == ['H3', 'H2']
     assert out['runs'][0]['shelter']['id'] == 'S'
     assert out['runs'][0]['legs'][-1]['to'] == 'start'
-    assert any('carry the boat' in w for w in out['warnings'])
+    assert out['runs'][0]['handover'] and out['runs'][0]['legs'][-1]['to'] == 'start'   # a boat hands over at the launch point
 
 
 def test_two_opt_does_not_lengthen():

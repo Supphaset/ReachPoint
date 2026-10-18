@@ -23,7 +23,7 @@ describe("mission water routes", () => {
     const route = { ...base, vehicle };
     const html = render(route);
     expect(html).toContain("Run 1"); expect(html).toContain("H1"); expect(html).toContain("H2");
-    expect(html).toContain("0.5 km"); expect(html).toContain("2.5 min · deepest 0.8 m");
+    expect(html).toContain("0.5 km"); expect(html).toContain("3 min · deepest 0.8 m");
     expect(html).toContain("direct line, check on the ground");
     expect(html).toContain("Route from the flood model at 06:00; check on the ground.");
     const link = runDirections(route, route.runs[0]);
