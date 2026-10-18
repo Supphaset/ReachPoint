@@ -12,7 +12,7 @@ not field accuracy. Reference readings for depth are the rule reader's band for 
 | People count read correctly (first-hand reports) | 100% (176/176) | — |
 | Neighbour direction read correctly (north, south, east, west) | 100% (72/72) | — |
 | "Still safe" replies wrongly marked urgent | 0% (0/751) | low |
-| Households counted vs synthetic reference families heard about | 306–309 vs 299 (lower bound within 3%; upper bound 3.3% high; possible duplicates kept apart) | lower bound within 3% |
+| Households counted vs synthetic reference families heard about | 306–309 vs 299 (lower bound 2.3% error; upper bound 3.3% error; possible duplicates kept apart) | lower bound within 3% |
 | Households wrongly merged (two families as one) | 1% (2/309) | ≤ 3% |
 | Neighbour words matched to the exact building | 100% (72/72) | ≥ 85% |
 | Planted wrong reports flagged doubtful | 80% (4/5) | ≥ 80% |
