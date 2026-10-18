@@ -105,7 +105,7 @@ def test_model_call_is_structured_and_delimits_user_data(monkeypatch, ctx):
     assert suggest._gemini(ctx)[1] == "gemini:test"
     assert len(seen) == 1
     assert seen[0]["generationConfig"]["responseMimeType"] == "application/json"
-    assert "responseJsonSchema" in seen[0]["generationConfig"]
+    assert seen[0]["generationConfig"]["responseSchema"]["type"] == "OBJECT"
     assert "<zone_context_json>" in seen[0]["contents"][0]["parts"][0]["text"]
 
 

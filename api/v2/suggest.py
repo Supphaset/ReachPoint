@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from typing import Literal
@@ -17,25 +18,40 @@ class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
 
-class Visit(Strict):
+class Loose(BaseModel):
+    # Model output: ignore extra keys and accept "2" for 2; validate() checks every value against the records anyway.
+    model_config = ConfigDict(extra="ignore")
+
+
+class Visit(Loose):
     householdId: str
     run: int = Field(ge=1, le=10000)
     reason: str = Field(max_length=120)
     quote: str
 
 
-class Street(Strict):
+class Street(Loose):
     name: str
     why: str = Field(max_length=200)
 
 
-class Suggestion(Strict):
+class Suggestion(Loose):
     order: list[Visit] = Field(max_length=2000)
     spareSeats: int = Field(ge=0, le=20)
     bring: list[str] = Field(max_length=30)
     checkStreets: list[Street] = Field(max_length=5)
     warnings: list[str] = Field(max_length=100)
     summary: str = Field(max_length=200)
+
+_STR, _INT = {"type": "STRING"}, {"type": "INTEGER"}
+# Gemini's own schema format (an OpenAPI subset); pydantic's JSON Schema with $defs is not accepted.
+SCHEMA = {"type": "OBJECT", "required": ["order", "spareSeats", "bring", "checkStreets", "warnings", "summary"], "properties": {
+    "order": {"type": "ARRAY", "items": {"type": "OBJECT", "required": ["householdId", "run", "reason", "quote"],
+              "properties": {"householdId": _STR, "run": _INT, "reason": _STR, "quote": _STR}}},
+    "spareSeats": _INT, "bring": {"type": "ARRAY", "items": _STR},
+    "checkStreets": {"type": "ARRAY", "items": {"type": "OBJECT", "required": ["name", "why"], "properties": {"name": _STR, "why": _STR}}},
+    "warnings": {"type": "ARRAY", "items": _STR}, "summary": _STR}}
+log = logging.getLogger(__name__)
 
 
 class Team(Strict):
@@ -79,6 +95,10 @@ def _text_ok(text, ctx):
 
 def validate(raw, ctx):
     try:
+        if isinstance(raw, dict):   # a long reason is trimmed, not a reason to drop the whole proposal
+            raw = {**raw, "summary": str(raw.get("summary", ""))[:200],
+                   "order": [{**v, "reason": str(v.get("reason", ""))[:120]} for v in raw.get("order", []) if isinstance(v, dict)],
+                   "checkStreets": [{**c, "why": str(c.get("why", ""))[:200]} for c in raw.get("checkStreets", []) if isinstance(c, dict)][:5]}
         out = Suggestion.model_validate(raw).model_dump()
     except ValidationError:
         return None
@@ -173,11 +193,14 @@ def _gemini(ctx):
         try:
             response = gemini.post(model, {"systemInstruction": {"parts": [{"text": INSTRUCTION}]},
                 "contents": [{"role": "user", "parts": [{"text": "<zone_context_json>\n" + json.dumps(ctx, ensure_ascii=False) + "\n</zone_context_json>"}]}],
-                "generationConfig": {"temperature": 0, "responseMimeType": "application/json", "responseJsonSchema": Suggestion.model_json_schema()}}, 20.0)
+                "generationConfig": {"temperature": 0, "responseMimeType": "application/json", "responseSchema": SCHEMA}}, 20.0)
             response.raise_for_status()
             parts = response.json()["candidates"][0]["content"]["parts"]
             return json.loads("".join(p.get("text", "") for p in parts if not p.get("thought"))), f"gemini:{model}"
-        except Exception:
+        except Exception as e:
+            # Status and Gemini's own error text only (never the request, which holds family messages).
+            body = getattr(getattr(e, "response", None), "text", "")[:200]
+            log.warning("suggest: %s failed: %s %s", model, type(e).__name__, body)
             continue
     return None
 
