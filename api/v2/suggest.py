@@ -189,7 +189,8 @@ def _gemini(ctx):
     if not gemini.available():
         return None
     # One structured generation per attempt; same model list and fallback as copilot.
-    for model in gemini.models(copilot.MODELS)[:2]:
+    # flash-lite answers this in seconds; flash is the second try.
+    for model in gemini.models(("gemini-flash-lite-latest", "gemini-flash-latest"))[:2]:
         try:
             response = gemini.post(model, {"systemInstruction": {"parts": [{"text": INSTRUCTION}]},
                 "contents": [{"role": "user", "parts": [{"text": "<zone_context_json>\n" + json.dumps(ctx, ensure_ascii=False) + "\n</zone_context_json>"}]}],
