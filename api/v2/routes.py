@@ -332,9 +332,10 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
                 near = geo.zone_at(pin["lon"], pin["lat"])
                 effects["pinOutside"] = {"reason": "noHouse" if near else "outside"}
                 prefix += I.say("pin_no_house" if near else "pin_outside", lang) + " "
+        ride_request = bool(re.search(r"need (?:a )?team|ต้องการทีม|ขอทีม", text, re.I))
         follow = None
         # a button under one of our own messages answers that message, even if an intake question is still open
-        if s.household_id and not s.nb_queue and (reply_to or (pending != "shelter" and (s.follow or s.finished))):
+        if not ride_request and s.household_id and not s.nb_queue and (reply_to or (pending != "shelter" and (s.follow or s.finished))):
             from api.v2 import followup as F
             follow = F.answer(v, s, _state(v)["world"], text, reply_to or s.follow, lang)
             if follow:
@@ -351,7 +352,7 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
         shelter_answer = re.search(r"ไป|ได้|โอเค|อยู่บ้าน|ต้องการทีม|ไม่|\b(ok|okay|yes|go|stay|no|can.?t|need|i can)\b", text, re.I)
         if follow:
             pass
-        elif pending == "shelter" and s.shelter_offer and shelter_answer and len(text) <= 40:
+        elif not ride_request and pending == "shelter" and s.shelter_offer and shelter_answer and len(text) <= 40:
             go = re.search(r"^\s*(ไป|ได้|โอเค|ok|okay|yes|go|ไปได้|ไปค่ะ|ไปครับ|ไปเองได้|i can)", text, re.I) and not re.search(r"ไม่|อยู่บ้าน|ต้องการทีม|stay|no\b|can.?t|need", text, re.I)
             if go:
                 v.seq += 1
@@ -409,21 +410,42 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
             if not s.pin:
                 loc = pre_loc or (I.locate(r.get("address"), geo) if r.get("address") and r.get("address") != text else None)
                 if loc:
-                    s.pin, s.building_id, s.zone_id = {"lon": loc["lon"], "lat": loc["lat"], "precision": "address"}, loc["buildingId"], loc["zoneId"]
+                    s.pin, s.building_id, s.zone_id = {"lon": loc["lon"], "lat": loc["lat"], "precision": loc["precision"]}, loc["buildingId"], loc["zoneId"]
                     effects["located"] = loc
+                    if loc["precision"] == "landmark":
+                        prefix += (f"ปักหมุดไว้ใกล้ {loc['label']} แล้วค่ะ กด 📍 เพื่อย้ายหมุดไปบนหลังคาบ้าน " if lang == "th" else
+                                   f"I put you near {loc['label']}. Tap 📍 to move the pin onto your roof. ")
             _hold_neighbour(s, r)
             I._merge(s, r)
+            if pending == "intro":
+                prefix = I.danger(s) + prefix
             effects["facts"] = [{"field": f.field, "value": f.value, "quote": f.quote} for f in r.facts if f.field != "neighbour"]
             effects["reader"] = r.reader
             if s.pin:
                 # everything said before the house was found goes in with this message
                 earlier = " ".join(t["text"] for t in s.transcript if t["role"] == "person") if not s.household_id else text
                 v.seq += 1
-                rr = r if s.household_id or earlier == text else _hold_neighbour(s, ai.read(earlier, channel))
+                rr = r if s.household_id or earlier == text else Read([Fact(k, f["value"], f["quote"]) for k, f in s.facts.items()], reader=r.reader)
                 msg = {"id": f"L{v.seq}", "atH": v.now_h, "channel": "safetyReply" if s.finished else channel, "text": earlier,
                        "live": True, "pin": s.pin, "sessionId": s.id, "householdHint": s.household_id, "_read": rr}
                 v.messages.append(msg)
                 main_msg = msg
+        if ride_request:
+            from api.v2 import followup as F
+            if not s.ride_requested:
+                if main_msg:
+                    main_msg["wantsOut"] = True
+                else:
+                    F._post(v, s, text, Read([], reader="rules"), wantsOut=True)
+                ride = F._ride(s, F.say("leave_ride", lang, who=""))
+                if not s.ready_shown:
+                    effects["checklist"] = ride["checklist"]
+                    s.ready_shown = True
+                prefix += ride["reply"] + " "
+            else:
+                prefix += F.ride_again(s, lang)["reply"] + " "
+            if "shelter" not in s.asked:
+                s.asked.append("shelter")
         st = _state(v)
         w = st["world"]
         s.household_id = _household_of(w, s) or s.household_id
@@ -482,7 +504,8 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
                     effects["neighbour"], _ = _add_neighbour(v, s, channel, lang)
                     st = _state(v)
                     w = st["world"]
-                reply = prefix + I.say("urgent_done" if s.facts.get("urgent", {}).get("value") is True else "done", lang)
+                key = "urgent_recorded" if pending == "intro" and "1669" in prefix else "urgent_done"
+                reply = prefix + I.say(key if s.facts.get("urgent", {}).get("value") is True else "done", lang)
         s.transcript.append({"role": "agent", "text": reply})
         hh = w.households.get(s.household_id) if s.household_id else None
         zone = st["zones"].get(hh.zone_id) if hh and hh.zone_id else None

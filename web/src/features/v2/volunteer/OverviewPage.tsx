@@ -78,7 +78,7 @@ export function VolunteerKpis({ data }: { data: Overview | null }) {
         <b>{number(data?.rain?.next6hMm)} <Tr th="มม." en="mm" /></b><span><Tr th="ฝน 6 ชม.ข้างหน้า" en="rain next 6 h" /></span>
       </span>
     </div>
-    <p className="v-ledger-line">{t(`Gemini อ่าน ${number(ledger?.messages)} ข้อความ → ${number(ledger?.households)} ครัวเรือน (รวมซ้ำ ${number(ledger?.duplicatesMerged)})`, `Gemini read ${number(ledger?.messages)} messages → ${number(ledger?.households)} households (${number(ledger?.duplicatesMerged)} duplicates merged)`)} · {t(`คาดว่า ${number(ledger?.estimatedHouseholdsAffected)} ครัวเรือนได้รับผลกระทบ`, `est. ${number(ledger?.estimatedHouseholdsAffected)} households affected`)}</p>
+    <p className="v-ledger-line">{t(`อ่าน ${number(ledger?.messages)} ข้อความ (Gemini · กฎเติมส่วนที่ขาด) → ${number(ledger?.households)} ครัวเรือน (รวมซ้ำ ${number(ledger?.duplicatesMerged)})`, `Read ${number(ledger?.messages)} messages (Gemini; rules fill gaps) → ${number(ledger?.households)} households (${number(ledger?.duplicatesMerged)} duplicates merged)`)} · {t(`คาดว่า ${number(ledger?.estimatedHouseholdsAffected)} ครัวเรือนได้รับผลกระทบ`, `est. ${number(ledger?.estimatedHouseholdsAffected)} households affected`)}</p>
   </div>;
 }
 
@@ -169,7 +169,7 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
       <div className="rp-warning"><h3><Tr th="ยังไม่แน่ใจ" en="Not sure" /></h3><p>{displayText(zone.disagree || t("ยังไม่มีข้อขัดแย้งที่บันทึกไว้ ข้อมูลที่ไม่รายงานยังไม่ทราบ · No recorded conflict; unreported conditions remain unknown", "No recorded conflict; unreported conditions remain unknown"))}</p></div>
       <h3><Tr th="ใครก่อน" en="Who first" /></h3>
       {priorityFamilies(detail?.households ?? []).map(household => <Link className="p3-family" key={household.id} to={`/v/case/${household.id}`}><span className="pill">{household.id}</span><p>{household.people === null ? t("ไม่ทราบจำนวนคน · Household size unknown", "Household size unknown") : t(`${household.people} คน · people`, `${household.people} people`)} · {household.cannotWalk ? t("มีคนเดินไม่ได้ · Cannot walk", "Cannot walk") : household.urgent ? t("แจ้งความต้องการด่วน · Urgent help reported", "Urgent help reported") : t("กำลังรอความช่วยเหลือ · Waiting for help", "Waiting for help")}</p></Link>)}
-      <footer className="p3-panel-footer"><Link to={`/v/zone/${id}`}><Tr th="รายละเอียด" en="Details" /></Link><button className="btn btn-pri" onClick={openPlan} disabled={!detail}><Tr th="ฉันจะไปที่นี่" en="I'll go here" /></button></footer>
+      <footer className="p3-panel-footer"><Link to={`/v/zone/${id}`}><Tr th="รายละเอียด" en="Details" /></Link><Link to={`/v/plan?zone=${encodeURIComponent(id)}`}>✦ <Tr th="ถาม Gemini" en="Ask Gemini" /></Link><button className="btn btn-pri" onClick={openPlan} disabled={!detail}><Tr th="ฉันจะไปที่นี่" en="I'll go here" /></button></footer>
     </>}
     {planning && !posted && <form onSubmit={event => { event.preventDefault(); void post(); }}>
       <label><Tr th="ทีม" en="Team" /><input required value={planTeam} onChange={event => setPlanTeam(event.target.value)} disabled={busy || posted} /></label>

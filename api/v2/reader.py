@@ -100,7 +100,16 @@ def read_rules(text: str, channel: str = "chat") -> Read:
     if m3:
         r.facts.append(Fact("atShelter", True, m3.group(0)))
     m2 = re.search(r"อยู่คนเดียว|I'?m alone|alone", own, re.I)
-    if m2:
+    companions = re.search(r"(?:I[’']?m|I am|alone|by myself)\s+(?:alone\s+)?with\s+(.+?)(?=[.!?]|$)", own, re.I)
+    totals = list(re.finditer(r"(\d+) of us|(\d+) people", own, re.I))
+    total = totals[-1] if totals else None
+    if total:
+        r.facts.append(Fact("people", int(total.group(1) or total.group(2)), total.group(0)))
+    elif companions:
+        relatives = re.findall(r"\b(?:father|dad|mother|mom|mum|wife|husband|son|daughter|brother|sister|friend|grandma|grandpa)\b", companions.group(1), re.I)
+        if relatives:
+            r.facts.append(Fact("people", 1 + len(relatives), companions.group(0)))
+    elif m2:
         r.facts.append(Fact("people", 1, m2.group(0)))
     else:
         m2 = re.search(r"(อยู่(กัน)?|มี(คน)?)\s*([0-9๐-๙]+|หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด)\s*คน|(\d+) of us|(\d+) people", own, re.I)
@@ -108,13 +117,20 @@ def read_rules(text: str, channel: str = "chat") -> Read:
             n = _num(m2.group(4) or m2.group(5) or m2.group(6) or "")
             if n:
                 r.facts.append(Fact("people", n, m2.group(0)))
-    for name, pat in (("elderly", r"(ผู้สูงอายุ|คนแก่|ผู้สูงวัย)\s*([0-9๐-๙]+)?\s*คน?|(\d+) elderly|grandma|grandpa|ยาย|ตา\b"),
+    for name, pat in (("elderly", r"(ผู้สูงอายุ|คนแก่|ผู้สูงวัย)\s*([0-9๐-๙]+)?\s*คน?|(\d+) elderly|grandma|grandpa|ยาย|ตา\b|\belderly\b"),
                       ("children", r"(เด็ก(เล็ก)?)\s*([0-9๐-๙]+)\s*คน|(\d+) (kids|children)")):
         m3 = re.search(pat, own, re.I)
         if m3:
             nums = [g for g in m3.groups() if g and (g.isdigit() or g.translate(THAI_DIGITS).isdigit())]
             r.facts.append(Fact(name, _num(nums[0]) if nums else 1, m3.group(0)))
-    m4 = re.search(r"เดินไม่ได้|ติดเตียง|can'?t walk|bedridden|wheelchair", own, re.I)
+    not_elderly = re.search(r"not elderly|not old|ไม่ใช่ผู้สูงอายุ|ไม่ได้สูงอายุ", own, re.I)
+    age = re.search(r"(\d{1,3})[ -]*years?[ -]*old|(?:is|อายุ)\s*(\d{1,3})", own, re.I)
+    if not_elderly:
+        r.facts = [f for f in r.facts if f.field != "elderly"]
+        r.facts.append(Fact("elderly", 0, not_elderly.group(0)))
+    elif age and int(age.group(1) or age.group(2)) >= 60:
+        r.facts.append(Fact("elderly", 1, age.group(0)))
+    m4 = re.search(r"เดินไม่ได้|ติดเตียง|can'?t walk|cannot walk|bedridden|wheelchair", own, re.I)
     if m4:
         r.facts.append(Fact("cannotWalk", 1, m4.group(0)))
     m5 = re.search(r"ด่วน|หายใจไม่|ไม่ไหวแล้ว|need help now|urgent|can'?t breathe|drowning", t, re.I)
@@ -134,7 +150,7 @@ def read_rules(text: str, channel: str = "chat") -> Read:
     m8 = re.search(r"ส่งต่อ|forwarded|fwd", t, re.I)
     if m8:
         r.facts.append(Fact("forwarded", True, m8.group(0)))
-    if channel == "post" or re.search(r"ญาติ|แม่ของเพื่อน|ยายผม|ครอบครัวพี่|เพื่อนบ้าน|my (mom|mother|grandma|relative)", own, re.I):
+    if channel == "post" or (not companions and re.search(r"ญาติ|แม่ของเพื่อน|ยายผม|ครอบครัวพี่|เพื่อนบ้าน|my (mom|mother|grandma|relative)", own, re.I)):
         rel = re.search(r"ญาติ\S*|แม่ของเพื่อน|ยายผม|ครอบครัวพี่สาว|เพื่อนบ้าน|my \w+", own, re.I)
         if rel:
             r.facts.append(Fact("about", "relative", rel.group(0)))

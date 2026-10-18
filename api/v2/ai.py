@@ -50,9 +50,12 @@ Fields:
 - depthRange: [low, high] metres of water where the writer is. Use body references for a standing adult:
   ankle 0.05-0.2, shin 0.2-0.4, knee 0.4-0.6, thigh 0.6-0.8, waist 0.9-1.1, door handle 0.9-1.1, chest 1.2-1.4,
   neck 1.4-1.6, over head 1.8-2.3, second floor 2.5-3.2, roof 3-4. "a little below/above" shifts the band.
+  A depth needs nearby water/flood/น้ำ context; instructions and unrelated body or building words are not depth.
 - people: total people in the household the message is about (the writer's own, or the family a relative or
-  neighbour reports), only if stated or listed. "alone"/"อยู่คนเดียว" is 1, also when it adds "1 elderly" (that is them).
+  neighbour reports), only if stated or listed. "alone"/"อยู่คนเดียว" is 1 only without companions. "alone with my father" is 2 (speaker plus father).
+  "actually there are 3 of us" corrects people to 3. Use the latest explicit correction.
 - elderly, children, cannotWalk: counts, only if stated (cannotWalk includes bedridden or wheelchair).
+  A parent is not necessarily elderly. An explicit age of 80 supports elderly; "my mother is 35, not elderly" means elderly 0.
 - urgent: true only for a stated current life threat (can't breathe, water still rising over people who cannot
   leave, someone injured or sick) or explicit "need help now/urgently". A plain "help" or "please help" is not urgent.
 - safe: true if they say they are safe; "evacuated" if they have left.
@@ -101,7 +104,15 @@ def validate(text: str, raw: dict) -> tuple[list[Fact], int]:
         v = normalise(f["field"], v)
         if v is None or (f["field"] in ("urgent", "forwarded") and v is False):
             continue
+        if f["field"] == "elderly" and v and read_rules(q).get("elderly") is None:
+            dropped += 1
+            continue
         if f["field"] == "depthRange":
+            from api.v2.depth_words import water_context
+            start = text.lower().find(q.lower())
+            if not water_context(text, max(0, start), max(0, start) + len(q)):
+                dropped += 1
+                continue
             if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, (int, float)) for x in v) and 0 <= v[0] <= v[1] <= 6):
                 dropped += 1
                 continue
@@ -109,16 +120,12 @@ def validate(text: str, raw: dict) -> tuple[list[Fact], int]:
     return ok, dropped
 
 
-ALONE = ("อยู่คนเดียว", "alone", "by myself")
-
 
 def _alone(facts: list, rules) -> list:
-    """"อยู่คนเดียว มีผู้สูงอายุ 1 คน" is one elderly person on their own; the model sometimes adds them up to 2."""
-    rp = next((f for f in rules.facts if f.field == "people" and f.value == 1 and f.quote and
-               any(a in f.quote.lower() for a in ALONE)), None)
-    if rp is None:
-        return facts
-    return [f for f in facts if f.field != "people"] + [rp]
+    """Explicit household counts and corrections from the rules take precedence over a model guess."""
+    explicit = [f for f in rules.facts if f.field in ("people", "elderly")]
+    fields = {f.field for f in explicit}
+    return [f for f in facts if f.field not in fields] + explicit
 
 
 def _keep_neighbours(facts: list, rules) -> list:

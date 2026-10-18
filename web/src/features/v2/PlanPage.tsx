@@ -2,7 +2,7 @@ import { Tr, useT } from "./ui/lang";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { v2, vol, type CopilotResult, type Overview, type ZonePage as ZoneData, type Trip, type CopilotPlan, type Plan } from "./api";
-import { useGeo, useTeam } from "./volunteer/shared";
+import { useGeo, useTeam, VNavLinks } from "./volunteer/shared";
 import { CopilotAnswer } from "./ui/Answer";
 import { DepthRange, HonestyLabel, Panel, questions, StepHeader } from "./ui/Shared";
 import { displayText, readerLabel } from "./ui/trace";
@@ -143,6 +143,10 @@ export function PlanPage() {
       setPosted(null);
       setOverview(await vol.overview());
     }} />
+    <nav className="rp-subnav" aria-label={t("หน้าอาสา", "Volunteer pages")}>
+      <span className="rp-subnav-label"><Tr th="อาสา" en="Volunteers" /></span>
+      <VNavLinks />
+    </nav>
     <main className="rp-main">
       <div className="rp-section-head">
         <h1><Tr th="เรือหนึ่งลำ เริ่มที่ไหน" en="One boat. Where first?" /></h1>

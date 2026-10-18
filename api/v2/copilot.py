@@ -20,7 +20,7 @@ from api.v2 import cases as C
 
 MAX_STEPS = 6
 MODELS = tuple(m.strip() for m in os.environ.get("COPILOT_MODELS", "gemini-flash-latest,gemini-flash-lite-latest").split(",") if m.strip())
-SEATS = re.compile(r"(\d{1,2})\s*(?:seats?|ที่นั่ง|ที่|คน)", re.I)
+SEATS = re.compile(r"(-?\d+)\s*(?:seats?|ที่นั่ง|ที่|คน)", re.I)
 VEHICLES = {"boat": ("boat", "เรือ"), "jet ski": ("jet ski", "jetski", "เจ็ทสกี"), "high truck": ("truck", "รถยกสูง", "รถบรรทุก"),
             "pickup": ("pickup", "กระบะ")}
 
@@ -31,6 +31,8 @@ Rules:
 - For English questions, use labelEn for place names; preserve Thai names for Thai questions.
 - Cite zones as [D12] and households as [HH135] exactly as the tools name them.
 - When the volunteer gives capacity (seats, vehicle), call draft_plan for the zone you recommend and follow its runs.
+- Households in needsBiggerVehicleOrSeveralTrips need a bigger vehicle or several trips: list them separately, never in a run.
+- Nonpositive seats are invalid: say the team needs at least one seat and return no plan.
 - Never say a team is coming, a route is passable or a place is safe. Say "planned", not "rescued".
 - Answer in the volunteer's language (Thai or English), in at most 6 short lines: where first and why, the runs,
   what to bring, other teams to coordinate with, and what to do after this trip.
@@ -100,13 +102,16 @@ def draft_plan(st: dict, zone_id: str, seats: int, vehicle: str | None = None) -
     z = st["zones"].get(zone_id)
     if z is None:
         return {"error": f"no zone {zone_id}"}
-    seats = max(1, min(int(seats or 1), 40))
+    seats = int(seats)
+    if seats <= 0:
+        return {"error": "The team needs at least one seat; no plan was made."}
     fams = [r for r in _open(st, zone_id) if r["urgent"] or r["cannotWalk"] or r["status"] == "lostContact"] or _open(st, zone_id)
     runs: list[list[dict]] = []
+    bigger = []
     for r in fams:
         n = r["people"] or 1
         if n > seats:
-            runs.append([r])
+            bigger.append(_fam(r))
             continue
         for run in runs:
             if sum(x["people"] or 1 for x in run) + n <= seats:
@@ -126,7 +131,7 @@ def draft_plan(st: dict, zone_id: str, seats: int, vehicle: str | None = None) -
     nxt = next((x for x in ov["zones"] if x["id"] != zone_id and x["open"] and not x["plans"]), None)
     return {"zone": zone_id, "label": z.get("label"), "labelEn": z.get("labelEn"), "vehicle": vehicle or "boat", "seats": seats,
             "runs": [{"run": i + 1, "households": [r["id"] for r in run], "people": sum(r["people"] or 1 for r in run)} for i, run in enumerate(runs)],
-            "families": [_fam(r) for run in runs for r in run], "bring": bring, "otherTeams": _others(st, zone_id),
+            "families": [_fam(r) for run in runs for r in run], "needsBiggerVehicleOrSeveralTrips": bigger, "bring": bring, "otherTeams": _others(st, zone_id),
             "depthM": (z.get("level") or {}).get("depthM"),
             "after": nxt and {"zone": nxt["id"], "label": nxt["label"], "labelEn": nxt.get("labelEn"), "urgent": nxt["urgent"], "cannotWalk": nxt["cannotWalk"]}}
 
@@ -155,7 +160,7 @@ def _call(st: dict, name: str, args: dict) -> dict:
         return {"error": f"unknown tool {name}"}
     try:
         return fn(st, **{k: v for k, v in (args or {}).items() if v not in (None, "")})
-    except TypeError as e:
+    except (TypeError, ValueError) as e:
         return {"error": f"bad arguments: {e}"}
 
 
@@ -170,6 +175,28 @@ def check(answer: str, results: list[dict], question: str) -> str | None:
         return "empty answer"
     if CLAIMS.search(answer):
         return "claims a team is coming, a rescue or a safe route"
+    seats, _ = _capacity(question)
+    plans = [r for r in results if isinstance(r, dict) and "runs" in r]
+    if any(run["people"] > min(seats, p.get("seats", seats)) for p in plans for run in p["runs"]):
+        return "run exceeds seats"
+    capacity = min([seats] + [p.get("seats", seats) for p in plans])
+    families = {}
+    for result in results:
+        if isinstance(result, dict):
+            for key in ("families", "households", "needsBiggerVehicleOrSeveralTrips"):
+                for family in result.get(key, []):
+                    if isinstance(family, dict) and family.get("people") is not None:
+                        families[family["id"]] = family["people"]
+    for m in re.finditer(r"(?:run|trip|เที่ยว)\s*\d+\s*[:：–—-]?(.*?)(?=;|\n|(?:run|trip|เที่ยว)\s*\d+|$)", answer, re.I):
+        ids = set(re.findall(r"HH\d+", m.group(1)))
+        if sum(families.get(h, 0) for h in ids) > capacity:
+            return "run exceeds seats"
+        if any(int(n) > capacity for n in re.findall(r"(\d+)\s*(?:people|persons?|คน)", m.group(1), re.I)):
+            return "run exceeds seats"
+    for p in plans:
+        for family in p.get("needsBiggerVehicleOrSeveralTrips", []):
+            if family["id"] not in answer:
+                return "oversized household omitted"
     seen = set(NUM.findall(json.dumps(results, ensure_ascii=False))) | set(NUM.findall(question))
     seen |= {str(float(x)) for x in list(seen)} | {x.rstrip("0").rstrip(".") for x in list(seen) if "." in x}
     sums = set()
@@ -197,6 +224,8 @@ def rules_answer(st: dict, question: str) -> tuple[str, list[dict], dict | None]
         return out
 
     thai = bool(re.search(r"[฀-๿]", question))
+    if _capacity(question)[0] <= 0:
+        return ("ทีมต้องมีอย่างน้อยหนึ่งที่นั่ง จึงจะวางแผนได้" if thai else "The team needs at least one seat; no plan was made."), calls, None
     if re.search(r"can.?t walk|เดินไม่ได้", question, re.I):
         f = run("find_households", need="cannotWalk")
         z = next((x for x in f["zones"] if not x["teamPlanned"]), f["zones"][0] if f["zones"] else None)
@@ -216,6 +245,8 @@ def rules_answer(st: dict, question: str) -> tuple[str, list[dict], dict | None]
     lines = [f"Go to [{target['id']}] first: {zd['waiting']} families waiting, {zd['urgent']} urgent, water about {zd['depthM']} m, "
              + ("no other team planned." if not zd["otherTeams"] else f"{len(zd['otherTeams'])} other teams planned there: coordinate."),
              f"With {seats} seats: {runs}.", "Bring " + ", ".join(plan["bring"]) + "."]
+    if plan["needsBiggerVehicleOrSeveralTrips"]:
+        lines.append("Needs a bigger vehicle or several trips: " + ", ".join(f"[{f['id']}] ({f['people']} people)" for f in plan["needsBiggerVehicleOrSeveralTrips"]) + ".")
     if plan.get("after"):
         lines.append(f"After this trip: [{plan['after']['zone']}] has {plan['after']['urgent']} urgent and no team yet.")
     return "\n".join(lines), calls, plan
@@ -266,7 +297,7 @@ def _gemini(st: dict, question: str) -> tuple[str, list[dict], dict | None, str]
 def ask(st: dict, question: str) -> dict:
     question = (question or "").strip()[:600]
     t0 = time.time()
-    g = within(35, _gemini, st, question) if os.environ.get("REACHPOINT_AI", "on") != "off" else None
+    g = within(35, _gemini, st, question) if _capacity(question)[0] > 0 and os.environ.get("REACHPOINT_AI", "on") != "off" else None
     reader, why = "rules", None
     if g:
         answer, calls, plan, reader = g

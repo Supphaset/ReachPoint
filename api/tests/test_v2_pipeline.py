@@ -179,7 +179,7 @@ def test_copilot_answers_from_tools_and_its_numbers_are_checked():
     out = c.post("/api/v2/v/copilot", json={"question": "I have one boat with 6 seats. Where first?"}, headers=h).json()
     assert out["reader"] == "rules" and [t["name"] for t in out["toolCalls"]] == ["get_overview", "get_zone", "draft_plan"]
     plan = out["plan"]
-    assert plan["runs"] and all(r["people"] <= 6 or len(r["households"]) == 1 for r in plan["runs"])
+    assert plan["runs"] and all(r["people"] <= 6 for r in plan["runs"])
     assert out["cited"]["zones"] == [plan["zone"]] + ([plan["after"]["zone"]] if plan.get("after") else []) or out["cited"]["zones"]
     # the check: a number no tool gave, or a promise of rescue, sends the answer back to the rules
     results = [{"waiting": 7, "urgent": 3, "depthM": 1.32}]

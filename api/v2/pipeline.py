@@ -210,12 +210,12 @@ def _new_household(w: World, b, lon, lat, precision, at_h, zone_id=None) -> Hous
 def _merge_people(hh: Household, r: Read, first_hand: bool):
     p = r.get("people")
     if p and (first_hand or hh.people is None):
-        hh.people = max(p, hh.elderly + hh.children) if first_hand else p
+        hh.people = p
     for k, attr in (("elderly", "elderly"), ("children", "children"), ("cannotWalk", "cannot_walk")):
         v = r.get(k)
-        if v and (first_hand or not getattr(hh, attr)):
+        if v is not None and (first_hand or not getattr(hh, attr)):
             setattr(hh, attr, int(v))
-    if r.get("urgent"):
+    if r.get("urgent") or (r.get("depthRange") or [0, 0])[0] >= 1.2:
         hh.urgent = True
     # waist-deep water with someone who can't walk is urgent even when nobody says the word: they can't get out
     if hh.cannot_walk and (r.get("depthRange") or [0, 0])[0] >= WAIST_M:
@@ -419,7 +419,7 @@ def process(w: World, msg: dict, geo: G.Geo, live: bool = False):
     else:
         if kind in ("relative", "post", "forward") and how and (live or w.duplicates % 6 == 1):
             _log(w, "Dedupe", f"Merged a {msg['channel']} into {hh.id}: {how}. Count unchanged.", "building index · compare", at, msg["id"], "merge")
-    first_hand = kind in ("self", "reply")
+    first_hand = kind in ("self", "reply") or bool(live and msg.get("sessionId") and msg.get("householdHint"))
     if first_hand:
         hh.first_hand = True
         hh.reported_by_others_only = False

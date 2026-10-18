@@ -78,10 +78,20 @@ export function useGeo(): GeoView | null {
 const TeamNameContext = createContext<() => void>(() => undefined);
 export const useTeamNameOpener = () => useContext(TeamNameContext);
 
+/** The volunteer pages' links, shared by VShell and the copilot page. */
+export function VNavLinks() {
+  const mission = useMission();
+  return <>
+    <NavLink to="/v" end><Tr th="ช่วยที่ไหน" en="Where help is missing" /></NavLink>
+    <NavLink to="/v/plan">✦ <Tr th="วางแผนกับ Gemini" en="Plan with Gemini" /></NavLink>
+    <NavLink to="/v/feed"><Tr th="การตัดสินใจ" en="AI decisions" /></NavLink>
+    {mission && <NavLink to={`/v/mission/${encodeURIComponent(mission.zoneId)}`}><Tr th="ภารกิจของฉัน" en="My mission" /></NavLink>}
+  </>;
+}
+
 export function VShell({ title, sub, at, header, children }: { title: string; sub?: ReactNode; at?: string; header?: ReactNode; children: ReactNode }) {
   const t = useT();
   const [team, setTeam] = useTeam();
-  const mission = useMission();
   const [editing, setEditing] = useState(false);
   const teamInput = useRef<HTMLInputElement>(null);
   const openTeamName = () => { setEditing(true); teamInput.current?.focus(); };
@@ -92,9 +102,7 @@ export function VShell({ title, sub, at, header, children }: { title: string; su
       <StepHeader at={at} onAction={async action => { await v2.clock(action); window.dispatchEvent(new Event("reachpoint-clock")); }} />
       <nav className="rp-subnav" aria-label={t("หน้าอาสา", "Volunteer pages")}>
         <span className="rp-subnav-label"><Tr th="อาสา" en="Volunteers" /></span>
-        <NavLink to="/v" end><Tr th="ช่วยที่ไหน" en="Where help is missing" /></NavLink>
-        <NavLink to="/v/feed"><Tr th="การตัดสินใจ" en="AI decisions" /></NavLink>
-        {mission && <NavLink to={`/v/mission/${encodeURIComponent(mission.zoneId)}`}><Tr th="ภารกิจของฉัน" en="My mission" /></NavLink>}
+        <VNavLinks />
         <div className="v-team">
           {editing ? (
             <form onSubmit={(e) => { e.preventDefault(); setEditing(false); }}>

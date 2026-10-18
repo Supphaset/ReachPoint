@@ -10,9 +10,11 @@ from __future__ import annotations
 
 from api.v2.names import ROMAN_STREETS, bilingual_view
 
+import json
 import re
 import secrets
 from dataclasses import asdict, dataclass, field, fields
+from functools import lru_cache
 
 from api.v2 import geo as G
 from api.v2.reader import Fact, Read
@@ -45,6 +47,7 @@ Q = {
     "shelter_stay": ("ได้ค่ะ อยู่ที่บ้าน ขึ้นที่สูง ปิดไฟฟ้าชั้นล่าง เราแจ้งทีมอาสาให้แล้ว", "OK. Stay at home, go to the highest floor and switch off the power downstairs. We've told the volunteer teams."),
     "shelter_none": ("ตอนนี้ทางไปศูนย์พักพิงที่ใกล้ที่สุด ({name}) มีน้ำลึกราว {deep} ม. ยังไม่ควรเดินไปเองค่ะ ขึ้นที่สูงไว้ก่อน เราแจ้งทีมเรือแล้ว",
                      "The way to the nearest shelter ({name}) has water about {deep} m deep, so please don't walk there now. Go to the highest floor; we've told the boat teams."),
+    "urgent_recorded": ("บันทึกคำขอความช่วยเหลือแล้วค่ะ", "Your request for help is recorded."),
     "urgent_done": ("รับทราบค่ะ เป็นกรณีด่วน เรื่องของคุณขึ้นเป็นลำดับแรกแล้ว หากมีคนหายใจไม่ออกหรือบาดเจ็บ โทร 1669 ทันทีค่ะ",
                     "Understood. This is urgent, and your case is at the top now. If anyone can't breathe or is injured, call 1669 now."),
     "done": ("ขอบคุณค่ะ ข้อมูลของคุณอยู่ในระบบแล้ว เมื่อมีทีมวางแผนเข้าโซนของคุณ เราจะแจ้งทันที และจะถามไถ่เป็นระยะนะคะ",
@@ -132,13 +135,70 @@ def thai_streets(text: str) -> str:
     return out
 
 
+@lru_cache(maxsize=1)
+def _places() -> list[dict]:
+    from api.v2.shelters import load
+    places = [{"lon": p["lon"], "lat": p["lat"], "names": [p["name"], p.get("nameEn")]} for p in load()]
+    for filename in ("reported-flooding.geojson", "landmarks.geojson"):
+        for f in json.loads((G.PKG / filename).read_text())["features"]:
+            if f["geometry"]["type"] != "Point":
+                continue
+            p = f["properties"]
+            names = [p.get(k) for k in ("name_th", "name_en", "name", "name:en", "label")]
+            places.append({"lon": f["geometry"]["coordinates"][0], "lat": f["geometry"]["coordinates"][1], "names": names})
+    return places
+
+
+def _landmark_point(lon, lat, label, geo, by):
+    b = geo.snap(lon, lat, 250)
+    zid = geo.zone_at(lon, lat)
+    if not zid and b:
+        zid = b.zone_id
+    if not zid:
+        return None
+    return {"lon": lon, "lat": lat, "precision": "landmark", "buildingId": None, "zoneId": zid,
+            "label": label, "by": by}
+
+
+def _landmark(text, geo):
+    low = text.lower()
+    for p in _places():
+        for name in p["names"]:
+            if not name:
+                continue
+            short = re.split(r" /|,| \(| area$", name)[0]
+            if len(short) >= 5 and short.lower() in low:
+                return _landmark_point(p["lon"], p["lat"], short, geo, "bundled landmark")
+    return None
+
+
+def danger(s: Session) -> str:
+    f = s.facts
+    depth = f.get("depthRange", {}).get("value", [0, 0])
+    carry = f.get("cannotWalk", {}).get("value", 0)
+    if not (f.get("urgent", {}).get("value") or depth[0] >= 1.2 or carry):
+        return ""
+    if depth[0] >= 1.2:
+        s.facts["urgent"] = {"value": True, "quote": f["depthRange"]["quote"]}
+    if s.lang == "th":
+        reasons = (["น้ำลึกถึงหน้าอกหรือสูงกว่า"] if depth[0] >= 1.2 else []) + (["มีคนเดินไม่ได้"] if carry else [])
+        return "บันทึกเป็นกรณีด่วนแล้วค่ะ" + (": " + " และ".join(reasons) if reasons else "") + " โทร 1784 หรือกรณีเจ็บป่วยฉุกเฉิน 1669 "
+    reasons = (["chest-deep water or higher"] if depth[0] >= 1.2 else []) + (["someone who can't walk"] if carry else [])
+    return "I've marked this as urgent" + (": " + " and ".join(reasons) if reasons else "") + ". Call 1784, or 1669 for a medical emergency. "
+
+
 @bilingual_view
 def locate(text: str, geo: G.Geo) -> dict | None:
-    """Address words → a point on a building. Pinpoint first; a street-name match in the city as the stand-in."""
+    """Known landmarks keep approximate pins; addresses use Pinpoint, then the street-name stand-in."""
     from api.location.pinpoint import geocode
+    landmark = _landmark(text, geo)
+    if landmark:
+        return landmark
     g = geocode(text + CITY_HINT)
     if g:
         lon, lat = g["at"]
+        if g.get("precision") != "house":
+            return _landmark_point(lon, lat, g.get("label") or text, geo, "pinpoint")
         if geo.zone_at(lon, lat):
             b = geo.snap(lon, lat, 60)
             if b:
@@ -170,11 +230,19 @@ def _merge(s: Session, r: Read):
     for f in r.facts:
         if f.field in ("neighbour", "about", "forwarded"):
             continue
-        s.facts[f.field] = {"value": f.value, "quote": f.quote}
+        old = s.facts.get(f.field)
+        entry = {"value": f.value, "quote": f.quote}
+        if old and old.get("value") != f.value:
+            entry["history"] = old.get("history", []) + [{k: v for k, v in old.items() if k != "history"}]
+        elif old and "history" in old:
+            entry["history"] = old["history"]
+        s.facts[f.field] = entry
 
 
 def _next(s: Session) -> str | None:
     f = s.facts
+    if s.pin and s.pin.get("precision") == "landmark" and "where" not in s.asked:
+        return "where"
     if not s.pin:
         return "where" if "where" not in s.asked else "where_again"
     if "people" not in f and "people" not in s.asked:

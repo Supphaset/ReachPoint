@@ -30,20 +30,26 @@ _BELOW = re.compile(r"ต่ำกว่า|ไม่ถึง|below|under|almos
 _ABOVE = re.compile(r"สูงกว่า|เกิน|เลย|above|over|more than")
 
 
+def water_context(text: str, start: int = 0, end: int | None = None) -> bool:
+    """Only nearby water words support a reported depth, not an unrelated body part or instruction."""
+    window = text[max(0, start - 45): (end if end is not None else len(text)) + 45]
+    return bool(re.search(r"\bwater\b|\bflood\w*|น้ำ|ท่วม", window, re.I))
+
+
 def depth_from_words(text: str) -> tuple[float, float, str] | None:
     """The depth range a description implies, with the words it was read from; None when it says nothing."""
     t = (text or "").lower()
     m = _CM.search(t)
-    if m:
+    if m and water_context(t, m.start(), m.end()):
         v = int(m.group(1)) / 100
         return round(max(0, v - 0.1), 2), round(v + 0.1, 2), m.group(0)
     m = _METRES.search(t)
-    if m:
+    if m and water_context(t, m.start(), m.end()):
         v = float(m.group(1).replace(",", "."))
         return round(max(0, v - 0.2), 2), round(v + 0.2, 2), m.group(0)
     for pat, lo, hi, label in BANDS:
         m = re.search(pat, t)
-        if m:
+        if m and water_context(t, m.start(), m.end()):
             # "a little below the handle" shifts down; "above the knee" shifts up.
             window = t[max(0, m.start() - 20): m.end() + 12]
             if _BELOW.search(window):

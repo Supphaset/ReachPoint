@@ -1,6 +1,6 @@
 # Judge Q&A
 
-Current v2 answers, 17 Oct 2026. [English demo](https://reachpoint-900867850704.asia-southeast1.run.app/?lang=en),
+Current v2 answers, 17 Oct 2026. [English demo](https://reachpoint-main.web.app/?lang=en),
 [implementation overview](../../README.md#how-it-works), [Google Cloud stack](../../README.md#google-cloud).
 All people, conversations and plans in this demo are synthetic.
 

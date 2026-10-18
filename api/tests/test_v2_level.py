@@ -5,9 +5,9 @@ from api.v2.level import Obs, estimate, freshness
 def test_words_become_depth_ranges():
     assert depth_from_words("น้ำท่วมถึงเข่าแล้ว")[:2] == (0.4, 0.6)
     assert depth_from_words("water is up to my waist")[:2] == (0.9, 1.1)
-    lo, hi, _ = depth_from_words("ต่ำกว่าลูกบิดนิดหน่อย")
+    lo, hi, _ = depth_from_words("น้ำต่ำกว่าลูกบิดนิดหน่อย")
     assert lo < 0.9 and hi < 1.1
-    assert depth_from_words("about 1.5 m now")[:2] == (1.3, 1.7)
+    assert depth_from_words("water about 1.5 m now")[:2] == (1.3, 1.7)
     assert depth_from_words("น้ำสูง 80 ซม.")[:2] == (0.7, 0.9)
     assert depth_from_words("everyone is fine") is None
 

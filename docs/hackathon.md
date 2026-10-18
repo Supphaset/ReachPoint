@@ -15,7 +15,7 @@ Verified 2026-10-11; access dates and URLs live in [sources](research/sources.md
 | Innovation & Creativity | 25% |
 | User Experience & Solution Design | 10% |
 
-[Terms](https://docs.google.com/document/d/e/2PACX-1vRm7ChZ6Ij9fG7uFDkxzUMpwgVeBmnQ6cMDnAIEEX84AiLBOOQ9cYbl3S5OzFBbcVb8TF55s-eVpiXb/pub) require a live deployed prototype, public GitHub source, video **strictly under three minutes** and architecture/business-case deck. They require fresh code/assets created during the event. Eligibility includes age 21+, working professionals, no full- or part-time students, and physical presence/legal residence in JAPAC; each person may enter only one team/solution. Terms prevail over promotional conflicts. Do not reuse the discussion prototype as eligible code without verifying its provenance.
+[Terms](https://docs.google.com/document/d/e/2PACX-1vRm7ChZ6Ij9fG7uFDkxzUMpwgVeBmnQ6cMDnAIEEX84AiLBOOQ9cYbl3S5OzFBbcVb8TF55s-eVpiXb/pub) require a live deployed prototype, public GitHub source, video of **3 to 4 minutes** (the submission page, Oct 2026; an earlier version of the terms said under three minutes, so aim for about 3:15) and architecture/business-case deck. They require fresh code/assets created during the event. Eligibility includes age 21+, working professionals, no full- or part-time students, and physical presence/legal residence in JAPAC; each person may enter only one team/solution. Terms prevail over promotional conflicts. Do not reuse the discussion prototype as eligible code without verifying its provenance.
 
 The [themes page](https://aibuildercup.com/themes.html) also specifies an English submission and a PDF deck. It describes a three-minute video; follow the stricter terms.
 

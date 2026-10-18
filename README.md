@@ -5,7 +5,7 @@ bulletins alongside historical river-gauge and satellite inputs. A team of agent
 map for volunteers: who needs help, how deep the water is street by street, where it is heading, and who plans to
 come. Then it tells every household what is happening.
 
-AI Builder Cup 2026 (Google Cloud JAPAC) · Sustainability & Social Impact · built 12–18 Oct 2026 by a team of two.
+AI Builder Cup 2026 (Google Cloud JAPAC) · Sustainability & Social Impact · built during the event (planning from 11 Oct, code 12–18 Oct 2026) by a team of two.
 
 - **Live demo:** [Open in English](https://reachpoint-main.web.app/?lang=en) (Firebase Hosting; the same app on Cloud Run directly: [run.app](https://reachpoint-900867850704.asia-southeast1.run.app/?lang=en))
 - **Repository:** [Supphaset/ReachPoint](https://github.com/Supphaset/ReachPoint) · **Video:** see the submission · **Deck (PDF):** see the submission
@@ -121,7 +121,7 @@ reading is labelled with the model that made it.
   serves active rooms; this is not a multi-instance transaction design.
 - **Firebase Hosting:** configured as the CDN entry point in front of Cloud Run via
   [Hosting rewrites](https://firebase.google.com/docs/hosting/cloud-run) ([firebase.json](firebase.json)).
-  The voice WebSocket connects directly to Cloud Run. The linked demo URL above is the direct Cloud Run entry.
+  The voice WebSocket connects directly to Cloud Run. The demo link above goes through Firebase Hosting; the run.app address reaches Cloud Run directly.
 - **Earth Engine:** offline preparation of satellite, rainfall, terrain and land-cover inputs; no live Earth
   Engine requests during the demonstration. **Google Maps** provides satellite context and directions links.
 - **Secret Manager:** holds server-side API credentials injected into Cloud Run; keys stay out of source and
