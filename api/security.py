@@ -1,8 +1,7 @@
-"""Browser boundaries and response headers for classic and v2 routes."""
+"""Browser boundaries and response headers for v2 routes."""
 
 import asyncio
 import json
-import os
 import re
 import uuid
 
@@ -38,11 +37,6 @@ HEADERS = {
 }
 ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 MAX_BODY = 32768
-
-
-def classic_enabled():
-    # Local tests keep classic coverage; Cloud Run serves the v2 judging demo.
-    return os.environ.get("RP_CLASSIC_ENABLED", "0" if os.environ.get("K_SERVICE") else "1") == "1"
 
 
 def install(app, rooms):
@@ -83,8 +77,6 @@ def install(app, rooms):
                 retry = http_limit(request.method, path, client_ip(request), room, body, creating=creating)
                 if retry:
                     response = JSONResponse({"error": "rate_limited", "retryAfter": retry}, 429, headers={"Retry-After": str(retry)})
-                elif not classic_enabled() and path.startswith("/api/") and not path.startswith("/api/v2/") and request.method == "POST":
-                    response = JSONResponse({"error": "classic_disabled"}, 410)
                 else:
                     # Reject malformed household and zone IDs before route lookups.
                     ids = re.findall(r"/(?:cases|zones)/([^/]+)", path)

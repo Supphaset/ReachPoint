@@ -67,3 +67,12 @@ The demonstration must show incoming reports becoming actionable area summaries,
 ### Map-based rescue planning and multi-report water estimates
 
 Accepted user requests, 12 Oct 2026: use the flood map for rescue planning and estimate local water levels from multiple intake reports. Estimates must retain evidence, observation times, measurement reference, uncertainty and conflicts; distinguish estimated ground-relative depth from water-surface/gauge elevation and measured depth. The map connects unmet assistance, suitable team/resources, family groups, coverage gaps and replanning. It must not infer safe routes or hide urgent needs when capacity/evidence is limited. Detailed estimator choices, eligibility thresholds, terrain interpolation and UI are proposed in the [implementation plan](../planning/surge-demo.md), not approved or validated methods. A first local estimator (`local-envelope-v1`, PR #16) is implemented for the demo; it is a prototype rule, not a validated method.
+
+## Current runtime scope — 18 October 2026
+
+The owner approved retiring the classic implementation and making the repository v2-only in
+[decision 0012](../decisions/0012-v2-only-repository.md). The judging app uses the overview, family
+chat/browser voice and volunteer pages backed by `/api/v2`. Classic desk, review, dispatch, resident
+status-token and call APIs are removed; older scope documents remain historical design evidence.
+This cleanup preserves v2 behavior and the constraints above. It does not approve new providers,
+clinical behavior, spending or deployment. See the [runtime dependency map](../planning/v2-code-map.md).

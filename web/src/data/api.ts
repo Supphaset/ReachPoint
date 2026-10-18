@@ -1,8 +1,4 @@
-/**
- * Typed API client (C10). Every write goes through the FastAPI server (D2): the app never writes Firestore
- * directly. Each write carries a `submissionId` so a retry is safe, and the revision it saw where it matters.
- * Routes: contract/api.md. Rule failures come back as HTTP 409 with `{ code, message, detail }`.
- */
+/** Shared v2 HTTP client with room isolation and readable validation/rate-limit errors. */
 import { demoRoom } from "./room";
 
 export class ApiError extends Error {

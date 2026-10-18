@@ -1,10 +1,6 @@
-"""Demo rooms: each visitor gets their own copy of the demo, so judges trying it at the same time never see or undo
-each other's requests, approvals or the boat breakdown, and a reset only resets your room.
+"""Synthetic v2 demo rooms, with active-room leases and persistence before eviction.
 
-The browser sends its room in the `X-Demo-Room` header (web/src/data/room.ts); the phones on /demo share one room
-because they share the browser's storage, and `?room=CODE` opens the same room on another device. No header means
-the shared "main" room (tests, curl). A room is about 1 MB; the least recently used rooms are dropped past the cap.
-This replaces sign-in for the demo only: there are no accounts, and every room holds synthetic data.
+X-Demo-Room or ?room=CODE selects a visitor's room; no header selects main.
 """
 
 from __future__ import annotations
@@ -17,9 +13,6 @@ from collections import OrderedDict
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 
-from api.server.flood_replay import FloodReplay
-from api.server.memory import Clock, MemoryStore
-
 MAIN = "main"
 MAX_ROOMS = int(os.environ.get("REACHPOINT_MAX_ROOMS", "300"))
 VALID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
@@ -28,17 +21,8 @@ VALID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 @dataclass
 class Room:
     id: str
-    memory: MemoryStore
-    flood_replay: FloodReplay
-    triage_lock: threading.Lock = field(default_factory=threading.Lock)
-    triage_again: threading.Event = field(default_factory=threading.Event)
     active: int = 0
     used: float = field(default_factory=time.monotonic)
-
-
-def _new(room_id: str) -> Room:
-    memory = MemoryStore(clock=Clock(os.environ.get("REACHPOINT_CLOCK", "demo")))
-    return Room(room_id, memory, FloodReplay(memory.store.catalogue))
 
 
 class Rooms:
@@ -66,7 +50,7 @@ class Rooms:
                     if hasattr(old, "v2") and not store.flush(oldest, old.v2):
                         raise limited(5)
                     del self._rooms[oldest]
-                room = self._rooms[room_id] = _new(room_id)
+                room = self._rooms[room_id] = Room(room_id)
             self._rooms.move_to_end(room_id)
             room.used = time.monotonic()
             return room
@@ -88,31 +72,9 @@ class Rooms:
     def current(self) -> Room:
         return self.get(self.current_id.get())
 
-    def reset(self, room_id: str) -> Room:
-        from api.v2 import store
-        store.delete(room_id)
-        with self._lock:
-            room = self.get(room_id)
-            fresh = _new(room_id)
-            room.memory, room.flood_replay = fresh.memory, fresh.flood_replay
-            if hasattr(room, "v2"):
-                del room.v2
-            return room
-
     def all(self) -> list[Room]:
         with self._lock:
             return list(self._rooms.values())
 
     def __len__(self) -> int:
         return len(self._rooms)
-
-
-class RoomAttr:
-    """`memory` and `flood_replay` in api/main.py: whatever the current request's room holds."""
-
-    def __init__(self, rooms: Rooms, attr: str):
-        object.__setattr__(self, "_rooms", rooms)
-        object.__setattr__(self, "_attr", attr)
-
-    def __getattr__(self, name):
-        return getattr(getattr(self._rooms.current(), self._attr), name)

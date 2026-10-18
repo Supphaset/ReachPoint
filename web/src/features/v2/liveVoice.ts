@@ -1,7 +1,7 @@
 import { wsOrigin } from "../../data/wsOrigin";
 /**
  * A Gemini Live voice call with the intake agent (server: api/v2/live.py). Adapted from Earth's
- * features/intake/gemini-live.ts: microphone → 16 kHz PCM over a WebSocket; Gemini's 24 kHz voice back.
+ * microphone → 16 kHz PCM over a WebSocket; Gemini's 24 kHz voice back.
  */
 import { demoRoom } from "../../data/room";
 import type { TurnResult } from "./api";

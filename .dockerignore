@@ -3,6 +3,5 @@
 **/node_modules
 web/dist
 **/__pycache__
-api/notebooks
 data/ee
 *.pdf

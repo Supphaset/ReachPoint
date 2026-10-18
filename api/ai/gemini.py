@@ -18,6 +18,8 @@ ROUTE = os.environ.get("REACHPOINT_GEMINI", "auto")
 VERTEX_MODELS = tuple(m.strip() for m in os.environ.get(
     "GEMINI_VERTEX_MODELS", "gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-3.8-flash").split(",") if m.strip())
 VERTEX_LOCATION = os.environ.get("GEMINI_VERTEX_LOCATION", "global")
+KEY_MODELS = tuple(dict.fromkeys(m for m in (os.environ.get("GEMINI_MODEL"), "gemini-flash-lite-latest", "gemini-3.5-flash-lite",
+                                          "gemini-flash-latest", "gemini-3.8-flash") if m))
 KEY_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 _creds_lock = threading.Lock()
 _creds = None
@@ -86,23 +88,3 @@ def post(model: str, body: dict, timeout: float, key: str | None = None):
         return httpx.post(url, headers={"Authorization": f"Bearer {_token()}"}, json=body, timeout=timeout)
     return httpx.post(KEY_ENDPOINT.format(model=model), headers={"x-goog-api-key": key or api_key() or ""},
                       json=body, timeout=timeout)
-
-
-def genai_client():
-    """A google-genai client on the same route (the call conversation and the ADK agent use the SDK)."""
-    from google import genai
-    if use_vertex():
-        c, p = _credentials()
-        return genai.Client(vertexai=True, credentials=c, project=p, location=VERTEX_LOCATION)
-    return genai.Client(api_key=api_key())
-
-
-def adk_env() -> None:
-    """Point ADK (google-genai inside) at the same route through its environment variables."""
-    if use_vertex():
-        os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "TRUE"
-        os.environ.setdefault("GOOGLE_CLOUD_PROJECT", project() or "")
-        os.environ["GOOGLE_CLOUD_LOCATION"] = VERTEX_LOCATION
-    else:
-        os.environ["GOOGLE_API_KEY"] = api_key() or ""
-        os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "FALSE"

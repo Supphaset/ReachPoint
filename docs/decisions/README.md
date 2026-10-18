@@ -15,7 +15,8 @@ Only explicit human approvals are accepted product decisions. AI recommendations
 | [0009](0009-implementation-start-and-technical-direction.md) | Accepted by the user; friend confirmation pending | Implementation from 12 Oct, stack A, Google Cloud layout, real past-event flood packages, browser-voice interim intake |
 | [0010](0010-surge-demonstration-and-exception-review.md) | Accepted user clarification, 12 Oct 2026 | 1,000+ synthetic-request demonstration; automatic organization and human exception review |
 | [0011](0011-zone-plan-suggestions.md) | Accepted user instruction, 18 Oct 2026 | Gemini suggestions inside the zone plan, checked against room records |
+| [0012](0012-v2-only-repository.md) | Accepted user instruction, 18 Oct 2026 | Retire classic screens and backend; keep the v2 runtime and its dependencies |
 
-For the next consequential choice create `0012-<topic>.md` with date, status (proposed/accepted/superseded), human approval reference, context/evidence, decision, rationale, alternatives, consequences and affected docs. Drafting a record does not accept it. Preserve superseded decisions and link replacements.
+For the next consequential choice create `0013-<topic>.md` with date, status (proposed/accepted/superseded), human approval reference, context/evidence, decision, rationale, alternatives, consequences and affected docs. Drafting a record does not accept it. Preserve superseded decisions and link replacements.
 
 Prototype v1 scope is accepted in 0005 and revised by 0009 (real past-event flood packages instead of a fictional locality). 0009 selects the framework, database, hosting, map and AI route, pending the friend's confirmation. Telecom provider, spend cap and any real clinical workflow are not accepted. Public repository visibility is accepted in 0008.

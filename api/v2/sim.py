@@ -1,4 +1,4 @@
-"""The flood simulation (data/scripts/build_v2_flood_sim.py) for the server: simulated depth at any point and hour.
+"""The published basin simulation (data/scripts/publish_v2_sim.py) for the server: simulated depth at any point and hour.
 
 The Analyst uses it as the first guess. Reports then correct it: each report's gap from the simulation at its own
 house is compared with the gaps of the reports around it, and the board shows the corrected picture.

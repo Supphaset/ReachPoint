@@ -2,7 +2,6 @@ import { Tr, useT, useUiLang, localizeNames } from "../ui/lang";
 /** Shared parts of the volunteer pages: the shell and navigation, the team name, live refresh, chips and a small map. */
 import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
-import { apiMode } from "../../../data/mode";
 import { depthBand, v2, type CaseRow, type GeoView } from "../api";
 import { StepHeader } from "../ui/Shared";
 import { useMission } from "./mission";
@@ -94,8 +93,6 @@ export function VShell({ title, sub, at, header, children }: { title: string; su
   const [editing, setEditing] = useState(false);
   const teamInput = useRef<HTMLInputElement>(null);
   const openTeamName = () => { setEditing(true); teamInput.current?.focus(); };
-  if (!apiMode())
-    return <main className="v-page rp-app"><StepHeader showDemo={false} /><p className="v2-card v-pad">These pages need the ReachPoint server. Open them with <code>?data=api</code>.</p></main>;
   return (
     <TeamNameContext.Provider value={openTeamName}><main className="v-page rp-app">
       <StepHeader at={at} onAction={async action => { await v2.clock(action); window.dispatchEvent(new Event("reachpoint-clock")); }} />

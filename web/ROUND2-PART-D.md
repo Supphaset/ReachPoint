@@ -45,7 +45,7 @@ The sandbox also blocked creating the task branch because `.git` is read-only. T
 - [src/features/v2/BoardMap.tsx](src/features/v2/BoardMap.tsx)
 - [src/features/v2/NeighbourPicture.tsx](src/features/v2/NeighbourPicture.tsx)
 - [src/features/v2/OverviewLanding.tsx](src/features/v2/OverviewLanding.tsx)
-- [src/features/v2/Panels.tsx](src/features/v2/Panels.tsx)
+- `src/features/v2/Panels.tsx` (removed in the 18 Oct cleanup after its callers were replaced)
 - [src/features/v2/Phone.tsx](src/features/v2/Phone.tsx)
 - [src/features/v2/PlanPage.tsx](src/features/v2/PlanPage.tsx)
 - [src/features/v2/V2Page.tsx](src/features/v2/V2Page.tsx)

@@ -103,7 +103,7 @@ def http_limit(method, path, ip, room, body, creating=False):
             name, cap = "sessions", 20
         elif path.endswith(("/copilot", "/suggest")):
             name, cap = "copilot", 8
-        elif path == "/api/demo/reset" or (path == "/api/v2/clock" and body.get("action") == "reset"):
+        elif path == "/api/v2/clock" and body.get("action") == "reset":
             name, cap = "room", 10
         else:
             name, cap = "post", 120

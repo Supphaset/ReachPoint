@@ -1,3 +1,6 @@
+> Historical classic contract, retired on 18 October 2026 by [decision 0012](../docs/decisions/0012-v2-only-repository.md).
+> Current endpoints are in `api/v2/routes.py` and `/api/docs`; payload fixtures for classic are removed.
+
 # ReachPoint HTTP API (draft v0.1, 12 Oct 2026)
 
 What the web app calls in API mode (`VITE_DATA=api` or `?data=api`; see `web/src/data/mode.ts`). The starter server

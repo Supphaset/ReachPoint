@@ -1,14 +1,7 @@
-# Runtime for the API on Cloud Run (api/main.py). The rules and views use the standard library only.
-fastapi==0.133.0            # google-adk 2.11 requires FastAPI >= 0.133
-uvicorn[standard]==0.34.0   # google-adk 2.11 requires Uvicorn >= 0.34
-httpx==0.28.1               # Gemini REST calls; compatible with google-genai via ADK
-google-adk==2.11.0          # triage agent (api/ai/triage.py)
-google-genai==2.30.0       # conversation extraction and Gemini Live voice
-# google-adk 2.11 needs opentelemetry <= 1.42.1; google-api-core 2.42+ needs >= 1.44, so pin both sides.
-opentelemetry-api==1.42.1
-opentelemetry-sdk==1.42.1
-google-api-core==2.34.0
-ortools==9.15.6755         # split solver (api/rules/allocation.py), imported by the planning panel
-protobuf==6.33.6           # ortools and google-adk both need it; this version satisfies both
-shapely==2.2.0             # zone and sector shapes (api/v2/geo.py, api/v2/cases.py)
+# Runtime for the v2 API on Cloud Run (api/main.py).
+fastapi==0.133.0
+uvicorn[standard]==0.34.0
+httpx==0.28.1             # Gemini REST and Pinpoint
+google-genai==2.30.0     # Gemini Live voice
+shapely==2.2.0            # zones, sectors and route geometry
 google-cloud-firestore==2.21.0  # durable v2 demo rooms via Cloud Run identity
