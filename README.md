@@ -45,8 +45,9 @@ open cases ([Thairath](https://en.thairath.co.th/news/politic/2897779),
   water street by street, and the model tells volunteers where to expect water nobody has reported.
 - **The silent are counted.** Zones the model says are flooded but nobody has reported from are flagged, and the
   agent asks people there about their neighbours.
-- **Volunteers see what is still missing.** Zones with families and no team, a copilot that plans a trip from the
-  evidence, and every posted plan told to the families it covers.
+- **Volunteers see what is still missing.** Zones with families and no team; inside a zone, Gemini suggests the
+  team's visiting order (with each family's own words, seats to keep free, and flooded streets nobody has reported
+  from), a route over the water, and every posted plan told to the families it covers.
 
 ## Try it in 90 seconds
 
@@ -64,9 +65,10 @@ bar at the top walks you through it; **Explore freely** opens everything else.
    Optional Thai example: *"น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"*
    means *"Water is up to my waist; I'm with my mother, who cannot walk; house 52/9, Phetkasem Soi 2."*
 3. **Volunteer.** Turn on **Water**, open **Urgent**, set a synthetic team name and mark **Do first**.
-   Open zone **D12**, choose **I'll go here**, check the plan and post it. The **Mission** page shows
-   directions and **Picked up**. A team report prompts the family to confirm; it does not prove receipt.
-   The copilot also accepts *"I have one boat with 6 seats. Where first?"* and shows Gemini's tool calls.
+   Open the family's zone (**B5** for the sample), choose **I'll go here**, pick **Boat** and **6** seats, then
+   **✦ Suggest visiting order (Gemini)**: the order with a reason and the family's words per house, seats kept free,
+   what to bring and streets to check. Edit it and post. The **Mission** page draws the boat's route over the flooded
+   streets and has **Picked up**. A team report prompts the family to confirm; it does not prove receipt.
 4. Return to the family phone to see its plan update. D12 is a separate example zone: the sample address
    resolves to **B5**, so post a B5 plan too to demonstrate an update to this same family.
 5. **Demo controls** are bottom-right behind **Demo ⋯**: +30 min, Rain alert, River rising,
@@ -109,8 +111,10 @@ reading is labelled with the model that made it.
 
 ## Google Cloud
 
-- **Gemini:** Flash-Lite reads messages with quoted evidence; rules fill gaps. Flash powers the copilot
-  with [function calling](https://ai.google.dev/gemini-api/docs/function-calling/), and **Gemini Live**
+- **Gemini:** Flash-Lite reads messages with quoted evidence; rules fill gaps. In each zone, Flash-Lite turns the
+  team's vehicle and seats plus every waiting family's needs, depth and words into a visiting order with reasons
+  ([structured output](https://ai.google.dev/gemini-api/docs/structured-output)); the server keeps only real
+  houses, quotes, streets and numbers and packs the runs itself. **Gemini Live**
   handles browser voice. The deploy script defaults to the Gemini API key route; Vertex AI is optional.
   Actual model identifiers are shown in reader/tool traces rather than treated as accuracy guarantees.
 - **Cloud Run:** one container serves React and FastAPI. The demo deploy configuration sets minimum and maximum
@@ -137,7 +141,7 @@ judge's way. Details and values: [`docs/deployment/security-and-limits.md`](docs
 
 - **Rate limits** per visitor and per chat (for example 30 messages a minute); a visitor who goes over sees
   "wait N seconds" in the chat instead of an error. Longer caps reset every 15 minutes.
-- **A Gemini budget** (400 calls and 45 voice minutes per 15 minutes). When it is reached, the reader and copilot
+- **A Gemini budget** (400 calls and 45 voice minutes per 15 minutes). When it is reached, the reader and the zone suggestion
   switch to their rules, and every reply says so.
 - **Voice calls:** at most 3 at once and 1 per visitor, each ending after 5 minutes.
 - **Prompt injection:** a message is data, never instructions. Every fact Gemini keeps must quote the sender's

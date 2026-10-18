@@ -1,59 +1,20 @@
-# Demo video — aim for 3:30
+# Demo video (3:26)
 
-Record at [the deployed English URL](https://reachpoint-main.web.app/?lang=en).
-Allowed length: 3–4 minutes; target 3:30, acceptable edit 3:00–3:45. Video and deck links: see the submission.
-Keep the synthetic-data disclosure visible. Demo controls are bottom-right behind **Demo ⋯**.
+Recorded automatically on the live English site (https://reachpoint-main.web.app/?lang=en) by
+`film/demo2026/record.py` on the owner's machine: headless Chrome driven over the DevTools protocol, a fresh demo room per
+take, narration by the macOS "Samantha" voice. The rules allow 3–4 minutes.
 
-## Recording setup
-
-Use one fresh demo room throughout, with the family phone and volunteer page in the same browser profile.
-Keep the family tab open so its session survives the mission scene. Do not reset between scenes.
-Use the English sample, editing its street before sending to keep this story in **D12**:
-
-> Water is up to my waist, I'm with my mom who can't walk, house 52/9 Lamai Songkhro
-
-The unedited prefill says Phetkasem Soi 2 and resolves to **B5**, not D12. Do not imply a D12 plan covers B5.
-Set the synthetic team name to **Demo Boat 1**, boat, 6 seats. Arrival time is the team's plan, not an AI promise.
-
-## Shots and voice-over
-
-| Time | Current clicks / what to show | Voice-over |
+| Time | On screen | Voice-over |
 |---|---|---|
-| 0:00–0:25 | **Overview** → play the flood week. Pause at **25 Nov 06:00**. Show 1,064 messages and 307 households, then the agent activity. | “During a flood, a message can be heard without a family being reached. ReachPoint joins reports, water conditions and volunteer plans. This is Hat Yai's historical flood, with synthetic people. Play the week: more than a thousand messages become about three hundred households, with the evidence still attached.” |
-| 0:25–0:55 | **Report as a family** → edit the sample street to **Lamai Songkhro** → send. Show the **location** card and map. If the agent asks the household size, answer **2 of us**. | “A family can type or use Gemini Live browser voice. Here, water is at waist height and the mother cannot walk. The Gemini reader extracts quoted facts, with rules filling gaps. The locator matches the reported street to a building in D12. This street-name fallback is labelled; it is not a verified household address.” |
-| 0:55–1:20 | Open the report **trace**. Show the reader label, D12 location and water correction. Show the **shelter card**: **Wat Klong Rian**, **1.3 km**, **27 minutes**, deepest **1.43 m**, street route. | “The trace shows what was read and how the location was chosen. At this house, the model gives 1.28 metres; reports correct it to about 1.07, with a range. The nearest candidate shelter is Wat Klong Rian. The street walk check reaches 1.43 metres, so the agent says not to wade. This is planning evidence, not a safe-route guarantee.” |
-| 1:20–1:30 | Select **Need a team** on the shelter card. Show the recorded request and tick the **get-ready** checklist. Keep the family phone open. | “The family needs a team. The request stays open while they prepare. A request for help does not mean a team has accepted, and a plan will not be presented as a completed rescue.” |
-| 1:30–2:00 | **Volunteer** → map → **Water** → **Urgent** tab. Set **Demo Boat 1**, select **Do first** for a visible urgent case. Open zone **D12**. | “Volunteers see the water estimate alongside families still waiting. Urgent keeps reported danger visible; Do first records a team's priority mark. Before this new report, D12 had seven families waiting, eighteen people and three urgent cases. The new report changes the live counts. Each number comes from the current records.” |
-| 2:00–2:25 | In the D12 panel select **✦ Ask Gemini** (or **Plan with Gemini** in the volunteer bar). Ask “I have one boat with 6 seats. Where first?”. Hold on the answer: the cited zones and households, the runs within 6 seats, and the tool calls with the number check underneath. | “A boat crew asks Gemini where to go first. Gemini calls ReachPoint's own tools for zones, families and water, then drafts the runs. Every number in its answer is checked against those tool results before the crew sees it.” |
-| 2:25–2:45 | D12 → **I'll go here** → review boat, seats, arrival time and plan → **post plan**. Open **Mission**. | “Our team chooses D12 and posts its own plan. The notifier sends that update to families in the zone. The Gemini copilot can also call tools to inspect needs and draft runs, but people review the plan and decide where to go.” |
-| 2:45–3:05 | **Mission page** → show **directions** → select a synthetic household → **Picked up** → confirm. Return to the family tab. | “The mission page turns the plan into a visiting list with directions. Picked up records a team report, then asks the family to confirm. Directions are a map link, not a claim that the route is safe.” |
-| 3:05–3:20 | Family phone: show the **plan update** from Demo Boat 1. If recording the pickup for this same family, also show its confirmation question; retain the earlier plan update in the inbox. | “Back on the family phone, the plan update says who plans to come. The family can answer and correct the record. Planned help, a team report and confirmed receipt stay separate.” |
-| 3:20–3:35 | Close on the **Google Cloud stack slide**, live English URL and [repository](https://github.com/Supphaset/ReachPoint). | “Gemini reads and calls planning tools; Gemini Live carries voice. Cloud Run hosts the web and API, Firestore persists demo rooms, and Firebase Hosting fronts the service. Earth Engine prepares flood inputs; Google Maps adds context. ReachPoint connects what people say to what teams plan—and what families can actually confirm.” |
-
-## Live API evidence for the capture
-
-Checked by `curl` on **17 Oct 2026**, direct Cloud Run URL above, isolated synthetic rooms.
-These are observed outputs, not exact values to force if a later build or a new report changes them.
-
-- `GET /api/v2/v/overview`: **1,064 messages**, **307 households**, **1,102 people**, at **25 Nov 06:00**.
-- `GET /api/v2/v/zones/D12`: **7 open families**, **18 people**, **3 urgent**, **6 needing a boat** before the new report.
-- English session + the Lamai Songkhro sample: reader **gemini:gemini-flash-lite-latest**;
-  location **D12**, by **street name in the address**; household **HH308** in that fresh room.
-- Sample trace: model **1.28 m** → corrected **1.07 m**, likely **0.73–1.41 m**.
-- Shelter route: **Wat Klong Rian**, **1.3 km**, **27 minutes**, deepest **1.43 m**, `by: streets`, `walkable: false`.
-  The agent says: “The nearest shelter is Wat Klong Rian, about 1.3 km away”, followed by the deep-water warning.
-- The unedited Phetkasem sample was also checked: **B5**, **Prince of Songkla University**, **2.6 km**,
-  **52 minutes**, deepest **1.08 m**. These outputs belong to a different location; do not mix the two shots.
-- Plan, pickup and family-inbox wording should be captured from the actual recorded interaction; those live writes
-  were not performed for this documentation check. The walkthrough follows the current local UI handlers.
-
-## Final recording checks
-
-- [ ] Deploy the English place-name changes before recording; this task does not deploy them.
-- [ ] Confirm `?lang=en`, English prefill, English place labels, and the actual Gemini/rules labels.
-- [ ] Use the D12 sample edit above; verify D12 in the returned location before posting the plan.
-- [ ] Check Maps, the water layer, the shelter card and the report trace on the deployed revision.
-- [ ] Browser voice is optional in this timed sequence; do not claim a real phone call or tested audio accuracy.
-- [ ] Show only synthetic reports; keep credentials, room/session tokens and account panels out of the recording.
-- [ ] Use actual counts on screen after the new report; retain the explicit “before the report” qualification.
-- [ ] Check the final exported duration: target **3:30**, within **3:00–3:45** and the allowed **3–4 minutes**.
+| 0:00–0:19 | Title card: the Hat Yai problem; real water data, synthetic people. | “In the November 2025 Hat Yai flood, about forty thousand help requests piled up across many platforms. Calls were answered, but families waited for days, because nobody could see who was where, how deep the water was, or whether anyone was coming. This is ReachPoint.” |
+| 0:19–0:46 | Overview → Replay the flood week; the AI's labelled decisions. | “ReachPoint replays that real flood week. The water data is real; the people are synthetic. As over a thousand messages arrive, Gemini reads every one, and ReachPoint merges replies, forwards and relatives' posts into about three hundred households on the map. On the right, every decision is labelled: Gemini, rules, physics, or action.” |
+| 0:46–1:06 | Report as a family → type the English message → send. | “Now, a family reports. Water is up to the waist, and the mother can't walk. Gemini extracts each fact, and every fact must quote the sender's own words, or it is dropped. ReachPoint matches the address to the building, and flags the case as urgent.” |
+| 1:06–1:24 | Evidence panel: Gemini's quoted facts, the house, model vs reports depth, shelter and "don't wade". | “Here is the evidence for this family. The flood model says about one point four metres at the house; nearby reports correct it to about one point one. The agent offers the nearest shelter, but the street on the way is over a metre deep, so it tells them not to wade.” |
+| 1:24–1:35 | Need a team → tick the get-ready checklist. | “The family asks for a team. They get a short checklist to prepare, and an honest answer: a request is not a rescue, yet.” |
+| 1:35–1:51 | Volunteer → Water layer → Urgent tab → team "Demo Boat 1" → Do first. | “Volunteers see where help is missing, on a real map, with the flood layer and the six-hour rain outlook. The urgent tab groups cases by zone, and teams mark which houses to do first.” |
+| 1:51–2:05 | Sectors → B → zone B5: water, go-by, flooded buildings with no request (estimate). | “This team opens zone B5, where our family lives. The panel shows the water, how to get in, and a model estimate: over a hundred flooded buildings here, where nobody has asked for help yet.” |
+| 2:05–2:30 | I'll go here → Boat, 6 seats → ✦ Suggest visiting order (Gemini): reasons, quotes, seats kept free, bring, streets to check. | “The crew enters their boat and six seats, and asks Gemini for a visiting order. Gemini gets this team's details and every waiting family's needs, water depth and own words, and explains why each house comes where it does. It keeps seats free, and names the flooded streets to check for people who never asked. ReachPoint checks every house, quote and number before the crew sees it.” |
+| 2:30–2:39 | Post plan and tell the families. | “The crew can edit the order, then posts it. Every household in the zone is told: help is planned, not rescued yet.” |
+| 2:39–2:56 | Mission: the boat's route over the water from the launch point; Picked up → Confirm. | “The mission page routes the boat over the flooded streets: from a launch point, past each house in order, and back to hand people over to a truck. It warns where the boat must be carried, and the crew marks each outcome.” |
+| 2:56–3:07 | Family phone: the team's pickup report to confirm. | “Back on the family's phone, the team's pickup report arrives. The family confirms it, or says someone is still inside.” |
+| 3:07–3:26 | Closing card: the Google Cloud stack and links. | “ReachPoint runs on Google Cloud. Gemini reads, plans and talks. Cloud Run hosts the agents. Firestore keeps every room. Firebase Hosting serves it, with rate limits and a Gemini budget to keep it safe. A flood picture that builds itself from what people say.” |
