@@ -131,7 +131,7 @@ def validate(raw, ctx):
     names = {r[k] for r in streets for k in ("name", "nameEn")}
     out["checkStreets"] = [s for s in out["checkStreets"] if s["name"] in names and _text_ok(s["why"], ctx)]
     out["order"] = sorted(order, key=lambda v: v["run"])
-    out["warnings"] = warnings + [s for s in out["warnings"] if len(s) <= 300 and _text_ok(s, ctx)]
+    out["warnings"] = warnings   # only the server's own access and capacity warnings; the model's are not checkable
     out["bring"] = [s for s in out["bring"] if len(s) <= 200 and _text_ok(s, ctx)]
     if not _text_ok(out["summary"], ctx):
         out["summary"] = "ทบทวนก่อนส่งแผน" if thai else "Review before posting the plan"
@@ -180,7 +180,7 @@ Order by risk to life: urgent, cannot walk, deepest water, longest silent. Keep 
 seats, keeping 1–2 seats free when unheard streets exist and household size allows. Never invent households or numbers.
 Unreachable households belong in warnings ('needs a boat'). Say what to bring for these specific people (stretcher for
 someone who cannot walk; life jackets per child). Quotes must be exact substrings of that household's texts.
-Reason <=120 characters plain text; summary <=200 characters. checkStreets names only from unheard streets.
+Reason <=120 characters plain text with NO digits: the page shows each house's numbers beside it, so say in words why it comes at this point, e.g. "Neck-deep water with two small children; silent the longest" or "Can't walk: needs carrying, so first while the boat is empty". Summary <=200 characters. Leave warnings empty; the server adds access warnings. checkStreets names only from unheard streets.
 Use flooded BUILDING counts as concrete model numbers. Household ranges are labelled estimates, never confirmed need.
 Do not claim a safe route, completed rescue or team commitment. This is an editable proposal only."""
 
@@ -193,7 +193,8 @@ def _gemini(ctx):
         try:
             response = gemini.post(model, {"systemInstruction": {"parts": [{"text": INSTRUCTION}]},
                 "contents": [{"role": "user", "parts": [{"text": "<zone_context_json>\n" + json.dumps(ctx, ensure_ascii=False) + "\n</zone_context_json>"}]}],
-                "generationConfig": {"temperature": 0, "responseMimeType": "application/json", "responseSchema": SCHEMA}}, 20.0)
+                "generationConfig": {"temperature": 0, "responseMimeType": "application/json", "responseSchema": SCHEMA,
+                                     "maxOutputTokens": 4096, "thinkingConfig": {"thinkingBudget": 0}}}, 20.0)
             response.raise_for_status()
             parts = response.json()["candidates"][0]["content"]["parts"]
             return json.loads("".join(p.get("text", "") for p in parts if not p.get("thought"))), f"gemini:{model}"
