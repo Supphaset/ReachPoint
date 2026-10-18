@@ -27,6 +27,39 @@ Each package folder holds what the app shows for one past flood event:
 | `<package>/run-summary.json` | Parameters, scenes used and flooded area for the run |
 | `SOURCES.md` | Record of every run and its comparison with published maps |
 
+## V2 preparation and rebuilds
+
+The app runs from the committed Hat Yai package. Do not rebuild it just to start the demo: rebuilding can
+change the scenario, cached readings and evaluation results. Inputs retain their sources in [SOURCES.md](SOURCES.md).
+
+Preparation uses both the API dependencies and `data/requirements.txt`; Earth Engine exports additionally
+require an authenticated, authorized sandbox project. No Earth Engine request runs in the app.
+
+| Order | Tool | Inputs / output |
+|---|---|---|
+| 1 | `scripts/build_v2_buildings.py --project YOUR_SANDBOX_PROJECT`, `scripts/fetch_v2_streets.py` | Export Open Buildings and fetch OSM streets; writes `v2-buildings.json.gz` and `v2-streets.geojson` |
+| 2 | `scripts/build_v2_zoning.py` | Buildings, streets and retained baseline zones; writes v2 zones, blocks, sectors and building assignments |
+| 3 | `scripts/build_v2_terrain.py --project YOUR_SANDBOX_PROJECT`, `scripts/build_v2_basin.py --project YOUR_SANDBOX_PROJECT`, `scripts/build_v2_basin_rain.py --project YOUR_SANDBOX_PROJECT` | Export city terrain, basin terrain/land cover and basin rainfall; cached OSM basin channels and gauge readings are also required |
+| 4 | `scripts/build_v2_basin_sim.py` | Runs the basin model into ignored `data/.cache/`; arguments control resolution, rain, inflow, drainage and terrain corrections |
+| 5 | `scripts/publish_v2_sim.py RUN` | Reads `data/.cache/v2-basin-sim-RUN.*`; downsamples the water surface to city terrain and writes `v2-sim.json` / `v2-sim.bin.gz` |
+| 6 | `scripts/build_v2_rain_response.py`, `scripts/build_v2_shelters.py` | Build extra-rain response and candidate-shelter outputs from published simulation data and their other cached inputs |
+| 7 | `scripts/build_v2_scenario.py` | Writes synthetic messages/households/plans and evaluation truth; uses an independent `data/.cache/v2-truth-sim.*` run if available, otherwise the published model |
+| 8 | `api/scripts/v2_batch_read.py` (from the repository root) | Optionally reads the scenario with Gemini into `v2-facts.json`; requires configured credentials and authorized model usage |
+| 9 | `python -m api.v2.board`, `python api/scripts/eval_v2.py` | Refreshes timeline and evaluation; evaluation writes `docs/eval/v2-results.md` |
+
+Paths beginning `scripts/` in this table are relative to `data/`; invoke them as
+`python data/scripts/…` from the repository root. These are preparation steps, not one shell command.
+Follow each script's arguments and input paths; the table is not a claim that defaults reproduce the submitted run.
+
+The committed model metadata identifies run `s10` at 75 m with rain factor 1.6, inflow 0.35, urban Manning
+coefficient 0.12, drainage 5 mm/h, urban ground correction 1 m, street-ground correction enabled and channel-width
+exponent 0.3. The generator defaults differ. Publishing requires a named cached run; source `.cache` runs and
+independent truth runs are not committed. The rain-response builder additionally needs a published extra-60-mm
+run under `data/.cache/v2-sim-rain60.*`. Preserve the committed outputs unless intentionally regenerating them.
+
+The older diffusive city-only generator is retired; `publish_v2_sim.py` is the current publication step.
+Satellite extent is used separately as dated comparison context, not as depth input to the basin simulation.
+
 ## One-time setup (your sandbox project)
 
 1. In the Google Cloud console, create or pick your **sandbox** project. Register it for Earth Engine as **noncommercial** (Community tier) at <https://code.earthengine.google.com/register>.

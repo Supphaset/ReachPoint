@@ -255,3 +255,11 @@ Access date: **2026-10-18**. Commands are prepared for the owner, not applied.
 | [Uptime CLI](https://docs.cloud.google.com/sdk/gcloud/reference/monitoring/uptime/create) | HTTPS health monitoring command | Check and notification policy not created |
 | [Maps CSP guide](https://developers.google.com/maps/documentation/javascript/content-security-policy) | Maps eval/blob and service domain requirements | Policy mirrored locally; no paid-key browser validation |
 | [Cloud Run update CLI](https://docs.cloud.google.com/sdk/gcloud/reference/run/services/update) | Service-wide instance settings versus revision settings | Prepared flags only; deployed revisions/tags not inspected |
+
+## README runtime audit — 18 October 2026
+
+- [NumPy 2.5.4 package metadata](https://pypi.org/pypi/numpy/2.5.4/json), NumPy project on PyPI,
+  accessed 2026-10-18. Confirms the explicit dependency version exists and advertises Python 3.12 support.
+  Matches the locally tested NumPy version used by `api/v2/assim.py`; not a clean-install or deployed-image check.
+- Runtime descriptions and the README diagram were checked against repository source and the committed
+  scenario/model metadata. Evaluation was regenerated locally from cached readings; no new model calls.

@@ -26,8 +26,8 @@ def band(d: float) -> int:
     return sum(d >= b for b in BANDS)
 
 
-def pct(a: int, b: int) -> str:
-    return "—" if not b else f"{100 * a / b:.0f}% ({a}/{b})"
+def pct(a: int, b: int, digits: int = 0) -> str:
+    return "—" if not b else f"{100 * a / b:.{digits}f}% ({a}/{b})"
 
 
 def main() -> None:
@@ -101,16 +101,20 @@ def main() -> None:
                 errs[h].append(abs(l.wse_m - t))
     allerr = [e for v in errs.values() for e in v]
 
+    lower_households = len(w.households) - sum(1 for h in w.households.values() if h.possible_duplicate_of)
+    lower_error = 100 * abs(lower_households - len(true_heard)) / len(true_heard)
+    upper_error = 100 * abs(len(w.households) - len(true_heard)) / len(true_heard)
+
     rows = [
-        (f"Messages read by the model in batch ({', '.join(model)})", pct(len(gem), len(msgs)), "—"),
+        (f"Messages read by the model in batch ({', '.join(model)})", pct(len(gem), len(msgs), 1) + "; hybrid reader, rules fill gaps", "—"),
         ("Facts shown with the person's exact words", "100% (enforced: a fact whose quote isn't in the message is dropped)", "≥ 95%"),
         ("Depth from words in the same band as the reference reading", pct(depth_ok, depth_n), "≥ 85%"),
         ("People count read correctly (first-hand reports)", pct(people_ok, people_n), "—"),
         ("Neighbour direction read correctly (north, south, east, west)", pct(nb_ok, nb_n), "—"),
         ("\"Still safe\" replies wrongly marked urgent", pct(urgent_fp, urgent_n), "low"),
-        ("Households counted vs real families heard about",
-         f"{len(w.households) - sum(1 for h in w.households.values() if h.possible_duplicate_of)}–{len(w.households)} vs {len(true_heard)} "
-         f"(the range keeps possible duplicates apart)", "within 3%"),
+        ("Households counted vs synthetic reference families heard about",
+         f"{lower_households}–{len(w.households)} vs {len(true_heard)} "
+         f"(lower bound {lower_error:.1f}% error; upper bound {upper_error:.1f}% error; possible duplicates kept apart)", "lower bound within 3%"),
         ("Households wrongly merged (two families as one)", pct(wrong_merge, len(w.households)), "≤ 3%"),
         ("Neighbour words matched to the exact building", pct(nb_build, nb_build_n), "≥ 85%"),
         ("Planted wrong reports flagged doubtful", pct(len(planted & doubtful), len(planted & {o.message_id for o in w.obs})), "≥ 80%"),

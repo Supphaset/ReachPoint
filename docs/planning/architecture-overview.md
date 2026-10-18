@@ -1,3 +1,8 @@
+> **Historical v1 proposal (11 October).** This document preserves the original design discussion, including
+> coordinator and classic workflows retired by [decision 0012](../decisions/0012-v2-only-repository.md).
+> For the implemented v2 flow, use the [README diagram](../../README.md#how-it-works) and
+> [runtime code map](v2-code-map.md). The diagrams below do not describe the current runtime.
+
 # ReachPoint — proposed architecture and connections
 
 Date: 2026-10-11. **Logical architecture.** The physical mapping (Cloud Run API, Firestore, Firebase Hosting/Auth, Vertex AI, Maps, offline Earth Engine) is set in [decision 0009](../decisions/0009-implementation-start-and-technical-direction.md); the logical rules here are unchanged. Accepted product scope and human work split remain in [scope v1](../product/prototype-scope-v1.md) and [decision 0006](../decisions/0006-two-person-work-split.md). The architecture recommendation is recorded as **proposed** in [decision 0007](../decisions/0007-logical-architecture-proposal.md). Boxes describe responsibilities, not separate deployed services. Nothing in this diagram is implemented.
