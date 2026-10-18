@@ -1,12 +1,54 @@
 {
   "hosting": {
     "public": "web/firebase-public",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
-      { "source": "**", "run": { "serviceId": "reachpoint", "region": "asia-southeast1" } }
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "reachpoint",
+          "region": "asia-southeast1"
+        }
+      }
     ],
     "headers": [
-      { "source": "**", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          },
+          {
+            "key": "Strict-Transport-Security",
+            "value": "max-age=31536000; includeSubDomains"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "DENY"
+          },
+          {
+            "key": "Permissions-Policy",
+            "value": "microphone=(self), geolocation=(self)"
+          },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-eval' blob: https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.googleusercontent.com; frame-src https://*.google.com; connect-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://*.google.com wss://reachpoint-900867850704.asia-southeast1.run.app wss://reachpoint-plxxmixu6a-as.a.run.app ws://localhost:5173 ws://localhost:8000 ws://localhost:8080 ws://localhost:8093 ws://127.0.0.1:5173 ws://127.0.0.1:8000 ws://127.0.0.1:8080; worker-src 'self' blob:; media-src 'self' blob:"
+          }
+        ]
+      }
     ]
   }
 }

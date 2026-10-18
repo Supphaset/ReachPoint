@@ -224,7 +224,8 @@ def test_errors_are_redacted_throttled_and_reported(storage, monkeypatch, caplog
         assert S.load("store-test") is None
     assert len(caplog.records) == 1
     assert "private words" not in caplog.text
-    assert R.health() == {"ok": True, "store": "firestore", "lastSaveError": "RuntimeError"}
+    health = R.health()
+    assert {k: health[k] for k in ("ok", "store", "lastSaveError")} == {"ok": True, "store": "firestore", "lastSaveError": "RuntimeError"}
     monkeypatch.setattr(S, "_db", lambda: storage)
     S.save("store-test", R.room())
     assert S.status()["lastSaveError"] is None

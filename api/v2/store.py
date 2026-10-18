@@ -90,10 +90,10 @@ def _size(data):
 
 
 def save(room_id, v):
-    """Save a snapshot; callers use the background scheduler, never the request thread."""
+    """Save a snapshot in the background, or before eviction."""
     global _last_error
     if not enabled():
-        return
+        return True
     try:
         with _guard:
             generation = _generation.get(room_id, 0)
@@ -113,8 +113,22 @@ def save(room_id, v):
             if _generation.get(room_id, 0) == generation:
                 _deleted.discard(room_id)
         _last_error = None
+        return True
     except Exception as exc:
         _failed(exc)
+        return False
+
+
+def flush(room_id, v):
+    """Finish pending work before a room leaves memory."""
+    if not enabled():
+        return True
+    with _io:
+        with _guard:
+            pending = _pending.pop(room_id, None)
+            if pending:
+                pending.cancel()
+        return save(room_id, v)
 
 
 def load(room_id):

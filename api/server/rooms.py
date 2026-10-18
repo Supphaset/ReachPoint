@@ -21,8 +21,8 @@ from api.server.flood_replay import FloodReplay
 from api.server.memory import Clock, MemoryStore
 
 MAIN = "main"
-MAX_ROOMS = int(os.environ.get("REACHPOINT_MAX_ROOMS", "200"))
-VALID = re.compile(r"^[A-Za-z0-9-]{4,40}$")
+MAX_ROOMS = int(os.environ.get("REACHPOINT_MAX_ROOMS", "300"))
+VALID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 
 @dataclass
@@ -32,6 +32,7 @@ class Room:
     flood_replay: FloodReplay
     triage_lock: threading.Lock = field(default_factory=threading.Lock)
     triage_again: threading.Event = field(default_factory=threading.Event)
+    active: int = 0
     used: float = field(default_factory=time.monotonic)
 
 
@@ -44,7 +45,7 @@ class Rooms:
     def __init__(self, cap: int = MAX_ROOMS):
         self.cap = cap
         self._rooms: OrderedDict[str, Room] = OrderedDict()
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self.current_id: ContextVar[str] = ContextVar("demo_room", default=MAIN)
 
     @staticmethod
@@ -55,13 +56,34 @@ class Rooms:
         with self._lock:
             room = self._rooms.get(room_id)
             if room is None:
-                room = self._rooms[room_id] = _new(room_id)
-                while len(self._rooms) > self.cap:
-                    oldest = next(k for k in self._rooms if k != MAIN)
+                if len(self._rooms) >= self.cap:
+                    from api.v2 import store
+                    from api.v2.limits import limited
+                    oldest = next((k for k, r in self._rooms.items() if not r.active), None)
+                    if oldest is None:
+                        raise limited(5)
+                    old = self._rooms[oldest]
+                    if hasattr(old, "v2") and not store.flush(oldest, old.v2):
+                        raise limited(5)
                     del self._rooms[oldest]
+                room = self._rooms[room_id] = _new(room_id)
             self._rooms.move_to_end(room_id)
             room.used = time.monotonic()
             return room
+
+    def contains(self, room_id):
+        with self._lock:
+            return room_id in self._rooms
+
+    def acquire(self, room_id):
+        with self._lock:
+            room = self.get(room_id)
+            room.active += 1
+            return room
+
+    def release(self, room):
+        with self._lock:
+            room.active -= 1
 
     def current(self) -> Room:
         return self.get(self.current_id.get())
@@ -70,7 +92,11 @@ class Rooms:
         from api.v2 import store
         store.delete(room_id)
         with self._lock:
-            self._rooms[room_id] = room = _new(room_id)
+            room = self.get(room_id)
+            fresh = _new(room_id)
+            room.memory, room.flood_replay = fresh.memory, fresh.flood_replay
+            if hasattr(room, "v2"):
+                del room.v2
             return room
 
     def all(self) -> list[Room]:

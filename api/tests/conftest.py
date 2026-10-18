@@ -25,3 +25,15 @@ def _no_location_config(name):
 gemini.api_key = _no_key
 gemini._credentials = _no_credentials
 pinpoint._config = _no_location_config
+
+
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def isolated_limits(monkeypatch):
+    # Each test is a separate visitor run, with no paid work.
+    from api.v2 import limits
+    from api.ai import usage
+    monkeypatch.setattr(limits, "limits", limits.Limits())
+    monkeypatch.setattr(usage, "usage", usage.Usage())

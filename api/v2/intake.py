@@ -22,6 +22,7 @@ from api.v2.reader import Fact, Read
 Q = {
     "intro": ("ฉันเป็นผู้ช่วย AI ของ ReachPoint ค่ะ ตอนนี้เกิดอะไรขึ้นบ้าง และบ้านคุณอยู่ที่ไหนคะ",
               "I'm ReachPoint's AI assistant. What's happening, and where is your house?"),
+    "confirm_pin": ("ช่วยยืนยันหมุดนี้ หรือกด 📍 เพื่อย้ายหมุดไปบนหลังคาบ้านนะคะ", "Please confirm this pin, or tap 📍 to move it onto your roof."),
     "where": ("บ้านอยู่ที่ไหนคะ บอกบ้านเลขที่และซอย หรือจุดสังเกตใกล้ๆ หรือกด 📍 ปักหมุดบ้านบนแผนที่ก็ได้", "Where is your house? A house number and soi, a nearby landmark, or tap 📍 to pin it on the map."),
     "pin_outside": ("หมุดนี้อยู่นอกพื้นที่ที่ ReachPoint ดูแลค่ะ ตอนนี้เราช่วยได้เฉพาะในเมืองหาดใหญ่ ถ้าบ้านอยู่ในหาดใหญ่ ปักหมุดใหม่ที่หลังคาบ้านได้เลย ถ้าอยู่ที่อื่นและต้องการความช่วยเหลือ โทรสายด่วน ปภ. 1784 หรือเจ็บป่วยฉุกเฉิน 1669 นะคะ",
                     "That pin is outside the area ReachPoint covers. For this flood we can only help inside Hat Yai city. If your house is in Hat Yai, pin it again on your roof. If you are somewhere else and need help, call the disaster hotline 1784, or 1669 for a medical emergency."),

@@ -15,7 +15,9 @@ def chat(request):
     from api.main import app
     c = TestClient(app)
     headers = {"X-Demo-Room": "pytest-judge-" + request.node.name}
-    sid = c.post("/api/v2/chat/sessions", headers=headers).json()["id"]
+    created = c.post("/api/v2/chat/sessions", headers=headers)
+    headers["X-Demo-Room"] = created.headers["X-Demo-Room"]
+    sid = created.json()["id"]
 
     def turn(text, **kw):
         response = c.post(f"/api/v2/chat/sessions/{sid}/turn", json={"text": text, **kw}, headers=headers)
@@ -115,6 +117,8 @@ def test_first_danger_reply_precedes_location_and_numbers_once(chat, text):
     assert reply.count("1784") == reply.count("1669") == 1
     assert out["session"]["pin"]["precision"] == "landmark"
     assert "📍" in reply and out["effects"]["askLocation"]
+    assert "Where is your house?" not in reply and "บ้านอยู่ที่ไหนคะ" not in reply
+    assert "confirm this pin" in reply if text == URGENT else "ยืนยันหมุด" in reply
     assert out["effects"]["household"]["people"] == 2
 
 

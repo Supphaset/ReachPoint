@@ -241,3 +241,17 @@ Live API checks used only synthetic demo rooms; no private cloud configuration w
 | [Cloud Run billing settings](https://docs.cloud.google.com/run/docs/configuring/billing-settings) | CPU allocation outside requests | No cost estimate added |
 | [Secret Manager overview](https://docs.cloud.google.com/secret-manager/docs/overview) | Server credential storage | No secret values or private settings inspected |
 | [Live v2 overview](https://reachpoint-900867850704.asia-southeast1.run.app/api/v2/v/overview) and [D12](https://reachpoint-900867850704.asia-southeast1.run.app/api/v2/v/zones/D12) | 1,064 messages, 307 households; D12 7 open/18 people/3 urgent at 25 Nov 06:00 | Synthetic room state changes; not field observations |
+
+## Judging hardening — 2026-10-18
+
+Access date: **2026-10-18**. Commands are prepared for the owner, not applied.
+
+| Source | Use | Limitation |
+|---|---|---|
+| [Google request headers](https://docs.cloud.google.com/functions/docs/reference/headers), [load balancer XFF](https://docs.cloud.google.com/load-balancing/docs/https#x-forwarded-for_header) | XFF convention and unverified client-supplied prefix | Functions/load-balancer documentation does not authenticate Firebase's left-most IP; no live forwarding test |
+| [Hosting cache behavior](https://firebase.google.com/docs/hosting/manage-cache) | Preserve edge cache rules | No documented trusted `Fastly-Client-IP` contract established |
+| [Budget CLI](https://docs.cloud.google.com/sdk/gcloud/reference/billing/budgets/create) | $50 judging-period budget and 50/90/100% alerts | Billing lookup blocked by sandbox credential-database access; budget not created; alerts do not cap spend |
+| [API-key CLI](https://docs.cloud.google.com/sdk/gcloud/reference/services/api-keys/update) | Restrict server key to Generative Language API | Key ID and current restrictions not inspected or changed |
+| [Uptime CLI](https://docs.cloud.google.com/sdk/gcloud/reference/monitoring/uptime/create) | HTTPS health monitoring command | Check and notification policy not created |
+| [Maps CSP guide](https://developers.google.com/maps/documentation/javascript/content-security-policy) | Maps eval/blob and service domain requirements | Policy mirrored locally; no paid-key browser validation |
+| [Cloud Run update CLI](https://docs.cloud.google.com/sdk/gcloud/reference/run/services/update) | Service-wide instance settings versus revision settings | Prepared flags only; deployed revisions/tags not inspected |

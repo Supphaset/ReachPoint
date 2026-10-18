@@ -4,7 +4,7 @@
  * storage, else a new code. The /demo phones share it because they share storage and get it in their address.
  */
 const KEY = "reachpoint.room";
-const VALID = /^[A-Za-z0-9-]{4,40}$/;
+const VALID = /^[A-Za-z0-9_-]{1,64}$/;
 let fallback: string | null = null; // storage can be blocked (private windows); keep one code for this page
 
 export function newRoomCode(random: () => number = Math.random): string {

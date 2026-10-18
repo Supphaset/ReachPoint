@@ -43,12 +43,12 @@ gcloud builds submit --tag "$IMAGE" --project "$PROJECT" .
 
 # One instance keeps active demo rooms consistent; Firestore restores v2 rooms after a restart.
 # Min 1 keeps it warm for judges. No CPU throttling: the triage agent and zone briefings finish after the reply is sent.
-# A voice call is a WebSocket, which Cloud Run closes at the request timeout (default 5 min): 15 min covers the
-# 10-minute voice cap. Session affinity keeps a reconnecting caller on the same instance.
-ENV="RP_FIRESTORE=1,REACHPOINT_CLOCK=demo,REACHPOINT_GEMINI=$GEMINI_ROUTE,GOOGLE_CLOUD_PROJECT=$PROJECT,REACHPOINT_VOICE=$VOICE"
+# Live calls stop after five minutes in the app. The longer request timeout leaves time to close cleanly.
+# Session affinity keeps a reconnecting caller on the same instance.
+ENV="RP_GEMINI_CALLS_15MIN=400,RP_LIVE_MIN_15MIN=45,RP_CLASSIC_ENABLED=0,RP_FIRESTORE=1,REACHPOINT_CLOCK=demo,REACHPOINT_GEMINI=$GEMINI_ROUTE,GOOGLE_CLOUD_PROJECT=$PROJECT,REACHPOINT_VOICE=$VOICE"
 ENV="$ENV,GEMINI_LIVE_LOCATION=us-central1,GEMINI_LIVE_MODEL=gemini-3.8-live"
 gcloud run deploy "$SERVICE" --image "$IMAGE" --region "$REGION" --project "$PROJECT" \
-  --service-account "$RUNNER" --allow-unauthenticated --max-instances 1 --min-instances 1 --no-cpu-throttling --memory 1Gi --cpu 1 \
+  --service-account "$RUNNER" --allow-unauthenticated --max 1 --min 1 --max-instances 1 --min-instances 0 --no-cpu-throttling --memory 1Gi --cpu 1 \
   --timeout 900 --session-affinity --set-env-vars "$ENV" ${SECRETS:+--set-secrets "$SECRETS"}
 
 URL="$(gcloud run services describe "$SERVICE" --region "$REGION" --project "$PROJECT" --format 'value(status.url)')"

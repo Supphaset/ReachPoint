@@ -19,9 +19,9 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 import threading
 import time
@@ -44,6 +44,12 @@ from api.contract.flood import ReplayReset, ReplayStep, WaterInput
 from api.views.flood import flood_map
 from api.views.planning import panel as live_panel
 
+# Classic bodies are bounded too, even when enabled for local work.
+Text = Annotated[str, StringConstraints(max_length=2000)]
+Id = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9_-]{1,64}$", max_length=64)]
+Names = Annotated[list[Annotated[str, StringConstraints(max_length=80)]], Field(max_length=200)]
+Counts = Annotated[dict[Annotated[str, StringConstraints(max_length=80)], Annotated[int, Field(ge=0, le=100000)]], Field(max_length=40)]
+
 ROOT = Path(__file__).resolve().parents[1]
 WEB = Path(os.environ.get("REACHPOINT_WEB_DIST", ROOT / "web" / "dist"))
 DAY_START, STEPS = "2026-10-11T03:00:00Z", 15  # the replayed demo day: 10:00–17:00 Bangkok, every 30 min
@@ -64,11 +70,20 @@ USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"  # off: no Gemini calls 
 
 @app.middleware("http")
 async def demo_room(request: Request, call_next):
-    token = rooms.current_id.set(rooms.clean(request.headers.get("x-demo-room") or request.query_params.get("room")))
+    token = rooms.current_id.set(getattr(request.state, "demo_room", rooms.clean(request.headers.get("x-demo-room") or request.query_params.get("room"))))
     try:
         return await call_next(request)
     finally:
         rooms.current_id.reset(token)
+
+
+from api.security import install as _security_install, classic_enabled
+_security_install(app, rooms)
+
+@app.exception_handler(HTTPException)
+async def http_error(_: Request, exc: HTTPException):
+    body = exc.detail if isinstance(exc.detail, dict) and exc.detail.get("error") == "rate_limited" else {"detail": exc.detail}
+    return JSONResponse(body, exc.status_code, headers=exc.headers)
 
 
 @app.exception_handler(Refused)
@@ -123,7 +138,7 @@ def _with_briefings(view: dict) -> dict:
         key = briefing_text.facts_key(facts)
         with _brief_lock:
             done = BRIEFINGS.get(key)
-            if done is None and USE_AI and key not in _pending:
+            if done is None and USE_AI and key not in _pending and classic_enabled():
                 _pending.add(key)
                 _writer.submit(_write_briefing, key, facts)
         if done is not None:
@@ -181,50 +196,51 @@ def view_split(areaId: str | None = None):
 # --- team actions (C6) ---
 
 class Write(BaseModel):
-    submissionId: str | None = None
+    model_config = ConfigDict(allow_inf_nan=False)
+    submissionId: Text | None = None
 
 
 class Claim(Write):
-    teamId: str
-    groupIds: list[str] = Field(min_length=1)
+    teamId: Text
+    groupIds: Names = Field(min_length=1)
     expectedRevision: int
 
 
 class Window(Write):
-    start: str
-    end: str
+    start: Text
+    end: Text
 
 
 class Progress(Write):
-    state: str
+    state: Text
 
 
 class Close(Write):
-    outcome: str
+    outcome: Text
 
 
 class HandBack(Write):
-    reason: str
+    reason: Text
 
 
 class Status(Write):
-    status: str
-    reason: str | None = None
-    backAbout: str | None = None
+    status: Text
+    reason: Text | None = None
+    backAbout: Text | None = None
 
 
 class Reconfirm(Write):
-    teamId: str | None = None
+    teamId: Text | None = None
 
 
 class UrgentFlag(Write):
-    reason: str
+    reason: Text
     confirmedNow: bool = False
 
 
 class AskTeams(Write):
-    suggestionId: str
-    teamIds: list[str]
+    suggestionId: Text
+    teamIds: Names
 
 
 @app.post("/api/listings/{listing_id}/claim")
@@ -268,9 +284,9 @@ def reconfirm(listing_id: str, b: Reconfirm):
 # --- desk actions ---
 
 class ResourceFailure(Write):
-    submissionId: str = Field(min_length=1)
-    reason: str = Field(min_length=1, max_length=200)
-    nextStatusUpdate: str
+    submissionId: Text = Field(min_length=1)
+    reason: Text = Field(min_length=1, max_length=200)
+    nextStatusUpdate: Text
 
 
 @app.post("/api/resources/{resource_id}/unavailable")
@@ -298,7 +314,7 @@ class LocationInput(BaseModel):
     lon: float | None = Field(default=None, ge=-180, le=180)
     method: Literal["gps", "map", "pinpoint"] | None = None
     accuracyM: float | None = Field(default=None, ge=0, le=100_000)
-    text: str | None = Field(default=None, max_length=300)
+    text: Text | None = Field(default=None, max_length=300)
 
     @model_validator(mode="after")
     def _shape(self):
@@ -310,22 +326,22 @@ class LocationInput(BaseModel):
 
 
 class Intake(Write):
-    text: str = Field(min_length=1, max_length=2000)
-    channel: str = "text"
-    segmentId: str | None = None  # a field report from a team in its segment (D20)
-    teamId: str | None = None
+    text: Text = Field(min_length=1, max_length=2000)
+    channel: Text = "text"
+    segmentId: Id | None = None  # a field report from a team in its segment (D20)
+    teamId: Text | None = None
     location: LocationInput | None = None
 
 
 class CallTurn(BaseModel):
-    text: str = Field(min_length=1, max_length=conversation.MAX_TURN_CHARS)
-    turnId: str = Field(min_length=1, max_length=100)
+    text: Text = Field(min_length=1, max_length=conversation.MAX_TURN_CHARS)
+    turnId: Text = Field(min_length=1, max_length=100)
 
 
 class CallLocation(BaseModel):
-    query: str
+    query: Text
     action: Literal["select", "reject"]
-    locationId: str | None = None
+    locationId: Text | None = None
 
 
 class CallStart(BaseModel):
@@ -337,7 +353,7 @@ class CallPin(BaseModel):
 
 
 class CallConfirm(BaseModel):
-    submissionId: str = Field(min_length=1, max_length=100)
+    submissionId: Text = Field(min_length=1, max_length=100)
     expectedRevision: int = Field(ge=0)
 
 
@@ -346,17 +362,17 @@ class Locate(BaseModel):
 
 
 class Approve(Write):
-    segmentId: str
-    people: dict[str, int]
-    needs: list[str]
-    waterBand: str | None = None
-    urgentReason: str | None = None
-    deskNote: str | None = None
+    segmentId: Id
+    people: Counts
+    needs: Names
+    waterBand: Text | None = None
+    urgentReason: Text | None = None
+    deskNote: Text | None = None
     location: LocationInput | None = None  # the coordinator's correction, e.g. an address heard on a phone call
 
 
 class Reject(Write):
-    reason: str
+    reason: Text
 
 
 @app.post("/api/intake/text")
@@ -376,7 +392,7 @@ def intake_text(b: Intake):
 
 @app.get("/api/call/config")
 def call_config():
-    available = USE_AI and conversation.configured()
+    available = classic_enabled() and USE_AI and conversation.configured()
     return {"chat": available, "voice": available and os.environ.get("REACHPOINT_VOICE", "off") == "on"}
 
 
@@ -495,7 +511,7 @@ def reject(report_id: str, b: Reject):
 
 
 class LinkReport(Write):
-    caseId: str
+    caseId: Text
 
 
 @app.post("/api/reports/{report_id}/link")
@@ -524,23 +540,23 @@ def status(token: str):
 
 
 class Publish(Write):
-    zoneId: str
-    reasons: list[str] = []
+    zoneId: Id
+    reasons: Names = []
 
 
 class Dismiss(Write):
-    reason: str
+    reason: Text
 
 
 class TakeSegment(Write):
-    teamId: str
+    teamId: Text
 
 
 class MarkSegment(Write):
-    state: str
+    state: Text
     householdsFound: int | None = None
     pickupsNeeded: int | None = None
-    reason: str | None = None
+    reason: Text | None = None
 
 
 @app.post("/api/zone-missions")
@@ -642,10 +658,10 @@ def water_observation(b: WaterInput):
 
 
 class PlanAsk(BaseModel):
-    submissionId: str = Field(min_length=1)
-    suggestionId: str
-    teamIds: list[str] = Field(min_length=1)
-    areaId: str | None = None
+    submissionId: Text = Field(min_length=1)
+    suggestionId: Text
+    teamIds: Names = Field(min_length=1)
+    areaId: Id | None = None
 
 
 @app.post("/api/plans/ask")

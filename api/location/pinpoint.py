@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import math
-from pathlib import Path
 
 import httpx
 
@@ -16,11 +15,6 @@ TIMEOUT_S = 8
 def _config(name: str) -> str | None:
     if os.environ.get(name):
         return os.environ[name].strip()
-    f = Path(os.path.expanduser("~/.config/reachpoint/env"))
-    if f.is_file():
-        for line in f.read_text().splitlines():
-            if line.startswith(name + "="):
-                return line.split("=", 1)[1].strip() or None
     return None
 
 

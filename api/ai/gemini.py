@@ -2,8 +2,8 @@
 
 REACHPOINT_GEMINI picks the route:
     vertex  Vertex AI with the service's own identity (Application Default Credentials). No key, billed to the project,
-            no free-tier daily caps. What Cloud Run uses (scripts/deploy.sh).
-    key     The Gemini API with GEMINI_API_KEY (env or ~/.config/reachpoint/env). Handy for local work.
+            no free-tier daily caps. Available when selected explicitly.
+    key     The Gemini API with GEMINI_API_KEY (environment only). Handy for local work.
     auto    (default) the key when there is one, otherwise Vertex when credentials are found.
 The key and access tokens are never logged or sent to the browser.
 """
@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import os
 import threading
-from pathlib import Path
 
 ROUTE = os.environ.get("REACHPOINT_GEMINI", "auto")
 # Vertex model IDs on the global endpoint, lite first: fast, cheap, and enough for reading a request.
@@ -27,11 +26,6 @@ _creds = None
 def api_key() -> str | None:
     if os.environ.get("GEMINI_API_KEY"):
         return os.environ["GEMINI_API_KEY"].strip()
-    f = Path(os.path.expanduser("~/.config/reachpoint/env"))
-    if f.is_file():
-        for line in f.read_text().splitlines():
-            if line.startswith("GEMINI_API_KEY="):
-                return line.split("=", 1)[1].strip() or None
     return None
 
 
@@ -83,6 +77,9 @@ def _token() -> str:
 def post(model: str, body: dict, timeout: float, key: str | None = None):
     """generateContent on the chosen route; returns the httpx response."""
     import httpx
+    from api.ai.usage import usage
+    usage.reserve()
+    body = {**body, "generationConfig": {"maxOutputTokens": 2048, **body.get("generationConfig", {})}}
     if key is None and use_vertex():
         url = (f"https://aiplatform.googleapis.com/v1/projects/{project()}/locations/{VERTEX_LOCATION}"
                f"/publishers/google/models/{model}:generateContent")

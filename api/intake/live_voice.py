@@ -126,31 +126,5 @@ def _live_client() -> genai.Client:
 
 @router.websocket("/api/call/sessions/{session_id}/live")
 async def live_voice(websocket: WebSocket, session_id: str) -> None:
-    await websocket.accept()
-    try:
-        if os.environ.get("REACHPOINT_AI", "on") == "off" or os.environ.get("REACHPOINT_VOICE", "off") != "on":
-            raise RuntimeError("Voice mode is disabled on this server.")
-        session = conversation.get(session_id)
-        session.channel = "voice"
-        client = await asyncio.to_thread(_live_client)
-        async with client.aio.live.connect(model=LIVE_MODEL, config=LIVE_CONFIG) as live:
-            await websocket.send_json({"type": "ready"})
-            browser_task = asyncio.create_task(_from_browser(websocket, live))
-            model_task = asyncio.create_task(_to_browser(websocket, live, session))
-            done, pending = await asyncio.wait({browser_task, model_task}, timeout=600,
-                                               return_when=asyncio.FIRST_COMPLETED)
-            for task in pending:
-                task.cancel()
-            await asyncio.gather(*pending, return_exceptions=True)
-            for task in done:
-                task.result()
-            if not done:
-                await websocket.send_json({"type": "error", "message": "Voice session ended after ten minutes. You can reconnect."})
-    except WebSocketDisconnect:
-        pass
-    except Exception:
-        try:
-            await websocket.send_json({"type": "error", "message": "Gemini Live is unavailable. Check voice setup and try again."})
-            await websocket.close(code=1011)
-        except RuntimeError:
-            pass
+    # Classic voice is retired; v2 owns the bounded judging call path.
+    await websocket.close(code=1008)

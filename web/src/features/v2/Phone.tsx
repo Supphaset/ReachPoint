@@ -93,6 +93,8 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
       setText(DEMO_MESSAGES[l][0]);
       seen.current = new Set();
       setItems(s.transcript.map((t) => ({ kind: "agent", text: t.text, at })));
+    }).catch((error: unknown) => {
+      setItems((xs) => [...xs, { kind: "agent", text: error instanceof ApiError ? error.message : "Please try again / กรุณาลองอีกครั้ง" }]);
     });
   useEffect(() => {
     start(lang);
@@ -184,8 +186,8 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
       if (currentSession.current !== sid) return false;
       apply(r);
       return true;
-    } catch {
-      setItems((xs) => [...xs, { kind: "agent", text: lang === "th" ? "ส่งไม่สำเร็จ ลองอีกครั้งนะคะ" : "That didn't send. Please try again." }]);
+    } catch (error) {
+      setItems((xs) => [...xs, { kind: "agent", text: error instanceof ApiError && error.status === 429 ? error.message : lang === "th" ? "ส่งไม่สำเร็จ ลองอีกครั้งนะคะ" : "That didn't send. Please try again." }]);
       return false;
     } finally {
       requestBusy.current = false;

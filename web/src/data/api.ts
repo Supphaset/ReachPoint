@@ -10,6 +10,7 @@ export class ApiError extends Error {
     public code: string,
     message: string,
     public status = 0,
+    public retryAfter = 0,
   ) {
     super(message);
   }
@@ -35,6 +36,10 @@ async function call<T>(method: "GET" | "POST", path: string, body?: object, toke
     throw new ApiError("OFFLINE", "Can't reach the server. Check your connection and try again");
   }
   const json = await res.json().catch(() => ({}));
+  if (res.status === 429) {
+    const seconds = Math.max(1, Math.ceil(Number(res.headers.get("Retry-After") ?? json.retryAfter) || 60));
+    throw new ApiError("rate_limited", `Too many messages at once — wait ${seconds} seconds / ส่งข้อความถี่เกินไป กรุณารอ ${seconds} วินาที`, 429, seconds);
+  }
   if (res.status === 422) throw new ApiError("INVALID", "Some details weren't accepted. Check the form and try again.", 422);
   if (!res.ok) throw new ApiError(json.code ?? `HTTP_${res.status}`, json.message ?? res.statusText, res.status);
   return json as T;

@@ -5,19 +5,30 @@ from __future__ import annotations
 import json
 import re
 import threading
+from collections import OrderedDict
 from dataclasses import dataclass, field
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, Path, Query
+from pydantic import BaseModel, ConfigDict, Field
 
 from api.v2 import ai, board as B, geo as G, intake as I, pipeline as P, store as S
 from api.v2.reader import Fact, Read
 from api.v2.names import bilingual_view, english_name
 
+class Input(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
+
+Identifier = Annotated[str, Path(pattern=r"^[A-Za-z0-9_-]{1,64}$")]
+
 router = APIRouter(prefix="/api/v2")
 DEFAULT_NOW_H = 96.0  # 25 Nov 06:00: the water is rising toward the peak (9.97 m at 10:00)
 _rooms_ref = None
 _room_lock = threading.Lock()
+_board_cache_lock = threading.Lock()
+_board_caches = OrderedDict()
 
 
 @dataclass
@@ -60,7 +71,8 @@ def room() -> V2Room:
 
 @router.get("/health")
 def health():
-    return {"ok": True, **S.status()}
+    from api.ai.usage import usage
+    return {"ok": True, **S.status(), "gemini": usage.status()}
 
 
 def _state(v: V2Room, at_h: float | None = None) -> dict:
@@ -68,11 +80,20 @@ def _state(v: V2Room, at_h: float | None = None) -> dict:
     at = min(at_h if at_h is not None else v.now_h, v.now_h)
     sig = (round(at, 2), v.now_h, len(v.messages), len(v.plans), len(v.alerts), len(v.pulled))
     cache = v.__dict__.setdefault("_cache", {})
-    if sig not in cache:
-        if len(cache) > 40:
-            cache.clear()
-        cache[sig] = B.state(at, v.messages, v.plans, v.alerts, v.pulled)
-    return cache[sig]
+    with _board_cache_lock:
+        _board_caches[id(v)] = cache
+        _board_caches.move_to_end(id(v))
+        while len(_board_caches) > 8:
+            _, old = _board_caches.popitem(last=False)
+            old.clear()
+        state = cache.get(sig)
+    if state is None:
+        state = B.state(at, v.messages, v.plans, v.alerts, v.pulled)
+        with _board_cache_lock:
+            if len(cache) >= 2:
+                cache.clear()
+            cache[sig] = state
+    return state
 
 
 def _locked(v: V2Room, build):
@@ -176,8 +197,8 @@ def state(at: float | None = None):
     return _locked(v, build)
 
 
-class ClockIn(BaseModel):
-    action: str = Field(pattern="^(advance|morning|rain|river|flood|reset)$")
+class ClockIn(Input):
+    action: str = Field(max_length=10, pattern="^(advance|morning|rain|river|flood|reset)$")
 
 
 @router.post("/clock")
@@ -210,16 +231,16 @@ def clock(body: ClockIn):
 
 
 # --- the intake agent ---
-class PinIn(BaseModel):
+class PinIn(Input):
     lon: float = Field(ge=-180, le=180)
     lat: float = Field(ge=-90, le=90)
-    method: str = Field(default="map", pattern="^(gps|map)$")
+    method: str = Field(default="map", max_length=3, pattern="^(gps|map)$")
     accuracyM: float | None = Field(default=None, ge=0, le=100000)
 
 
-class TurnIn(BaseModel):
+class TurnIn(Input):
     text: str = Field(min_length=1, max_length=600)
-    channel: str = Field(default="chat", pattern="^(chat|voice)$")
+    channel: str = Field(default="chat", max_length=5, pattern="^(chat|voice)$")
     pin: PinIn | None = None  # the phone's GPS, or a pin the person moved on the map
     replyTo: str | None = Field(default=None, max_length=24)  # the kind of agent message a button answers
 
@@ -229,6 +250,8 @@ def new_chat(lang: str = "th"):
     v = room()
     s = I.new_session("en" if lang == "en" else "th")
     with S.changing(v):
+        if len(v.sessions) >= 200:
+            raise HTTPException(429, detail={"error": "rate_limited", "retryAfter": 60}, headers={"Retry-After": "60"})
         v.sessions[s.id] = s
     return s.view()
 
@@ -290,7 +313,7 @@ def _add_neighbour(v, s, channel: str, lang: str, building_id: str | None = None
 
 
 @router.post("/chat/sessions/{sid}/turn")
-def chat_turn(sid: str, body: TurnIn):
+def chat_turn(sid: Identifier, body: TurnIn):
     return turn(sid, body.text, body.channel, body.pin.model_dump() if body.pin else None, body.replyTo)
 
 
@@ -493,7 +516,7 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
                     side = s.nb_queue[0]["nb"]["side"]
                     reply = prefix + I.say("nb_confirm" if s.nb_queue[0]["i"] == 0 else "nb_confirm_next", lang, side=I.side_word(side, lang))
                 else:
-                    reply = prefix + I.say(nxt, lang)
+                    reply = prefix + I.say("confirm_pin" if nxt == "where" and s.pin else nxt, lang)
             else:
                 s.pending = None
                 s.finished = True
@@ -521,12 +544,12 @@ def turn(sid: str, said: str, channel: str = "chat", pin: dict | None = None, re
                 "overall": st["overall"], "activity": st["activity"][:8]}
 
 
-class SimIn(BaseModel):
-    event: str = Field(pattern="^(rain|river|teamPlan|teamVisit|checkin)$")
+class SimIn(Input):
+    event: str = Field(max_length=12, pattern="^(rain|river|teamPlan|teamVisit|checkin)$")
 
 
 @router.post("/chat/sessions/{sid}/simulate")
-def simulate(sid: str, body: SimIn):
+def simulate(sid: Identifier, body: SimIn):
     """'What happens next' on the family's phone: more rain, the river rising, a team planning to come, the team's
     visit, a check-in. Goes through the same paths as the real events, so the board changes too."""
     from api.v2 import followup as F
@@ -542,12 +565,12 @@ def simulate(sid: str, body: SimIn):
     return out
 
 
-class ReadyIn(BaseModel):
+class ReadyIn(Input):
     done: list[int] = Field(default_factory=list, max_length=20)
 
 
 @router.post("/chat/sessions/{sid}/ready")
-def session_ready(sid: str, body: ReadyIn):
+def session_ready(sid: Identifier, body: ReadyIn):
     """The family ticked items on the get-ready card. Kept on the server so the agent knows and never asks again."""
     from api.v2 import followup as F
     v = room()
@@ -560,7 +583,7 @@ def session_ready(sid: str, body: ReadyIn):
 
 
 @router.get("/chat/sessions/{sid}/status")
-def session_status(sid: str):
+def session_status(sid: Identifier):
     from api.v2 import followup as F
     v = room()
     s = v.sessions.get(sid)
@@ -605,7 +628,7 @@ def _me(v: V2Room, token: str):
             "now": {"atH": v.now_h, "at": P.label_time(v.now_h)}}
 
 
-class PlanIn(BaseModel):
+class PlanIn(Input):
     text: str = Field(min_length=3, max_length=300)
     team: str | None = Field(default=None, max_length=80)   # the plan page sends the team's own name
 
@@ -634,14 +657,14 @@ def v_overview():
 
 
 @router.get("/v/feed")
-def v_feed(kind: str | None = None, team: str | None = None, limit: int = 80):
+def v_feed(kind: str | None = None, team: str | None = None, limit: Annotated[int, Query(ge=1, le=200)] = 80):
     from api.v2 import cases as C
     v = room()
     return C.feed(_state(v), v.messages, kind, min(max(limit, 1), 300), team)
 
 
 @router.get("/v/zones/{zid}")
-def v_zone(zid: str, team: str | None = None):
+def v_zone(zid: Identifier, team: str | None = None):
     from api.v2 import cases as C
     out = C.zone(_state(room()), zid, team)
     if out is None:
@@ -650,7 +673,7 @@ def v_zone(zid: str, team: str | None = None):
 
 
 @router.get("/v/cases/{hid}")
-def v_case(hid: str, team: str | None = None, lang: str = "th"):
+def v_case(hid: Identifier, team: str | None = None, lang: str = "th"):
     from api.v2 import cases as C
     v = room()
     out = C.case(_state(v), v.messages, hid, team)
@@ -661,14 +684,14 @@ def v_case(hid: str, team: str | None = None, lang: str = "th"):
     return out
 
 
-class OutcomeIn(BaseModel):
-    outcome: str = Field(pattern="^(pickedUp|nobodyThere|atShelter)$")
+class OutcomeIn(Input):
+    outcome: str = Field(max_length=12, pattern="^(pickedUp|nobodyThere|atShelter)$")
     team: str = Field(min_length=1, max_length=80)
     shelterId: str | None = Field(default=None, max_length=8)
 
 
 @router.post("/v/cases/{hid}/outcome")
-def v_outcome(hid: str, body: OutcomeIn):
+def v_outcome(hid: Identifier, body: OutcomeIn):
     """A team's one tap: picked up, or nobody there. The family's phone is told; the board counts it."""
     from api.v2 import cases as C
     v = room()
@@ -692,13 +715,13 @@ def v_urgent():
     return _locked(v, lambda: C.urgent(_state(v), v.first))
 
 
-class FirstIn(BaseModel):
+class FirstIn(Input):
     team: str = Field(min_length=1, max_length=80)
     first: bool = True
 
 
 @router.post("/v/cases/{hid}/first")
-def v_first(hid: str, body: FirstIn):
+def v_first(hid: Identifier, body: FirstIn):
     from api.v2 import cases as C
     v = room()
     with S.changing(v):
@@ -717,7 +740,7 @@ def v_trip(zones: str, team: str | None = None):
     return C.trip(_state(room()), [z.strip() for z in zones.split(",") if z.strip()][:6], team)
 
 
-class CopilotIn(BaseModel):
+class CopilotIn(Input):
     question: str = Field(min_length=1, max_length=600)
 
 
@@ -746,7 +769,7 @@ def depth_series(lon: float, lat: float):
 
 
 @router.get("/v/blocks")
-def v_blocks(zone: str | None = None):
+def v_blocks(zone: Annotated[str | None, Query(pattern=r"^[A-Za-z0-9_-]{1,64}$")] = None):
     """Blocks with their outline, need and access now (walk / truck / boat), for the maps."""
     from api.v2 import cases as C
     return {"blocks": C.blocks(_state(room()), zone), "thresholds": {"walkM": C.WALK_M, "truckM": C.TRUCK_M}}
