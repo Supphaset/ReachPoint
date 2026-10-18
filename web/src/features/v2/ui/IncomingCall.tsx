@@ -4,6 +4,10 @@ import { v2, type Incoming } from "../api";
 import "./incomingCall.css";
 
 export interface Caption { speaker: "heard" | "said"; text: string }
+/** Gemini Live sends captions in pieces that sometimes drop the space between words ("ReachPoint" + "calling"). */
+export function joinCaption(a: string, b: string) {
+  return /[\p{L}\p{N}.,!?:;]$/u.test(a) && /^[\p{L}\p{N}]/u.test(b) && !/[\u0E00-\u0E7F]$/.test(a) ? `${a} ${b}` : a + b;
+}
 export function callTime(seconds: number) { return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`; }
 
 export function Captions({ lines }: { lines: Caption[] }) {

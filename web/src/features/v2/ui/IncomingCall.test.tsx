@@ -37,3 +37,15 @@ describe("outbound safety call", () => {
     expect(summary).toContain("Chest deep now");
   });
 });
+
+import { joinCaption } from "./IncomingCall";
+import { describe as d2, expect as e2, it as i2 } from "vitest";
+d2("joinCaption", () => {
+  i2("adds the space Gemini sometimes drops, keeps the ones it sends, and leaves Thai alone", () => {
+    e2(joinCaption("Hello, this is ReachPoint", "calling")).toBe("Hello, this is ReachPoint calling");
+    e2(joinCaption("Hello, this is ", "ReachPoint")).toBe("Hello, this is ReachPoint");
+    e2(joinCaption("Last time you said:", "the water")).toBe("Last time you said: the water");
+    e2(joinCaption("น้ำถึง", "เอว")).toBe("น้ำถึงเอว");
+  });
+});
+

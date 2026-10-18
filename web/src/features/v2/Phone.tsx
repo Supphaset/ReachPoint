@@ -17,7 +17,7 @@ import { BoatRequestCard, NoticeCard } from "./ui/NoticeCard";
 import { Icon } from "../../ui/Icon";
 import { DemoBar } from "./ui/DemoBar";
 import type { ClockAction } from "./ui/Shared";
-import { IncomingCall, Captions, CallSummary, callTime, type Caption } from "./ui/IncomingCall";
+import { IncomingCall, Captions, CallSummary, callTime, joinCaption, type Caption } from "./ui/IncomingCall";
 import { LiveCall } from "./liveVoice";
 
 type Item =
@@ -276,7 +276,7 @@ export function Phone({ onTurn, onSimulation, version, lang, at, judgeMode = tru
         const lines = captionRef.current;
         const last = lines[lines.length - 1];
         captionRef.current = last?.speaker === speaker
-          ? [...lines.slice(0, -1), { speaker, text: last.text + text }] : [...lines, { speaker, text }];
+          ? [...lines.slice(0, -1), { speaker, text: joinCaption(last.text, text) }] : [...lines, { speaker, text }];
         setCaptions([...captionRef.current]);
       },
       onFallback: text => setItems(xs => [...xs, { kind: "agent", text }]),
