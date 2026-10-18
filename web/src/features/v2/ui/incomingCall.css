@@ -1,4 +1,6 @@
 .v2-phone { position: relative; }
+/* The report page keeps the phone static for its other overlays; during a call the phone is the call screen's frame. */
+.rp-report-layout .v2-phone:has(.rp-in-call, .rp-incoming) { position: relative; }
 .rp-incoming {
   position: absolute; inset: 0; z-index: 20; background: var(--color-surface);
   color: var(--color-ink); display: flex; flex-direction: column; align-items: center;
