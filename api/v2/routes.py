@@ -629,6 +629,9 @@ def _me(v: V2Room, token: str):
 
 
 class PlanIn(Input):
+    order: list[Annotated[str, Field(max_length=64)]] | None = Field(default=None, max_length=2000)
+    zone: str | None = Field(default=None, max_length=12)
+    checkStreets: list[Annotated[str, Field(max_length=200)]] | None = Field(default=None, max_length=5)
     text: str = Field(min_length=3, max_length=300)
     team: str | None = Field(default=None, max_length=80)   # the plan page sends the team's own name
 
@@ -638,10 +641,27 @@ def post_plan(body: PlanIn):
     v = room()
     parsed = ai.read_plan(body.text)
     with S.changing(v):
+        from api.v2 import cases as C
+        st = _state(v)
+        zones = [body.zone] if body.zone else parsed.get("zones") or []
+        if body.zone and body.zone not in st["zones"]:
+            raise HTTPException(422, "Unknown zone")
+        allowed = {r["id"] for zid in zones for r in C._rows(st, zid) if r["status"] not in C.CLOSED}
+        if body.order is not None and (len(set(body.order)) != len(body.order) or any(h not in allowed for h in body.order)):
+            raise HTTPException(422, "Order must contain distinct waiting households in the plan zones")
+        streets = {s[k] for zid in zones for s in (st["zones"].get(zid, {}).get("unheard") or {}).get("streets", []) for k in ("name", "nameEn")}
+        if body.checkStreets is not None and any(s not in streets for s in body.checkStreets):
+            raise HTTPException(422, "Unknown unheard street")
         v.seq += 1
         p = {"id": f"LP{v.seq}", "atH": v.now_h, "text": body.text, "_parsed": {k: parsed.get(k) for k in ("team", "vehicle", "seats", "zones", "eta", "offers")}}
         if body.team and body.team.strip():
             p["_parsed"]["team"] = body.team.strip()
+        if body.zone:
+            p["_parsed"]["zones"] = [body.zone]
+        if body.order is not None:
+            p["_parsed"]["order"] = body.order
+        if body.checkStreets is not None:
+            p["_parsed"]["checkStreets"] = body.checkStreets
         v.plans.append(p)
     st = _state(v)
     mine = next((x for x in st["world"].plans if x["id"] == p["id"]), None)
@@ -741,6 +761,7 @@ def v_trip(zones: str, team: str | None = None):
 
 
 class CopilotIn(Input):
+    zone: str | None = Field(default=None, max_length=12, pattern=r"^[A-Z]\d{1,2}$")
     question: str = Field(min_length=1, max_length=600)
 
 
@@ -748,7 +769,7 @@ class CopilotIn(Input):
 def v_copilot(body: CopilotIn):
     """The volunteer copilot: Gemini answers with ReachPoint's tools; every number is checked against a tool result."""
     from api.v2 import copilot
-    return copilot.ask(_state(room()), body.question)
+    return copilot.ask(_state(room()), (f"Zone {body.zone}. " if body.zone else "") + body.question)
 
 
 @router.get("/depth-series")
@@ -773,3 +794,18 @@ def v_blocks(zone: Annotated[str | None, Query(pattern=r"^[A-Za-z0-9_-]{1,64}$")
     """Blocks with their outline, need and access now (walk / truck / boat), for the maps."""
     from api.v2 import cases as C
     return {"blocks": C.blocks(_state(room()), zone), "thresholds": {"walkM": C.WALK_M, "truckM": C.TRUCK_M}}
+
+
+from api.v2.suggest import Team as SuggestIn
+
+
+@router.post("/v/zones/{zone_id}/suggest")
+def v_suggest(zone_id: Identifier, body: SuggestIn):
+    from api.v2.suggest import answer, context
+    v = room()
+    with v.lock:
+        st = _state(v)
+        if zone_id not in st["zones"]:
+            raise HTTPException(404, "No such zone")
+        ctx = context(st, zone_id, body.model_dump(), list(v.messages))
+    return answer(ctx)

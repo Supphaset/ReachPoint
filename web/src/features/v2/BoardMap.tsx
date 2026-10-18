@@ -19,7 +19,7 @@ export interface HouseMark {
 }
 
 export interface TripOverlay {
-  stops: { id: string; lon: number; lat: number; label: string }[];
+  stops: { id: string; lon: number; lat: number; label: string; estimated?: boolean }[];
   runs: { run: number; points: { lon: number; lat: number }[] }[];
 }
 
@@ -356,9 +356,9 @@ function GoogleBoard({ maps, geo, state, selected, onSelect, houses, focus, simH
       shapes.push(new maps.Marker({
         map: map.current,
         position: { lng: stop.lon, lat: stop.lat },
-        title: stop.id,
+        title: stop.label,
         label: { text: stop.label, color: cssVar("--ink-1"), fontSize: "14px", fontWeight: "600" },
-        icon: { path: maps.SymbolPath.CIRCLE, scale: 15, fillColor: cssVar("--surface"), fillOpacity: 1, strokeColor: cssVar("--urgent"), strokeWeight: 2 },
+        icon: { path: maps.SymbolPath.CIRCLE, scale: 15, fillColor: cssVar("--surface"), fillOpacity: stop.estimated ? 0 : 1, strokeColor: cssVar("--urgent"), strokeWeight: 2 },
         zIndex: 30,
       }));
     }
@@ -476,7 +476,7 @@ function DrawnMap({ geo, state, selected, onSelect, houses, simHour, simMode, fo
       ))}
       {(tripOverlay?.stops ?? (focusedHousehold ? [{ ...focusedHousehold, label: focusedHousehold.id }] : [])).map(stop => (
         <g key={stop.id}>
-          <circle cx={px(stop.lon)} cy={py(stop.lat)} r="14" fill="var(--surface)" stroke="var(--urgent)" strokeWidth="3" />
+          <circle cx={px(stop.lon)} cy={py(stop.lat)} r="14" fill="var(--surface)" stroke="var(--urgent)" strokeWidth="3" strokeDasharray={stop.estimated ? "4 3" : undefined} />
           <text x={px(stop.lon) + 18} y={py(stop.lat)} fill="var(--ink-1)" fontSize="16">{stop.label}</text>
         </g>
       ))}

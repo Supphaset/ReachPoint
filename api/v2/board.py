@@ -5,6 +5,9 @@ from __future__ import annotations
 from api.v2.names import bilingual_view
 
 from functools import lru_cache
+from math import floor, ceil
+from statistics import median
+from api.v2.names import english_name
 
 from api.v2 import geo as G
 from api.v2 import pipeline as P
@@ -22,6 +25,49 @@ STOPS = [
     (122, "The water starts to fall. Evacuated and safe households are counted."),
     (150, "Recovery. A few households still haven't answered."),
 ]
+
+
+def unheard_view(w, geo, zid, estimate, households):
+    # Street membership is fixed; water and reports follow the replay clock.
+    if not hasattr(geo, "_unheard_streets"):
+        index = {}
+        for b in geo.buildings.values():
+            facing = geo.facing(b)
+            name = facing and (facing.street_th or facing.street)
+            if name:
+                index.setdefault(b.zone_id, []).append((b, name, english_name(facing.street or name)))
+        geo._unheard_streets = index
+    buildings = geo._unheard_streets.get(zid, [])
+    reported = set()
+    by_id = {b.id: name for b, name, _ in buildings}
+    for h in households:
+        name = by_id.get(h.building_id)
+        if name is None and h.lon is not None and h.lat is not None:
+            b = geo.snap(h.lon, h.lat)
+            facing = geo.facing(b) if b else None
+            name = facing and (facing.street_th or facing.street)
+        if name:
+            reported.add(name)
+    groups = {}
+    for b, name, en in buildings:
+        d = S.depth(b.lon, b.lat, w.now_h)
+        if d is not None and d > 0 and name not in reported:
+            groups.setdefault((name, en), []).append((b, d))
+    streets = []
+    for (name, en), rows in groups.items():
+        # Use an actual flooded building point, not a centroid outside the zone.
+        b, _ = sorted(rows, key=lambda r: (r[1], r[0].id))[len(rows) // 2]
+        streets.append({"name": name, "nameEn": en, "floodedBuildings": len(rows),
+                        "depthM": round(median(d for _, d in rows), 2), "lon": b.lon, "lat": b.lat})
+    streets.sort(key=lambda r: (-r["floodedBuildings"], -r["depthM"], r["name"]))
+    people = estimate.get("modelledFlooded")
+    estimated = [floor(round(people[0] / PEOPLE_PER_HOUSEHOLD, 8)), ceil(round(people[1] / PEOPLE_PER_HOUSEHOLD, 8))] if people else None
+    heard = len(households)
+    return {"estimatedHouseholds": estimated, "heardFrom": heard,
+            "notHeard": [max(0, n - heard) for n in estimated] if estimated else None,
+            "floodedBuildings": sum(s["floodedBuildings"] for s in streets),
+            "quiet": zid in w.quiet, "streets": streets[:5], "atH": w.now_h,
+            "basis": "estimated from the flood model and building outlines, not reports"}
 
 
 @bilingual_view
@@ -85,6 +131,7 @@ def zone_view(w, geo: G.Geo, zid: str) -> dict:
     plans = [p for p in w.plans if zid in p.get("zones", [])]
     status = {k: sum(1 for h in hh if h.status == k) for k in ("open", "safe", "evacuated", "lostContact")}
     return {
+        "unheard": unheard_view(w, geo, zid, est, hh),
         "id": zid, "label": meta.get("label", zid), "district": meta.get("district"),
         "sector": meta.get("sector"), "sectorName": meta.get("sectorName"),
         "level": None if lvl.wse_m is None else {
@@ -94,7 +141,7 @@ def zone_view(w, geo: G.Geo, zid: str) -> dict:
                    "reported": [reported_people - sum((h.people or 1) for h in hh if h.possible_duplicate_of), reported_people],
                    "households": len(hh), "elderly": sum(h.elderly for h in hh), "children": sum(h.children for h in hh),
                    "cannotWalk": sum(h.cannot_walk for h in hh), "urgent": sum(1 for h in hh if h.urgent and h.status == "open")},
-        "status": status, "sources": sources, "plans": [{k: p.get(k) for k in ("id", "team", "vehicle", "seats", "eta", "offers", "at", "told")} for p in plans],
+        "status": status, "sources": sources, "plans": [{k: p.get(k) for k in ("id", "team", "vehicle", "seats", "eta", "offers", "at", "told", "order", "checkStreets")} for p in plans],
         "gap": gap, "quiet": zid in w.quiet, "predicted": zid in w.predicted, "disagree": w.disagree.get(zid),
         "summary": summary_text(zid, lvl, depth, hh, plans, gap, w, correction),
         "simulation": {"wetShare": sim_wet, "surfaceM": sim_surf, "correctionM": correction},

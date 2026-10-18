@@ -3,7 +3,7 @@ import { Tr, useT } from "../ui/lang";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveMission } from "./mission";
-import { v2, vol, type Overview, type WaterTrend, type ZonePage as ZoneDetail } from "../api";
+import { v2, vol, type ZoneSuggestion, type Overview, type WaterTrend, type ZonePage as ZoneDetail } from "../api";
 import { Depth, Trend, VShell, useGeo, useLive, useTeam } from "./shared";
 import { initialSelection, selectionReducer } from "./selection";
 import { displayText } from "../ui/trace";
@@ -105,6 +105,36 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
   const [busy, setBusy] = useState(false);
   const [posted, setPosted] = useState(false);
   const [told, setTold] = useState<number | null>(null);
+  const [suggestion, setSuggestion] = useState<ZoneSuggestion | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
+  const requestVersion = useRef(0);
+  const clearSuggestion = () => { requestVersion.current += 1; setSuggestion(null); setSuggesting(false); };
+  const suggest = async () => {
+    const version = ++requestVersion.current;
+    setSuggesting(true); setError("");
+    try {
+      const result = await vol.suggest(id, { team: planTeam.trim(), vehicle: vehicle as "boat" | "truck" | "foot", seats, eta, lang: t("th", "en") as "th" | "en" });
+      if (version === requestVersion.current) setSuggestion(result);
+    } catch (failure) { if (version === requestVersion.current) setError(String(failure)); }
+    finally { if (version === requestVersion.current) setSuggesting(false); }
+  };
+  const move = (index: number, offset: number) => {
+    if (!suggestion) return;
+    const order = [...suggestion.order];
+    if (!order[index + offset]) return;
+    [order[index], order[index + offset]] = [order[index + offset], order[index]];
+    // Repack the edited sequence without splitting a household or overloading a run.
+    let run = 1, load = 0;
+    const packed = order.map(visit => {
+      const people = detail?.households.find(h => h.id === visit.householdId)?.people;
+      if (people == null) return visit;
+      const capacity = Math.max(seats - suggestion.spareSeats, people);
+      if (load && load + people > capacity) { run += 1; load = 0; }
+      load += people;
+      return { ...visit, run };
+    });
+    setSuggestion({ ...suggestion, order: packed });
+  };
   useEffect(() => {
     let active = true;
     vol.zone(id, team).then(result => { if (active) setDetail(result); }, failure => { if (active) setError(String(failure)); });
@@ -121,10 +151,10 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
   }, [detail?.now.at]);
   const openPlan = () => setPlanning(true);
   const post = async () => {
-    if (busy || posted) return;
+    if (busy || posted || suggesting) return;
     setBusy(true); setError("");
     try {
-      const result = await v2.plan(text, planTeam.trim());
+      const result = await v2.plan(text, planTeam.trim(), { zone: id, ...(suggestion ? { order: suggestion.order.map(v => v.householdId), checkStreets: suggestion.checkStreets.map(s => s.name) } : {}) });
       setTold(result.plan.told ?? null);
       setPosted(true);
       setTeam(planTeam.trim());
@@ -150,6 +180,7 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
         <span className={zone.people.urgent ? "is-urgent" : ""}><b>{zone.people.urgent}</b><Tr th="ด่วน" en="urgent" /></span>
         <span><b>{zone.people.cannotWalk}</b><Tr th="เดินไม่ได้" en="can’t walk" /></span>
       </div>
+      {(zone.unheard?.floodedBuildings ?? zone.unheard?.streets?.length ?? 0) > 0 && <p><Tr th={`≈ ${(zone.unheard!.floodedBuildings ?? zone.unheard!.streets?.reduce((n, s) => n + s.floodedBuildings, 0) ?? 0)} อาคารน้ำท่วมยังไม่มีคำขอ (ประมาณการแบบจำลอง)`} en={`≈ ${(zone.unheard!.floodedBuildings ?? zone.unheard!.streets?.reduce((n, s) => n + s.floodedBuildings, 0) ?? 0)} flooded buildings with no request (model estimate)`} /></p>}
       {(() => {
         // the likely depth sets the vehicle; the deep end of the range is said out loud, since a team meets the worst street
         const likely = zone.level?.depthM, hi = zone.level?.depthHiM;
@@ -169,20 +200,47 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
       <div className="rp-warning"><h3><Tr th="ยังไม่แน่ใจ" en="Not sure" /></h3><p>{displayText(zone.disagree || t("ยังไม่มีข้อขัดแย้งที่บันทึกไว้ ข้อมูลที่ไม่รายงานยังไม่ทราบ · No recorded conflict; unreported conditions remain unknown", "No recorded conflict; unreported conditions remain unknown"))}</p></div>
       <h3><Tr th="ใครก่อน" en="Who first" /></h3>
       {priorityFamilies(detail?.households ?? []).map(household => <Link className="p3-family" key={household.id} to={`/v/case/${household.id}`}><span className="pill">{household.id}</span><p>{household.people === null ? t("ไม่ทราบจำนวนคน · Household size unknown", "Household size unknown") : t(`${household.people} คน · people`, `${household.people} people`)} · {household.cannotWalk ? t("มีคนเดินไม่ได้ · Cannot walk", "Cannot walk") : household.urgent ? t("แจ้งความต้องการด่วน · Urgent help reported", "Urgent help reported") : t("กำลังรอความช่วยเหลือ · Waiting for help", "Waiting for help")}</p></Link>)}
-      <footer className="p3-panel-footer"><Link to={`/v/zone/${id}`}><Tr th="รายละเอียด" en="Details" /></Link><Link to={`/v/plan?zone=${encodeURIComponent(id)}`}>✦ <Tr th="ถาม Gemini" en="Ask Gemini" /></Link><button className="btn btn-pri" onClick={openPlan} disabled={!detail}><Tr th="ฉันจะไปที่นี่" en="I'll go here" /></button></footer>
+      <footer className="p3-panel-footer"><Link to={`/v/zone/${id}`}><Tr th="รายละเอียด" en="Details" /></Link><button className="btn btn-pri" onClick={openPlan} disabled={!detail}><Tr th="ฉันจะไปที่นี่" en="I'll go here" /></button></footer>
     </>}
     {planning && !posted && <form onSubmit={event => { event.preventDefault(); void post(); }}>
-      <label><Tr th="ทีม" en="Team" /><input required value={planTeam} onChange={event => setPlanTeam(event.target.value)} disabled={busy || posted} /></label>
+      <label><Tr th="ทีม" en="Team" /><input required maxLength={80} value={planTeam} onChange={event => { setPlanTeam(event.target.value); clearSuggestion(); }} disabled={busy || posted} /></label>
       <h3><Tr th="แผนเดินทาง" en="Your plan" /></h3>
-      <fieldset disabled={busy || posted}><legend><Tr th="พาหนะ" en="Vehicle" /></legend><div className="p3-plan-chips">{[["boat", "เรือ", "Boat"], ["high truck", "รถสูง", "High truck"], ["on foot", "เดิน", "On foot"]].map(([value, th, en]) => <button type="button" className={`chip ${vehicle === value ? "on" : ""}`} aria-pressed={vehicle === value} key={value} onClick={() => setVehicle(value)}><Tr th={th} en={en} /></button>)}</div></fieldset>
-      <fieldset disabled={busy || posted}><legend><Tr th="ที่นั่ง" en="Seats" /></legend><div className="p3-plan-chips">{[2, 4, 6, 8].map(value => <button type="button" className={`chip ${seats === value ? "on" : ""}`} aria-pressed={seats === value} key={value} onClick={() => setSeats(value)}>{value}</button>)}</div></fieldset>
-      <fieldset disabled={busy || posted}><legend><Tr th="เวลา" en="Time" /></legend><div className="p3-plan-chips">{["07:00", "12:00", "17:00"].map(value => <button type="button" key={value} className={`chip ${eta === value ? "on" : ""}`} aria-pressed={eta === value} onClick={() => { etaTouched.current = true; setEta(value); }}>{value}</button>)}</div></fieldset>
-      <label><Tr th="ถึงประมาณ" en="Arrival time" /><input type="time" required value={eta} onChange={event => { etaTouched.current = true; setEta(event.target.value); }} disabled={busy || posted} /></label>
+      <fieldset disabled={busy || posted}><legend><Tr th="พาหนะ" en="Vehicle" /></legend><div className="p3-plan-chips">{[["boat", "เรือ", "Boat"], ["truck", "รถสูง", "High truck"], ["foot", "เดิน", "On foot"]].map(([value, th, en]) => <button type="button" className={`chip ${vehicle === value ? "on" : ""}`} aria-pressed={vehicle === value} key={value} onClick={() => { setVehicle(value); clearSuggestion(); }}><Tr th={th} en={en} /></button>)}</div></fieldset>
+      <fieldset disabled={busy || posted}><legend><Tr th="ที่นั่ง" en="Seats" /></legend><div className="p3-plan-chips">{[2, 4, 6, 8].map(value => <button type="button" className={`chip ${seats === value ? "on" : ""}`} aria-pressed={seats === value} key={value} onClick={() => { setSeats(value); clearSuggestion(); }}>{value}</button>)}</div></fieldset>
+      <fieldset disabled={busy || posted}><legend><Tr th="เวลา" en="Time" /></legend><div className="p3-plan-chips">{["07:00", "12:00", "17:00"].map(value => <button type="button" key={value} className={`chip ${eta === value ? "on" : ""}`} aria-pressed={eta === value} onClick={() => { etaTouched.current = true; setEta(value); clearSuggestion(); }}>{value}</button>)}</div></fieldset>
+      <label><Tr th="ถึงประมาณ" en="Arrival time" /><input type="time" required value={eta} onChange={event => { etaTouched.current = true; setEta(event.target.value); clearSuggestion(); }} disabled={busy || posted} /></label>
+      <button type="button" className="btn btn-ghost" disabled={busy || suggesting || !planTeam.trim()} onClick={() => void suggest()}>✦ <Tr th="แนะนำลำดับการไป (Gemini)" en="Suggest visiting order (Gemini)" /></button>
+      {suggesting && <p role="status"><Tr th="กำลังอ่านข้อมูลในโซน…" en="Reading this zone’s records…" /></p>}
+      {suggestion && <section className="zone-suggestion" aria-label={t("ลำดับที่แนะนำ", "Suggested visiting order")}>
+        <small>{suggestion.reader.startsWith("gemini:") ? <Tr th="Gemini · ตรวจสอบกับบันทึก ReachPoint แล้ว" en="Gemini · checked against ReachPoint's records" /> : <Tr th="กฎ" en="Rules" />}</small>
+        <p>{suggestion.summary}</p>
+        {[...new Set(suggestion.order.map(v => v.run))].map(run => <div key={run}><h4><Tr th={`เที่ยว ${run}`} en={`Run ${run}`} /></h4>
+          <ol>{suggestion.order.map((visit, index) => {
+            if (visit.run !== run) return null;
+            const h = detail?.households.find(h => h.id === visit.householdId);
+            return <li key={visit.householdId}><b>{index + 1}. {visit.householdId}</b>
+              {h && <><div className="p3-plan-chips"><span className="pill"><Tr th={`${h.people ?? "?"} คน`} en={`${h.people ?? "?"} people`} /></span>
+                {!!h.children && <span className="pill"><Tr th={`เด็ก ${h.children}`} en={`${h.children} children`} /></span>}
+                {!!h.elderly && <span className="pill"><Tr th={`ผู้สูงอายุ ${h.elderly}`} en={`${h.elderly} elderly`} /></span>}
+                {!!h.cannotWalk && <span className="pill"><Tr th="เดินไม่ได้" en="Cannot walk" /></span>}
+                {h.urgent && <span className="pill"><Tr th="ด่วน" en="Urgent" /></span>}</div><Depth m={h.depth?.m} lo={h.depth?.lo} hi={h.depth?.hi} /></>}
+              <p>{visit.reason}</p>{visit.quote && <blockquote>“{visit.quote}”</blockquote>}
+              <div className="p3-plan-chips">
+                <button type="button" disabled={busy || index === 0} aria-label={t(`เลื่อน ${visit.householdId} ขึ้น`, `Move ${visit.householdId} up`)} onClick={() => move(index, -1)}>↑</button>
+                <button type="button" disabled={busy || index === suggestion.order.length - 1} aria-label={t(`เลื่อน ${visit.householdId} ลง`, `Move ${visit.householdId} down`)} onClick={() => move(index, 1)}>↓</button>
+                <button type="button" disabled={busy} aria-label={t(`ลบ ${visit.householdId}`, `Remove ${visit.householdId}`)} onClick={() => setSuggestion({ ...suggestion, order: suggestion.order.filter(v => v.householdId !== visit.householdId) })}>×</button>
+              </div></li>;
+          })}</ol></div>)}
+        {suggestion.spareSeats > 0 && <p><Tr th={`เว้น ${suggestion.spareSeats} ที่นั่งสำหรับคนที่พบระหว่างทาง`} en={`Keep ${suggestion.spareSeats} seats free for people found on the way`} /></p>}
+        <p><Tr th="เตรียม:" en="Bring:" /> {suggestion.bring.join(" · ")}</p>
+        {suggestion.checkStreets.map(s => <p key={s.name}><Tr th="ตรวจด้วย:" en="Also check:" /> {s.name} — {s.why} <Tr th="(ประมาณการ)" en="(estimate)" /></p>)}
+        {suggestion.warnings.map((warning, i) => <p className="rp-warning" key={i}>{warning}</p>)}
+      </section>}
       <button type="button" className="btn btn-ghost" disabled={busy || posted} onClick={() => setPlanning(false)}><Tr th="ย้อนกลับ" en="Back" /></button>
       <label><Tr th="แผนหนึ่งบรรทัด" en="One-line plan" /><textarea required value={text} onChange={event => setText(event.target.value)} disabled={busy || posted} /></label>
       <p><Tr th="ปรับข้อความให้ตรงกับทีมและพาหนะก่อนส่ง" en="Check team and vehicle in the plan before posting." /></p>
       <p className="p4-decision"><Tr th="ตัวอย่างข้อความ" en="Preview" /><br />{text}</p>
-      <footer className="p3-panel-footer"><button className="btn btn-pri" disabled={busy || posted || !planTeam.trim() || !text.trim()}>{busy ? t("กำลังส่ง · Posting…", "Posting…") : t("ส่งแผนและแจ้งครอบครัวในโซน", "Post plan and tell the families")}</button></footer>
+      <footer className="p3-panel-footer"><button className="btn btn-pri" disabled={busy || suggesting || posted || !planTeam.trim() || !text.trim()}>{busy ? t("กำลังส่ง · Posting…", "Posting…") : t("ส่งแผนและแจ้งครอบครัวในโซน", "Post plan and tell the families")}</button></footer>
     </form>}
     {posted && <p role="status">{told === null ? t("บันทึกแผนแล้ว ไม่ทราบจำนวนที่แจ้ง · Plan recorded; notified family count unavailable", "Plan recorded; notified family count unavailable") : t(`แจ้งแล้ว ${told} ครอบครัว`, `${told} families told`)} <Tr th="· เป็นแผน ยังไม่ได้ช่วยออกมา" en="planned, not rescued yet" /> <Link className="btn btn-pri" to={`/v/mission/${encodeURIComponent(id)}`}><Tr th="ไปที่ภารกิจ" en="Go to my mission" /></Link></p>}
   </aside>;

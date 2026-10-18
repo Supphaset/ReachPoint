@@ -5,6 +5,7 @@ import { Tr, useT } from "../ui/lang";
 import { Depth, VShell, useGeo, useLive, useTeam, useTeamNameOpener } from "./shared";
 import { directionsUrl, isDone, useMission, visitingOrder, type Mission } from "./mission";
 import { MissionMap } from "./MissionMap";
+import { UnheardPanel } from "../ui/UnheardPanel";
 import { goBy } from "./SectorMap";
 import { needLabel } from "./UrgentList";
 
@@ -36,7 +37,10 @@ export function MissionContent({ data, mission, team, reload }: { data: ZoneDeta
   const t = useT();
   const geo = useGeo();
   const openTeamName = useTeamNameOpener();
-  const rows = visitingOrder(data.households);
+  const postedOrder = data.plan?.order;
+  const rows = postedOrder ? postedOrder.flatMap(id => data.households.filter(h => h.id === id)) : visitingOrder(data.households);
+  const checkStreets = data.plan?.checkStreets;
+  const streets = checkStreets ? data.zone.unheard?.streets.filter(s => checkStreets.includes(s.name) || checkStreets.includes(s.nameEn)) : undefined;
   const done = rows.filter(isDone).length;
   const [selected, setSelected] = useState<string | null>(null);
   const [pending, setPending] = useState<{ id: string; kind: Outcome } | null>(null);
@@ -76,8 +80,9 @@ export function MissionContent({ data, mission, team, reload }: { data: ZoneDeta
       {ownMission && <p>{ownMission.told === null ? t("ไม่ทราบจำนวนครอบครัวที่แจ้ง", "Notified family count unavailable")
         : t(`แจ้ง ${ownMission.told} ครอบครัวแล้วว่าทีมกำลังมา`, `${ownMission.told} families told a team is coming`)}</p>}
     </section>
+    <UnheardPanel unheard={data.zone.unheard} streets={streets} mission />
     {sent && <p role="status"><Tr th="บันทึกผลแล้ว แจ้งครอบครัวแล้ว" en="Outcome recorded. The family has been notified." /></p>}
-    {done === rows.length && <section className="mission-empty"><h2><Tr th="ทุกบ้านในโซนนี้เรียบร้อย" en="Every house in this zone is done" /></h2><Link to="/v"><Tr th="กลับไปเลือกโซน" en="Back to zones" /></Link></section>}
+    {done === rows.length && <section className="mission-empty"><h2>{(data.zone.unheard?.notHeard?.[1] ?? 0) > 0 ? <Tr th="คำขอที่แจ้งมาครบแล้ว ยังต้องตรวจถนนที่ประเมินไว้" en="All reported requests are done. Check the estimated streets too." /> : <Tr th="ทุกบ้านในโซนนี้เรียบร้อย" en="Every house in this zone is done" />}</h2><Link to="/v"><Tr th="กลับไปเลือกโซน" en="Back to zones" /></Link></section>}
     <div className="mission-layout">
       <MissionMap geo={geo} zoneId={data.zone.id} rows={rows} selected={selected} hour={data.now.atH} onSelect={selectMarker} />
       <section className="mission-list" aria-label={t("บ้านตามลำดับการไป", "Houses in visiting order")}>
@@ -119,7 +124,7 @@ export function MissionContent({ data, mission, team, reload }: { data: ZoneDeta
   </div>;
 }
 function vehicleLabel(vehicle: string): [string, string] {
-  return vehicle === "boat" ? ["เรือ", "Boat"] : vehicle === "high truck" ? ["รถสูง", "High truck"] : vehicle === "on foot" ? ["เดิน", "On foot"] : [vehicle, vehicle];
+  return vehicle === "boat" ? ["เรือ", "Boat"] : ["truck", "high truck"].includes(vehicle) ? ["รถสูง", "High truck"] : ["foot", "on foot"].includes(vehicle) ? ["เดิน", "On foot"] : [vehicle, vehicle];
 }
 function outcomeLabel(row: CaseRow): [string, string] {
   if (row.status === "atShelter") return ["พาไปศูนย์พักพิง", "Taken to shelter"];

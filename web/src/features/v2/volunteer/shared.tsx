@@ -78,12 +78,11 @@ export function useGeo(): GeoView | null {
 const TeamNameContext = createContext<() => void>(() => undefined);
 export const useTeamNameOpener = () => useContext(TeamNameContext);
 
-/** The volunteer pages' links, shared by VShell and the copilot page. */
+/** Navigation shared by the volunteer pages. */
 export function VNavLinks() {
   const mission = useMission();
   return <>
     <NavLink to="/v" end><Tr th="ช่วยที่ไหน" en="Where help is missing" /></NavLink>
-    <NavLink to="/v/plan">✦ <Tr th="วางแผนกับ Gemini" en="Plan with Gemini" /></NavLink>
     <NavLink to="/v/feed"><Tr th="การตัดสินใจ" en="AI decisions" /></NavLink>
     {mission && <NavLink to={`/v/mission/${encodeURIComponent(mission.zoneId)}`}><Tr th="ภารกิจของฉัน" en="My mission" /></NavLink>}
   </>;

@@ -104,6 +104,8 @@ def plan_outreach(w, geo: G.Geo) -> None:
         for z in p.get("zones", []):
             for h in w.households.values():
                 if h.zone_id == z and h.status not in ("evacuated", "atShelter"):
+                    if p.get("order") is not None and h.id not in p["order"]:
+                        continue
                     if z in block_zones:  # the plan names streets in this zone: tell only the families on them
                         bl = geo.buildings.get(h.building_id) if h.building_id else None
                         if not bl or bl.block_id not in blocks:

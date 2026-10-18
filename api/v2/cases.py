@@ -135,7 +135,7 @@ def overview(st: dict) -> dict:
         score = unmet * (0.5 if plans else 1.0) + max(0, likely - heard) * 0.2
         zones.append({
             "id": zid, "label": z.get("label"), "district": z.get("district"), "sector": z.get("sector"),
-            "sectorName": z.get("sectorName"), "score": round(score),
+            "sectorName": z.get("sectorName"), "unheard": z.get("unheard"), "score": round(score),
             "open": len(open_), "urgent": sum(1 for r in open_ if r["urgent"]),
             "lostContact": sum(1 for r in open_ if r["status"] == "lostContact"),
             "cannotWalk": sum(r["cannotWalk"] for r in open_), "elderly": sum(r["elderly"] for r in open_),
@@ -312,7 +312,8 @@ def zone(st: dict, zid: str, team: str | None = None) -> dict | None:
         outlook.append({"inH": k, "wetShare": round(wet, 3), "surfaceM": surf})
     open_ = [r for r in rs if r["status"] not in CLOSED]
     brief = briefing(z, open_, outlook)
-    return {"zone": z, "households": rs, "outlook": outlook, "briefing": brief, "unlocked": unlocked(w, team, zid),
+    own_plan = next((p for p in reversed(w.plans) if zid in (p.get("zones") or []) and (p.get("team") or "").strip().lower() == (team or "").strip().lower()), None) if team else None
+    return {"plan": own_plan, "zone": z, "households": rs, "outlook": outlook, "briefing": brief, "unlocked": unlocked(w, team, zid),
             "subareas": subareas(st, zid), "blocks": blocks(st, zid),
             "totals": {"open": len(open_), "people": sum(r["people"] or 1 for r in open_), "urgent": sum(1 for r in open_ if r["urgent"]),
                        "boat": sum(1 for r in open_ if r["boat"]), "closed": len(rs) - len(open_)},

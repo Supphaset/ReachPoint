@@ -101,7 +101,7 @@ def http_limit(method, path, ip, room, body, creating=False):
             rules.append((("session", room, sid), 20, 60))
         elif path.endswith("/sessions"):
             name, cap = "sessions", 20
-        elif path.endswith("/copilot"):
+        elif path.endswith(("/copilot", "/suggest")):
             name, cap = "copilot", 8
         elif path == "/api/demo/reset" or (path == "/api/v2/clock" and body.get("action") == "reset"):
             name, cap = "room", 10
@@ -113,6 +113,6 @@ def http_limit(method, path, ip, room, body, creating=False):
     if creating:
         rules.append((("room", ip), 10, 60))
     retry = limits.take(rules)
-    if not retry and method == "POST" and path.endswith("/copilot"):
+    if not retry and method == "POST" and path.endswith(("/copilot", "/suggest")):
         retry = limits.day(("copilot", ip), 30)
     return retry

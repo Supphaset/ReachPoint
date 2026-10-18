@@ -12,7 +12,6 @@ import { FloodPage } from "./features/flood/FloodPage";
 import { Home } from "./pages/Home";
 import { DemoPage } from "./features/demo/DemoPage";
 import { OverviewLanding } from "./features/v2/OverviewLanding";
-import { PlanPage } from "./features/v2/PlanPage";
 import { V2Page } from "./features/v2/V2Page";
 import { CasePage } from "./features/v2/volunteer/CasePage";
 import { FeedPage } from "./features/v2/volunteer/FeedPage";
@@ -31,7 +30,6 @@ export function App() {
       <Route path="v/mission/:zoneId" element={<MissionPage />} />
       <Route path="v/zone/:id" element={<ZonePage />} />
       <Route path="v/case/:id" element={<CasePage />} />
-      <Route path="v/plan" element={<PlanPage />} />
       <Route path="v/plan/legacy" element={<TripPage />} />
       <Route path="demo" element={<DemoPage />} />
       <Route element={<AppShell />}>

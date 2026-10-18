@@ -128,3 +128,9 @@
   border-radius: var(--r-ctl);
 }
 .p3-shelter-line .rp-gloss { display: block; margin: 2px 0 0; }
+
+.zone-suggestion { min-width: 0; overflow-wrap: anywhere; }
+.zone-suggestion ol { list-style: none; padding: 0; }
+.zone-suggestion li { padding-block: var(--space-3); border-bottom: 1px solid var(--line); }
+.zone-suggestion blockquote { margin-inline: 0; }
+.zone-suggestion button { min-width: 44px; min-height: 44px; }

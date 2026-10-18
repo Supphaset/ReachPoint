@@ -31,6 +31,11 @@ Rules:
 - For English questions, use labelEn for place names; preserve Thai names for Thai questions.
 - Cite zones as [D12] and households as [HH135] exactly as the tools name them.
 - When the volunteer gives capacity (seats, vehicle), call draft_plan for the zone you recommend and follow its runs.
+- If a zone is given, call get_zone and draft_plan for that zone. Other zones belong only under "after this trip".
+- Cover requests first, then the unheard estimate: about notHeard households probably need help but have not asked.
+  Name checkOnTheWay streets and their modelled depths, and say how many seatsKeptFree remain.
+  If requests fill the boat, say no spare seats remain. Exposure is estimated from the flood model and building outlines,
+  not reports or confirmed need. Do not omit this part even if no requests exist.
 - Households in needsBiggerVehicleOrSeveralTrips need a bigger vehicle or several trips: list them separately, never in a run.
 - Nonpositive seats are invalid: say the team needs at least one seat and return no plan.
 - Never say a team is coming, a route is passable or a place is safe. Say "planned", not "rescued".
@@ -79,7 +84,7 @@ def get_zone(st: dict, zone_id: str) -> dict:
     if z is None:
         return {"error": f"no zone {zone_id}"}
     fams = _open(st, zone_id)
-    return {"id": zone_id, "label": z.get("label"), "labelEn": z.get("labelEn"), "depthM": (z.get("level") or {}).get("depthM"), "waiting": len(fams),
+    return {"unheard": z.get("unheard"), "id": zone_id, "label": z.get("label"), "labelEn": z.get("labelEn"), "depthM": (z.get("level") or {}).get("depthM"), "waiting": len(fams),
             "urgent": sum(1 for r in fams if r["urgent"]), "people": sum(r["people"] or 1 for r in fams),
             "needBoat": sum(1 for r in fams if r["boat"]), "families": [_fam(r) for r in fams[:8]], "otherTeams": _others(st, zone_id)}
 
@@ -105,7 +110,7 @@ def draft_plan(st: dict, zone_id: str, seats: int, vehicle: str | None = None) -
     seats = int(seats)
     if seats <= 0:
         return {"error": "The team needs at least one seat; no plan was made."}
-    fams = [r for r in _open(st, zone_id) if r["urgent"] or r["cannotWalk"] or r["status"] == "lostContact"] or _open(st, zone_id)
+    fams = _open(st, zone_id)
     runs: list[list[dict]] = []
     bigger = []
     for r in fams:
@@ -120,16 +125,22 @@ def draft_plan(st: dict, zone_id: str, seats: int, vehicle: str | None = None) -
         else:
             if len(runs) < 3:
                 runs.append([r])
+    unheard = z.get("unheard") or {}
+    gap = (unheard.get("notHeard") or [0, 0])[1] > 0
+    target_free = 2 if seats >= 6 else 1
+    free = min(target_free, seats - sum(r["people"] or 1 for r in runs[0])) if gap and runs else (min(target_free, seats) if gap else 0)
+    streets = sorted(unheard.get("streets", []), key=lambda r: (-r["depthM"], -r["floodedBuildings"], r["name"])) if gap else []
     people = sum((r["people"] or 1) for run in runs for r in run)
     children = sum(r["children"] for run in runs for r in run)
     carry = sum(r["cannotWalk"] for run in runs for r in run)
-    bring = [f"life jackets for {people} people" + (f" ({children} for children)" if children else "")]
+    bring = [f"life jackets for {max(people, seats if gap else 0)} people" + (f" ({children} for children)" if children else "")]
     if carry:
         bring.append(f"a stretcher or help to carry {carry} {'person' if carry == 1 else 'people'} who can't walk")
     bring.append("drinking water")
     ov = C.overview(st)
     nxt = next((x for x in ov["zones"] if x["id"] != zone_id and x["open"] and not x["plans"]), None)
-    return {"zone": zone_id, "label": z.get("label"), "labelEn": z.get("labelEn"), "vehicle": vehicle or "boat", "seats": seats,
+    return {"unheard": unheard, "seatsKeptFree": free, "checkOnTheWay": streets,
+            "zone": zone_id, "label": z.get("label"), "labelEn": z.get("labelEn"), "vehicle": vehicle or "boat", "seats": seats,
             "runs": [{"run": i + 1, "households": [r["id"] for r in run], "people": sum(r["people"] or 1 for r in run)} for i, run in enumerate(runs)],
             "families": [_fam(r) for run in runs for r in run], "needsBiggerVehicleOrSeveralTrips": bigger, "bring": bring, "otherTeams": _others(st, zone_id),
             "depthM": (z.get("level") or {}).get("depthM"),
@@ -197,6 +208,14 @@ def check(answer: str, results: list[dict], question: str) -> str | None:
         for family in p.get("needsBiggerVehicleOrSeveralTrips", []):
             if family["id"] not in answer:
                 return "oversized household omitted"
+    for p in plans:
+        if (p.get("unheard", {}).get("notHeard") or [0, 0])[1] > 0:
+            free = p.get("seatsKeptFree", 0)
+            if free < 0 or free + (p["runs"][0]["people"] if p["runs"] else 0) > p["seats"]:
+                return "spare seats exceed capacity"
+            for m in re.finditer(r"(?:keep|เว้น)\s*(\d+)\s*(?:seats? free|ที่นั่ง)", answer, re.I):
+                if int(m.group(1)) != free:
+                    return "spare seats differ from plan"
     seen = set(NUM.findall(json.dumps(results, ensure_ascii=False))) | set(NUM.findall(question))
     seen |= {str(float(x)) for x in list(seen)} | {x.rstrip("0").rstrip(".") for x in list(seen) if "." in x}
     sums = set()
@@ -214,6 +233,11 @@ def _capacity(question: str) -> tuple[int, str]:
     return (int(m.group(1)) if m else 6), vehicle
 
 
+def _zone(question: str) -> str | None:
+    m = re.search(r"(?:zone|โซน)\s*([A-Z]\d{1,2})\b", question, re.I)
+    return m.group(1).upper() if m else None
+
+
 def rules_answer(st: dict, question: str) -> tuple[str, list[dict], dict | None]:
     calls: list[dict] = []
 
@@ -226,7 +250,7 @@ def rules_answer(st: dict, question: str) -> tuple[str, list[dict], dict | None]
     thai = bool(re.search(r"[฀-๿]", question))
     if _capacity(question)[0] <= 0:
         return ("ทีมต้องมีอย่างน้อยหนึ่งที่นั่ง จึงจะวางแผนได้" if thai else "The team needs at least one seat; no plan was made."), calls, None
-    if re.search(r"can.?t walk|เดินไม่ได้", question, re.I):
+    if not _zone(question) and re.search(r"can.?t walk|เดินไม่ได้", question, re.I):
         f = run("find_households", need="cannotWalk")
         z = next((x for x in f["zones"] if not x["teamPlanned"]), f["zones"][0] if f["zones"] else None)
         if not z:
@@ -235,20 +259,41 @@ def rules_answer(st: dict, question: str) -> tuple[str, list[dict], dict | None]
                 f"{f['count']} households have someone who can't walk; most are in [{z['id']}] ({z['count']}).")
         return line, calls, None
     seats, vehicle = _capacity(question)
-    ov = run("get_overview", limit=5)
-    target = next((z for z in ov["zones"] if not z["plans"]), ov["zones"][0] if ov["zones"] else None)
+    if _zone(question):
+        target = {"id": _zone(question)}
+        if target["id"] not in st["zones"]:
+            return ("ไม่พบโซนนี้" if thai else "Zone not found."), calls, None
+    else:
+        ov = run("get_overview", limit=5)
+        target = next((z for z in ov["zones"] if not z["plans"]), ov["zones"][0] if ov["zones"] else None)
     if not target:
         return ("ตอนนี้ไม่มีครอบครัวรอความช่วยเหลือ" if thai else "No families are waiting right now."), calls, None
     zd = run("get_zone", zone_id=target["id"])
     plan = run("draft_plan", zone_id=target["id"], seats=seats, vehicle=vehicle)
     runs = "; ".join(f"run {r['run']}: " + " + ".join(f"[{h}]" for h in r["households"]) + f" ({r['people']} people)" for r in plan["runs"])
-    lines = [f"Go to [{target['id']}] first: {zd['waiting']} families waiting, {zd['urgent']} urgent, water about {zd['depthM']} m, "
+    lines = [f"Go to [{target['id']}] first: {zd['waiting']} families waiting, {zd['urgent']} urgent, " + (f"water about {zd['depthM']} m, " if zd["depthM"] is not None else "reported depth unknown, ")
              + ("no other team planned." if not zd["otherTeams"] else f"{len(zd['otherTeams'])} other teams planned there: coordinate."),
-             f"With {seats} seats: {runs}.", "Bring " + ", ".join(plan["bring"]) + "."]
+             f"With {seats} seats: {runs or 'no requested households waiting' }.", "Bring " + ", ".join(plan["bring"]) + "."]
+    if thai:
+        runs_th = "; ".join(f"เที่ยว {r['run']}: " + " + ".join(f"[{h}]" for h in r["households"]) + f" ({r['people']} คน)" for r in plan["runs"])
+        lines = [f"เริ่มที่ [{target['id']}]: มี {zd['waiting']} ครัวเรือนรอ ด่วน {zd['urgent']} ครัวเรือน "
+                 + (f"น้ำประมาณ {zd['depthM']} ม." if zd['depthM'] is not None else "ยังไม่ทราบระดับน้ำจากรายงาน")
+                 + (" ยังไม่มีทีมอื่นวางแผน" if not zd['otherTeams'] else " ประสานงานกับทีมอื่นที่วางแผนไว้"),
+                 f"เรือ {seats} ที่นั่ง: {runs_th or 'ยังไม่มีครัวเรือนส่งคำขอ'}",
+                 "เตรียมเสื้อชูชีพ น้ำดื่ม และอุปกรณ์ตามความต้องการที่แจ้ง"]
     if plan["needsBiggerVehicleOrSeveralTrips"]:
-        lines.append("Needs a bigger vehicle or several trips: " + ", ".join(f"[{f['id']}] ({f['people']} people)" for f in plan["needsBiggerVehicleOrSeveralTrips"]) + ".")
+        lines.append(("ต้องใช้พาหนะใหญ่ขึ้นหรือหลายเที่ยว: " if thai else "Needs a bigger vehicle or several trips: ") + ", ".join(f"[{f['id']}] ({f['people']} people)" for f in plan["needsBiggerVehicleOrSeveralTrips"]) + ".")
+    unheard = plan.get("unheard") or {}
+    if (unheard.get("notHeard") or [0, 0])[1] > 0:
+        lo, hi = unheard["notHeard"]
+        streets = ", ".join(f"{r['name'] if thai else r['nameEn']} ({r['depthM']} m)" for r in plan["checkOnTheWay"])
+        free = plan["seatsKeptFree"]
+        if thai:
+            lines.append(f"ประมาณ {lo}–{hi} ครัวเรือนอาจต้องการความช่วยเหลือแต่ยังไม่ได้แจ้ง ประเมินจากแบบจำลองน้ำท่วมและขอบเขตอาคาร ไม่ใช่รายงาน ตรวจระหว่างทาง: {streets or 'ยังไม่ทราบถนน'}; " + (f"เว้น {free} ที่นั่ง" if free else "คำขอเต็มเรือแล้ว ไม่มีที่นั่งเหลือ"))
+        else:
+            lines.append(f"About {lo}–{hi} households here probably need help but haven't asked — estimated from the flood model and building outlines, not reports. Check {streets or 'streets not yet identified'}; " + (f"keep {free} seats free." if free else "requests already fill the boat; no spare seats."))
     if plan.get("after"):
-        lines.append(f"After this trip: [{plan['after']['zone']}] has {plan['after']['urgent']} urgent and no team yet.")
+        lines.append(f"หลังเที่ยวนี้: [{plan['after']['zone']}] มีคำขอด่วน {plan['after']['urgent']} ครัวเรือน ยังไม่มีทีม" if thai else f"After this trip: [{plan['after']['zone']}] has {plan['after']['urgent']} urgent and no team yet.")
     return "\n".join(lines), calls, plan
 
 
@@ -282,6 +327,8 @@ def _gemini(st: dict, question: str) -> tuple[str, list[dict], dict | None, str]
                 for fc in fcs:
                     t = time.time()
                     args = fc.get("args") or {}
+                    if _zone(question) and fc["name"] in ("get_zone", "draft_plan", "find_households"):
+                        args["zone_id"] = _zone(question)
                     out = _call(st, fc["name"], args)
                     if fc["name"] == "draft_plan" and not out.get("error"):
                         plan = out
@@ -302,6 +349,15 @@ def ask(st: dict, question: str) -> dict:
     if g:
         answer, calls, plan, reader = g
         why = check(answer, [c["result"] for c in calls], question)
+        cited_first = re.search(r"\[([A-Z]\d{1,2})\]", answer)
+        if not why and _zone(question) and (not plan or plan.get("zone") != _zone(question) or cited_first and cited_first.group(1) != _zone(question)):
+            why = "selected zone omitted"
+        if not why and plan and (plan.get("unheard", {}).get("notHeard") or [0, 0])[1] > 0:
+            u = plan["unheard"]
+            covers_streets = all(r["name"] in answer or r["nameEn"] in answer for r in plan["checkOnTheWay"])
+            covers_range = all(str(n) in answer for n in u["notHeard"])
+            if not covers_streets or not covers_range or not re.search(r"haven.t asked|not heard|ยังไม่ได้แจ้ง|ยังไม่.*รายงาน", answer, re.I) or not re.search(r"seats? free|spare seats|ที่นั่ง", answer, re.I):
+                why = "unheard guidance omitted"
         if why:
             reader = "rules"
     if not g or why:

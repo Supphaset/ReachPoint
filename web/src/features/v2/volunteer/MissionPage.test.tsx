@@ -48,6 +48,17 @@ describe("mission page", () => {
     expect(html).not.toContain(lang === "th" ? ">ยืนยัน<" : ">Confirm<");
     if (lang === "en") expect(html).not.toMatch(/[฀-๿]/);
   });
+  it("includes streets with no requests, modelled depth and directions", () => {
+    state.data = { ...data, zone: { ...data.zone, unheard: { estimatedHouseholds: [10, 20], heardFrom: 2, notHeard: [8, 18], quiet: true, atH: 96, basis: "model",
+      streets: [{ name: "ถนนเพชรเกษม", nameEn: "Thanon Phetkasem", depthM: 1.2, floodedBuildings: 12, lon: 100.48, lat: 7.02 }] } } };
+    const html = render("en");
+    expect(html).toContain("Also check on the way · estimated, no request yet");
+    expect(html).toContain("8–18 households");
+    expect(html).toContain("Thanon Phetkasem");
+    expect(html).toContain("1.2 m modelled depth");
+    expect(html).toContain("destination=7.02,100.48");
+    expect(html).not.toMatch(/[฀-๿]/);
+  });
   it("shows the requested zone without a different mission's team details", () => {
     state.data = data;
     state.mission = { zoneId: "OTHER", team: "Different team", vehicle: "boat", seats: 8, eta: "17:00", told: 99, at: "07:00" };
@@ -63,4 +74,11 @@ describe("mission page", () => {
     expect(html).toContain('href="/v"');
     expect(html).toContain("Picked up");
   });
+});
+
+it("uses the persisted plan order and excludes removed households", () => {
+  state.data = { ...data, plan: { order: ["HH-WAIT", "HH-URGENT"] } as ZoneDetail["plan"] };
+  const html = render("en");
+  expect(html.indexOf('data-house="HH-WAIT"')).toBeLessThan(html.indexOf('data-house="HH-URGENT"'));
+  expect(html).not.toContain('data-house="HH-DONE"');
 });

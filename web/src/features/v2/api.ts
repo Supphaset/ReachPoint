@@ -26,6 +26,8 @@ export interface Source {
 }
 
 export interface Plan {
+  order?: string[];
+  checkStreets?: string[];
   id: string;
   team: string | null;
   vehicle: string | null;
@@ -47,7 +49,17 @@ export interface PlaceNames {
   sectorNameEn?: string | null;
 }
 
+export interface UnheardStreet {
+  name: string; nameEn: string; floodedBuildings: number; depthM: number; lon: number; lat: number;
+}
+export interface Unheard {
+  floodedBuildings?: number;
+  estimatedHouseholds: Range | null; heardFrom: number; notHeard: Range | null;
+  quiet: boolean; streets: UnheardStreet[]; atH: number; basis: string;
+}
+
 export interface ZoneView extends PlaceNames {
+  unheard?: Unheard;
   sector?: string | null;
   sectorName?: string | null;
   id: string;
@@ -275,7 +287,7 @@ export const v2 = {
   simulate: (id: string, event: SimEvent) => post<SimResult>(`/api/v2/chat/sessions/${id}/simulate`, { event }),
   ready: (id: string, done: number[]) => post<FamilyStatus>(`/api/v2/chat/sessions/${id}/ready`, { done }),
   me: (token: string) => get<Inbox>(`/api/v2/me/${token}`),
-  plan: (text: string, team?: string) => post<{ plan: Plan; reader: string }>("/api/v2/plans", team ? { text, team } : { text }),
+  plan: (text: string, team?: string, options?: { zone: string; order?: string[]; checkStreets?: string[] }) => post<{ plan: Plan; reader: string }>("/api/v2/plans", { text, ...(team ? { team } : {}), ...options }),
   buildings: (lon: number, lat: number, r = 45) =>
     get<{ buildings: { id: string; outline: [number, number][]; groundM: number | null }[] }>(`/api/v2/buildings?lon=${lon}&lat=${lat}&r=${r}`),
 };
@@ -436,6 +448,7 @@ export interface CaseView {
 }
 
 export interface ZonePage {
+  plan?: Plan | null;
   /** Some zone responses may supply shelter choices; absence leaves the outcome unlinked. */
   shelterOptions?: ShelterOption[];
   zone: ZoneView;
@@ -471,11 +484,18 @@ export const depthAt = (lon: number, lat: number) => get<DepthSeries>(`/api/v2/d
 
 export const blocksNow = () => get<{ blocks: SubArea[]; thresholds: { walkM: number; truckM: number } }>("/api/v2/v/blocks");
 
+export interface ZoneSuggestion {
+  reader: string;
+  context: { waiting: number; people: number; otherTeams: number; floodedBuildings: number; householdEstimate: Range | null };
+  order: { householdId: string; run: number; reason: string; quote: string }[];
+  spareSeats: number; bring: string[]; checkStreets: { name: string; why: string }[]; warnings: string[]; summary: string;
+}
+
 export const vol = {
+  suggest: (zone: string, input: { team: string; vehicle: "boat" | "truck" | "foot"; seats: number; eta: string; lang: "th" | "en" }) => post<ZoneSuggestion>(`/api/v2/v/zones/${encodeURIComponent(zone)}/suggest`, input),
   urgent: () => get<UrgentView>("/api/v2/v/urgent"),
   first: (id: string, team: string, first: boolean) =>
     post<UrgentView>(`/api/v2/v/cases/${encodeURIComponent(id)}/first`, { team, first }),
-  copilot: (question: string) => post<CopilotResult>("/api/v2/v/copilot", { question }),
   overview: () => get<Overview>("/api/v2/v/overview"),
   feed: (kind?: string, team?: string | null, limit?: number) => get<Feed>(`/api/v2/v/feed?${[kind ? `kind=${encodeURIComponent(kind)}` : "", q(team), limit ? `limit=${limit}` : ""].filter(Boolean).join("&")}`),
   zone: (id: string, team?: string | null) => get<ZonePage>(`/api/v2/v/zones/${encodeURIComponent(id)}?${q(team)}`),
@@ -496,22 +516,4 @@ export function depthBand(d: number | null | undefined): "unknown" | "0" | "1" |
 
 export function cssVar(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-
-export interface CopilotFamily {
- id: string; people: number; children: number; elderly: number; cannotWalk: number;
- urgent: boolean; depthM: number | null; hoursSilent: number; firstHand: boolean; priority: number;
-}
-export interface CopilotPlan {
- zone: string; label: string; vehicle: string; seats: number;
- runs: {run: number; households: string[]; people: number}[];
- families: CopilotFamily[]; bring: string[];
- otherTeams: {team: string; vehicle: string | null; seats: number | null; eta: string | null; offers: string | null}[];
- depthM: number | null;
- after: {zone: string; label: string; urgent: number; cannotWalk: number} | null;
-}
-export interface CopilotResult {
- answer: string; reader: string; checkFailed: boolean;
- cited: {zones: string[]; households: string[]}; plan: CopilotPlan | null;
- toolCalls: {name: string; args: Record<string, unknown>; summary: string; ms: number}[]; ms: number;
 }
