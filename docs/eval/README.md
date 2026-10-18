@@ -1,3 +1,6 @@
+> Historical classic evaluation, retired with [decision 0012](../decisions/0012-v2-only-repository.md).
+> For the current v2 evaluation use [v2 results](v2-results.md) and `python api/scripts/eval_v2.py`.
+
 # Reproducing the synthetic evaluation
 
 Run from the repository root, using the existing environment (no packages to install):

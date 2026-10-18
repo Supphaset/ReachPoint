@@ -4,7 +4,6 @@
  * failure → the promise rejects and the screens fall back to the drawn map.
  */
 import { get } from "./api";
-import { apiMode } from "./mode";
 
 // The Maps API has no bundled types here (no new packages); only the few calls we use are touched.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,7 +12,6 @@ export type Maps = any;
 let loading: Promise<Maps> | undefined;
 
 export function loadGoogleMaps(lang: "th" | "en"): Promise<Maps> {
-  if (!apiMode()) return Promise.reject(new Error("needs the server"));
   return (loading ??= get<{ mapsKey: string | null }>("/api/config").then(
     (cfg) =>
       new Promise<Maps>((resolve, reject) => {

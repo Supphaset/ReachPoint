@@ -1,7 +1,6 @@
 """Where Gemini calls go (api/ai/gemini.py): Vertex AI on Cloud Run, the key locally; lite models first."""
 
 from api.ai import gemini as G
-from api.intake import conversation as C
 
 
 def test_route_choice(monkeypatch):
@@ -29,7 +28,7 @@ def test_vertex_requests_use_the_project_endpoint_and_a_token(monkeypatch):
     assert seen["headers"] == {"Authorization": "Bearer tok"}
 
 
-def test_the_conversation_tries_lite_models_first(monkeypatch):
+def test_reader_tries_lite_models_first(monkeypatch):
     monkeypatch.setattr(G, "ROUTE", "vertex")
     monkeypatch.setattr(G, "_credentials", lambda: (object(), "p"))
-    assert C._models()[0] == G.VERTEX_MODELS[0]
+    assert G.models(G.KEY_MODELS)[0] == G.VERTEX_MODELS[0]

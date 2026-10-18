@@ -1,5 +1,9 @@
 # Flood data packages
 
+V2 uses the cached inputs and `v2-*` outputs in `hy-2025-11/`; see the
+[v2 code map](../docs/planning/v2-code-map.md). Classic surge/briefing generators are retired.
+The geography catalogue remains an offline preparation/test dependency.
+
 Owner: user (volunteer workspace and flood map). This is connection **C1** in the [integration map](../docs/collaboration/integration-map.md).
 
 Each package folder holds what the app shows for one past flood event:
@@ -20,7 +24,6 @@ Each package folder holds what the app shows for one past flood event:
 | `scripts/build_geography.py` | Builds the four files above, `districts.geojson`, and the C1 fixture `contract/fixtures/areas.<package>.json` |
 | `scripts/cut_city_zones.py` | Cuts the city (P-B) into zones and segments along OSM streets, grouped by the city's 4 districts (D30); writes the P-B zones into `geography-source.json` |
 | `<package>/osm-lines.geojson`, `osm-municipality.geojson` | Cached OpenStreetMap roads, railway, river, canals and the municipal boundary (ODbL) |
-| `scripts/build_briefing_fixtures.py` | Writes the C2 area briefing fixtures `contract/fixtures/areaBriefing.*.json` (synthetic records at 10:15 on top of the C1 geography and estimates) |
 | `<package>/run-summary.json` | Parameters, scenes used and flooded area for the run |
 | `SOURCES.md` | Record of every run and its comparison with published maps |
 

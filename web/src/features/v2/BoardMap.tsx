@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { loadGoogleMaps, type Maps } from "../../data/googleMaps";
 import { blocksNow, cssVar, depthBand, type BoardState, type GeoView, type HouseholdView } from "./api";
 import { bindFloodZoom, floodOpacity, drawFlood, loadSim, type Analysis, type Sim } from "./floodLayer";
-import { locationLayers, type MapCollection } from "../../data/locationMap";
+import { readPackageFile, type MapCollection } from "../../data/package";
 import { demoRoom } from "../../data/room";
 
 export type SimMode = "corrected" | "physics" | "off" | "access";
@@ -392,8 +392,8 @@ function DrawnMap({ geo, state, selected, onSelect, houses, simHour, simMode, fo
   useEffect(() => {
     if (!tripOverlay) return;
     let active = true;
-    locationLayers().then(layers => {
-      if (active) setStreets(layers.lines);
+    readPackageFile<MapCollection>("osm-lines.geojson").then(lines => {
+      if (active) setStreets(lines);
     }, () => undefined);
     return () => { active = false; };
   }, [!!tripOverlay]);

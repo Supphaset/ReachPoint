@@ -1,3 +1,0 @@
-.status-share, .status-footer { display: grid; gap: var(--space-2); }
-.status-share .btn { width: 100%; }
-.status-footer .btn { justify-self: start; }

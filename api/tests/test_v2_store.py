@@ -249,14 +249,6 @@ def test_english_case_messages_keep_the_original_family_words(storage):
     assert all(o.get("en") for o in R._state(R.room())["world"].outbound)
 
 
-def test_legacy_registry_reset_deletes_v2_storage(storage):
-    S.save("store-test", R.room())
-    R._rooms_ref.reset("store-test")
-    assert S.load("store-test") is None
-    assert storage.deleted.wait(2)
-    assert not storage.docs
-
-
 def test_new_changes_after_reset_are_durable(storage):
     R.clock(R.ClockIn(action="reset"))
     R.clock(R.ClockIn(action="advance"))

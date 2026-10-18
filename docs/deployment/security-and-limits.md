@@ -16,8 +16,8 @@ Minute limits are thread-safe token buckets: the full allowance is available ini
 | Copilot questions | 8/min/IP and 30 per 15 minutes/IP |
 | Live calls | 3 concurrent globally; 1 concurrent/IP; 4 starts per 15 minutes/IP |
 | Live duration | Hard stop at 5 minutes, including connection setup |
-| Other POSTs, including classic when locally enabled | 120/min/IP |
-| GETs, including polling, health, assets and classic | 600/min/IP |
+| Other POSTs | 120/min/IP |
+| GETs, including polling, health and assets | 600/min/IP |
 | HTTP POST body | 32 KiB, including unknown JSON fields |
 | Live WebSocket frame | 64,000 bytes audio; 4,096 characters JSON; spoken turn 600 characters |
 | In-memory rooms | 300, adjustable with `REACHPOINT_MAX_ROOMS` |
@@ -36,7 +36,6 @@ The browser's shared API client reads 429 before generic errors, and the chat di
 | `RP_GEMINI_CALLS_15MIN` | `400` | All Gemini REST attempts (including retries and copilot tool rounds) plus each Live connection reserve a call before contacting Google |
 | `RP_LIVE_MIN_15MIN` | `45` | Live starts reserve five minutes; successful cleanup refunds unused minutes |
 | `RP_FIRESTORE` | unset | `1` saves demo rooms in Firestore; usage counters are always in memory |
-| `RP_CLASSIC_ENABLED` | `0` on Cloud Run, `1` locally | Cloud Run rejects classic POSTs with 410; classic voice is always retired |
 | `REACHPOINT_GEMINI` | `auto` | Judging deploy script uses `key`; keep the paid key in Secret Manager/environment |
 | `REACHPOINT_AI` | `on` | `off` avoids live Gemini work (tests/offline) |
 
@@ -71,15 +70,17 @@ Browser HTTP requests with an Origin must match this exact allowlist, also used 
 - `https://reachpoint-plxxmixu6a-as.a.run.app`
 - `http://localhost` and `http://127.0.0.1` at ports 3000, 4173, 5173, 8000 and 8080
 
-Requests without Origin remain available for health checks and CLI clients; CORS is not caller authentication. WebSockets require Origin. Invalid room IDs become fresh random rooms at the HTTP boundary; accepted pattern is `^[A-Za-z0-9_-]{1,64}$`. Household and zone path/query IDs are checked before lookups. POST strings and lists are bounded, including classic models (general text 2,000, string-list items 80, lists 200, count dictionaries 40). V2 keeps tighter text limits: chat/copilot 600, plans 300, team names 80, checklist 20.
+Requests without Origin remain available for health checks and CLI clients; CORS is not caller authentication. WebSockets require Origin. Invalid room IDs become fresh random rooms at the HTTP boundary; accepted pattern is `^[A-Za-z0-9_-]{1,64}$`. Household and zone path/query IDs are checked before lookups. V2 POST strings and lists are bounded: chat/copilot 600, plans 300, team names 80, checklist 20.
 
 The requested identity policy uses the **left-most valid X-Forwarded-For IP**, falling back to `request.client.host` if the first entry is missing/invalid. It ignores `Fastly-Client-IP`. Google documents a proxy chain and warns that existing XFF entries can be supplied by clients. The left-most entry cannot be treated as authenticated identity on the directly public Run origins. Firebase's published documentation does not establish a trusted Fastly header contract. Verify actual Hosting and direct-origin forwarding before judging; global paid caps remain necessary even when IP identities can be spoofed.
 
-## Prompts and classic routes
+## Prompts and retired routes
 
-The v2 intake reader and copilot already delimit caller text as data. The plan reader now wraps the plan in labelled JSON data (including the local Claude route). Classic intake extraction already uses a data block; classic conversation SDK inputs now explicitly label JSON as caller data. Typed Live input is labelled JSON data; the Live system instruction treats speech as data and delegates recorded turns to the deterministic intake agent. These boundaries and quoted-fact checks reduce injection effects; they are not a proof that a generative model cannot follow malicious speech.
+The v2 intake reader and copilot already delimit caller text as data. The plan reader now wraps the plan in labelled JSON data (including the local Claude route). Typed Live input is labelled JSON data; the Live system instruction treats speech as data and delegates recorded turns to the deterministic intake agent. These boundaries and quoted-fact checks reduce injection effects; they are not a proof that a generative model cannot follow malicious speech.
 
-On Cloud Run, **all classic POST routes outside `/api/v2/`** return 410: intake, call sessions/turn/location/pin/confirm, location preview, claims, allocations, team/resource/listing changes, report approvals/rejections/links, zone missions/segments, demo reset/replay, water observations and plan asks. V2 uses none of these writes. `/api/config` remains for the Maps browser key; classic GET views remain available under GET quotas and headers, but classic briefing GETs cannot schedule model work while disabled. `/api/call/sessions/{id}/live` is disabled everywhere. The deploy script explicitly sets `RP_CLASSIC_ENABLED=0`.
+Classic browser screens and API handlers were removed in [decision 0012](../decisions/0012-v2-only-repository.md).
+Retired API paths return 404 in every environment. `/api/config` remains for the Maps browser key,
+and `/api/health` remains as a v2 health alias. `RP_CLASSIC_ENABLED` is no longer used.
 
 Credentials are read from environment only; implicit private-file fallback was removed from Gemini and Pinpoint. No private credential file was read. The urgent landmark reply now asks to confirm/move the pin in English and Thai, without repeating “Where is your house?”.
 
@@ -127,7 +128,7 @@ After the reviewed image is deployed, set service-wide minimum/maximum to one, c
 ```sh
 gcloud run services update reachpoint --project=reachpoint-main --region=asia-southeast1 \
   --min=1 --max=1 --min-instances=0 --max-instances=1 --cpu=1 --memory=1Gi --no-cpu-throttling \
-  --update-env-vars=RP_FIRESTORE=1,RP_GEMINI_CALLS_15MIN=400,RP_LIVE_MIN_15MIN=45,RP_CLASSIC_ENABLED=0
+  --update-env-vars=RP_FIRESTORE=1,RP_GEMINI_CALLS_15MIN=400,RP_LIVE_MIN_15MIN=45
 ```
 
 ## Verification after deployment

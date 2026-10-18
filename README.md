@@ -74,12 +74,12 @@ bar at the top walks you through it; **Explore freely** opens everything else.
    water estimate and shelter card; choose **Need a team** and tick the get-ready checklist.
    Optional Thai example: *"น้ำถึงเอวแล้ว อยู่กับแม่ แม่เดินไม่ได้ บ้านเลขที่ 52/9 ถนนเพชรเกษม ซอย 2"*
    means *"Water is up to my waist; I'm with my mother, who cannot walk; house 52/9, Phetkasem Soi 2."*
-3. **Volunteer.** Turn on **Water**, open **Urgent**, set a synthetic team name and mark **Do first**.
+3. **Volunteer.** Open **Volunteer** in a second tab so the family phone stays open in its original tab. Turn on **Water**, open **Urgent**, set a synthetic team name and mark **Do first**.
    Open the family's zone (**B5** for the sample), choose **I'll go here**, pick **Boat** and **6** seats, then
    **✦ Suggest visiting order (Gemini)**: the order with a reason and the family's words per house, seats kept free,
    what to bring and streets to check. Edit it and post. The **Mission** page draws the boat's route over the flooded
    streets and has **Picked up**. A team report prompts the family to confirm; it does not prove receipt.
-4. Return to the family phone to see its plan update. D12 is a separate example zone: the sample address
+4. Return to the original family tab to see its plan update. Navigating away from Report and returning starts a fresh chat. D12 is a separate example zone: the sample address
    resolves to **B5**, so post a B5 plan too to demonstrate an update to this same family.
 5. **Demo controls** are bottom-right behind **Demo ⋯**: +30 min, Rain alert, River rising,
    Flood the system and Reset. Reset affects only your demo room.
@@ -205,12 +205,13 @@ Never enter real personal data.
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -r api/requirements-dev.txt
-(cd web && npm ci && VITE_DATA=api npm run build)
+(cd web && npm ci && npm run build)
 .venv/bin/python -m uvicorn api.main:app --port 8093     # http://localhost:8093
 .venv/bin/python -m pytest -q api/tests && (cd web && npm test)
 ```
 
 Rebuild the data: `data/scripts/build_v2_buildings.py`, `fetch_v2_streets.py`, `build_v2_terrain.py` (Earth Engine),
-then `build_v2_flood_sim.py`, `build_v2_scenario.py`, `api/scripts/v2_batch_read.py`, `python -m api.v2.board`
-(time-lapse summary) and `api/scripts/eval_v2.py`. The earlier role screens (coordinator desk, team screens) are
-still in the code at `/classic`.
+then `build_v2_basin.py`, `build_v2_basin_rain.py`, `build_v2_basin_sim.py`, `publish_v2_sim.py`,
+`build_v2_scenario.py`, `api/scripts/v2_batch_read.py`, `python -m api.v2.board`
+(time-lapse summary) and `api/scripts/eval_v2.py`. The repository now runs v2 only; classic screens and APIs were retired in
+[decision 0012](docs/decisions/0012-v2-only-repository.md). See the [v2 code map](docs/planning/v2-code-map.md).

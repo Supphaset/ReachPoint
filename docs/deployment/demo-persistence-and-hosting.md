@@ -1,7 +1,7 @@
 # Demo persistence and Firebase Hosting
 
 Implemented at the owner's request on 17 October 2026. Only synthetic v2 demo rooms are persisted. No cloud
-resources were created by this change. The older v1 rooms and call sessions remain in memory.
+resources were created by this change. Classic rooms and call sessions were removed on 18 October 2026 ([decision 0012](../decisions/0012-v2-only-repository.md)).
 
 ## Owner setup
 
@@ -62,11 +62,6 @@ Hosting has a 60-second HTTP timeout. The external work on these routes previous
 - `POST /api/v2/chat/sessions/{sid}/turn`: model reading and geocoding with retries; now a 15-second reader budget,
   parallel geocoding with a 10-second budget per lookup (at most one additional lookup).
 - `POST /api/v2/plans`: model retries; now a 20-second total budget with the rule parser as fallback.
-- `POST /api/call/sessions/{session_id}/turn`: unbounded SDK retries; now extraction is bounded to 20 seconds
-  (retryable 503 on expiry), reply generation to 10 seconds, and the location search has its existing 10-second
-  HTTP timeout.
-- `POST /api/intake/text` and `POST /api/call/sessions/{session_id}/confirm`: multiple extraction models plus
-  geocoding; extraction now has a 20-second total budget and geocoding a 10-second budget, with rule fallbacks.
 
 These are budgets for optional external reads, not an end-to-end latency guarantee under saturation or a cold
 CPU-heavy rebuild. Late model results cannot mutate rooms. WebSocket calls retain their separate 10-minute cap

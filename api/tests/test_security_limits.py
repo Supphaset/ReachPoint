@@ -18,7 +18,6 @@ from api.v2 import limits as L, routes as R, store as S
     ("POST", "/api/v2/chat/sessions/s/turn", 20, {}),
     ("POST", "/api/v2/v/copilot", 8, {}),
     ("POST", "/api/v2/clock", 10, {"action": "reset"}),
-    ("POST", "/api/demo/reset", 10, {}),
     ("POST", "/api/anything", 120, {}),
     ("GET", "/api/v2/state", 600, {}),
 ])
@@ -159,7 +158,7 @@ def test_sessions_per_room(monkeypatch):
     assert err.value.status_code == 429 and len(v.sessions) == 200
 
 
-def test_headers_origins_429_body_and_classic_shutdown(monkeypatch):
+def test_headers_origins_429_body_and_retired_classic_routes(monkeypatch):
     import api.main as main
     from api.security import HEADERS, ORIGINS
     c = TestClient(main.app)
@@ -175,8 +174,7 @@ def test_headers_origins_429_body_and_classic_shutdown(monkeypatch):
     assert response.status_code == 429 and response.json() == {"error": "rate_limited", "retryAfter": 7}
     assert response.headers["Retry-After"] == "7"
     monkeypatch.setattr(L.limits, "take", lambda rules: 0)
-    monkeypatch.setenv("K_SERVICE", "reachpoint")
-    assert c.post("/api/intake/text", json={"text": "synthetic"}).status_code == 410
+    assert c.post("/api/intake/text", json={"text": "synthetic"}).status_code == 404
     assert c.post("/api/v2/chat/sessions", json={}).status_code == 200
 
 
@@ -184,8 +182,7 @@ def test_body_and_identifier_limits_and_fresh_room():
     import api.main as main
     c = TestClient(main.app)
     assert c.post("/api/v2/chat/sessions/s/turn", json={"text": "x" * 601}).status_code == 422
-    assert c.post("/api/ask-teams", json={"suggestionId": "x", "teamIds": ["x"] * 201}).status_code == 422
-    assert c.post("/api/intake/text", json={"text": "x" * 32769}).status_code == 413
+    assert c.post("/api/v2/chat/sessions/s/turn", json={"text": "x" * 32769}).status_code == 413
     assert c.get("/api/v2/v/cases/bad!id").status_code == 422
     assert c.get("/api/v2/v/blocks?zone=bad!id").status_code == 422
     r = c.get("/api/v2/health", headers={"X-Demo-Room": "../../invalid"})
@@ -202,7 +199,7 @@ def test_websocket_origin_and_classic_voice_rejected():
         with pytest.raises(WebSocketDisconnect) as exc:
             with c.websocket_connect(path, headers=headers):
                 pytest.fail("Unexpected socket acceptance")
-        assert exc.value.code == 1008
+        assert exc.value.code == (1000 if path.startswith("/api/call/") else 1008)
 
 
 def test_live_call_timeout_cancels_tasks_and_releases_slot(monkeypatch):
@@ -274,15 +271,6 @@ def test_csp_edge_mirror_and_binary_cache_unchanged():
     assert TestClient(main.app).get("/api/v2/sim.bin").headers["cache-control"] == "public, max-age=86400"
 
 
-def test_classic_reset_releases_the_same_room_lease():
-    registry = Rooms(cap=1)
-    lease = registry.acquire("old")
-    assert registry.reset("old") is lease
-    registry.release(lease)
-    registry.get("new")
-    assert len(registry) == 1
-
-
 def test_model_body_schemas_bound_strings_and_collections():
     import api.main as main
     from pydantic import BaseModel
@@ -342,17 +330,6 @@ def test_voice_worker_pins_room_until_its_write_finishes(monkeypatch):
             finish.set()
         assert task.result() == {"ok": True}
     registry.get("another")
-
-
-def test_every_classic_write_is_disabled_on_cloud_run(monkeypatch):
-    import api.main as main
-    monkeypatch.setenv("K_SERVICE", "reachpoint")
-    client = TestClient(main.app)
-    for route in main.app.routes:
-        if "POST" in (getattr(route, "methods", None) or []) and route.path.startswith("/api/") and not route.path.startswith("/api/v2/"):
-            import re
-            path = re.sub(r"\{[^}]+\}", "synthetic", route.path)
-            assert client.post(path, json={}).status_code == 410, path
 
 
 def test_board_cache_has_global_and_per_room_bounds(monkeypatch):

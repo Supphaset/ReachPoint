@@ -14,7 +14,7 @@ import re
 
 from api.ai import gemini
 from api.ai.budget import within
-from api.intake.extract import MODELS as KEY_MODELS
+from api.ai.gemini import KEY_MODELS
 from api.v2.reader import Fact, Read, normalise, read_rules
 
 USE_AI = os.environ.get("REACHPOINT_AI", "on") != "off"
