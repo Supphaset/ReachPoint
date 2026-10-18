@@ -3,5 +3,6 @@ fastapi==0.133.0
 uvicorn[standard]==0.34.0
 httpx==0.28.1             # Gemini REST and Pinpoint
 google-genai==2.30.0     # Gemini Live voice
+numpy==2.5.4              # report/model assimilation (api/v2/assim.py)
 shapely==2.2.0            # zones, sectors and route geometry
 google-cloud-firestore==2.21.0  # durable v2 demo rooms via Cloud Run identity
