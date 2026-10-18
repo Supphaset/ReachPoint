@@ -56,9 +56,12 @@ def test_model_cannot_overload_runs_or_split_households(ctx):
         v["run"] = 1
     ctx["families"][0]["people"] = 5
     out = suggest.validate(raw, ctx)
-    assert [v["householdId"] for v in out["order"]] == ["HH1"]
-    assert out["spareSeats"] == 1
-    assert len(out["warnings"]) == 2
+    # The model put everyone in run 1; the server re-packs them in the model's order so no run is over the seats.
+    seats, loads = ctx["team"]["seats"], {}
+    for v in out["order"]:
+        loads[v["run"]] = loads.get(v["run"], 0) + next(h["people"] for h in ctx["families"] if h["id"] == v["householdId"])
+    assert [v["householdId"] for v in out["order"]] == ["HH1", "HH2", "HH3"]
+    assert len(loads) > 1 and all(n <= seats for n in loads.values())
 
 
 @pytest.mark.parametrize("vehicle,hi,walk,expected", [("truck", 1.1, 0, False), ("truck", .9, 0, True), ("foot", .4, 0, False), ("foot", .1, 1, False), ("boat", 3, 1, True), ("truck", None, 0, False)])

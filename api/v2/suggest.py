@@ -106,6 +106,10 @@ def validate(raw, ctx):
     fams = {r["id"]: r for r in ctx["families"]}
     seats = ctx["team"]["seats"]
     used, order, warnings = set(), [], []
+    # Keep seats free on every run for people found on the way, unless a household needs the whole boat.
+    keep = ctx["reserveTarget"] if ctx["unheard"].get("streets") else 0
+    cap = max(seats - keep, max((h["people"] or 0 for h in fams.values() if h["reachable"]), default=0), 1) if keep else seats
+    cap = min(cap, seats)
     loads = {}
     for v in out["order"]:
         h = fams.get(v["householdId"])
@@ -118,10 +122,15 @@ def validate(raw, ctx):
         if h["people"] is None:
             warnings.append(f"{h['id']}: " + ("ตรวจสอบจำนวนคนก่อนจัดที่นั่ง" if thai else "confirm household size before allocating seats"))
             continue
-        if loads.get(v["run"], 0) + h["people"] > seats:
+        if h["people"] > seats:
             warnings.append(f"{h['id']}: " + ("ต้องใช้พาหนะใหญ่ขึ้นหรืออีกเที่ยว" if thai else "needs a larger vehicle or another run"))
             continue
-        loads[v["run"]] = loads.get(v["run"], 0) + h["people"]
+        # Gemini sets the order; the runs are packed here, in that order, so no seat count is the model's arithmetic.
+        run = max(loads, default=1)
+        if loads.get(run, 0) + h["people"] > cap:
+            run += 1
+        v["run"] = run
+        loads[run] = loads.get(run, 0) + h["people"]
         if re.search(r"[<>\n\r]|\*\*|\]\(", v["reason"]) or not _text_ok(v["reason"], ctx):
             v["reason"] = "ตามลำดับความเร่งด่วน" if thai else "Reported needs and waiting time"
         if not v["quote"] or not any(v["quote"] in text for text in h["texts"]):
@@ -137,7 +146,7 @@ def validate(raw, ctx):
         out["summary"] = "ทบทวนก่อนส่งแผน" if thai else "Review before posting the plan"
     # Compute capacity; never accept the model's spare-seat arithmetic.
     target = ctx["reserveTarget"] if streets else 0
-    out["spareSeats"] = min(target, min((seats - n for n in loads.values()), default=seats))
+    out["spareSeats"] = min(target, seats - loads[max(loads)] if loads else seats)   # free seats on the last run
     return out if order or out["checkStreets"] else None
 
 
