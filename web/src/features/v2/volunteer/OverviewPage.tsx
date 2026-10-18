@@ -139,7 +139,7 @@ export function ZonePanel({ id, team, water, onClose, onPosted }: { id: string; 
   return <aside ref={panel} className="p3-zone-panel" tabIndex={-1} onKeyDown={event => { if (event.key === "Escape") onClose(); }} aria-label={`Zone ${id} summary`}>
     <header className="p4-zone-heading">
       <button className="btn btn-ghost p4-zone-back" onClick={onClose}>← <Tr th="กลับไปที่รายการ" en="Back to list" /></button>
-      <small><Tr th="โซนช่วยเหลือ" en="Response zone" /></small><h2>{id} · {zone?.label}</h2>
+      <small><Tr th="โซนช่วยเหลือ" en="Response zone" /></small><h2>{id} · <Tr th={zone?.label ?? ""} en={(zone as { labelEn?: string | null } | undefined)?.labelEn ?? zone?.label ?? ""} /></h2>
     </header>
     {error && <p role="alert">{error}</p>}
     {!detail && !error && <p role="status"><Tr th="กำลังโหลด" en="Loading zone…" /></p>}
